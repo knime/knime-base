@@ -173,7 +173,7 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
         final List<LongFunction<FilterPartition>> rowNumberFilterSpecs = new ArrayList<>();
         for (final var criterion : rowNumberCriteria) {
             rowNumberFilterSpecs
-                .add(RowNumberFilterSpec.toFilterSpec(criterion.m_operator, criterion.m_filterValueParameters));
+                .add(RowNumberFilterSpec.toPartitionFunction(criterion.m_operator, criterion.m_filterValueParameters));
         }
         return rowNumberFilterSpecs;
     }

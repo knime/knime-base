@@ -1,13 +1,72 @@
 {
   "data" : {
     "model" : {
-      "matchCriteria" : "AND",
+      "matchCriteria" : "OR",
       "predicates" : [ {
         "column" : {
-          "regularChoice" : "BoolCol"
+          "specialChoice" : "ROW_ID"
         },
-        "columnType" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-        "operator" : "IS_MISSING"
+        "operator" : "NEQ",
+        "filterValueParameters" : {
+          "@class" : "org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterParameters",
+          "operator" : "NEQ",
+          "predicateValues" : {
+            "values" : [ { } ],
+            "inputKind" : "SINGLE"
+          }
+        }
+      }, {
+        "column" : {
+          "regularChoice" : "StringCol"
+        },
+        "operator" : "WILDCARD",
+        "filterValueParameters" : {
+          "@class" : "org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterParameters",
+          "operator" : "WILDCARD",
+          "predicateValues" : {
+            "values" : [ { } ],
+            "inputKind" : "SINGLE"
+          }
+        }
+      }, {
+        "column" : {
+          "regularChoice" : "LongCol"
+        },
+        "operator" : "WILDCARD",
+        "filterValueParameters" : {
+          "@class" : "org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterParameters",
+          "operator" : "WILDCARD",
+          "predicateValues" : {
+            "values" : [ { } ],
+            "inputKind" : "SINGLE"
+          }
+        }
+      }, {
+        "column" : {
+          "regularChoice" : "BooleanCol"
+        },
+        "operator" : "IS_FALSE",
+        "filterValueParameters" : {
+          "@class" : "org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterParameters",
+          "operator" : "IS_FALSE",
+          "predicateValues" : {
+            "values" : [ ],
+            "inputKind" : "SINGLE"
+          }
+        }
+      }, {
+        "column" : {
+          "regularChoice" : "UriSetCol"
+        },
+        "operator" : "IS_NOT_MISSING",
+        "filterValueParameters" : {
+          "@class" : "org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterParameters",
+          "operator" : "IS_NOT_MISSING",
+          "predicateValues" : {
+            "values" : [ ],
+            "inputKind" : "SINGLE"
+          }
+        }
       } ],
       "domains" : "RETAIN",
       "outputMode" : "MATCHING"
@@ -46,13 +105,13 @@
           "outputMode" : {
             "oneOf" : [ {
               "const" : "MATCHING",
-              "title" : "Matching rows at first output, non-matching at second output"
+              "title" : "Output matching rows"
             }, {
               "const" : "NON_MATCHING",
-              "title" : "Non-matching rows at first output, matching at second output"
+              "title" : "Output non-matching rows"
             } ],
-            "title" : "Splitting behavior",
-            "description" : "Determines whether matching rows are output at the first port and non-matching rows are output at the second port, or vice-versa.",
+            "title" : "Filter behavior",
+            "description" : "Determines whether only matching or non-matching rows are output.",
             "default" : "MATCHING"
           },
           "predicates" : {
@@ -87,12 +146,15 @@
                   "default" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}"
                 },
                 "filterValueParameters" : {
-                  "type" : "object"
+                  "type" : "object",
+                  "default" : {
+                    "value" : ""
+                  }
                 },
                 "operator" : {
                   "type" : "string",
                   "title" : "Operator",
-                  "default" : "IS_MISSING"
+                  "default" : "EQ"
                 }
               }
             },
@@ -103,7 +165,11 @@
                 "regularChoice" : "BoolCol"
               },
               "columnType" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-              "operator" : "IS_MISSING"
+              "operator" : "EQ",
+              "filterValueParameters" : {
+                "@class" : "org.knime.base.node.preproc.filter.row3.operators.defaults.SingleStringParameters",
+                "value" : ""
+              }
             } ]
           }
         }
@@ -184,8 +250,7 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/outputMode",
         "options" : {
-          "format" : "radio",
-          "radioLayout" : "vertical"
+          "format" : "valueSwitch"
         }
       } ]
     } ]
@@ -274,7 +339,19 @@
     "scope" : "#/properties/model/properties/predicates/items/properties/columnType",
     "values" : [ {
       "indices" : [ 0 ],
-      "value" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}"
+      "value" : null
+    }, {
+      "indices" : [ 1 ],
+      "value" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.StringCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}"
+    }, {
+      "indices" : [ 2 ],
+      "value" : null
+    }, {
+      "indices" : [ 3 ],
+      "value" : null
+    }, {
+      "indices" : [ 4 ],
+      "value" : null
     } ]
   }, {
     "scope" : "#/properties/model/properties/predicates/items/properties/columnType",
@@ -336,6 +413,34 @@
     "providedOptionName" : "dynamicSettings",
     "values" : [ {
       "indices" : [ 0 ],
+      "value" : {
+        "data" : {
+          "@class" : "org.knime.base.node.preproc.filter.row3.operators.rowkey.RowKeyEqualsParameters",
+          "caseSensitivity" : "CASE_SENSITIVE",
+          "value" : ""
+        },
+        "schema" : "{\"type\":\"object\",\"properties\":{\"caseSensitivity\":{\"oneOf\":[{\"const\":\"CASE_SENSITIVE\",\"title\":\"Case sensitive\"},{\"const\":\"CASE_INSENSITIVE\",\"title\":\"Case insensitive\"}],\"title\":\"Case matching\",\"description\":\"Whether the comparison should be case sensitive or not.\",\"default\":\"CASE_SENSITIVE\"},\"value\":{\"type\":\"string\",\"title\":\"RowID\",\"description\":\"The RowID to compare with.\",\"default\":\"\"}}}",
+        "uiSchema" : "{\"elements\":[{\"type\":\"Control\",\"scope\":\"#/properties/caseSensitivity\",\"options\":{\"format\":\"valueSwitch\"}},{\"type\":\"Control\",\"scope\":\"#/properties/value\"}]}"
+      }
+    }, {
+      "indices" : [ 1 ],
+      "value" : {
+        "data" : {
+          "@class" : "org.knime.base.node.preproc.filter.row3.operators.pattern.PatternFilterParameters",
+          "caseSensitivity" : "CASE_INSENSITIVE",
+          "pattern" : ""
+        },
+        "schema" : "{\"type\":\"object\",\"properties\":{\"caseSensitivity\":{\"oneOf\":[{\"const\":\"CASE_SENSITIVE\",\"title\":\"Case sensitive\"},{\"const\":\"CASE_INSENSITIVE\",\"title\":\"Case insensitive\"}],\"title\":\"Case matching\",\"description\":\"Whether to consider case when matching the pattern.\",\"default\":\"CASE_INSENSITIVE\"},\"pattern\":{\"type\":\"string\",\"title\":\"Pattern\",\"description\":\"The pattern to filter for.\",\"default\":\"\"}}}",
+        "uiSchema" : "{\"elements\":[{\"type\":\"Control\",\"scope\":\"#/properties/caseSensitivity\",\"options\":{\"format\":\"valueSwitch\"}},{\"type\":\"Control\",\"scope\":\"#/properties/pattern\"}]}"
+      }
+    }, {
+      "indices" : [ 2 ],
+      "value" : null
+    }, {
+      "indices" : [ 3 ],
+      "value" : null
+    }, {
+      "indices" : [ 4 ],
       "value" : null
     } ]
   }, {
@@ -344,18 +449,51 @@
     "values" : [ {
       "indices" : [ 0 ],
       "value" : [ {
+        "id" : "EQ",
+        "text" : "Equals"
+      }, {
+        "id" : "NEQ",
+        "text" : "Not equal"
+      }, {
+        "id" : "REGEX",
+        "text" : "Matches regex"
+      }, {
+        "id" : "WILDCARD",
+        "text" : "Matches wildcard"
+      } ]
+    }, {
+      "indices" : [ 1 ],
+      "value" : [ {
+        "id" : "EQ",
+        "text" : "Equals"
+      }, {
+        "id" : "NEQ",
+        "text" : "Is not equal"
+      }, {
+        "id" : "NEQ_MISS",
+        "text" : "Is not equal (nor missing)"
+      }, {
+        "id" : "REGEX",
+        "text" : "Matches regex"
+      }, {
+        "id" : "WILDCARD",
+        "text" : "Matches wildcard"
+      }, {
         "id" : "IS_MISSING",
         "text" : "Is missing"
       }, {
         "id" : "IS_NOT_MISSING",
         "text" : "Is not missing"
-      }, {
-        "id" : "IS_TRUE",
-        "text" : "Is true"
-      }, {
-        "id" : "IS_FALSE",
-        "text" : "Is false"
       } ]
+    }, {
+      "indices" : [ 2 ],
+      "value" : [ ]
+    }, {
+      "indices" : [ 3 ],
+      "value" : [ ]
+    }, {
+      "indices" : [ 4 ],
+      "value" : [ ]
     } ]
   }, {
     "scope" : "#/properties/model/properties/predicates",
@@ -367,7 +505,11 @@
           "regularChoice" : "BoolCol"
         },
         "columnType" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-        "operator" : "IS_MISSING"
+        "operator" : "EQ",
+        "filterValueParameters" : {
+          "@class" : "org.knime.base.node.preproc.filter.row3.operators.defaults.SingleStringParameters",
+          "value" : ""
+        }
       }
     } ]
   } ],

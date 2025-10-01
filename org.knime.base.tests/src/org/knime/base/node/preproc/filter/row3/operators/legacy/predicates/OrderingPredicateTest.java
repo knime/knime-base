@@ -46,7 +46,7 @@
  * History
  *   15 Jul 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.filter.row3.predicates;
+package org.knime.base.node.preproc.filter.row3.operators.legacy.predicates;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.junit.jupiter.api.Assertions.assertTrue;

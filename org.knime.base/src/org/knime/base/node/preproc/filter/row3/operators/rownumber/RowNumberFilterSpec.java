@@ -164,7 +164,7 @@ public final class RowNumberFilterSpec {
     }
 
     /**
-     * If supported, get the criterion as a row number filter specification.
+     * Transforms the parameters into a partition function.
      *
      * @param operatorId the operator id
      * @param filterValueParameters suitable parameters
@@ -172,7 +172,7 @@ public final class RowNumberFilterSpec {
      * @return row number filter specification
      * @throws InvalidSettingsException if the filter criterion contains an unsupported operator or the value is missing
      */
-    public static LongFunction<FilterPartition> toFilterSpec(final String operatorId,
+    public static LongFunction<FilterPartition> toPartitionFunction(final String operatorId,
         final FilterValueParameters filterValueParameters) throws InvalidSettingsException {
         if (filterValueParameters instanceof LegacyFilterParameters legacyParameters) {
             final var rowNumberFilterSpec = legacyParameters.toFilterSpec();
@@ -184,7 +184,7 @@ public final class RowNumberFilterSpec {
         return toSliceFilter(matchingOperator, filterValueParameters);
     }
 
-    static <P extends FilterValueParameters> LongFunction<FilterPartition> toSliceFilter(
+    private static <P extends FilterValueParameters> LongFunction<FilterPartition> toSliceFilter(
         final RowNumberFilterOperator<P> matchingOperator, final FilterValueParameters filterValueParameters)
         throws InvalidSettingsException {
         return matchingOperator.createSliceFilter((P)filterValueParameters);

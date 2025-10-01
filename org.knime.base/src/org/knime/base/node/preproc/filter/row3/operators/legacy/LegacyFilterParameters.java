@@ -68,8 +68,16 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.St
  */
 public class LegacyFilterParameters implements FilterValueParameters {
 
+    /**
+     * Legacy filter operator.
+     */
+    // keep name, set directly by framework based on legacy config
     LegacyFilterOperator m_operator;
 
+    /**
+     * The predicate values.
+     */
+    // keep name, set directly by framework based on legacy config
     DynamicValuesInput m_predicateValues;
 
     /**
