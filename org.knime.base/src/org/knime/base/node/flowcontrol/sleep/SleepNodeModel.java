@@ -141,6 +141,9 @@ public class SleepNodeModel extends NodeModel {
     /** Seconds to wait for. */
     static final String CFGKEY_FORSECONDS = "for_seconds";
 
+    /** Milliseconds to wait for. */
+    static final String CFGKEY_FORMILLISECONDS = "for_milliseconds";
+
     /** Hours to wait to. */
     public static final String CFGKEY_TOHOURS = "to_hours";
 
@@ -149,6 +152,9 @@ public class SleepNodeModel extends NodeModel {
 
     /** Seconds to wait to. */
     public static final String CFGKEY_TOSECONDS = "to_seconds";
+
+    /** Milliseconds to wait to. */
+    static final String CFGKEY_TOMILLISECONDS = "to_milliseconds";
 
     /** Path to file to wait for. */
     public static final String CFGKEY_FILEPATH = "path_to_file";
@@ -171,11 +177,15 @@ public class SleepNodeModel extends NodeModel {
 
     private int m_toSec;
 
+    private int m_toMillis;
+
     private int m_forHours;
 
     private int m_forMin;
 
     private int m_forSec = 1;
+
+    private int m_forMillis;
 
     /** One input, one output. */
     protected SleepNodeModel() {
@@ -213,7 +223,8 @@ public class SleepNodeModel extends NodeModel {
             .build();
 
         final var ticker = new AtomicLong();
-        final var targetTime = OffsetDateTime.now().plusHours(m_forHours).plusMinutes(m_forMin).plusSeconds(m_forSec);
+        final var targetTime = OffsetDateTime.now().plusHours(m_forHours).plusMinutes(m_forMin).plusSeconds(m_forSec)
+            .plusNanos(m_forMillis * 1_000_000L);
         final var sleepTime = targetTime.toInstant().toEpochMilli() - System.currentTimeMillis();
         final var padder = paddedSeconds(numFormat, sleepTime / 1000.0);
         final var total = numFormat.format(sleepTime / 1000.0);
@@ -233,7 +244,8 @@ public class SleepNodeModel extends NodeModel {
         // wait until time: H + M + S = H' : M' : S'
         final var now = OffsetDateTime.now();
         final var today = OffsetDateTime.of(now.toLocalDate(), LocalTime.MIDNIGHT, now.getOffset());
-        var targetTime = today.plusHours(m_toHours).plusMinutes(m_toMin).plusSeconds(m_toSec);
+        var targetTime =
+            today.plusHours(m_toHours).plusMinutes(m_toMin).plusSeconds(m_toSec).plusNanos(m_toMillis * 1_000_000L);
         if (targetTime.compareTo(now) < 0) {
             // assume that the next day is meant
             targetTime = targetTime.plusDays(1);
@@ -324,10 +336,12 @@ public class SleepNodeModel extends NodeModel {
             settings.getInt(CFGKEY_FORHOURS);
             settings.getInt(CFGKEY_FORMINUTES);
             settings.getInt(CFGKEY_FORSECONDS);
+            // milliseconds were only introduced with 5.8, so we don't check for CFGKEY_FORMILLISECONDS here
         } else if (selection == WaitMode.WAIT_UNTIL_TIME) {
             settings.getInt(CFGKEY_TOHOURS);
             settings.getInt(CFGKEY_TOMINUTES);
             settings.getInt(CFGKEY_TOSECONDS);
+            // milliseconds were only introduced with 5.8, so we don't check for CFGKEY_TOMILLISECONDS here
         }
 
         if (selection == WaitMode.WAIT_FILE) {
@@ -344,10 +358,12 @@ public class SleepNodeModel extends NodeModel {
             m_forHours = settings.getInt(CFGKEY_FORHOURS);
             m_forMin = settings.getInt(CFGKEY_FORMINUTES);
             m_forSec = settings.getInt(CFGKEY_FORSECONDS);
+            m_forMillis = settings.getInt(CFGKEY_FORMILLISECONDS, 0); // introduced with 5.8
         } else if (m_selection == WaitMode.WAIT_UNTIL_TIME) {
             m_toHours = settings.getInt(CFGKEY_TOHOURS);
             m_toMin = settings.getInt(CFGKEY_TOMINUTES);
             m_toSec = settings.getInt(CFGKEY_TOSECONDS);
+            m_toMillis = settings.getInt(CFGKEY_TOMILLISECONDS, 0); // introduced with 5.8
         } else if (m_selection == WaitMode.WAIT_FILE) {
             m_filePath = settings.getString(CFGKEY_FILEPATH);
             final var sms = new SettingsModelString(CFGKEY_FILESTATUS, null);
@@ -378,10 +394,12 @@ public class SleepNodeModel extends NodeModel {
         settings.addInt(CFGKEY_FORHOURS, m_forHours);
         settings.addInt(CFGKEY_FORMINUTES, m_forMin);
         settings.addInt(CFGKEY_FORSECONDS, m_forSec);
+        settings.addInt(CFGKEY_FORMILLISECONDS, m_forMillis);
 
         settings.addInt(CFGKEY_TOHOURS, m_toHours);
         settings.addInt(CFGKEY_TOMINUTES, m_toMin);
         settings.addInt(CFGKEY_TOSECONDS, m_toSec);
+        settings.addInt(CFGKEY_TOMILLISECONDS, m_toMillis);
 
         settings.addString(CFGKEY_FILEPATH, m_filePath);
         final var sms = new SettingsModelString(CFGKEY_FILESTATUS, FileEvent.MODIFICATION.description());

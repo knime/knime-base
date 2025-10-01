@@ -160,10 +160,10 @@
             "configPaths" : [ [ "wait_option" ] ]
           },
           "forTime" : {
-            "configPaths" : [ [ "for_hours" ], [ "for_minutes" ], [ "for_seconds" ] ]
+            "configPaths" : [ [ "for_hours" ], [ "for_minutes" ], [ "for_seconds" ], [ "for_milliseconds" ] ]
           },
           "toTime" : {
-            "configPaths" : [ [ "to_hours" ], [ "to_min" ], [ "to_seconds" ] ]
+            "configPaths" : [ [ "to_hours" ], [ "to_min" ], [ "to_seconds" ], [ "to_milliseconds" ] ]
           },
           "filePath" : {
             "configKey" : "path_to_file"

@@ -120,7 +120,6 @@ final class SleepNodeParameters implements NodeParameters {
     //create a custom persistor for wait For time
     @Persistor(WaitForTimePersistor.class)
     @Effect(predicate = IsWaitForTime.class, type = EffectType.SHOW)
-    // TODO hide ms
     LocalTime m_forTime = LocalTime.ofSecondOfDay(1);
 
     // Wait to time duration fields
@@ -128,7 +127,6 @@ final class SleepNodeParameters implements NodeParameters {
     //create a custom persistor for wait to Time
     @Persistor(WaitToTimePersistor.class)
     @Effect(predicate = IsWaitToTime.class, type = EffectType.SHOW)
-    // TODO hide ms
     LocalTime m_toTime = LocalTime.MIDNIGHT;
 
     static abstract class WaitPersistor implements NodeParametersPersistor<LocalTime> {
@@ -139,10 +137,14 @@ final class SleepNodeParameters implements NodeParameters {
 
         private final String m_cfgKeySeconds;
 
-        protected WaitPersistor(final String cfgKeyHours, final String cfgKeyMinutes, final String cfgKeySeconds) {
+        private final String m_cfgKeyMilliseconds;
+
+        protected WaitPersistor(final String cfgKeyHours, final String cfgKeyMinutes, final String cfgKeySeconds,
+            final String cfgKeyMilliseconds) {
             m_cfgKeyHours = cfgKeyHours;
             m_cfgKeyMinutes = cfgKeyMinutes;
             m_cfgKeySeconds = cfgKeySeconds;
+            m_cfgKeyMilliseconds = cfgKeyMilliseconds;
         }
 
         @Override
@@ -150,6 +152,7 @@ final class SleepNodeParameters implements NodeParameters {
             settings.addInt(m_cfgKeyHours, time.getHour());
             settings.addInt(m_cfgKeyMinutes, time.getMinute());
             settings.addInt(m_cfgKeySeconds, time.getSecond());
+            settings.addInt(m_cfgKeyMilliseconds, time.getNano() / 1_000_000);
         }
 
         @Override
@@ -157,25 +160,28 @@ final class SleepNodeParameters implements NodeParameters {
             int hours = settings.getInt(m_cfgKeyHours);
             int minutes = settings.getInt(m_cfgKeyMinutes);
             int seconds = settings.getInt(m_cfgKeySeconds);
-            return LocalTime.of(hours, minutes, seconds);
+            int nanoseconds = settings.getInt(m_cfgKeyMilliseconds, 0) * 1_000_000; // introduced with 5.8
+            return LocalTime.of(hours, minutes, seconds, nanoseconds);
         }
 
         @Override
         public String[][] getConfigPaths() {
-            return new String[][]{{m_cfgKeyHours}, {m_cfgKeyMinutes}, {m_cfgKeySeconds}};
+            return new String[][]{{m_cfgKeyHours}, {m_cfgKeyMinutes}, {m_cfgKeySeconds}, {m_cfgKeyMilliseconds}};
         }
     }
 
     //Wait for Time Persistor
     static class WaitForTimePersistor extends WaitPersistor {
         public WaitForTimePersistor() {
-            super(SleepNodeModel.CFGKEY_FORHOURS, SleepNodeModel.CFGKEY_FORMINUTES, SleepNodeModel.CFGKEY_FORSECONDS);
+            super(SleepNodeModel.CFGKEY_FORHOURS, SleepNodeModel.CFGKEY_FORMINUTES, SleepNodeModel.CFGKEY_FORSECONDS,
+                SleepNodeModel.CFGKEY_FORMILLISECONDS);
         }
     }
 
     static class WaitToTimePersistor extends WaitPersistor {
         public WaitToTimePersistor() {
-            super(SleepNodeModel.CFGKEY_TOHOURS, SleepNodeModel.CFGKEY_TOMINUTES, SleepNodeModel.CFGKEY_TOSECONDS);
+            super(SleepNodeModel.CFGKEY_TOHOURS, SleepNodeModel.CFGKEY_TOMINUTES, SleepNodeModel.CFGKEY_TOSECONDS,
+                SleepNodeModel.CFGKEY_TOMILLISECONDS);
         }
     }
 
