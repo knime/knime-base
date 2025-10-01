@@ -60,6 +60,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extension
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.NotEqualsNorMissingOperator;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.NotEqualsOperator;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.ValueFilterValidationUtil;
 
 /**
  * Default equality operators for data types that don't have their own registered operators.
@@ -78,6 +79,7 @@ public final class DefaultEqualityOperators {
      * @param dataType the data type to get the operators for
      * @return default implementations for testing equality
      */
+    @SuppressWarnings("restriction")
     public static List<FilterOperator<? extends FilterValueParameters>> getOperators(final DataType dataType) {
         return List.of( //
             new EqualDefault(), //
@@ -85,7 +87,14 @@ public final class DefaultEqualityOperators {
             new NotEqualNorMissingDefault());
     }
 
-    private static final class EqualDefault implements FilterOperator<SingleStringParameters>, EqualsOperator {
+    @SuppressWarnings("restriction")
+    private abstract static class EqualBase implements FilterOperator<SingleStringParameters> {
+
+        private final boolean m_matchTrue;
+
+        EqualBase(final boolean matchTrue) {
+            m_matchTrue = matchTrue;
+        }
 
         @Override
         public Class<SingleStringParameters> getNodeParametersClass() {
@@ -97,31 +106,29 @@ public final class DefaultEqualityOperators {
             final DataType configureDataType, final SingleStringParameters filterParameters)
             throws InvalidSettingsException {
             final var type = runtimeColumnSpec.getType();
+            // the default implementation works only on the _same_ data type
+            ValueFilterValidationUtil.checkSameType(this, type, configureDataType);
             final var cell = filterParameters.createCellAs(type);
-            return v -> cell.equals(v.materializeDataCell());
+            return v -> m_matchTrue == cell.equals(v.materializeDataCell());
         }
 
     }
 
-    private abstract static class NotEqualBase implements FilterOperator<SingleStringParameters> {
+    @SuppressWarnings("restriction")
+    private static final class EqualDefault extends EqualBase implements EqualsOperator {
 
-        @Override
-        public Class<SingleStringParameters> getNodeParametersClass() {
-            return SingleStringParameters.class;
-        }
-
-        @Override
-        public Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec,
-            final DataType configureDataType, final SingleStringParameters filterParameters)
-            throws InvalidSettingsException {
-            final var type = runtimeColumnSpec.getType();
-            final var cell = filterParameters.createCellAs(type);
-            return v -> !cell.equals(v.materializeDataCell());
+        private EqualDefault() {
+            super(true);
         }
 
     }
 
-    private static final class NotEqualDefault extends NotEqualBase implements NotEqualsOperator {
+    @SuppressWarnings("restriction")
+    private static final class NotEqualDefault extends EqualBase implements NotEqualsOperator {
+
+        private NotEqualDefault() {
+            super(false);
+        }
 
         @Override
         public boolean returnTrueForMissingCells() {
@@ -129,6 +136,13 @@ public final class DefaultEqualityOperators {
         }
     }
 
-    private static final class NotEqualNorMissingDefault extends NotEqualBase implements NotEqualsNorMissingOperator {
+    @SuppressWarnings("restriction")
+    private static final class NotEqualNorMissingDefault extends EqualBase implements NotEqualsNorMissingOperator {
+
+        private NotEqualNorMissingDefault() {
+            super(false);
+        }
+
+        // returns false for missing cells
     }
 }
