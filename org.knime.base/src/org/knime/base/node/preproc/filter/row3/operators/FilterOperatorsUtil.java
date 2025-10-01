@@ -76,13 +76,11 @@ import org.knime.base.node.preproc.filter.row3.operators.rowkey.RowKeyEqualityOp
 import org.knime.base.node.preproc.filter.row3.operators.rowkey.RowKeyFilterOperator;
 import org.knime.base.node.preproc.filter.row3.operators.rownumber.RowNumberFilterOperator;
 import org.knime.base.node.preproc.filter.row3.operators.rownumber.RowNumberOperators;
-import org.knime.core.data.BoundedValue;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperator;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperatorsRegistry;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.TypeMappingUtils;
 
 /**
  * Utility class that extends the FilterOperatorsRegistry functionality by adding predicate-based operators (like
@@ -130,7 +128,7 @@ public final class FilterOperatorsUtil {
 
             @Override
             public boolean isApplicable(final DataType dataType) {
-                return TypeMappingUtils.supportsDataType(dataType);
+                return DefaultEqualityOperators.isApplicable(dataType);
             }
         }, //
         // Default comparable (fallback)
@@ -142,7 +140,7 @@ public final class FilterOperatorsUtil {
 
             @Override
             public boolean isApplicable(final DataType dataType) {
-                return TypeMappingUtils.supportsDataType(dataType) && dataType.isCompatible(BoundedValue.class);
+                return DefaultComparableOperators.isApplicable(dataType);
             }
         }, //
         // Pattern matching

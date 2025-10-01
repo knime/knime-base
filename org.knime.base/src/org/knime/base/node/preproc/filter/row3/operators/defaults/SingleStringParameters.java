@@ -48,6 +48,8 @@
  */
 package org.knime.base.node.preproc.filter.row3.operators.defaults;
 
+import org.apache.commons.lang3.StringUtils;
+import org.knime.base.node.preproc.filter.row3.operators.defaults.TypeMappingUtils.ConverterException;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
@@ -55,8 +57,7 @@ import org.knime.core.data.StringValue;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.TypeMappingUtils;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.TypeMappingUtils.ConverterException;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.ValueFilterValidationUtil;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.layout.Before;
 import org.knime.node.parameters.layout.Layout;
@@ -67,8 +68,7 @@ import org.knime.node.parameters.layout.Layout;
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-public class SingleStringParameters implements
-    FilterValueParameters.SingleCellValueParameters<StringCell> {
+public class SingleStringParameters implements FilterValueParameters.SingleCellValueParameters<StringCell> {
 
     @Before(ValuePart.class)
     interface BeforeValuePart {
@@ -108,8 +108,21 @@ public class SingleStringParameters implements
     DataCell createCellAs(final DataType dataType) throws InvalidSettingsException { //
         try {
             return TypeMappingUtils.readDataCellFromString(dataType, m_value);
-        } catch (ConverterException e) {
-            throw new InvalidSettingsException(e);
+        } catch (final ConverterException e) {
+            final var isEmpty = StringUtils.isEmpty(m_value);
+            final var content = isEmpty ? "An empty string" : "The string \"%s\"".formatted(m_value);
+            throw ValueFilterValidationUtil.createInvalidSettingsException(builder -> {
+                builder.withSummary(
+                    String.format("%s does not represent a valid \"%s\"", content, dataType.toPrettyString()));
+                if (e.getMessage() != null && !e.getMessage().isBlank()) {
+                    builder.addTextIssue(e.getMessage());
+                }
+                final var cause = e.getCause();
+                if (cause != null && StringUtils.isNotBlank(cause.getMessage())) {
+                    builder.addTextIssue(String.format("Caused by: %s", cause.getMessage()));
+                }
+                return builder;
+            }, e);
         }
     }
 
@@ -132,7 +145,7 @@ public class SingleStringParameters implements
         }
         try {
             m_value = TypeMappingUtils.getStringFromDataCell(first.materializeDataCell());
-        } catch (ConverterException e) { // NOSONAR
+        } catch (TypeMappingUtils.ConverterException e) { // NOSONAR
             // ignore, keep original string
         }
 
