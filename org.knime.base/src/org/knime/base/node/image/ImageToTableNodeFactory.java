@@ -71,6 +71,7 @@ import org.knime.node.impl.description.PortDescription;
  * @author Thomas Gabriel, KNIME AG, Zurich, Switzerland
  * @author Tobias Koetter, KNIME GmbH, Berlin, Germany
  * @author AI Migration Pipeline v1.1
+ * @noreference This class is not intended to be referenced by clients.
  */
 @SuppressWarnings("restriction")
 public final class ImageToTableNodeFactory extends NodeFactory<ImageToTableNodeModel>

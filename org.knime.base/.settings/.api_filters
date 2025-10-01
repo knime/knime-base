@@ -40,11 +40,33 @@
             </message_arguments>
         </filter>
     </resource>
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.core.internal.ProcessWatchdogEarlyStartup">
+        <filter comment="accepted change in knime-core" id="305422471">
+            <message_arguments>
+                <message_argument value="org.knime.core.internal.ProcessWatchdogEarlyStartup"/>
+                <message_argument value="org.knime.base_5.7.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
     <resource path="src/org/knime/base/node/image/ImageToTableNodeFactory.java" type="org.knime.base.node.image.ImageToTableNodeFactory">
-        <filter id="305365105">
+        <filter comment="image to table NODE is not API" id="337768515">
             <message_arguments>
                 <message_argument value="org.knime.base.node.image.ImageToTableNodeFactory"/>
-                <message_argument value="org.knime.base_5.8.0"/>
+            </message_arguments>
+        </filter>
+        <filter comment="image to table NODE is not API" id="1143996420">
+            <message_arguments>
+                <message_argument value="createKaiNodeInterface()"/>
+            </message_arguments>
+        </filter>
+        <filter comment="image to table NODE is not API" id="1143996420">
+            <message_arguments>
+                <message_argument value="createNodeDialog()"/>
+            </message_arguments>
+        </filter>
+        <filter comment="image to table NODE is not API" id="1227882500">
+            <message_arguments>
+                <message_argument value="createNodeDialogPane()"/>
             </message_arguments>
         </filter>
     </resource>
