@@ -111,7 +111,17 @@ public final class DefaultEqualityOperators {
             final var cell = filterParameters.createCellAs(type);
             return v -> m_matchTrue == cell.equals(v.materializeDataCell());
         }
+    }
 
+    /**
+     * Checks whether the default equality operators are applicable for the given data type.
+     *
+     * @param dataType the data type to check
+     * @return {@code true} if the default equality operators can be used for the given data type, {@code false}
+     *         otherwise
+     */
+    public static boolean isApplicable(final DataType dataType) {
+        return TypeMappingUtils.supportsDataType(dataType);
     }
 
     @SuppressWarnings("restriction")

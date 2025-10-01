@@ -51,6 +51,7 @@ package org.knime.base.node.preproc.filter.row3.operators.defaults;
 import java.util.List;
 import java.util.function.Predicate;
 
+import org.knime.core.data.BoundedValue;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
@@ -141,12 +142,28 @@ public final class DefaultComparableOperators {
     }
 
     /**
-     * Checks if the given data type supports comparison operations.
+     * Checks if the given data type supports comparison operations on execution.
      *
      * @param dataType the data type to check
-     * @return true if the data type has a comparator, false otherwise
+     * @return {@code true} if the data type has a comparator, {@code false} otherwise
      */
     public static boolean isSupported(final DataType dataType) {
+        // legacy behavior where also non-"bounded" types were supported
         return dataType.getComparator() != null;
+    }
+
+    /**
+     * Checks if the given data type is applicable for this operator family, i.e. if the operators of this family are
+     * options for the given data type.
+     *
+     * For example, this check is used to determine whether to show the operators in the filter dialog when a column of
+     * the given data type is selected.
+     *
+     * @param dataType data type to check
+     * @return {@code true} if the operators of this family are applicable for the given data type, {@code false}
+     *         otherwise
+     */
+    public static boolean isApplicable(final DataType dataType) {
+        return TypeMappingUtils.supportsDataType(dataType) && dataType.isCompatible(BoundedValue.class);
     }
 }
