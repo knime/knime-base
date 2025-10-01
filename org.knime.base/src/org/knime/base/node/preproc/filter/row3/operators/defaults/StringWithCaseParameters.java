@@ -49,19 +49,18 @@
 package org.knime.base.node.preproc.filter.row3.operators.defaults;
 
 import org.knime.base.node.preproc.filter.row3.operators.legacy.predicates.StringPredicate;
-import org.knime.core.data.def.StringCell;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 
 /**
- * Parameters for string equality comparisons.
+ * Parameters for string comparisons using a case matching setting.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-public final class StringEqualsParameters extends SingleStringParameters {
+public final class StringWithCaseParameters extends SingleStringParameters {
 
-    StringEqualsParameters() {
+    StringWithCaseParameters() {
         super();
         // for instantiation by framework
     }
@@ -70,7 +69,7 @@ public final class StringEqualsParameters extends SingleStringParameters {
      * Constructs the parameters with the given string value.
      * @param value the string value
      */
-    public StringEqualsParameters(final String value) {
+    public StringWithCaseParameters(final String value) {
         super(value);
     }
 
@@ -79,16 +78,12 @@ public final class StringEqualsParameters extends SingleStringParameters {
     @Widget(title = "Case matching", description = "Whether the comparison should be case sensitive or not.")
     CaseSensitivity m_caseSensitivity = CaseSensitivity.CASE_SENSITIVE;
 
-    StringPredicate toStringPredicate() {
-        return StringPredicate.equality(m_value, m_caseSensitivity == CaseSensitivity.CASE_SENSITIVE);
-    }
-
     /**
-     * Creates a new cell with the current value.
-     * @return the new cell
+     * Creates a string predicate based on the current settings.
+     * @return string predicate
      */
-    public StringCell createCell() {
-        return new StringCell(m_value);
+    public StringPredicate toStringPredicate() {
+        return StringPredicate.equality(m_value, m_caseSensitivity == CaseSensitivity.CASE_SENSITIVE);
     }
 
 }
