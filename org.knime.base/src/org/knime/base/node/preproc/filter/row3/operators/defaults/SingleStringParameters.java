@@ -66,7 +66,9 @@ import org.knime.node.parameters.layout.Layout;
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-public class SingleStringParameters implements FilterValueParameters {
+@SuppressWarnings("restriction")
+public class SingleStringParameters implements
+    FilterValueParameters.SingleCellValueParameters<StringCell> {
 
     @Before(ValuePart.class)
     interface BeforeValuePart {
@@ -86,6 +88,21 @@ public class SingleStringParameters implements FilterValueParameters {
 
     SingleStringParameters(final String value) {
         m_value = value;
+    }
+
+    @Override
+    public StringCell createCell() {
+        return new StringCell(m_value);
+    }
+
+    @Override
+    public void loadFrom(final StringCell valueFromStash) {
+        m_value = valueFromStash.getStringValue();
+    }
+
+    @Override
+    public DataType getSpecificType() {
+        return StringCell.TYPE;
     }
 
     DataCell createCellAs(final DataType dataType) throws InvalidSettingsException { //

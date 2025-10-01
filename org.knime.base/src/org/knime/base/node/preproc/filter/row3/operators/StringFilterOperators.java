@@ -42,16 +42,70 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- * 
+ *
  * History
  *   26 Sept 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.base.node.preproc.filter.row3.operators;
 
+import java.util.List;
+import java.util.function.Predicate;
+
+import org.knime.base.node.preproc.filter.row3.operators.defaults.StringWithCaseParameters;
+import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataType;
+import org.knime.core.data.DataValue;
+import org.knime.core.data.StringValue;
+import org.knime.core.data.def.StringCell;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.EqualsOperatorFamily;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperator;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperatorFamily;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperators;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.ValueFilterValidationUtil;
+
 /**
- * 
+ * Operators for the String data type.
+ *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-public class StringFilterOperators {
+@SuppressWarnings("restriction")
+public final class StringFilterOperators implements FilterOperators {
+
+    @Override
+    public DataType getDataType() {
+        return StringCell.TYPE;
+    }
+
+    @Override
+    public List<FilterOperatorFamily<? extends FilterValueParameters>> getOperatorFamilies() {
+        return List.of( //
+            new EqualsOperatorFamily<StringCell, StringWithCaseParameters>(getDataType(),
+                StringWithCaseParameters.class) {
+
+                @Override
+                protected Predicate<DataValue> getEquality(final DataColumnSpec runtimeColumnSpec,
+                    final FilterOperator<StringWithCaseParameters> operator, final StringWithCaseParameters params)
+                    throws InvalidSettingsException {
+                    final var runtimeColType = runtimeColumnSpec.getType();
+                    if (!runtimeColType.isCompatible(StringValue.class)) {
+                        throw ValueFilterValidationUtil.createInvalidSettingsException(builder -> builder
+                            .withSummary(String.format(
+                                "Operator \"%s\" for column \"%s\" is not supported for column type \"%s\"",
+                                operator.getLabel(), runtimeColumnSpec.getName(), runtimeColType.toPrettyString()))
+                            .addResolutions(
+                                // change input
+                                "Convert the input column to \"%s\" type.".formatted(StringCell.TYPE.toPrettyString()),
+                                // reconfigure
+                                "Select a different operator that is compatible with the column's data type \"%s\""
+                                    .formatted(runtimeColType.toPrettyString())));
+                    }
+                    final var predicate = params.toStringPredicate();
+                    // safe cast due to compatibility check above
+                    return dv -> predicate.test(((StringValue)dv).getStringValue());
+                }
+            });
+    }
 
 }

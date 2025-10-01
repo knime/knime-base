@@ -2800,4 +2800,10 @@
               impl="org.knime.base.node.preproc.filter.row3.nodefuncs.AttributeRangeRowFilterNodeFunc">
         </nodeFunc>
      </extension>
+    <extension
+        point="org.knime.core.ui.filterOperators">
+        <FilterOperators
+            factoryClass="org.knime.base.node.preproc.filter.row3.operators.StringFilterOperators">
+        </FilterOperators>
+    </extension>
 </plugin>
