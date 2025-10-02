@@ -46,11 +46,10 @@
  * History
  *   31 Mar 2024 (jasper): created
  */
-package org.knime.base.node.preproc.filter.row3;
+package org.knime.base.node.preproc.filter.row3.operators.legacy;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.junit.Assert.fail;
 
 import java.util.Arrays;
 import java.util.function.Supplier;
@@ -60,11 +59,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
-import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.TypeBasedOperatorsProvider;
-import org.knime.base.node.preproc.filter.row3.operators.RowNumberFilterSpec;
-import org.knime.base.node.preproc.filter.row3.operators.legacy.DynamicValuesInput;
-import org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterOperator;
+import org.knime.base.node.preproc.filter.row3.FilterDummyDataCellExtension;
+import org.knime.base.node.preproc.filter.row3.RowIdentifiers;
+import org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterOperatorTest.TestInitializer;
 import org.knime.base.node.preproc.filter.row3.operators.legacy.predicates.PredicateFactories;
+import org.knime.base.node.preproc.filter.row3.operators.rownumber.RowNumberFilterSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataTableSpecCreator;
@@ -77,19 +76,16 @@ import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
-import org.knime.node.parameters.NodeParametersInput;
-import org.knime.node.parameters.updates.ButtonReference;
 import org.knime.node.parameters.updates.ParameterReference;
-import org.knime.node.parameters.updates.StateProvider;
 
 /**
- * Tests for FilterOperator choices.
+ * Tests for {@link LegacyFilterOperator} choices.
  *
  * @author Jasper Krauter, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings({"restriction", "static-method"})
 @ExtendWith(FilterDummyDataCellExtension.class)
-final class FilterOperatorTest {
+final class LegacyFilterOperatorTest {
 
     private static final DataTableSpec SPEC = new DataTableSpecCreator() //
         .addColumns( //
@@ -189,8 +185,8 @@ final class FilterOperatorTest {
     static LegacyFilterOperator[] operatorChoicesFor(final StringOrEnum<RowIdentifiers> columnSelection) {
         final var ctx = NodeParametersUtil.createDefaultNodeSettingsContext(new DataTableSpec[]{SPEC});
 
-        final var provider = new TypeBasedOperatorsProvider();
-        provider.init(new TestInitializer() {
+        final var availableOperators = new AbstractRowFilterNodeSettings.FilterCriterion.OperatorsProvider();
+        availableOperators.init(new TestInitializer() {
 
             @SuppressWarnings("unchecked")
             @Override
@@ -208,50 +204,7 @@ final class FilterOperatorTest {
 
         });
 
-        return provider.choices(ctx).toArray(LegacyFilterOperator[]::new);
-    }
-
-    static class TestInitializer implements StateProvider.StateProviderInitializer {
-
-        @Override
-        public <T> Supplier<T> computeFromValueSupplier(final Class<? extends ParameterReference<T>> ref) {
-            throw new IllegalStateException("Not expected to be called during test.");
-        }
-
-        @Override
-        public <T> Supplier<T> getValueSupplier(final Class<? extends ParameterReference<T>> ref) {
-            throw new IllegalStateException("Not expected to be called during test.");
-        }
-
-        @Override
-        public <T> void computeOnValueChange(final Class<? extends ParameterReference<T>> id) {
-            fail("Not expected to be called during test.");
-        }
-
-        @Override
-        public <T> Supplier<T> computeFromProvidedState(final Class<? extends StateProvider<T>> stateProviderClass) {
-            throw new IllegalStateException("Not expected to be called during test.");
-        }
-
-        @Override
-        public void computeOnButtonClick(final Class<? extends ButtonReference> ref) {
-            fail("Not expected to be called during test.");
-        }
-
-        @Override
-        public void computeBeforeOpenDialog() {
-            throw new IllegalStateException("Not expected to be called during test.");
-        }
-
-        @Override
-        public void computeAfterOpenDialog() {
-            fail("Not expected to be called during test.");
-        }
-
-        @Override
-        public NodeParametersInput getNodeParametersInput() {
-            throw new IllegalStateException("Not expected to be called during test.");
-        }
+        return availableOperators.choices(ctx).toArray(LegacyFilterOperator[]::new);
     }
 
     @ParameterizedTest
