@@ -118,7 +118,7 @@
               }
             },
             "title" : "Columns to transform",
-            "description" : "Select the nominal columns that should be included in the transformation.\nFor each included column extra columns are appended, one for each possible value.\nIf no column name appears in the dialog but your input table contains nominal columns,\nyou could use the Domain Calculator node and connect its output to this node.\n",
+            "description" : "Select the nominal columns that should be included in the transformation.\nFor each included column extra columns are appended, one for each possible value.\n",
             "default" : {
               "mode" : "MANUAL",
               "patternFilter" : {
@@ -153,9 +153,9 @@
       "scope" : "#/properties/model/properties/columnsToTransform",
       "options" : {
         "format" : "typedStringFilter",
-        "hideTypeFilter" : true,
         "unknownValuesText" : "Any unknown column",
         "emptyStateLabel" : "No columns in this list.",
+        "hideTypeFilter" : true,
         "includedLabel" : "Columns to transform",
         "excludedLabel" : "Available columns"
       },

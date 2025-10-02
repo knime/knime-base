@@ -83,8 +83,6 @@ public final class One2ManyCol2NodeParameters implements NodeParameters {
     @Widget(title = "Columns to transform", description = """
             Select the nominal columns that should be included in the transformation.
             For each included column extra columns are appended, one for each possible value.
-            If no column name appears in the dialog but your input table contains nominal columns,
-            you could use the Domain Calculator node and connect its output to this node.
             """)
     @ChoicesProvider(NominalColumnsProvider.class)
     @TypedStringFilterWidgetInternal(hideTypeFilter = true)
