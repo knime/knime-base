@@ -89,7 +89,9 @@ import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.widget.choices.StringChoice;
 
 /**
- * Tests that the available operators for different data types are as expected.
+ * Tests that the available operators for different data types are as expected. This is only needed for new operators
+ * and new style parameters, not legacy ones, since we only ever load existing legacy configurations
+ * but don't create new ones.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
