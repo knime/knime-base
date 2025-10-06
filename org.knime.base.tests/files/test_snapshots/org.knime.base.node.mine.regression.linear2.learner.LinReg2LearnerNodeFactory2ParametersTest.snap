@@ -1,0 +1,356 @@
+{
+  "data" : {
+    "model" : {
+      "targetColumn" : "Universe_1_1",
+      "columnFilter" : {
+        "mode" : "MANUAL",
+        "patternFilter" : {
+          "pattern" : "",
+          "isCaseSensitive" : false,
+          "isInverted" : false
+        },
+        "manualFilter" : {
+          "manuallySelected" : [ "Universe_1_1" ],
+          "manuallyDeselected" : [ ],
+          "includeUnknownColumns" : true
+        },
+        "typeFilter" : {
+          "selectedTypes" : [ ],
+          "typeDisplays" : [ ]
+        }
+      },
+      "usePredefinedOffset" : false,
+      "offsetValue" : 0.0,
+      "missingValueHandling" : "FAIL",
+      "scatterPlotFirstRow" : 1,
+      "scatterPlotRowCount" : 20000
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columnFilter" : {
+            "type" : "object",
+            "properties" : {
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "includeUnknownColumns" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "manuallyDeselected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "manuallySelected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "manuallySelected" : [ ],
+                  "manuallyDeselected" : [ ],
+                  "includeUnknownColumns" : false
+                }
+              },
+              "mode" : {
+                "oneOf" : [ {
+                  "const" : "MANUAL",
+                  "title" : "Manual"
+                }, {
+                  "const" : "REGEX",
+                  "title" : "Regex"
+                }, {
+                  "const" : "WILDCARD",
+                  "title" : "Wildcard"
+                }, {
+                  "const" : "TYPE",
+                  "title" : "Type"
+                } ],
+                "default" : "MANUAL"
+              },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "isCaseSensitive" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "isInverted" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "pattern" : {
+                    "type" : "string",
+                    "default" : ""
+                  }
+                },
+                "default" : {
+                  "pattern" : "",
+                  "isCaseSensitive" : false,
+                  "isInverted" : false
+                }
+              },
+              "selected" : {
+                "type" : "array",
+                "items" : {
+                  "type" : "string"
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "selectedTypes" : [ ],
+                  "typeDisplays" : [ ]
+                }
+              }
+            },
+            "title" : "Values",
+            "description" : "Choose the independent variables to include in the regression model.\nNominal columns are converted into dummy variables automatically,\nas described in\n<a href=\"http://en.wikipedia.org/wiki/Categorical_variable#Categorical_variables_in_regression\">\nCategorical variables in regression</a>.\n",
+            "default" : {
+              "mode" : "MANUAL",
+              "patternFilter" : {
+                "pattern" : "",
+                "isCaseSensitive" : false,
+                "isInverted" : false
+              },
+              "manualFilter" : {
+                "manuallySelected" : [ "Universe_1_1" ],
+                "manuallyDeselected" : [ ],
+                "includeUnknownColumns" : true
+              },
+              "typeFilter" : {
+                "selectedTypes" : [ ],
+                "typeDisplays" : [ ]
+              }
+            }
+          },
+          "missingValueHandling" : {
+            "oneOf" : [ {
+              "const" : "IGNORE",
+              "title" : "Ignore rows with missing values."
+            }, {
+              "const" : "FAIL",
+              "title" : "Fail on observing missing values."
+            } ],
+            "title" : "Missing values in input data",
+            "description" : "Decide whether rows containing missing values should be ignored or cause the node execution to abort.\n\n<ul>\n<li><b>Ignore rows with missing values.</b>: Skips rows containing missing values so the regression model is built only on complete rows.\n</li>\n<li><b>Fail on observing missing values.</b>: Stops execution with an error if missing values occur in the input data.\n</li>\n</ul>",
+            "default" : "FAIL"
+          },
+          "offsetValue" : {
+            "type" : "number",
+            "format" : "double",
+            "title" : "Offset value",
+            "description" : "Enter the constant term used when a predefined offset is applied to the regression model.\n",
+            "default" : 0.0
+          },
+          "scatterPlotFirstRow" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "First row",
+            "description" : "Specify the index of the first row that is available for the scatter plot view. Counting starts at 1.\n",
+            "default" : 1
+          },
+          "scatterPlotRowCount" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Row count",
+            "description" : "Define how many rows should be provided to the scatter plot view.\n",
+            "default" : 20000
+          },
+          "targetColumn" : {
+            "type" : "string",
+            "title" : "Target",
+            "description" : "Select the numeric target column (response variable) the regression should predict.\n",
+            "default" : "Universe_1_1"
+          },
+          "usePredefinedOffset" : {
+            "type" : "boolean",
+            "title" : "Predefined offset value",
+            "description" : "Provide a user-defined intercept instead of estimating the constant term. When enabled, the specified offset\nis used as intercept and the model does not estimate a constant.\n",
+            "default" : false
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "label" : "Input Configuration",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/targetColumn",
+        "options" : {
+          "format" : "dropDown"
+        },
+        "providedOptions" : [ "possibleValues" ]
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/columnFilter",
+        "options" : {
+          "format" : "typedStringFilter",
+          "unknownValuesText" : "Any unknown column",
+          "emptyStateLabel" : "No columns in this list."
+        },
+        "providedOptions" : [ "possibleValues" ]
+      } ]
+    }, {
+      "label" : "Regression Properties",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/usePredefinedOffset",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/offsetValue",
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/usePredefinedOffset",
+            "schema" : {
+              "const" : true
+            }
+          }
+        }
+      } ]
+    }, {
+      "label" : "Missing Values in Input Data",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/missingValueHandling",
+        "options" : {
+          "format" : "radio",
+          "radioLayout" : "vertical"
+        }
+      } ]
+    }, {
+      "label" : "Scatter Plot View",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/scatterPlotFirstRow",
+        "options" : {
+          "validation" : {
+            "max" : {
+              "errorMessage" : "The value must not exceed 2147483647.",
+              "parameters" : {
+                "isExclusive" : false,
+                "max" : 2.147483647E9
+              }
+            },
+            "min" : {
+              "errorMessage" : "The value must be at least 1.",
+              "parameters" : {
+                "isExclusive" : false,
+                "min" : 1.0
+              }
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/scatterPlotRowCount",
+        "options" : {
+          "validation" : {
+            "max" : {
+              "errorMessage" : "The value must not exceed 2147483647.",
+              "parameters" : {
+                "isExclusive" : false,
+                "max" : 2.147483647E9
+              }
+            },
+            "min" : {
+              "errorMessage" : "The value must be at least 1.",
+              "parameters" : {
+                "isExclusive" : false,
+                "min" : 1.0
+              }
+            }
+          }
+        }
+      } ]
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "targetColumn" : {
+            "configKey" : "target"
+          },
+          "columnFilter" : {
+            "configPaths" : [ [ "column_filter", "filter-type" ], [ "column_filter", "included_names" ], [ "column_filter", "excluded_names" ], [ "column_filter", "enforce_option" ], [ "column_filter", "name_pattern", "pattern" ], [ "column_filter", "name_pattern", "type" ], [ "column_filter", "name_pattern", "caseSensitive" ], [ "column_filter", "name_pattern", "excludeMatching" ] ]
+          },
+          "usePredefinedOffset" : {
+            "configPaths" : [ [ "include_constant" ] ]
+          },
+          "offsetValue" : {
+            "configKey" : "offset_value"
+          },
+          "missingValueHandling" : {
+            "configPaths" : [ [ "missing_value_handling" ] ]
+          },
+          "scatterPlotFirstRow" : {
+            "configKey" : "scatter_plot_first_row"
+          },
+          "scatterPlotRowCount" : {
+            "configKey" : "scatter_plot_row_count"
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/columnFilter",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Universe_1_1",
+        "text" : "Universe_1_1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/targetColumn",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Universe_1_1",
+        "text" : "Universe_1_1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      } ]
+    } ]
+  } ]
+}

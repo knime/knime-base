@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
+    <entry key="target" type="xstring" value="Universe_1_1"/>
+    <config key="column_filter">
+        <entry key="filter-type" type="xstring" value="STANDARD"/>
+        <config key="included_names">
+            <entry key="array-size" type="xint" value="0"/>
+        </config>
+        <config key="excluded_names">
+            <entry key="array-size" type="xint" value="0"/>
+        </config>
+        <entry key="enforce_option" type="xstring" value="EnforceExclusion"/>
+        <config key="name_pattern">
+            <entry key="pattern" type="xstring" value=""/>
+            <entry key="caseSensitive" type="xboolean" value="true"/>
+            <entry key="excludeMatching" type="xboolean" value="false"/>
+            <entry key="type" type="xstring" value="Wildcard"/>
+        </config>
+        <config key="datatype">
+            <config key="typelist"/>
+        </config>
+    </config>
+    <entry key="include_constant" type="xboolean" value="true"/>
+    <entry key="offset_value" type="xdouble" value="0.0"/>
+    <entry key="missing_value_handling" type="xstring" value="fail"/>
+    <entry key="scatter_plot_first_row" type="xint" value="1"/>
+    <entry key="scatter_plot_row_count" type="xint" value="20000"/>
+</config>

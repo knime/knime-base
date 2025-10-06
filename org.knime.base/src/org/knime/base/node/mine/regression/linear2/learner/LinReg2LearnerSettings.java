@@ -110,13 +110,13 @@ final class LinReg2LearnerSettings {
         m_missingValueHandling = org.knime.base.node.mine.regression.MissingValueHandling.fail;
     }
 
-    private static final String CFG_TARGET = "target";
-    private static final String CFG_COLUMN_FILTER = "column_filter";
-    private static final String CFG_INCLUDE_CONSTANT = "include_constant";
-    private static final String CFG_OFFSET_VALUE = "offset_value";
-    private static final String CFG_SCATTER_PLOT_FIRST_ROW = "scatter_plot_first_row";
-    private static final String CFG_SCATTER_PLOT_ROW_COUNT = "scatter_plot_row_count";
-    private static final String CFG_MISSING_VALUE_HANDLING = "missing_value_handling";
+    static final String CFG_TARGET = "target";
+    static final String CFG_COLUMN_FILTER = "column_filter";
+    static final String CFG_INCLUDE_CONSTANT = "include_constant";
+    static final String CFG_OFFSET_VALUE = "offset_value";
+    static final String CFG_SCATTER_PLOT_FIRST_ROW = "scatter_plot_first_row";
+    static final String CFG_SCATTER_PLOT_ROW_COUNT = "scatter_plot_row_count";
+    static final String CFG_MISSING_VALUE_HANDLING = "missing_value_handling";
 
     /**
      * Loads the settings from the node settings object.
