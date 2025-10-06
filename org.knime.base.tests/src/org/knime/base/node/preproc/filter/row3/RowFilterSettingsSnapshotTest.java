@@ -82,12 +82,15 @@ final class RowFilterNodeSettingsSnapshotTest extends DefaultNodeSettingsSnapsho
             .withInputPortObjectSpecs(
                 new PortObjectSpec[]{new DataTableSpec(new String[]{"DoubleCol", "StringCol", "IntCol", "BoolCol"},
                     new DataType[]{DoubleCell.TYPE, StringCell.TYPE, IntCell.TYPE, BooleanCell.TYPE})})
-            .testJsonFormsForModel(RowFilterNodeSettings.class) //
+            .testJsonFormsForModel("Default RowFilterNodeSettings instance", RowFilterNodeSettings.class) //
             // new settings file after UIEXT-2923
-            .testJsonFormsWithInstance(SettingsType.MODEL, () -> readNodeSettings("RowFilterNodeSettings1.xml")) //
-            .testNodeSettingsStructure(() -> readNodeSettings("RowFilterNodeSettings1.xml")) //
+            .testJsonFormsWithInstance("Loading new version of settings", SettingsType.MODEL,
+                () -> readNodeSettings("RowFilterNodeSettings1.xml")) //
+            .testNodeSettingsStructure("Can load parameters from new XML",
+                () -> readNodeSettings("RowFilterNodeSettings1.xml")) //
             // Backwards-compatibility with a pre-UIEXT-2923 settings file
-            .testJsonFormsWithInstance(SettingsType.MODEL, () -> readNodeSettings("RowFilterNodeSettings0.xml")) //
+            .testJsonFormsWithInstance("Loading legacy version of settings", SettingsType.MODEL,
+                () -> readNodeSettings("RowFilterNodeSettings0.xml")) //
             // no save supported: .testNodeSettingsStructure(() -> readNodeSettings("RowFilterNodeSettings0.xml"))
             .build();
     }
