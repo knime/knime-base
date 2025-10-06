@@ -78,6 +78,7 @@ import org.knime.base.node.preproc.filter.row3.operators.rownumber.RowNumberFilt
 import org.knime.base.node.preproc.filter.row3.operators.rownumber.RowNumberOperators;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
+import org.knime.core.data.def.BooleanCell;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperator;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperatorsRegistry;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
@@ -152,7 +153,8 @@ public final class FilterOperatorsUtil {
 
             @Override
             public boolean isApplicable(final DataType dataType) {
-                return PatternFilterUtils.isSupported(dataType);
+                // we handle Boolean with IS_TRUE/IS_FALSE operators
+                return !BooleanCell.TYPE.equals(dataType) && PatternFilterUtils.isSupported(dataType);
             }
         }, //
         // Missing

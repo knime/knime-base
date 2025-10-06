@@ -2805,5 +2805,8 @@
         <FilterOperators
             factoryClass="org.knime.base.node.preproc.filter.row3.operators.StringFilterOperators">
         </FilterOperators>
+        <FilterOperators
+            factoryClass="org.knime.base.node.preproc.filter.row3.operators.BooleanFilterOperators">
+        </FilterOperators>
     </extension>
 </plugin>

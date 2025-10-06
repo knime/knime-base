@@ -54,6 +54,7 @@ import java.util.function.Predicate;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
+import org.knime.core.data.def.BooleanCell;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.EqualsOperator;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperator;
@@ -121,7 +122,8 @@ public final class DefaultEqualityOperators {
      *         otherwise
      */
     public static boolean isApplicable(final DataType dataType) {
-        return TypeMappingUtils.supportsDataType(dataType);
+        // we handle Boolean with IS_TRUE/IS_FALSE operators
+        return !BooleanCell.TYPE.equals(dataType) && TypeMappingUtils.supportsDataType(dataType);
     }
 
     @SuppressWarnings("restriction")

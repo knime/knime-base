@@ -56,6 +56,7 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.DataValueComparatorDelegator;
+import org.knime.core.data.def.BooleanCell;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperator;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
@@ -164,6 +165,7 @@ public final class DefaultComparableOperators {
      *         otherwise
      */
     public static boolean isApplicable(final DataType dataType) {
-        return TypeMappingUtils.supportsDataType(dataType) && dataType.isCompatible(BoundedValue.class);
+        // we handle Boolean with IS_TRUE/IS_FALSE operators
+        return !BooleanCell.TYPE.equals(dataType) && TypeMappingUtils.supportsDataType(dataType) && dataType.isCompatible(BoundedValue.class);
     }
 }

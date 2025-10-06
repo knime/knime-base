@@ -141,15 +141,12 @@
                   "default" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}"
                 },
                 "filterValueParameters" : {
-                  "type" : "object",
-                  "default" : {
-                    "value" : ""
-                  }
+                  "type" : "object"
                 },
                 "operator" : {
                   "type" : "string",
                   "title" : "Operator",
-                  "default" : "EQ"
+                  "default" : "IS_MISSING"
                 }
               }
             },
@@ -160,11 +157,7 @@
                 "regularChoice" : "BoolCol"
               },
               "columnType" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-              "operator" : "EQ",
-              "filterValueParameters" : {
-                "@class" : "org.knime.base.node.preproc.filter.row3.operators.defaults.SingleStringParameters",
-                "value" : ""
-              }
+              "operator" : "IS_MISSING"
             } ]
           }
         }
@@ -500,11 +493,7 @@
           "regularChoice" : "BoolCol"
         },
         "columnType" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-        "operator" : "EQ",
-        "filterValueParameters" : {
-          "@class" : "org.knime.base.node.preproc.filter.row3.operators.defaults.SingleStringParameters",
-          "value" : ""
-        }
+        "operator" : "IS_MISSING"
       }
     } ]
   } ],
