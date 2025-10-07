@@ -90,7 +90,10 @@ public final class SleepNodeFactory extends NodeFactory<SleepNodeModel>
             (such as file creation, modification or deletion).
             Note that on some operating systems file events need a few seconds to be noticed by the application.
             <br />
-            This node is derived from the Vernalis community extension.
+            <br />
+            This node is derived from the
+            <a href="https://www.knime.com/book/vernalis-nodes-for-knime-trusted-extension">
+            Vernalis community extension</a>.
             """;
 
     private static final List<PortDescription> INPUT_PORTS = List.of(PortDescription.fixedPort("Input table", """
