@@ -119,7 +119,7 @@ public final class FilterOperatorsUtil {
     /**
      * Default operator groups available for column filtering.
      */
-    private static final List<OperatorGroup> DEFAULT_COLUMN_OPERATOR_GROUPS = List.of( //
+    private static final List<OperatorGroup> TOP_DEFAULT_COLUMN_OPERATOR_GROUPS = List.of( //
         // Default equality (fallback)
         new OperatorGroup() {
             @Override
@@ -156,9 +156,18 @@ public final class FilterOperatorsUtil {
                 // we handle Boolean with IS_TRUE/IS_FALSE operators
                 return !BooleanCell.TYPE.equals(dataType) && PatternFilterUtils.isSupported(dataType);
             }
-        }, //
-        // Missing
-        dataType -> List.of(IsMissingFilterOperator.getInstance(), IsNotMissingFilterOperator.getInstance())//
+        });
+
+    /**
+     * Default operator groups available for column filtering. But less important than all other operators, so listed at
+     * the bottom. Note that this also means that these operators cannot be overridden by registry operators, as the
+     * registry operators are listed in between the top and bottom defaults and the deduplication prefers the latter.
+     */
+    private static final List<OperatorGroup> BOTTOM_DEFAULT_OPERATOR_GROUPS = List.of(//
+        dataType -> List.of(//
+            IsMissingFilterOperator.getInstance(), //
+            IsNotMissingFilterOperator.getInstance()//
+        )//
     );
 
     /**
@@ -213,11 +222,17 @@ public final class FilterOperatorsUtil {
      */
     public static List<FilterOperator<FilterValueParameters>> getAllColumnOperators(final DataType dataType) {
         final var registryOperators = FilterOperatorsRegistry.getInstance().getOperators(dataType);
-        final var defaultOperators = DEFAULT_COLUMN_OPERATOR_GROUPS.stream()
-            .filter(group -> group.isApplicable(dataType)).flatMap(group -> group.getOperators(dataType).stream());
+        final var topDefaultOperators = getDefaultOperators(TOP_DEFAULT_COLUMN_OPERATOR_GROUPS, dataType);
+        final var bottomDefaultOperators = getDefaultOperators(BOTTOM_DEFAULT_OPERATOR_GROUPS, dataType);
 
-        return Stream.concat(defaultOperators, registryOperators.stream())
-            .map(c -> (FilterOperator<FilterValueParameters>)c).toList();
+        return Stream.of(topDefaultOperators, registryOperators.stream(), bottomDefaultOperators)
+            .flatMap(Function.identity()).map(c -> (FilterOperator<FilterValueParameters>)c).toList();
+    }
+
+    private static Stream<FilterOperator<? extends FilterValueParameters>>
+        getDefaultOperators(final List<OperatorGroup> defaultOperatorGroups, final DataType dataType) {
+        return defaultOperatorGroups.stream().filter(group -> group.isApplicable(dataType))
+            .flatMap(group -> group.getOperators(dataType).stream());
     }
 
     /**
@@ -250,7 +265,7 @@ public final class FilterOperatorsUtil {
             // built-in row number operators
             DEFAULT_ROW_NUMBER_OPERATORS.stream().map(op -> op.getNodeParametersClass()),
             // Default implementations for non-implementing types
-            DEFAULT_COLUMN_OPERATOR_GROUPS.stream().flatMap(group -> group.getOperators(null).stream())
+            TOP_DEFAULT_COLUMN_OPERATOR_GROUPS.stream().flatMap(group -> group.getOperators(null).stream())
                 .map(op -> op.getNodeParametersClass()),
             Stream.of(LegacyFilterParameters.class, StringWithCaseParameters.class, SingleStringParameters.class) //
         ).flatMap(Function.identity());
