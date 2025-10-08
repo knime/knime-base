@@ -220,7 +220,11 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
          */
         @ValueProvider(DataTypeProvider.class)
         @Migrate(loadDefaultIfAbsent = true)
+        @ValueReference(ColumnDataTypeRef.class) // Only used as a fallback in case of missing columns
         DataType m_columnType;
+
+        static final class ColumnDataTypeRef implements ParameterReference<DataType> {
+        }
 
         static final class DataTypeProvider implements StateProvider<DataType> {
 
@@ -239,16 +243,17 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
             }
 
             static DataType columnToDataType(final NodeParametersInput context,
-                final StringOrEnum<RowIdentifiers> selectedColumn) {
+                final StringOrEnum<RowIdentifiers> selectedColumn) throws StateComputationFailureException {
                 if (selectedColumn.getEnumChoice().isPresent()) {
                     return null;
                 }
                 if (context == null) {
-                    return null;
+                    throw new StateComputationFailureException("No context available");
                 }
-                return context.getInTableSpec(0)
-                    .flatMap(s -> Optional.ofNullable(s.getColumnSpec(selectedColumn.getStringChoice())))
-                    .map(DataColumnSpec::getType).orElse(null);
+                final var stringChoice = selectedColumn.getStringChoice();
+                return context.getInTableSpec(0).flatMap(s -> Optional.ofNullable(s.getColumnSpec(stringChoice)))
+                    .map(DataColumnSpec::getType).orElseThrow(() -> new StateComputationFailureException(
+                        String.format("Column \"%s\" not found", stringChoice)));
             }
         }
 
@@ -256,21 +261,50 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
 
             private Supplier<StringOrEnum<RowIdentifiers>> m_selectedColumn;
 
+            private Supplier<DataType> m_previousDataType;
+
             @Override
             public void init(final StateProviderInitializer initializer) {
                 initializer.computeBeforeOpenDialog();
                 m_selectedColumn = initializer.computeFromValueSupplier(SelectedColumnRef.class);
+                m_previousDataType = initializer.getValueSupplier(ColumnDataTypeRef.class);
             }
 
             @Override
             public List<StringChoice> computeState(final NodeParametersInput context) {
                 final var selectedColumn = m_selectedColumn.get();
-                return getOperators(selectedColumn, context).map(op -> new StringChoice(op.getId(), op.getLabel()))
-                    .toList();
+                return getOperators(selectedColumn, context, m_previousDataType)
+                    .map(op -> new StringChoice(op.getId(), op.getLabel())).toList();
+            }
+
+            static Stream<FilterOperatorDefinition<?>> getOperators(final StringOrEnum<RowIdentifiers> selectedColumn,
+                final NodeParametersInput context, final Supplier<DataType> previousDataType) {
+                return getOperatorsWithFallback(selectedColumn, context, () -> {
+                    if (previousDataType != null) {
+                        return getOperators(previousDataType.get());
+                    }
+                    return Stream.of();
+                });
             }
 
             static Stream<FilterOperatorDefinition<?>> getOperators(final StringOrEnum<RowIdentifiers> selectedColumn,
                 final NodeParametersInput context) {
+                return getOperatorsWithFallback(selectedColumn, context, () -> Stream.of());
+            }
+
+            private static Stream<FilterOperatorDefinition<?>> getOperatorsWithFallback(
+                final StringOrEnum<RowIdentifiers> selectedColumn, final NodeParametersInput context,
+                final Supplier<Stream<FilterOperatorDefinition<?>>> fallback) {
+                try {
+                    return getOperatorsOrThrow(selectedColumn, context);
+                } catch (final StateComputationFailureException e) {
+                    return fallback.get(); // NOSONAR
+                }
+            }
+
+            private static Stream<FilterOperatorDefinition<?>> getOperatorsOrThrow(
+                final StringOrEnum<RowIdentifiers> selectedColumn, final NodeParametersInput context)
+                throws StateComputationFailureException {
                 final var rowIdentifierChoice = selectedColumn.getEnumChoice();
 
                 if (rowIdentifierChoice.isPresent()) {
@@ -489,12 +523,15 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
 
             private Supplier<StringOrEnum<RowIdentifiers>> m_selectedColumn;
 
+            private Supplier<DataType> m_previousDataType;
+
             @Override
             public void init(final StateProviderInitializer initializer) {
                 initializer.computeBeforeOpenDialog();
                 m_currentOperatorId = initializer.computeFromValueSupplier(OperatorIdRef.class);
                 m_currentValue = initializer.getValueSupplier(CurrentFilterValueParametersRef.class);
                 m_selectedColumn = initializer.computeFromValueSupplier(SelectedColumnRef.class);
+                m_previousDataType = initializer.getValueSupplier(ColumnDataTypeRef.class);
             }
 
             @Override
@@ -508,13 +545,13 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
                 final var selectedColumn = m_selectedColumn.get();
                 final var currentOperatorId = m_currentOperatorId.get();
                 final var currentValue = m_currentValue.get();
-                return toNewParameters(input, selectedColumn, currentOperatorId, currentValue);
+                return toNewParameters(input, selectedColumn, currentOperatorId, currentValue, m_previousDataType);
 
             }
 
             static FilterValueParameters createNewParameters(final NodeParametersInput input,
                 final StringOrEnum<RowIdentifiers> selectedColumn, final String operatorId) {
-                return toNewParameters(input, selectedColumn, operatorId, null);
+                return toNewParameters(input, selectedColumn, operatorId, null, () -> null);
             }
 
             static FilterValueParameters createNewParameters(final DataType colType, final String operatorId) {
@@ -523,8 +560,8 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
 
             static FilterValueParameters toNewParameters(final NodeParametersInput input,
                 final StringOrEnum<RowIdentifiers> selectedColumn, final String currentOperatorId,
-                final FilterValueParameters currentValue) {
-                final var operators = OperatorsProvider.getOperators(selectedColumn, input);
+                final FilterValueParameters currentValue, final Supplier<DataType> previousDataType) {
+                final var operators = OperatorsProvider.getOperators(selectedColumn, input, previousDataType);
                 return toNewParameters(currentOperatorId, currentValue, operators);
             }
 
