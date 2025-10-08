@@ -44,39 +44,24 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 24, 2025 (Paul Bärnreuther): created
+ *   Oct 8, 2025 (Paul Bärnreuther): created
  */
 package org.knime.base.node.preproc.filter.row3.operators.legacy;
 
-import java.util.List;
+import org.knime.node.parameters.NodeParameters;
 
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
-import org.knime.node.parameters.migration.ConfigMigration;
-import org.knime.node.parameters.migration.NodeParametersMigration;
+class LegacyFilterParametersUsingDynamicValuesInput implements NodeParameters {
 
-/**
- * Migration to {@link LegacyFilterParameters} for nodes that used the DynamicValuesInput parameters.
- *
- * @author Paul Bärnreuther
- */
-public class LegacyFilterParametersMigration implements NodeParametersMigration<FilterValueParameters> {
+    /**
+     * Legacy filter operator.
+     */
+    // keep name, set directly by framework based on legacy config
+    LegacyFilterOperator m_operator;
 
-    private static final String PREDICATE_VALUES_KEY = "predicateValues";
-
-    @Override
-    public List<ConfigMigration<FilterValueParameters>> getConfigMigrations() {
-        return List.of(ConfigMigration.builder(LegacyFilterParametersMigration::loadLegacyFilterParameters)
-            .withDeprecatedConfigPath(PREDICATE_VALUES_KEY).build());
-    }
-
-    private static FilterValueParameters loadLegacyFilterParameters(final NodeSettingsRO legacyFilterCriterionSettings)
-        throws InvalidSettingsException {
-        final var filterParameters = new LegacyFilterParameters();
-        filterParameters.setFromNodeSettings(legacyFilterCriterionSettings);
-        filterParameters.loadToLegacyParameters(); // for validation
-        return filterParameters;
-    }
+    /**
+     * The predicate values.
+     */
+    // keep name, set directly by framework based on legacy config
+    DynamicValuesInput m_predicateValues;
 
 }

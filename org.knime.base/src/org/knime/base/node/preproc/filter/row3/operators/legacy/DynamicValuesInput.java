@@ -572,14 +572,6 @@ public final class DynamicValuesInput implements Persistable {
 
     private static final String TYPE_ID_KEY = "typeIdentifier";
 
-    private static final String CELL_CLASS_NAME_KEY = "cellClassName";
-
-    private static final String DATA_TYPE_CONFIG_KEY = "dataTypeConfig";
-
-    private static final String DATA_TYPE_KEY = "dataType";
-
-    private static final String DATA_TYPE_CONFIG_FIELD_NAME = "valueDataType";
-
     static class DynamicValuePersistor implements NodeParametersPersistor<DynamicValue> {
 
         @Override

@@ -48,6 +48,9 @@
  */
 package org.knime.base.node.preproc.filter.row3.operators.legacy;
 
+import java.io.IOException;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.util.OptionalInt;
 
 import org.knime.base.data.filter.row.v2.IndexedRowReadPredicate;
@@ -58,9 +61,15 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.LongValue;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettings;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.config.base.JSONConfig;
+import org.knime.core.node.config.base.JSONConfig.WriterConfig;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
+import org.knime.node.parameters.NodeParameters;
 
 /**
  *
@@ -68,17 +77,66 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.St
  */
 public class LegacyFilterParameters implements FilterValueParameters {
 
-    /**
-     * Legacy filter operator.
-     */
-    // keep name, set directly by framework based on legacy config
-    LegacyFilterOperator m_operator;
+    String m_legacySettings; // string since it needs to be serializable
 
-    /**
-     * The predicate values.
-     */
-    // keep name, set directly by framework based on legacy config
-    DynamicValuesInput m_predicateValues;
+    private LoadedLegacyFilterParameters m_loadedCache;
+
+    private static String settingsToString(final NodeSettingsRO settings) throws IOException {
+        final var w = new StringWriter();
+        JSONConfig.writeJSON(settings, w, WriterConfig.DEFAULT);
+        return w.toString();
+    }
+
+    private static NodeSettingsRO stringToNodeSettings(final String str) throws IOException {
+        final var readSettings = new NodeSettings("legacySettings");
+        final var reader = new StringReader(str);
+        JSONConfig.readJSON(readSettings, reader);
+        return readSettings;
+    }
+
+    void setFromNodeSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+        try {
+            m_legacySettings = settingsToString(settings);
+        } catch (IOException e) {
+            throw new InvalidSettingsException("Could not serialize legacy settings", e);
+        }
+
+    }
+
+    LoadedLegacyFilterParameters getLoaded() throws InvalidSettingsException {
+        if (m_loadedCache == null) {
+            m_loadedCache = loadToLegacyParameters();
+        }
+        return m_loadedCache;
+    }
+
+    LoadedLegacyFilterParameters loadToLegacyParameters() throws InvalidSettingsException {
+        try {
+            final var nodeSettingsRO = stringToNodeSettings(m_legacySettings);
+            return LoadedLegacyFilterParameters.fromNodeSettings(nodeSettingsRO);
+        } catch (final IOException e) {
+            throw new InvalidSettingsException("Could not deserialize legacy settings", e);
+        }
+
+    }
+
+    static class LoadedLegacyFilterParameters implements NodeParameters {
+        /**
+         * Legacy filter operator.
+         */
+        // keep name, set directly by framework based on legacy config
+        LegacyFilterOperator m_operator;
+
+        // keep name, set directly by framework based on legacy config
+        DynamicValuesInput m_predicateValues;
+
+        @SuppressWarnings("restriction")
+        static LoadedLegacyFilterParameters fromNodeSettings(final NodeSettingsRO settings)
+            throws InvalidSettingsException {
+            return NodeParametersUtil.loadSettings(settings, LoadedLegacyFilterParameters.class);
+        }
+
+    }
 
     /**
      * @param column
@@ -89,6 +147,7 @@ public class LegacyFilterParameters implements FilterValueParameters {
      */
     public IndexedRowReadPredicate toPredicate(final StringOrEnum<RowIdentifiers> column, final DataTableSpec spec,
         final long optionalTableSize) throws InvalidSettingsException {
+        final var loaded = getLoaded();
 
         final var rowIdentifierChoice = column.getEnumChoice();
         if (rowIdentifierChoice.isPresent()) {
@@ -101,25 +160,27 @@ public class LegacyFilterParameters implements FilterValueParameters {
         if (columnIndex < 0) {
             throw new InvalidSettingsException("Column \"%s\" could not be found in input table".formatted(column));
         }
-        return m_operator.translateToPredicate(m_predicateValues, columnIndex,
+        return loaded.m_operator.translateToPredicate(loaded.m_predicateValues, columnIndex,
             spec.getColumnSpec(columnIndex).getType());
 
     }
 
     private IndexedRowReadPredicate getRowKeyPredicate() throws InvalidSettingsException {
+        final var loaded = getLoaded();
         return PredicateFactories //
-            .getRowKeyPredicateFactory(m_operator) //
+            .getRowKeyPredicateFactory(loaded.m_operator) //
             .orElseThrow(() -> new InvalidSettingsException( //
-                "Unsupported operator \"%s\" for RowID comparison".formatted(m_operator.name()))) //
-            .createPredicate(OptionalInt.empty(), m_predicateValues);
+                "Unsupported operator \"%s\" for RowID comparison".formatted(loaded.m_operator.name()))) //
+            .createPredicate(OptionalInt.empty(), loaded.m_predicateValues);
     }
 
     private IndexedRowReadPredicate getRowNumberPredicate(final long optionalTableSize)
         throws InvalidSettingsException {
+        final var loaded = getLoaded();
         final var predicateFactory = PredicateFactories //
-            .getRowNumberPredicateFactory(m_operator);
+            .getRowNumberPredicateFactory(loaded.m_operator);
         if (predicateFactory.isPresent()) {
-            return predicateFactory.get().createPredicate(OptionalInt.empty(), m_predicateValues);
+            return predicateFactory.get().createPredicate(OptionalInt.empty(), loaded.m_predicateValues);
         }
         return toFilterSpec().toOffsetFilter(optionalTableSize).asPredicate();
 
@@ -132,22 +193,30 @@ public class LegacyFilterParameters implements FilterValueParameters {
      * @throws InvalidSettingsException if the filter criterion contains an unsupported operator or the value is missing
      */
     public RowNumberFilterSpec toFilterSpec() throws InvalidSettingsException {
-        final var value = (m_predicateValues.getCellAt(0)//
+        final var loaded = getLoaded();
+        final var value = (loaded.m_predicateValues.getCellAt(0)//
             .filter(cell -> !cell.isMissing())//
             .map(LongValue.class::cast)//
             .orElseThrow(() -> new InvalidSettingsException("Row number value is missing")))//
                 .getLongValue();
-        if (m_operator == LegacyFilterOperator.FIRST_N_ROWS || m_operator == LegacyFilterOperator.LAST_N_ROWS) {
+        if (loaded.m_operator == LegacyFilterOperator.FIRST_N_ROWS
+            || loaded.m_operator == LegacyFilterOperator.LAST_N_ROWS) {
             CheckUtils.checkSetting(value >= 0, "Number of rows must not be negative: %d", value);
         } else {
             CheckUtils.checkSetting(value > 0, "Row number must be larger than zero: %d", value);
         }
-        return new RowNumberFilterSpec(m_operator, value);
+        return new RowNumberFilterSpec(loaded.m_operator, value);
     }
 
     @Override
     public DataValue[] stash() {
-        return m_predicateValues.getCellAt(0).stream().toArray(DataValue[]::new);
+        try {
+            final var loaded = getLoaded();
+            return loaded.m_predicateValues.getCellAt(0).stream().toArray(DataValue[]::new);
+        } catch (final InvalidSettingsException e) {
+            // Illegal since settings have been validated before
+            throw new IllegalStateException("Could not load legacy settings", e);
+        }
     }
 
 }
