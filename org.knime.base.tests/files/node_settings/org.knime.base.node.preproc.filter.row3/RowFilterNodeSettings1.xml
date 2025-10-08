@@ -56,47 +56,6 @@
                     <entry key="pattern" type="xstring" value="100*"/>
                 </config>
             </config>
-            <config key="3">
-                <config key="columnV2">
-                    <entry key="regularChoice" type="xstring" value="BooleanCol"/>
-                    <entry key="specialChoice_Internals" type="xstring" isnull="true" value=""/>
-                </config>
-                <config key="columnType">
-                    <entry key="cell_class" type="xstring" value="org.knime.core.data.def.BooleanCell"/>
-                    <entry key="is_null" type="xboolean" value="false"/>
-                </config>
-                <entry key="operator" type="xstring" value="IS_FALSE"/>
-                <config key="filterValueParameters">
-                    <entry key="@class" type="xstring" value="org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterParameters"/>
-                    <entry key="operator" type="xstring" value="IS_FALSE"/>
-                    <config key="predicateValues">
-                        <config key="values"/>
-                        <entry key="inputKind" type="xstring" value="SINGLE"/>
-                    </config>
-                </config>
-            </config>
-            <config key="4">
-                <config key="columnV2">
-                    <entry key="regularChoice" type="xstring" value="UriSetCol"/>
-                    <entry key="specialChoice_Internals" type="xstring" isnull="true" value=""/>
-                </config>
-                <config key="columnType">
-                    <config key="collection_element_type">
-                        <entry key="cell_class" type="xstring" value="org.knime.core.data.uri.URIDataCell"/>
-                    </config>
-                    <entry key="cell_class" type="xstring" value="org.knime.core.data.collection.SetCell"/>
-                    <entry key="is_null" type="xboolean" value="false"/>
-                </config>
-                <entry key="operator" type="xstring" value="IS_NOT_MISSING"/>
-                <config key="filterValueParameters">
-                    <entry key="@class" type="xstring" value="org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterParameters"/>
-                    <entry key="operator" type="xstring" value="IS_NOT_MISSING"/>
-                    <config key="predicateValues">
-                        <config key="values"/>
-                        <entry key="inputKind" type="xstring" value="SINGLE"/>
-                    </config>
-                </config>
-            </config>
         </config>
         <entry key="domains" type="xstring" value="RETAIN"/>
         <entry key="outputMode" type="xstring" value="MATCHING"/>

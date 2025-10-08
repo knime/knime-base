@@ -280,8 +280,9 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
             static Stream<FilterOperatorDefinition<?>> getOperators(final StringOrEnum<RowIdentifiers> selectedColumn,
                 final NodeParametersInput context, final Supplier<DataType> previousDataType) {
                 return getOperatorsWithFallback(selectedColumn, context, () -> {
-                    if (previousDataType != null) {
-                        return getOperators(previousDataType.get());
+                    final var dt = previousDataType.get();
+                    if (dt != null) {
+                        return getOperators(dt);
                     }
                     return Stream.of();
                 });

@@ -207,9 +207,10 @@ final class AbstractRowFilterNodeSettingsTest {
         final var choices = createChoicesFor(new StringOrEnum<RowIdentifiers>("Bool1"));
         // we explicitly enumerate the expected IDs
         final var expected = List.of(//
-            IsMissingFilterOperator.getInstance().getId(), IsNotMissingFilterOperator.getInstance().getId(), //
             // boolean does not have "equal" etc, but only special operators
-            "IS_TRUE", "IS_FALSE");
+            "IS_TRUE", "IS_FALSE", IsMissingFilterOperator.getInstance().getId(),
+            IsNotMissingFilterOperator.getInstance().getId() //
+        );
 
         assertThat(choices).as("Operator choices for Boolean column") //
             .extracting(c -> c.id()) //
@@ -277,13 +278,16 @@ final class AbstractRowFilterNodeSettingsTest {
     @Test
     void testUnknownColumnOperators() {
         final var choices = createChoicesFor(new StringOrEnum<RowIdentifiers>("UnknownColumn"));
-        // TODO show operator choices based on FilterCriterion#m_columnType
-        final var expected = List.of(//
-        );
 
         assertThat(choices).as("Operator choices for unknown column") //
             .extracting(c -> c.id()) //
-            .containsExactly(expected.toArray(String[]::new));
+            .isEmpty();
+        final var choicesFromPreviousStringColumn =
+            createChoicesFor(new StringOrEnum<RowIdentifiers>("UnknownColumn"), StringCell.TYPE);
+        assertThat(choicesFromPreviousStringColumn).as("Operator choices for unknown column, previous String") //
+            .extracting(c -> c.id()) //
+            .isNotEmpty();
+
     }
 
     /**
@@ -294,6 +298,11 @@ final class AbstractRowFilterNodeSettingsTest {
      * @return the available operator choices
      */
     private static List<StringChoice> createChoicesFor(final StringOrEnum<RowIdentifiers> columnChoice) {
+        return createChoicesFor(columnChoice, null);
+    }
+
+    private static List<StringChoice> createChoicesFor(final StringOrEnum<RowIdentifiers> columnChoice,
+        final DataType previousColumnType) {
         final var beforeOpenDialogCalled = new AtomicBoolean();
         final var provider = new AbstractRowFilterNodeSettings.FilterCriterion.OperatorsProvider();
         // the test initializer simulates part of the dialog framework and injects our column choice, which is a
@@ -311,6 +320,15 @@ final class AbstractRowFilterNodeSettingsTest {
                 // the available operators depend only on the selected "column"
                 if (ref.equals(AbstractRowFilterNodeSettings.FilterCriterion.SelectedColumnRef.class)) {
                     return () -> (T)columnChoice;
+                }
+                throw new IllegalStateException("Unexpected dependency: " + ref);
+            }
+
+            @SuppressWarnings("unchecked")
+            @Override
+            public <T> Supplier<T> getValueSupplier(final Class<? extends ParameterReference<T>> ref) {
+                if (ref.equals(AbstractRowFilterNodeSettings.FilterCriterion.ColumnDataTypeRef.class)) {
+                    return () -> (T)previousColumnType;
                 }
                 throw new IllegalStateException("Unexpected dependency: " + ref);
             }
