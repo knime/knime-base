@@ -152,6 +152,24 @@ public final class RowNumberFilterSpec {
         };
     }
 
+    /**
+     * Creates a function that computes the filter partition for a given table size.
+     *
+     * @return function from table size to filter partition
+     */
+    public LongFunction<FilterPartition> toFilterPartition() {
+        return tableSize -> FilterPartition.computePartition(toOffsetFilter(tableSize), tableSize);
+    }
+
+    /**
+     * Combines multiple row number filters into a single partition, either by AND or OR.
+     *
+     * @param isAnd whether to combine by AND (true) or OR (false)
+     * @param rowNumberFilters list of row number filter functions
+     * @param outputMode whether the output should contain matching or non-matching rows
+     * @param optionalTableSize the table size or -1 if unknown
+     * @return combined filter partition
+     */
     public static FilterPartition computeRowPartition(final boolean isAnd,
         final List<LongFunction<FilterPartition>> rowNumberFilters, final FilterMode outputMode,
         final long optionalTableSize) {
@@ -175,9 +193,7 @@ public final class RowNumberFilterSpec {
     public static LongFunction<FilterPartition> toPartitionFunction(final String operatorId,
         final FilterValueParameters filterValueParameters) throws InvalidSettingsException {
         if (filterValueParameters instanceof LegacyFilterParameters legacyParameters) {
-            final var rowNumberFilterSpec = legacyParameters.toFilterSpec();
-            return tableSize -> FilterPartition.computePartition(rowNumberFilterSpec.toOffsetFilter(tableSize),
-                tableSize);
+            return legacyParameters.toFilterSpec().toFilterPartition();
         }
         final var matchingOperator =
             FilterOperatorsUtil.findMatchingRowNumberOperator(operatorId).orElseThrow(IllegalStateException::new);

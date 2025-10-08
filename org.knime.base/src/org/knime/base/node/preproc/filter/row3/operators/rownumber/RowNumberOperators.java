@@ -49,8 +49,10 @@
 package org.knime.base.node.preproc.filter.row3.operators.rownumber;
 
 import java.util.List;
+import java.util.function.LongFunction;
 import java.util.function.LongPredicate;
 
+import org.knime.base.data.filter.row.v2.FilterPartition;
 import org.knime.base.node.preproc.filter.row3.operators.rownumber.RowNumberFilterSpec.Operator;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.EqualsOperator;
@@ -104,9 +106,24 @@ public final class RowNumberOperators {
         @Override
         public LongPredicate createPredicate(final RowNumberParameters params, final long tableSize)
             throws InvalidSettingsException {
-            return new RowNumberFilterSpec(getOperator(), params.m_value) //
-                .toOffsetFilter(tableSize) //
+            return createRowNumberFilterSpec(params).toOffsetFilter(tableSize) //
                 .asOffsetPredicate();
+        }
+
+        @Override
+        public LongFunction<FilterPartition> createSliceFilter(final RowNumberParameters params)
+            throws InvalidSettingsException {
+            return createRowNumberFilterSpec(params).toFilterPartition();
+        }
+
+        @Override
+        public boolean supportsSlicing() {
+            return true;
+        }
+
+        private RowNumberFilterSpec createRowNumberFilterSpec(final RowNumberParameters params)
+            throws InvalidSettingsException {
+            return new RowNumberFilterSpec(getOperator(), params.m_value);
         }
     }
 
