@@ -2808,5 +2808,14 @@
         <FilterOperators
             factoryClass="org.knime.base.node.preproc.filter.row3.operators.BooleanFilterOperators">
         </FilterOperators>
+        <FilterOperators
+            factoryClass="org.knime.base.node.preproc.filter.row3.operators.IntFilterOperators">
+        </FilterOperators>
+        <FilterOperators
+            factoryClass="org.knime.base.node.preproc.filter.row3.operators.LongFilterOperators">
+        </FilterOperators>
+        <FilterOperators
+            factoryClass="org.knime.base.node.preproc.filter.row3.operators.DoubleFilterOperators">
+        </FilterOperators>
     </extension>
 </plugin>
