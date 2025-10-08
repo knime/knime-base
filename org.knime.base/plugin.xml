@@ -2785,19 +2785,19 @@
               impl="org.knime.base.node.preproc.valuelookup.ValueLookupNodeFunc">
         </nodeFunc>
         <nodeFunc
-              impl="org.knime.base.node.preproc.filter.row3.nodefuncs.RowIDRowFilterNodeFunc">
+              impl="org.knime.base.node.preproc.filter.row3.RowFilterNodeFunc$RowIDRowFilterNodeFunc">
         </nodeFunc>
         <nodeFunc
-              impl="org.knime.base.node.preproc.filter.row3.nodefuncs.MissingValueRowFilterNodeFunc">
+              impl="org.knime.base.node.preproc.filter.row3.RowFilterNodeFunc$MissingValueRowFilterNodeFunc">
         </nodeFunc>
         <nodeFunc
-              impl="org.knime.base.node.preproc.filter.row3.nodefuncs.AttributePatternRowFilterNodeFunc">
+              impl="org.knime.base.node.preproc.filter.row3.RowFilterNodeFunc$AttributePatternRowFilterNodeFunc">
         </nodeFunc>
         <nodeFunc
-              impl="org.knime.base.node.preproc.filter.row3.nodefuncs.RowFilterByRowNumberNodeFunc">
+              impl="org.knime.base.node.preproc.filter.row3.RowFilterNodeFunc$RowFilterByRowNumberNodeFunc">
         </nodeFunc>
         <nodeFunc
-              impl="org.knime.base.node.preproc.filter.row3.nodefuncs.AttributeRangeRowFilterNodeFunc">
+              impl="org.knime.base.node.preproc.filter.row3.RowFilterNodeFunc$AttributeRangeRowFilterNodeFunc">
         </nodeFunc>
      </extension>
     <extension

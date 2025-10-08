@@ -286,6 +286,10 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
                 if (dataType == null) {
                     return Stream.of();
                 }
+                return getOperators(dataType);
+            }
+
+            static Stream<FilterOperatorDefinition<?>> getOperators(final DataType dataType) {
                 return FilterOperatorsUtil.getOperators(dataType).stream().map(FilterOperatorDefinition.class::cast);
             }
 
@@ -310,12 +314,6 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
         FilterCriterion(final DataColumnSpec colSpec) {
             m_column = new StringOrEnum<>(colSpec.getName());
             m_columnType = colSpec.getType();
-            final var validOperatorsIds =
-                OperatorsProvider.getOperators(m_column, null).map(FilterOperatorDefinition::getId).toList();
-            if (!validOperatorsIds.contains(EqualsOperator.ID)) {
-                m_operator = validOperatorsIds.get(0);
-            }
-            m_filterValueParameters = FilterValueParametersProvider.createNewParameters(null, m_column, m_operator);
         }
 
         FilterCriterion(final NodeParametersInput ctx) {
@@ -519,11 +517,20 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
                 return toNewParameters(input, selectedColumn, operatorId, null);
             }
 
+            static FilterValueParameters createNewParameters(final DataType colType, final String operatorId) {
+                return toNewParameters(operatorId, null, OperatorsProvider.getOperators(colType));
+            }
+
             static FilterValueParameters toNewParameters(final NodeParametersInput input,
                 final StringOrEnum<RowIdentifiers> selectedColumn, final String currentOperatorId,
                 final FilterValueParameters currentValue) {
-                final var operator = OperatorsProvider.getOperators(selectedColumn, input)
-                    .filter(op -> op.getId().equals(currentOperatorId)).findFirst();
+                final var operators = OperatorsProvider.getOperators(selectedColumn, input);
+                return toNewParameters(currentOperatorId, currentValue, operators);
+            }
+
+            private static FilterValueParameters toNewParameters(final String currentOperatorId,
+                final FilterValueParameters currentValue, final Stream<FilterOperatorDefinition<?>> operators) {
+                final var operator = operators.filter(op -> op.getId().equals(currentOperatorId)).findFirst();
                 if (operator.isEmpty()) {
                     return null;
                 }

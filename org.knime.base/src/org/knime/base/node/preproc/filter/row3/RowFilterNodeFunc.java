@@ -50,18 +50,17 @@ package org.knime.base.node.preproc.filter.row3;
 
 import java.util.ArrayList;
 
-import org.knime.base.node.io.filereader.DataCellFactory;
 import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterCriterion;
 import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterCriterion.FilterValueParametersProvider;
 import org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterOperator;
 import org.knime.base.node.preproc.filter.row3.operators.missing.IsMissingFilterOperator;
 import org.knime.base.node.preproc.filter.row3.operators.pattern.PatternFilterParameters;
 import org.knime.base.node.preproc.filter.row3.operators.rownumber.RowNumberParameters;
-import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.DataType;
+import org.knime.core.data.DataValue;
 import org.knime.core.data.DoubleValue;
+import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -138,7 +137,7 @@ abstract class RowFilterNodeFunc implements NodeFunc {
      * @author Alexander Jauch-Walser, KNIME GmbH, Konstanz, Germany
      */
     @SuppressWarnings("restriction")
-    private static class AttributePatternRowFilterNodeFunc extends RowFilterNodeFunc {
+    public static class AttributePatternRowFilterNodeFunc extends RowFilterNodeFunc {
 
         private static final String REGEX = "regex";
 
@@ -150,6 +149,7 @@ abstract class RowFilterNodeFunc implements NodeFunc {
 
             var criterion = new FilterCriterion();
             criterion.m_column = new StringOrEnum<>(column);
+            criterion.m_columnType = StringCell.TYPE;
             criterion.m_operator = "REGEX";
 
             criterion.m_filterValueParameters = new PatternFilterParameters(regex);
@@ -178,7 +178,7 @@ abstract class RowFilterNodeFunc implements NodeFunc {
      *
      * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
-    public final class AttributeRangeRowFilterNodeFunc extends RowFilterNodeFunc {
+    public static final class AttributeRangeRowFilterNodeFunc extends RowFilterNodeFunc {
 
         private static final String UPPER_BOUND = "upper_bound";
 
@@ -220,17 +220,11 @@ abstract class RowFilterNodeFunc implements NodeFunc {
             var criterion = new FilterCriterion(columnSpec);
             criterion.m_operator = operator.name();
             var type = columnSpec.getType();
-            criterion.m_filterValueParameters = FilterValueParametersProvider.createNewParameters(null,
-                new StringOrEnum<>(columnSpec.getName()), operator.name());
+            criterion.m_columnType = type;
+            criterion.m_filterValueParameters =
+                FilterValueParametersProvider.createNewParameters(type, operator.name());
+            criterion.m_filterValueParameters.applyStash(new DataValue[]{new StringCell(value)});
             return criterion;
-        }
-
-        private static DataCell createCell(final DataType type, final String value) {
-            if (value == null) {
-                return null;
-            }
-            var dataCellFactory = new DataCellFactory();
-            return dataCellFactory.createDataCellOfType(type, value);
         }
 
         @Override
@@ -261,7 +255,7 @@ abstract class RowFilterNodeFunc implements NodeFunc {
      * @author Alexander Jauch-Walser, KNIME GmbH, Konstanz, Germany
      */
     @SuppressWarnings("restriction")
-    public final class MissingValueRowFilterNodeFunc extends RowFilterNodeFunc {
+    public static final class MissingValueRowFilterNodeFunc extends RowFilterNodeFunc {
 
         @Override
         FilterCriterion[] getFilterCriteria(final NodeSettingsRO arguments, final DataTableSpec tableSpec)
@@ -270,6 +264,8 @@ abstract class RowFilterNodeFunc implements NodeFunc {
 
             var criterion = new FilterCriterion();
             criterion.m_column = new StringOrEnum<>(column);
+            var columnSpec = tableSpec.getColumnSpec(column);
+            criterion.m_columnType = columnSpec == null ? StringCell.TYPE : columnSpec.getType();
             criterion.m_operator = IsMissingFilterOperator.getInstance().getId();
 
             return new FilterCriterion[]{criterion};
@@ -295,7 +291,7 @@ abstract class RowFilterNodeFunc implements NodeFunc {
      * @author Alexander Jauch-Walser, KNIME GmbH, Konstanz, Germany
      */
     @SuppressWarnings("restriction")
-    public class RowFilterByRowNumberNodeFunc extends RowFilterNodeFunc {
+    public static final class RowFilterByRowNumberNodeFunc extends RowFilterNodeFunc {
 
         private static final String OPERATOR = "operator";
 
@@ -383,7 +379,7 @@ abstract class RowFilterNodeFunc implements NodeFunc {
      * @author Alexander Jauch-Walser, KNIME GmbH, Konstanz, Germany
      */
     @SuppressWarnings("restriction")
-    public class RowIDRowFilterNodeFunc extends RowFilterNodeFunc {
+    public static final class RowIDRowFilterNodeFunc extends RowFilterNodeFunc {
 
         private static final String REGEX = "regex";
 

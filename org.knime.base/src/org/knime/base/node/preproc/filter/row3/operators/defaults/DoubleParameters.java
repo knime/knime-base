@@ -50,9 +50,7 @@ package org.knime.base.node.preproc.filter.row3.operators.defaults;
 
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
-import org.knime.core.data.DoubleValue;
-import org.knime.core.data.IntValue;
-import org.knime.core.data.LongValue;
+import org.knime.core.data.StringValue;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.DoubleCell.DoubleCellFactory;
 import org.knime.core.data.def.IntCell;
@@ -104,6 +102,12 @@ public final class DoubleParameters implements SingleCellValueParameters<DoubleC
             m_value = intCell.getIntValue();
         } else if (first instanceof LongCell longCell) {
             m_value = longCell.getLongValue();
+        } else if (first instanceof StringValue stringValue) {
+            try {
+                m_value = Double.parseDouble(stringValue.getStringValue());
+            } catch (final NumberFormatException e) {// NOSONAR
+                // ignore stash
+            }
         }
     }
 

@@ -50,8 +50,8 @@ package org.knime.base.node.preproc.filter.row3.operators.defaults;
 
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
-import org.knime.core.data.IntValue;
-import org.knime.core.data.LongValue;
+import org.knime.core.data.StringValue;
+import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.LongCell;
 import org.knime.core.data.def.LongCell.LongCellFactory;
@@ -91,6 +91,14 @@ public final class LongParameters implements SingleCellValueParameters<LongCell>
             loadFrom(longCell);
         } else if (first instanceof IntCell intCell) {
             m_value = intCell.getIntValue();
+        } else if (first instanceof DoubleCell doubleCell) {
+            m_value = (long)doubleCell.getDoubleValue();
+        } else if (first instanceof StringValue stringValue) {
+            try {
+                m_value = Long.parseLong(stringValue.getStringValue());
+            } catch (final NumberFormatException e) {// NOSONAR
+                // ignore stash
+            }
         }
     }
 }
