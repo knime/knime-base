@@ -310,6 +310,9 @@ public final class FilterOperatorsUtil {
         final List<FilterOperator<FilterValueParameters>> uniqueOperators = new ArrayList<>();
         for (int i = 0; i < operators.size(); i++) {
             final var operator = operators.get(i);
+            if (operator.isDeprecated()) {
+                continue;
+            }
             if (idToIndex.containsKey(operator.getId())) {
                 // replace existing operator with the new one, keep position
                 final var existingIndex = idToIndex.get(operator.getId());
@@ -321,7 +324,7 @@ public final class FilterOperatorsUtil {
                 idToIndex.put(operator.getId(), nextIndex);
             }
         }
-        return uniqueOperators.stream().filter(Predicate.not(FilterOperator::isDeprecated)).toList();
+        return uniqueOperators;
 
     }
 
