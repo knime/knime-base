@@ -48,23 +48,14 @@
  */
 package org.knime.base.node.preproc.filter.row3.operators.legacy;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
 import java.util.OptionalInt;
 
 import org.knime.base.data.filter.row.v2.IndexedRowReadPredicate;
-import org.knime.base.node.preproc.filter.row3.RowIdentifiers;
 import org.knime.base.node.preproc.filter.row3.operators.legacy.predicates.PredicateFactories;
-import org.knime.base.node.preproc.filter.row3.operators.pattern.PatternFilterParameters;
-import org.knime.base.node.preproc.filter.row3.operators.pattern.RowNumberPatternFilterParameters;
-import org.knime.core.data.BoundedValue;
 import org.knime.core.data.DataType;
-import org.knime.core.data.def.BooleanCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.data.v2.RowRead;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
 import org.knime.node.parameters.widget.choices.Label;
 
 /**
@@ -74,7 +65,6 @@ import org.knime.node.parameters.widget.choices.Label;
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  * @author Jasper Krauter, KNIME GmbH, Konstanz, Germany
  */
-@SuppressWarnings("restriction") // new ui
 public enum LegacyFilterOperator {
 
         /** Operator checking equality between values. */
@@ -192,63 +182,6 @@ public enum LegacyFilterOperator {
         m_allowMissing = allowMissing;
     }
 
-    Optional<DataType> getRequiredInputType() {
-        // only Pattern matching needs a special input type
-        return Optional.ofNullable(switch (this) {
-            case REGEX, WILDCARD -> StringCell.TYPE;
-            default -> null;
-        });
-    }
-
-    boolean isBinary() {
-        return switch (this) {
-            case EQ, NEQ, NEQ_MISS, LT, LTE, GT, GTE, REGEX, WILDCARD, FIRST_N_ROWS, LAST_N_ROWS -> true;
-            case IS_TRUE, IS_FALSE, IS_MISSING, IS_NOT_MISSING -> false;
-        };
-    }
-
-    /**
-     * Checks if the operator is applicable for the given columm.
-     *
-     * @param specialColumn special column flag
-     * @param dataType data type of the column
-     * @return {@code true} if the operator is applicable, {@code false} otherwise
-     */
-    boolean isApplicableFor(final RowIdentifiers specialColumn, final DataType dataType) { // NOSONAR single switch
-        // we only need to check if the input supports the data type in case of a binary operator
-        final var inputSupportsDataType = !isBinary() || DynamicValuesInput.supportsDataType(dataType);
-        return inputSupportsDataType && switch (this) {
-            // special columns are never missing, so that would be invalid
-            case IS_MISSING, IS_NOT_MISSING -> specialColumn == null;
-            // a factory is not required for the Row Numbers special column, since we don't actually access anything
-            // from the RowRead
-            case FIRST_N_ROWS, LAST_N_ROWS -> specialColumn == RowIdentifiers.ROW_NUMBER;
-            // booleans are handled with these two operators
-            case IS_TRUE, IS_FALSE -> dataType.equals(BooleanCell.TYPE);
-            case NEQ_MISS -> specialColumn == null
-                && PredicateFactories.getValuePredicateFactory(this, dataType).isPresent();
-            case LT, LTE, GT, GTE, EQ, NEQ, REGEX, WILDCARD -> PredicateFactories
-                .getValuePredicateFactory(this, dataType).isPresent();
-        };
-    }
-
-    /**
-     * Checks if the operator should be hidden for the given column.
-     *
-     * @param specialColumn special column flag
-     * @param dataType data type of the column
-     * @return {@code true} if the operator should be hidden, {@code false} otherwise
-     */
-    boolean isHidden(final RowIdentifiers specialColumn, final DataType dataType) {
-        final var hide = switch (this) {
-            // we hide ordering operators for non-bounded values, but they can still be used to filter if
-            // if configured via flow variable or 5.3.0 instance of the node
-            case LT, LTE, GT, GTE -> !dataType.isCompatible(BoundedValue.class);
-            default -> false;
-        };
-        return hide || !isApplicableFor(specialColumn, dataType);
-    }
-
     /**
      * Translates the operator and predicate values into a predicate on a {@link RowRead}.
      *
@@ -324,43 +257,5 @@ public enum LegacyFilterOperator {
             return (idx, rowRead) -> !rowRead.isMissing(columnIndex) && valuePredicate.test(idx, rowRead);
         }
     }
-
-    /**
-     * An internal, aka. built-in, filter operator.
-     */
-    interface InternalFilterOperator<T extends FilterValueParameters> {
-        Collection<Class<? extends FilterValueParameters>> ALL_PARAMETER_CLASSES = List.of(//
-            PatternFilterParameters.class, //
-            RowNumberPatternFilterParameters.class //
-        );
-
-        Class<T> getParametersClass();
-
-        default boolean isHidden() {
-            return false;
-        }
-    }
-
-    //    Class<? extends FilterValueParameters> getNodeParametersClass(final DataType dataType) {
-    //        switch (this) {
-    //            case REGEX, WILDCARD:
-    //                return PatternFilterParameters.class;
-    //            case FIRST_N_ROWS, LAST_N_ROWS:
-    //                throw new NotImplementedException();
-    //            case IS_TRUE, IS_FALSE, IS_MISSING, IS_NOT_MISSING:
-    //                return null;
-    //            case EQ, NEQ, NEQ_MISS:
-    //                if (dataType.equals(StringCell.TYPE)) {
-    //                    return StringValueParameters.EqualsStringParameters.class;
-    //                } else {
-    //                    return StringValueParameters.class;
-    //                }
-    //            case LT, LTE, GT, GTE:
-    //                return StringValueParameters.class;
-    //            default:
-    //                throw new NotImplementedException();
-    //
-    //        }
-    //    }
 
 }

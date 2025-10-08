@@ -49,7 +49,6 @@
 package org.knime.base.node.preproc.filter.row3.operators.legacy;
 
 import org.knime.node.parameters.NodeParameters;
-import org.knime.node.parameters.widget.choices.Label;
 
 /**
  * Case-matching setting provided by the framework, since we currently lack a flexible extension mechanism for
@@ -57,17 +56,8 @@ import org.knime.node.parameters.widget.choices.Label;
  */
 final class StringCaseMatchingSettings implements NodeParameters {
 
-    // TODO Ideally, this settings class is entirely opaque to the framework and the concrete implementation is supplied
-    // by the node that uses it.
-
-    // Actual labels/description is hard-coded in the frontend!
     enum CaseMatching {
-            /** Respect case when matching strings. */
-            @Label("Case sensitive")
-            CASESENSITIVE, //
-            /** Disregard case when matching strings. */
-            @Label("Case insensitive")
-            CASEINSENSITIVE;
+            CASESENSITIVE, CASEINSENSITIVE;
 
         /** Recommended default setting. */
         public static final CaseMatching DEFAULT = CASESENSITIVE;

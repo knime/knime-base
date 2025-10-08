@@ -61,6 +61,7 @@ import org.knime.node.parameters.migration.NodeParametersMigration;
  *
  * @author Paul Bärnreuther
  */
+@SuppressWarnings("restriction")
 public class LegacyFilterParametersMigration implements NodeParametersMigration<FilterValueParameters> {
 
     private static final String PREDICATE_VALUES_KEY = "predicateValues";

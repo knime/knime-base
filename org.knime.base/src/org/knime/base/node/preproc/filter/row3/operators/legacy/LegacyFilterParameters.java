@@ -75,6 +75,7 @@ import org.knime.node.parameters.NodeParameters;
  *
  * @author Paul Bärnreuther
  */
+@SuppressWarnings("restriction")
 public class LegacyFilterParameters implements FilterValueParameters {
 
     String m_legacySettings; // string since it needs to be serializable
@@ -130,7 +131,6 @@ public class LegacyFilterParameters implements FilterValueParameters {
         // keep name, set directly by framework based on legacy config
         DynamicValuesInput m_predicateValues;
 
-        @SuppressWarnings("restriction")
         static LoadedLegacyFilterParameters fromNodeSettings(final NodeSettingsRO settings)
             throws InvalidSettingsException {
             return NodeParametersUtil.loadSettings(settings, LoadedLegacyFilterParameters.class);
@@ -139,11 +139,13 @@ public class LegacyFilterParameters implements FilterValueParameters {
     }
 
     /**
-     * @param column
-     * @param spec
-     * @param optionalTableSize
-     * @return
-     * @throws InvalidSettingsException
+     * Create a predicate for the given column based on the legacy filter settings.
+     *
+     * @param column column to filter on
+     * @param spec input table spec
+     * @param optionalTableSize optional table size, needed for some operators like "Last N Rows", -1 if unknown
+     * @return predicate for the given column
+     * @throws InvalidSettingsException if the settings are invalid
      */
     public IndexedRowReadPredicate toPredicate(final StringOrEnum<RowIdentifiers> column, final DataTableSpec spec,
         final long optionalTableSize) throws InvalidSettingsException {
