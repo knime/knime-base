@@ -50,9 +50,12 @@ package org.knime.base.node.preproc.filter.row3.operators.rownumber;
 
 import org.knime.core.data.DataType;
 import org.knime.core.data.def.LongCell;
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters.SingleCellValueParameters;
 import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.widget.number.NumberInputWidget;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsPositiveIntegerValidation;
 
 /**
  * Parameters for row number equality.
@@ -62,6 +65,7 @@ import org.knime.node.parameters.Widget;
 public final class RowNumberParameters implements SingleCellValueParameters<LongCell> {
 
     @Widget(title = "Row number", description = "The positive row number to compare with.")
+    @NumberInputWidget(minValidation = IsPositiveIntegerValidation.class)
     long m_value = 1;
 
     RowNumberParameters() {
@@ -97,6 +101,11 @@ public final class RowNumberParameters implements SingleCellValueParameters<Long
     @Override
     public DataType getSpecificType() {
         return LongCell.TYPE;
+    }
+
+    @Override
+    public void validate() throws InvalidSettingsException {
+        CheckUtils.checkSetting(m_value >= 1, "Row number value must be positive: %d", m_value);
     }
 
 }
