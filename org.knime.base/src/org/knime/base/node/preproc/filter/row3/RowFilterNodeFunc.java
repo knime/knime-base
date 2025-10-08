@@ -56,6 +56,7 @@ import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.Fil
 import org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterOperator;
 import org.knime.base.node.preproc.filter.row3.operators.missing.IsMissingFilterOperator;
 import org.knime.base.node.preproc.filter.row3.operators.pattern.PatternFilterParameters;
+import org.knime.base.node.preproc.filter.row3.operators.rownumber.RowNumberParameters;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
@@ -69,7 +70,6 @@ import org.knime.core.node.func.NodeFuncApi;
 import org.knime.core.node.func.NodeFuncApi.Builder;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.CoreFilterValueParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 
 /**
@@ -330,7 +330,7 @@ abstract class RowFilterNodeFunc implements NodeFunc {
             var criterion = new FilterCriterion();
             criterion.m_column = new StringOrEnum<>(RowIdentifiers.ROW_NUMBER);
             criterion.m_operator = getOperator(operatorName).name();
-            criterion.m_filterValueParameters = new CoreFilterValueParameters.RowNumberParameters(rowNumber);
+            criterion.m_filterValueParameters = new RowNumberParameters(rowNumber);
 
             return new FilterCriterion[]{criterion};
         }
