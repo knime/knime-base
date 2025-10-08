@@ -61,7 +61,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extension
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperatorFamily;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperators;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.ValueFilterValidationUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.valuefilter.ValueFilterValidationUtil;
 
 /**
  * Operators for the Boolean data type.
@@ -88,11 +88,6 @@ public final class BooleanFilterOperators implements FilterOperators {
             return List.of(new BooleanIs(true), new BooleanIs(false));
         }
 
-        @Override
-        public Class<FilterValueParameters> getNodeParametersClass() {
-            // we do not have any parameters
-            return null;
-        }
     }
 
     private static final class BooleanIs implements FilterOperator<FilterValueParameters> {
