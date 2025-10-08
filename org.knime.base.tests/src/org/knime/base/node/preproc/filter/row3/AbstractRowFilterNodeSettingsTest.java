@@ -58,11 +58,9 @@ import org.junit.jupiter.api.Test;
 import org.knime.base.node.preproc.filter.row3.TestUtil.TestInitializer;
 import org.knime.base.node.preproc.filter.row3.operators.missing.IsMissingFilterOperator;
 import org.knime.base.node.preproc.filter.row3.operators.missing.IsNotMissingFilterOperator;
+import org.knime.base.node.preproc.filter.row3.operators.pattern.RegexOperator;
 import org.knime.base.node.preproc.filter.row3.operators.pattern.RegexPatternFilterOperator;
-import org.knime.base.node.preproc.filter.row3.operators.pattern.RowKeyRegexPatternFilterOperator;
-import org.knime.base.node.preproc.filter.row3.operators.pattern.RowKeyWildcardPatternFilterOperator;
-import org.knime.base.node.preproc.filter.row3.operators.pattern.RowNumberRegexPatternFilterOperator;
-import org.knime.base.node.preproc.filter.row3.operators.pattern.RowNumberWildcardPatternFilterOperator;
+import org.knime.base.node.preproc.filter.row3.operators.pattern.WildcardOperator;
 import org.knime.base.node.preproc.filter.row3.operators.pattern.WildcardPatternFilterOperator;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
@@ -90,8 +88,8 @@ import org.knime.node.parameters.widget.choices.StringChoice;
 
 /**
  * Tests that the available operators for different data types are as expected. This is only needed for new operators
- * and new style parameters, not legacy ones, since we only ever load existing legacy configurations
- * but don't create new ones.
+ * and new style parameters, not legacy ones, since we only ever load existing legacy configurations but don't create
+ * new ones.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
@@ -137,8 +135,8 @@ final class AbstractRowFilterNodeSettingsTest {
             .containsExactly( //
                 EqualsOperator.ID, //
                 NotEqualsOperator.ID, //
-                RowKeyRegexPatternFilterOperator.getInstance().getId(), //
-                RowKeyWildcardPatternFilterOperator.getInstance().getId());
+                RegexOperator.ID, //
+                WildcardOperator.ID);
     }
 
     /**
@@ -153,8 +151,8 @@ final class AbstractRowFilterNodeSettingsTest {
             EqualsOperator.ID, NotEqualsOperator.ID, //
             LessThanOperator.ID, LessThanOrEqualOperator.ID, GreaterThanOperator.ID, GreaterThanOrEqualOperator.ID, //
             FIRST_N_ID, LAST_N_ID, //
-            RowNumberRegexPatternFilterOperator.getInstance().getId(),
-            RowNumberWildcardPatternFilterOperator.getInstance().getId());
+            RegexOperator.ID, //
+            WildcardOperator.ID);
 
         assertThat(choices).as("Operator choices for Row Number") //
             .extracting(c -> c.id()) //
@@ -172,9 +170,8 @@ final class AbstractRowFilterNodeSettingsTest {
         final var expected = List.of(//
             EqualsOperator.ID, NotEqualsOperator.ID, NotEqualsNorMissingOperator.ID, //
             LessThanOperator.ID, LessThanOrEqualOperator.ID, GreaterThanOperator.ID, GreaterThanOrEqualOperator.ID, //
-            RowNumberRegexPatternFilterOperator.getInstance().getId(),
-            RowNumberWildcardPatternFilterOperator.getInstance().getId(), IsMissingFilterOperator.getInstance().getId(),
-            IsNotMissingFilterOperator.getInstance().getId() //
+            RegexOperator.ID, WildcardOperator.ID, //
+            IsMissingFilterOperator.getInstance().getId(), IsNotMissingFilterOperator.getInstance().getId() //
         );
 
         assertThat(choices).as("Operator choices for Integer column") //
@@ -212,9 +209,7 @@ final class AbstractRowFilterNodeSettingsTest {
         final var expected = List.of(//
             IsMissingFilterOperator.getInstance().getId(), IsNotMissingFilterOperator.getInstance().getId(), //
             // boolean does not have "equal" etc, but only special operators
-            "IS_TRUE",
-            "IS_FALSE"
-        );
+            "IS_TRUE", "IS_FALSE");
 
         assertThat(choices).as("Operator choices for Boolean column") //
             .extracting(c -> c.id()) //

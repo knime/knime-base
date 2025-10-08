@@ -51,17 +51,21 @@ package org.knime.base.node.preproc.filter.row3.operators.pattern;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperatorBase;
 
 /**
- * Interface for regex pattern filter operators that provides the standard ID and label.
- * Concrete regex operators can implement this interface to automatically get
- * the correct regex operator identification.
+ * Interface for regex pattern filter operators that provides the standard ID and label. Concrete regex operators can
+ * implement this interface to automatically get the correct regex operator identification.
  *
  * @author Paul Bärnreuther
  */
 public interface RegexOperator extends FilterOperatorBase {
 
+    /**
+     * The unique ID of the regex operator.
+     */
+    String ID = "REGEX";
+
     @Override
     default String getId() {
-        return "REGEX";
+        return ID;
     }
 
     @Override

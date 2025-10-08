@@ -51,17 +51,21 @@ package org.knime.base.node.preproc.filter.row3.operators.pattern;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperatorBase;
 
 /**
- * Interface for wildcard pattern filter operators that provides the standard ID and label.
- * Concrete wildcard operators can implement this interface to automatically get
- * the correct wildcard operator identification.
+ * Interface for wildcard pattern filter operators that provides the standard ID and label. Concrete wildcard operators
+ * can implement this interface to automatically get the correct wildcard operator identification.
  *
  * @author Paul Bärnreuther
  */
 public interface WildcardOperator extends FilterOperatorBase {
 
+    /**
+     * The unique ID of the wildcard operator.
+     */
+    String ID = "WILDCARD";
+
     @Override
     default String getId() {
-        return "WILDCARD";
+        return ID;
     }
 
     @Override
