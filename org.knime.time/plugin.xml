@@ -426,6 +426,15 @@
         <FilterOperators
             factoryClass="org.knime.core.data.time.localdate.LocalDateCellFilterOperators">
         </FilterOperators>
+        <FilterOperators
+            factoryClass="org.knime.core.data.time.localtime.LocalTimeCellFilterOperators">
+        </FilterOperators>
+        <FilterOperators
+            factoryClass="org.knime.core.data.time.localdatetime.LocalDateTimeCellFilterOperators">
+        </FilterOperators>
+        <FilterOperators
+            factoryClass="org.knime.core.data.time.zoneddatetime.ZonedDateTimeCellFilterOperators">
+        </FilterOperators>
     </extension>
 
    <extension
