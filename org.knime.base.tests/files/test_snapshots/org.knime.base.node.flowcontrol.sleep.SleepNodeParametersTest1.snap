@@ -9,7 +9,6 @@
       "toHours" : 0,
       "toMinutes" : 0,
       "toSeconds" : 0,
-      "toMilliseconds" : 0,
       "filePath" : "",
       "fileEvent" : "MODIFICATION"
     }
@@ -72,29 +71,22 @@
           "toHours" : {
             "type" : "integer",
             "format" : "int32",
-            "title" : "Hour of day",
-            "description" : "The hour of day to wait until.",
-            "default" : 0
-          },
-          "toMilliseconds" : {
-            "type" : "integer",
-            "format" : "int32",
-            "title" : "Millisecond of second",
-            "description" : "The millisecond of the second to wait until.",
+            "title" : "Hour",
+            "description" : "The hour of the time to wait until.",
             "default" : 0
           },
           "toMinutes" : {
             "type" : "integer",
             "format" : "int32",
-            "title" : "Minute of hour",
-            "description" : "The minute of the hour to wait until.",
+            "title" : "Minute",
+            "description" : "The minute of the time to wait until.",
             "default" : 0
           },
           "toSeconds" : {
             "type" : "integer",
             "format" : "int32",
-            "title" : "Second of minute",
-            "description" : "The second of the minute to wait until.",
+            "title" : "Second",
+            "description" : "The second of the time to wait until.",
             "default" : 0
           },
           "waitMode" : {
@@ -109,7 +101,7 @@
               "title" : "For file change"
             } ],
             "title" : "Wait",
-            "description" : "Select how the node should wait: for a duration, until a specific time, or for a file event.\n<ul>\n<li><b>For duration</b>: The node waits for the entered time (HH:mm:ss).</li>\n<li><b>To time of day</b>: The node waits until the entered time of day has passed.</li>\n<li><b>For file change</b>: The node waits until the selected file (or URL that\npoints to a local file) either gets created, modified or deleted.\n</li>\n</ul>",
+            "description" : "Select how the node should wait: for a duration, until a specific time, or for a file event.\n<ul>\n<li><b>For duration</b>: The node waits for the entered duration (hour, minute, second, millisecond).</li>\n<li><b>To time of day</b>: The node waits until the entered time of day is reached (hour, minute, second).</li>\n<li><b>For file change</b>: The node waits until the selected file (or URL that\npoints to a local file) either gets created, modified or deleted.\n</li>\n</ul>",
             "default" : "WAIT_FOR_TIME"
           }
         }
@@ -350,38 +342,6 @@
       }
     }, {
       "type" : "Control",
-      "scope" : "#/properties/model/properties/toMilliseconds",
-      "options" : {
-        "validation" : {
-          "max" : {
-            "errorMessage" : "The value must not exceed 999.",
-            "parameters" : {
-              "isExclusive" : false,
-              "max" : 999.0
-            }
-          },
-          "min" : {
-            "errorMessage" : "The value must be at least 0.",
-            "parameters" : {
-              "isExclusive" : false,
-              "min" : 0.0
-            }
-          }
-        }
-      },
-      "rule" : {
-        "effect" : "SHOW",
-        "condition" : {
-          "scope" : "#/properties/model/properties/waitMode",
-          "schema" : {
-            "oneOf" : [ {
-              "const" : "WAIT_UNTIL_TIME"
-            } ]
-          }
-        }
-      }
-    }, {
-      "type" : "Control",
       "scope" : "#/properties/model/properties/filePath",
       "options" : {
         "fileExtensions" : [ ],
@@ -447,9 +407,6 @@
           },
           "toSeconds" : {
             "configKey" : "to_seconds"
-          },
-          "toMilliseconds" : {
-            "configKey" : "to_milliseconds"
           },
           "filePath" : {
             "configKey" : "path_to_file"

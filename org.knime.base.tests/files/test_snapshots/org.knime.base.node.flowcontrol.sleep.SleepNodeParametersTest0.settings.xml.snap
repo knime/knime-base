@@ -8,7 +8,6 @@
     <entry key="to_hours" type="xint" value="0"/>
     <entry key="to_min" type="xint" value="0"/>
     <entry key="to_seconds" type="xint" value="0"/>
-    <entry key="to_milliseconds" type="xint" value="0"/>
     <entry key="path_to_file" type="xstring" value=""/>
     <entry key="file_status_to_observe" type="xstring" value="Modification"/>
 </config>

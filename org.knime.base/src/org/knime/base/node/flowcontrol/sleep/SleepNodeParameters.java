@@ -69,13 +69,14 @@ import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 import org.knime.node.parameters.widget.number.NumberInputWidget;
-import org.knime.node.parameters.widget.number.NumberInputWidgetValidation;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MaxValidation;
 import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsNonNegativeValidation;
 
 /**
  * Node parameters for Wait....
  *
  * @author Ali Asghar Marvi, KNIME AG, Zurich, Switzerland
+ * @author Marc Bux, KNIME Gmbh, Berlin, Germany
  */
 @LoadDefaultsForAbsentFields
 @SuppressWarnings("restriction")
@@ -117,21 +118,21 @@ final class SleepNodeParameters implements NodeParameters {
     @Persistor(WaitModePersistor.class)
     WaitMode m_waitMode = WaitMode.WAIT_FOR_TIME;
 
-    static final class Leq23Validation extends NumberInputWidgetValidation.MaxValidation {
+    static final class Leq23Validation extends MaxValidation {
         @Override
         protected double getMax() {
             return 23;
         }
     }
 
-    static final class Leq59Validation extends NumberInputWidgetValidation.MaxValidation {
+    static final class Leq59Validation extends MaxValidation {
         @Override
         protected double getMax() {
             return 59;
         }
     }
 
-    static final class Leq999Validation extends NumberInputWidgetValidation.MaxValidation {
+    static final class Leq999Validation extends MaxValidation {
         @Override
         protected double getMax() {
             return 999;
@@ -176,29 +177,23 @@ final class SleepNodeParameters implements NodeParameters {
      * values, it is also a bit odd to extend it as such, since a LocalTime of 60 hours is not really a time of day.
      * Hence, we stick with multiple integer fields for now.
      */
-    @Widget(title = "Hour of day", description = "The hour of day to wait until.")
+    @Widget(title = "Hour", description = "The hour of the time to wait until.")
     @NumberInputWidget(minValidation = IsNonNegativeValidation.class, maxValidation = Leq23Validation.class)
     @Persist(configKey = SleepNodeModel.CFGKEY_TOHOURS)
     @Effect(predicate = IsWaitToTime.class, type = EffectType.SHOW)
     int m_toHours;
 
-    @Widget(title = "Minute of hour", description = "The minute of the hour to wait until.")
+    @Widget(title = "Minute", description = "The minute of the time to wait until.")
     @NumberInputWidget(minValidation = IsNonNegativeValidation.class, maxValidation = Leq59Validation.class)
     @Persist(configKey = SleepNodeModel.CFGKEY_TOMINUTES)
     @Effect(predicate = IsWaitToTime.class, type = EffectType.SHOW)
     int m_toMinutes;
 
-    @Widget(title = "Second of minute", description = "The second of the minute to wait until.")
+    @Widget(title = "Second", description = "The second of the time to wait until.")
     @NumberInputWidget(minValidation = IsNonNegativeValidation.class, maxValidation = Leq59Validation.class)
     @Persist(configKey = SleepNodeModel.CFGKEY_TOSECONDS)
     @Effect(predicate = IsWaitToTime.class, type = EffectType.SHOW)
     int m_toSeconds;
-
-    @Widget(title = "Millisecond of second", description = "The millisecond of the second to wait until.")
-    @NumberInputWidget(minValidation = IsNonNegativeValidation.class, maxValidation = Leq999Validation.class)
-    @Persist(configKey = SleepNodeModel.CFGKEY_TOMILLISECONDS)
-    @Effect(predicate = IsWaitToTime.class, type = EffectType.SHOW)
-    int m_toMilliseconds;
 
     // Wait for file fields
 

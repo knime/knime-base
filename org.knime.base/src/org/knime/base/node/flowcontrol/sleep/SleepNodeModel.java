@@ -91,14 +91,17 @@ import com.google.common.base.Objects;
  *
  * @author M. Berthold, University of Konstanz
  * @author Leonard Wörteler, KNIME GmbH, Konstanz, Germany
+ * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
 public class SleepNodeModel extends NodeModel {
 
     enum WaitMode {
-            @Label(value = "For duration", description = "The node waits for the entered time (HH:mm:ss).")
+            @Label(value = "For duration",
+                description = "The node waits for the entered duration (hour, minute, second, millisecond).")
             WAIT_FOR_TIME,
 
-            @Label(value = "To time of day", description = "The node waits until the entered time of day has passed.")
+            @Label(value = "To time of day",
+                description = "The node waits until the entered time of day is reached (hour, minute, second).")
             WAIT_UNTIL_TIME,
 
             @Label(value = "For file change", description = """
@@ -153,9 +156,6 @@ public class SleepNodeModel extends NodeModel {
     /** Seconds to wait to. */
     public static final String CFGKEY_TOSECONDS = "to_seconds";
 
-    /** Milliseconds to wait to. */
-    static final String CFGKEY_TOMILLISECONDS = "to_milliseconds";
-
     /** Path to file to wait for. */
     public static final String CFGKEY_FILEPATH = "path_to_file";
 
@@ -176,8 +176,6 @@ public class SleepNodeModel extends NodeModel {
     private int m_toMin;
 
     private int m_toSec;
-
-    private int m_toMillis;
 
     private int m_forHours;
 
@@ -245,7 +243,7 @@ public class SleepNodeModel extends NodeModel {
         final var now = OffsetDateTime.now();
         final var today = OffsetDateTime.of(now.toLocalDate(), LocalTime.MIDNIGHT, now.getOffset());
         var targetTime =
-            today.plusHours(m_toHours).plusMinutes(m_toMin).plusSeconds(m_toSec).plusNanos(m_toMillis * 1_000_000L);
+            today.plusHours(m_toHours).plusMinutes(m_toMin).plusSeconds(m_toSec);
         if (targetTime.compareTo(now) < 0) {
             // assume that the next day is meant
             targetTime = targetTime.plusDays(1);
@@ -341,7 +339,6 @@ public class SleepNodeModel extends NodeModel {
             settings.getInt(CFGKEY_TOHOURS);
             settings.getInt(CFGKEY_TOMINUTES);
             settings.getInt(CFGKEY_TOSECONDS);
-            // milliseconds were only introduced with 5.8, so we don't check for CFGKEY_TOMILLISECONDS here
         }
 
         if (selection == WaitMode.WAIT_FILE) {
@@ -363,7 +360,6 @@ public class SleepNodeModel extends NodeModel {
             m_toHours = settings.getInt(CFGKEY_TOHOURS);
             m_toMin = settings.getInt(CFGKEY_TOMINUTES);
             m_toSec = settings.getInt(CFGKEY_TOSECONDS);
-            m_toMillis = settings.getInt(CFGKEY_TOMILLISECONDS, 0); // introduced with 5.8
         } else if (m_selection == WaitMode.WAIT_FILE) {
             m_filePath = settings.getString(CFGKEY_FILEPATH);
             final var sms = new SettingsModelString(CFGKEY_FILESTATUS, null);
@@ -399,7 +395,6 @@ public class SleepNodeModel extends NodeModel {
         settings.addInt(CFGKEY_TOHOURS, m_toHours);
         settings.addInt(CFGKEY_TOMINUTES, m_toMin);
         settings.addInt(CFGKEY_TOSECONDS, m_toSec);
-        settings.addInt(CFGKEY_TOMILLISECONDS, m_toMillis);
 
         settings.addString(CFGKEY_FILEPATH, m_filePath);
         final var sms = new SettingsModelString(CFGKEY_FILESTATUS, FileEvent.MODIFICATION.description());
