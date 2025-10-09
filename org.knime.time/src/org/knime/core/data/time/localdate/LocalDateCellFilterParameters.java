@@ -59,6 +59,7 @@ import org.knime.node.parameters.Widget;
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
+@SuppressWarnings("restriction")
 public class LocalDateCellFilterParameters implements FilterValueParameters.SingleCellValueParameters<LocalDateCell> {
 
     @Widget(title = "Date", description = "The date to compare against")

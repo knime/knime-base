@@ -50,18 +50,13 @@ package org.knime.core.data.time.localdate;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Predicate;
 
-import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataType;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.ComparableOperatorFamily;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.EqualsOperatorFamily;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperatorFamily;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperatorFamily.Single;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperators;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.ValueFilterOperator;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.builtin.ComparableOperatorFamily;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.builtin.EqualsOperatorFamily;
 
 /**
  *
@@ -80,37 +75,7 @@ public class LocalDateCellFilterOperators implements FilterOperators {
         final var operators = new ArrayList<FilterOperatorFamily<? extends FilterValueParameters>>();
         operators.add(new EqualsOperatorFamily<>(LocalDateCell.TYPE, LocalDateCellFilterParameters.class));
         operators.add(new ComparableOperatorFamily<>(LocalDateCell.TYPE, LocalDateCellFilterParameters.class));
-        operators.add(new Single<>(new OperatorIsLeapYear()));
         return operators;
     }
 
-    static final class OperatorIsLeapYear implements ValueFilterOperator<LocalDateValue, FilterValueParameters> {
-
-        @Override
-        public String getId() {
-            return "IS_LEAP_YEAR";
-        }
-
-        @Override
-        public String getLabel() {
-            return "Is leap year";
-        }
-
-        @Override
-        public Class<FilterValueParameters> getNodeParametersClass() {
-            return null;
-        }
-
-        @Override
-        public Predicate<LocalDateValue> createTypedPredicate(final DataColumnSpec runtimeColumnSpec,
-            final FilterValueParameters filterParameters) throws InvalidSettingsException {
-            return dv -> dv.getLocalDate().isLeapYear();
-        }
-
-        @Override
-        public DataType getDataType() {
-            return LocalDateCell.TYPE;
-        }
-
-    }
 }
