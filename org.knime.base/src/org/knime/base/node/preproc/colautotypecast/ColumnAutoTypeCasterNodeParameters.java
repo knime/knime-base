@@ -154,8 +154,9 @@ final class ColumnAutoTypeCasterNodeParameters implements NodeParameters {
 
     @Persist(configKey = ColumnAutoTypeCasterNodeModel.CFGKEY_QUICKSANBOOLEAN)
     @Widget(title = "Quickscan",
-        description = "Speed up by determining the most specific type based only on the first N rows. Note:"
-            + " With quickscan enabled this node may fail during execution if later rows contradict the inferred type.")
+        description = "Speed up by determining the most specific type based only on the first N rows. " //
+            + "<br /> Note: With quickscan enabled this node may fail during execution if later rows "
+            + "contradict the inferred type.")
     @ValueReference(QuickScanParameterReference.class)
     boolean m_quickScan;
 

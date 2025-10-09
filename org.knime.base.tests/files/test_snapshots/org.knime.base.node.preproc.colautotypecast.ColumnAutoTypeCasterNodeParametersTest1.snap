@@ -157,7 +157,7 @@
           "quickScan" : {
             "type" : "boolean",
             "title" : "Quickscan",
-            "description" : "Speed up by determining the most specific type based only on the first N rows. Note: With quickscan enabled this node may fail during execution if later rows contradict the inferred type.",
+            "description" : "Speed up by determining the most specific type based only on the first N rows. <br /> Note: With quickscan enabled this node may fail during execution if later rows contradict the inferred type.",
             "default" : false
           },
           "quickScanRows" : {
