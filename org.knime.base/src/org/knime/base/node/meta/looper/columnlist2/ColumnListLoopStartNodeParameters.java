@@ -87,7 +87,7 @@ final class ColumnListLoopStartNodeParameters implements NodeParameters {
 
     @Persistor(ColumnListLoopStartNodeParameters.ColumnFilterLegacyPersistor.class)
     @ColumnFilterWidget(choicesProvider = AllColumnsProvider.class)
-    @Widget(title = "Column Filter", description = """
+    @Widget(title = "Column filter", description = """
             Choose the columns to iterate over -- each column that matches the include criteria defines one
             iteration (so the loop will run as often as there are columns included). Columns excluded are considered
             static and will always be passed into the loop body.
