@@ -117,7 +117,7 @@
                 }
               }
             },
-            "title" : "Column filter",
+            "title" : "Columns to iterate",
             "description" : "Choose the columns to iterate over -- each column that matches the include criteria defines one\niteration (so the loop will run as often as there are columns included). Columns excluded are considered\nstatic and will always be passed into the loop body.\n",
             "default" : {
               "mode" : "MANUAL",
