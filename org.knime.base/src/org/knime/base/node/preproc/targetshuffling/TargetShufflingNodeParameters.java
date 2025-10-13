@@ -46,7 +46,8 @@
 
 package org.knime.base.node.preproc.targetshuffling;
 
-import org.apache.commons.lang.StringUtils;
+import java.util.Optional;
+
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.SimpleButtonWidget;
 import org.knime.node.parameters.NodeParameters;
@@ -61,10 +62,11 @@ import org.knime.node.parameters.updates.Effect;
 import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.updates.EffectPredicate;
 import org.knime.node.parameters.updates.EffectPredicateProvider;
+import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.StateProvider;
 import org.knime.node.parameters.updates.ValueProvider;
 import org.knime.node.parameters.updates.ValueReference;
-import org.knime.node.parameters.updates.legacy.UpdateOnOpenValueProvider;
+import org.knime.node.parameters.updates.legacy.ColumnNameAutoGuessValueProvider;
 import org.knime.node.parameters.updates.util.BooleanReference;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.util.AllColumnsProvider;
@@ -85,17 +87,24 @@ final class TargetShufflingNodeParameters implements NodeParameters {
     }
 
     TargetShufflingNodeParameters(final NodeParametersInput input) {
-        m_columnName = guessColumnName(input);
+        m_columnName = guessColumnName(input).map(DataColumnSpec::getName).orElse("");
     }
 
-    private static String guessColumnName(final NodeParametersInput input) {
-        return ColumnSelectionUtil.getFirstColumnOfFirstPort(input).map(DataColumnSpec::getName).orElse("");
+    private static Optional<DataColumnSpec> guessColumnName(final NodeParametersInput input) {
+        return ColumnSelectionUtil.getFirstColumnOfFirstPort(input);
     }
 
-    static final class ColumnsNameValueProvider extends UpdateOnOpenValueProvider<String> {
+    interface ColumnNameReference extends ParameterReference<String> {
+    }
+
+    static final class ColumnsNameValueProvider extends ColumnNameAutoGuessValueProvider {
+        ColumnsNameValueProvider() {
+            super(ColumnNameReference.class);
+        }
+
         @Override
-        protected String getValueOnOpen(final String currentValue, final NodeParametersInput parametersInput) {
-            return StringUtils.stripToNull(currentValue) == null ? guessColumnName(parametersInput) : currentValue;
+        protected Optional<DataColumnSpec> autoGuessColumn(final NodeParametersInput parametersInput) {
+            return guessColumnName(parametersInput);
         }
     }
 
@@ -106,7 +115,7 @@ final class TargetShufflingNodeParameters implements NodeParameters {
         description = "Select the column whose values should be randomly shuffled. This breaks the relationship "
             + "between this column and other columns in the table, which is useful for creating negative controls "
             + "in machine learning experiments.")
-    @ValueReference(ColumnsNameValueProvider.class)
+    @ValueReference(ColumnNameReference.class)
     @ValueProvider(ColumnsNameValueProvider.class)
     @ChoicesProvider(AllColumnsProvider.class)
     String m_columnName = "";
