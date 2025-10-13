@@ -224,12 +224,7 @@ final class CategoryToNumberNodeParameters implements NodeParameters {
 
         @Override
         public String[][] getConfigPaths() {
-            /**
-             * While the old dialog allowed to control these settings via flow variables, it never really made sense to
-             * do so. Therefore we disable the flow variable controls here.
-             */
-            return new String[0][];
+            return new String[][]{{m_configKey}};
         }
     }
-
 }

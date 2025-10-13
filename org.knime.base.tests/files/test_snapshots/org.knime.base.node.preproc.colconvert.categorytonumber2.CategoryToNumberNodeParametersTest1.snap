@@ -338,10 +338,10 @@
             "configKey" : "max_categories"
           },
           "defaultValue" : {
-            "configPaths" : [ ]
+            "configPaths" : [ [ "default_value" ] ]
           },
           "mapMissingTo" : {
-            "configPaths" : [ ]
+            "configPaths" : [ [ "map_missing_to" ] ]
           }
         }
       }
