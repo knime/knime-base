@@ -61,7 +61,7 @@ public class NominalValueRowFilterNodeFactory extends WebUINodeFactory<NominalVa
      * @since 5.3
      */
     private static final WebUINodeConfiguration CONFIG = WebUINodeConfiguration.builder()//
-        .name("Nominal Value Row Filter")//
+        .name("Category Row Filter")//
         .icon("./nominal_value_filter.png")//
         .shortDescription("Filters rows on nominal attribute value")//
         .fullDescription("<p>Filters the rows based on the selected value of a nominal attribute. "
@@ -70,8 +70,8 @@ public class NominalValueRowFilterNodeFactory extends WebUINodeFactory<NominalVa
             + "included in the output data, all other rows are excluded.</p>"
             + "<p>In order for a nominal column to appear in the node dialog, its domain (the set of values that "
             + "appear in the column) must be calculated. For columns with few values (less than 60) this is done "
-            + "automatically. To ensure the domain is properly set, use the Domain Calculator node or the Edit "
-            + "Nominal Domain node.</p>")
+            + "automatically. To ensure the domain is properly set, use the Domain Calculator node or the "
+            + "Category Domain Editor node.</p>")
         .modelSettingsClass(NominalValueRowFilterNodeSettings.class)//
         .addInputTable("Data to filter", "Data that should be filtered")//
         .addOutputTable("Included", "Matching rows")//

@@ -79,7 +79,7 @@ public class NominalValueRowSplitterNodeFactory extends WebUINodeFactory<Nominal
         + "org.knime.features.base/latest/org.knime.base.node.preproc.domain.editnominal.EditNominalDomainNodeFactory";
 
     static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
-        .name("Nominal Value Row Splitter") //
+        .name("Category Row Splitter") //
         .icon("nominal_value_splitter.png") //
         .shortDescription("Splits rows on nominal attribute value") //
         .fullDescription("""
@@ -95,7 +95,7 @@ public class NominalValueRowSplitterNodeFactory extends WebUINodeFactory<Nominal
                 columns with few values (less than 60) this is done automatically.
                 To ensure the domain is properly set, use the
                 <a href="%s">Domain Calculator</a> node or the
-                <a href="%s">Edit Nominal Domain</a> node.
+                <a href="%s">Category Domain Editor</a> node.
                 </p>
                 """.formatted(DOMAIN_CALCULATOR_URL, DOMAIN_EDITOR_URL)) //
         .modelSettingsClass(NominalValueRowSplitterNodeSettings.class) //
