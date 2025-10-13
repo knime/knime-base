@@ -44,7 +44,7 @@
           "propagateVariables" : {
             "type" : "boolean",
             "title" : "Propagate variables",
-            "description" : "If selected, variables defined (or modified) within the Try-Catch block are propagated downstream of this Catch Errors node. In most cases users will want to check this box (which is also the default). Previous versions of KNIME did not have this option and variables were always limited in scope and not visible downstream.",
+            "description" : "If selected, variables defined (or modified) within the <i>Try-Catch</i> block are propagated downstream of this <i>Catch Errors</i> node. In most cases users will want to check this box (which is also the default). Previous versions of KNIME did not have this option and variables were always limited in scope and not visible downstream.",
             "default" : true
           }
         }
