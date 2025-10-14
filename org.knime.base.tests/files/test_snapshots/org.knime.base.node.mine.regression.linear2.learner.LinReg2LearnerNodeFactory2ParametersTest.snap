@@ -10,7 +10,7 @@
           "isInverted" : false
         },
         "manualFilter" : {
-          "manuallySelected" : [ "Universe_1_1" ],
+          "manuallySelected" : [ ],
           "manuallyDeselected" : [ ],
           "includeUnknownColumns" : true
         },
@@ -132,7 +132,7 @@
                 "isInverted" : false
               },
               "manualFilter" : {
-                "manuallySelected" : [ "Universe_1_1" ],
+                "manuallySelected" : [ ],
                 "manuallyDeselected" : [ ],
                 "includeUnknownColumns" : true
               },
@@ -329,14 +329,7 @@
     "providedOptionName" : "possibleValues",
     "values" : [ {
       "indices" : [ ],
-      "value" : [ {
-        "id" : "Universe_1_1",
-        "text" : "Universe_1_1",
-        "type" : {
-          "id" : "org.knime.core.data.DoubleValue",
-          "text" : "Number (Float)"
-        }
-      } ]
+      "value" : [ ]
     } ]
   }, {
     "scope" : "#/properties/model/properties/targetColumn",
@@ -352,5 +345,11 @@
         }
       } ]
     } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/targetColumn"
+    },
+    "dependencies" : [ "#/properties/model/properties/targetColumn" ]
   } ]
 }

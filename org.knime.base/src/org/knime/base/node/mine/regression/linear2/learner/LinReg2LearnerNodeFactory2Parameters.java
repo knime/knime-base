@@ -53,10 +53,15 @@ import static org.knime.base.node.mine.regression.linear2.learner.LinReg2Learner
 import static org.knime.base.node.mine.regression.linear2.learner.LinReg2LearnerSettings.CFG_SCATTER_PLOT_ROW_COUNT;
 import static org.knime.base.node.mine.regression.linear2.learner.LinReg2LearnerSettings.CFG_TARGET;
 
+import java.util.List;
+import java.util.Objects;
+import java.util.function.Supplier;
+
 import org.knime.base.node.mine.regression.MissingValueHandling;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DoubleValue;
+import org.knime.core.data.NominalValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -78,10 +83,11 @@ import org.knime.node.parameters.updates.EffectPredicateProvider;
 import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.ColumnChoicesProvider;
 import org.knime.node.parameters.widget.choices.Label;
 import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
 import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
-import org.knime.node.parameters.widget.choices.util.AllColumnsProvider;
+import org.knime.node.parameters.widget.choices.filter.ColumnFilterWidget;
 import org.knime.node.parameters.widget.choices.util.ColumnSelectionUtil;
 import org.knime.node.parameters.widget.choices.util.CompatibleColumnsProvider.DoubleColumnsProvider;
 import org.knime.node.parameters.widget.number.NumberInputWidget;
@@ -100,13 +106,27 @@ final class LinReg2LearnerNodeFactory2Parameters implements NodeParameters {
     }
 
     LinReg2LearnerNodeFactory2Parameters(final NodeParametersInput context) {
-        m_columnFilter =
-            new ColumnFilter(ColumnSelectionUtil.getAllColumnsOfFirstPort(context)).withIncludeUnknownColumns();
         var possibleTargets = context.getInTableSpec(0).stream().flatMap(DataTableSpec::stream)
             .filter(spec -> spec.getType().isCompatible(DoubleValue.class)).map(DataColumnSpec::getName).toList();
         if (!possibleTargets.isEmpty()) {
             m_targetColumn = possibleTargets.get(0);
         }
+        var allColumnsOfFirstPort = ColumnSelectionUtil.getAllColumnsOfFirstPort(context);
+        var initialRegressors = getValidRegressorColumns(allColumnsOfFirstPort, m_targetColumn);
+        m_columnFilter = new ColumnFilter(initialRegressors).withIncludeUnknownColumns();
+    }
+
+    private static List<DataColumnSpec> getValidRegressorColumns(final List<DataColumnSpec> columns,
+        final String targetColumn) {
+        return columns.stream() //
+            .filter(LinReg2LearnerNodeFactory2Parameters::isSupportedRegressorColumn) //
+            .filter(col -> !Objects.equals(col.getName(), targetColumn)) //
+            .toList();
+    }
+
+    private static boolean isSupportedRegressorColumn(final DataColumnSpec colSpec) {
+        var type = colSpec.getType();
+        return type.isCompatible(DoubleValue.class) || type.isCompatible(NominalValue.class);
     }
 
     @Section(title = "Input Configuration")
@@ -126,6 +146,29 @@ final class LinReg2LearnerNodeFactory2Parameters implements NodeParameters {
     @Section(title = "Scatter Plot View")
     @After(MissingValuesSection.class)
     interface ScatterPlotSection {
+    }
+
+    interface TargetColumnRef extends ParameterReference<String> {
+    }
+
+    static final class TargetAwareRegressorColumnsProvider implements ColumnChoicesProvider {
+
+        private Supplier<String> m_targetSupplier;
+
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            m_targetSupplier = initializer.computeFromValueSupplier(TargetColumnRef.class);
+            ColumnChoicesProvider.super.init(initializer);
+        }
+
+        @Override
+        public List<DataColumnSpec> columnChoices(final NodeParametersInput context) {
+            var target = m_targetSupplier == null ? null : m_targetSupplier.get();
+            return context.getInTableSpec(0).map(spec -> {
+                var cols = spec.stream().toList();
+                return getValidRegressorColumns(cols, target);
+            }).orElseGet(List::of);
+        }
     }
 
     @SuppressWarnings("restriction")
@@ -210,6 +253,7 @@ final class LinReg2LearnerNodeFactory2Parameters implements NodeParameters {
     @Widget(title = "Target", description = """
             Select the numeric target column (response variable) the regression should predict.
             """)
+    @ValueReference(TargetColumnRef.class)
     @Persist(configKey = CFG_TARGET)
     @ChoicesProvider(DoubleColumnsProvider.class)
     String m_targetColumn;
@@ -223,7 +267,7 @@ final class LinReg2LearnerNodeFactory2Parameters implements NodeParameters {
             Categorical variables in regression</a>.
             """)
     @Persistor(ColumnFilterPersistor.class)
-    @ChoicesProvider(AllColumnsProvider.class)
+    @ColumnFilterWidget(choicesProvider = TargetAwareRegressorColumnsProvider.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
 
     @Layout(RegressionPropertiesSection.class)
