@@ -20,6 +20,11 @@
             "description" : "The name of the column with the class labels for stratified sampling.\n",
             "default" : "Cluster Membership"
           },
+          "drawSeed" : {
+            "type" : "object",
+            "title" : "Draw seed",
+            "description" : "Generate a random seed and set it in the Random seed input above for reproducible runs."
+          },
           "randomSeed" : {
             "type" : "string",
             "title" : "Random seed",
@@ -172,6 +177,34 @@
           } ]
         }
       }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/drawSeed",
+      "options" : {
+        "format" : "simpleButton",
+        "triggerId" : "org.knime.base.node.meta.xvalidation.XValidatePartitionerParameters$DrawSeedButtonRef"
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "type" : "AND",
+          "conditions" : [ {
+            "scope" : "#/properties/model/properties/useRandomSeed",
+            "schema" : {
+              "const" : true
+            }
+          }, {
+            "scope" : "#/properties/model/properties/samplingMethod",
+            "schema" : {
+              "not" : {
+                "oneOf" : [ {
+                  "const" : "LINEAR"
+                } ]
+              }
+            }
+          } ]
+        }
+      }
     } ]
   },
   "persist" : {
@@ -194,7 +227,8 @@
           },
           "randomSeed" : {
             "configPaths" : [ [ "randomSeed" ] ]
-          }
+          },
+          "drawSeed" : { }
         }
       }
     }
@@ -227,5 +261,11 @@
         }
       } ]
     } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "id" : "org.knime.base.node.meta.xvalidation.XValidatePartitionerParameters$DrawSeedButtonRef"
+    },
+    "dependencies" : [ ]
   } ]
 }

@@ -50,6 +50,7 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.button.SimpleButtonWidget;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
@@ -58,11 +59,14 @@ import org.knime.node.parameters.persistence.NodeParametersPersistor;
 import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.persistence.legacy.LongAsStringPersistor;
+import org.knime.node.parameters.updates.ButtonReference;
 import org.knime.node.parameters.updates.Effect;
 import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.updates.EffectPredicate;
 import org.knime.node.parameters.updates.EffectPredicateProvider;
 import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.StateProvider;
+import org.knime.node.parameters.updates.ValueProvider;
 import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.Label;
@@ -139,7 +143,14 @@ class XValidatePartitionerParameters implements NodeParameters {
             """)
     @TextInputWidget(patternValidation = LongAsStringPersistor.IsLongInteger.class)
     @Effect(predicate = IsNotLinearSamplingAndUseRandomSeed.class, type = EffectType.SHOW)
+    @ValueProvider(SeedValueProvider.class)
     String m_randomSeed = "0";
+
+    @Widget(title = "Draw seed",
+        description = "Generate a random seed and set it in the Random seed input above for reproducible runs.")
+    @SimpleButtonWidget(ref = DrawSeedButtonRef.class)
+    @Effect(predicate = IsNotLinearSamplingAndUseRandomSeed.class, type = EffectType.SHOW)
+    Void m_drawSeed;
 
     // ====== Value References ======
 
@@ -147,6 +158,9 @@ class XValidatePartitionerParameters implements NodeParameters {
     }
 
     static final class UseRandomSeedRef implements ParameterReference<Boolean> {
+    }
+
+    static final class DrawSeedButtonRef implements ButtonReference {
     }
 
     // ====== Effect Predicates ======
@@ -269,6 +283,22 @@ class XValidatePartitionerParameters implements NodeParameters {
             super(XValidateSettings.CFG_RANDOM_SEED);
         }
 
+    }
+
+    static final class SeedValueProvider implements StateProvider<String> {
+
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            initializer.computeOnButtonClick(DrawSeedButtonRef.class);
+        }
+
+        @Override
+        public String computeState(final NodeParametersInput parametersInput) {
+            final long l1 = Double.doubleToLongBits(Math.random());
+            final long l2 = Double.doubleToLongBits(Math.random());
+            long l = ((0xFFFFFFFFL & l1) << 32) + (0xFFFFFFFFL & l2);
+            return Long.toString(l);
+        }
     }
 
     enum SamplingMethod {
