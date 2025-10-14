@@ -1,0 +1,91 @@
+{
+  "data" : {
+    "model" : {
+      "extractPropertyHandlers" : false,
+      "possibleValuesAsCollection" : false,
+      "typeNameFormat" : "IDENTIFIER"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "extractPropertyHandlers" : {
+            "type" : "boolean",
+            "title" : "Extract property handlers",
+            "description" : "If checked the information which of the columns have property\nhandlers e.g. color handler associated is extracted, otherwise not.\n",
+            "default" : false
+          },
+          "possibleValuesAsCollection" : {
+            "type" : "boolean",
+            "title" : "Possible values as collection",
+            "description" : "If checked, the possible values of each columns are extracted as\npossible values, otherwise not.\n",
+            "default" : false
+          },
+          "typeNameFormat" : {
+            "oneOf" : [ {
+              "const" : "IDENTIFIER",
+              "title" : "Identifier"
+            }, {
+              "const" : "LEGACY_DISPLAY_NAME",
+              "title" : "Legacy Display Name"
+            }, {
+              "const" : "DISPLAY_NAME",
+              "title" : "Display Name"
+            } ],
+            "title" : "Format of Type Names",
+            "description" : "Determines how the types of columns are represented in the output table.\n\n<ul>\n<li><b>Identifier</b>: The type names are represented with a unique identifier. This is the recommended option.\n</li>\n<li><b>Legacy Display Name</b>: The type names are represented by their old display name. This option is intended to be\nused purely for backwards-compatibility for workflows created in version 5.4 or before.\n</li>\n<li><b>Display Name</b>: The type names are represented by their display name. This name may change at any point\nwith an update, so it is highly discouraged to match against this output in any way.\n</li>\n</ul>",
+            "default" : "IDENTIFIER"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/extractPropertyHandlers",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/possibleValuesAsCollection",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/typeNameFormat",
+      "options" : {
+        "format" : "radio",
+        "radioLayout" : "vertical",
+        "disabledOptions" : [ "LEGACY_DISPLAY_NAME" ]
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "extractPropertyHandlers" : {
+            "configKey" : "ExtractPropertyHandlers"
+          },
+          "possibleValuesAsCollection" : {
+            "configKey" : "PossibleValuesAsCollection"
+          },
+          "typeNameFormat" : {
+            "configPaths" : [ [ "TypeNameFormat" ] ],
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ ]
+            } ]
+          }
+        }
+      }
+    }
+  }
+}
