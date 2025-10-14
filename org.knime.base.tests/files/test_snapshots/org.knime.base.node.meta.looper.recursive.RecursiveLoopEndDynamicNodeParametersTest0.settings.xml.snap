@@ -6,7 +6,7 @@
     </config>
     <entry key="maxNrIterations" type="xint" value="100"/>
     <entry key="useFlowVariable" type="xboolean" value="false"/>
-    <entry key="flowVariableName" type="xstring" value=""/>
+    <entry key="flowVariableName" type="xstring" isnull="true" value=""/>
     <config key="onlyLastData">
         <entry key="array-size" type="xint" value="1"/>
         <entry key="0" type="xboolean" value="false"/>

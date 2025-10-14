@@ -367,8 +367,8 @@ class RecursiveLoopEndDynamicNodeModel extends NodeModel implements LoopEndNode,
     }
 
     static Supplier<Map<String, FlowVariable>>
-        getValidVariablesSupplier(final Function<VariableType<?>[], Map<String, FlowVariable>> variableSuplier) {
-        return () -> variableSuplier.apply(BOOLEAN_COMPATIBLE_TYPES).entrySet().stream()//
+        getValidVariablesSupplier(final Function<VariableType<?>[], Map<String, FlowVariable>> variableSupplier) {
+        return () -> variableSupplier.apply(BOOLEAN_COMPATIBLE_TYPES).entrySet().stream()//
             .filter(e -> e.getValue().getScope() == Scope.Flow)//
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }

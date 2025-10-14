@@ -48,6 +48,7 @@ package org.knime.base.node.meta.looper.recursive;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 import org.knime.core.node.InvalidSettingsException;
@@ -65,6 +66,7 @@ import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
 import org.knime.node.parameters.persistence.NodeParametersPersistor;
 import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistor;
+import org.knime.node.parameters.persistence.legacy.OptionalStringPersistor;
 import org.knime.node.parameters.updates.Effect;
 import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.updates.EffectPredicate;
@@ -73,6 +75,8 @@ import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.StateProvider;
 import org.knime.node.parameters.updates.ValueProvider;
 import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.widget.OptionalWidget;
+import org.knime.node.parameters.widget.OptionalWidget.DefaultValueProvider;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.FlowVariableChoicesProvider;
 import org.knime.node.parameters.widget.number.NumberInputWidget;
@@ -84,6 +88,7 @@ import org.knime.node.parameters.widget.number.NumberInputWidgetValidation;
  * @author Benjamin Moser, KNIME GmbH, Konstanz, Germany
  * @author AI Migration Pipeline v1.1
  */
+@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 @LoadDefaultsForAbsentFields
 final class RecursiveLoopEndDynamicNodeParameters implements NodeParameters {
 
@@ -262,22 +267,18 @@ final class RecursiveLoopEndDynamicNodeParameters implements NodeParameters {
         }
     }
 
-    interface UseFlowVariableRef extends ParameterReference<Boolean> {
+    private static final class FlowVariableNamePersistor extends OptionalStringPersistor {
+        FlowVariableNamePersistor() {
+            super("useFlowVariable", "flowVariableName");
+        }
     }
 
-    @Widget(title = "End loop with variable", description = """
-            Whether the node execution is controlled by a variable.
-            When enabled, choose the flow variable that ends the loop if its value equals &#8220;true&#8221;.
-            """)
-    @Layout(RecursionSettingsSection.class)
-    @ValueReference(UseFlowVariableRef.class)
-    @Effect(predicate = HasNoValidVariables.class, type = EffectType.HIDE)
-    boolean m_useFlowVariable;
-
-    static final class HasNoValidVariablesOrNotUsingVariable implements EffectPredicateProvider {
+    static final class FlowVariableNameDefaultProvider implements DefaultValueProvider<String> {
         @Override
-        public EffectPredicate init(final PredicateInitializer i) {
-            return i.getPredicate(HasNoValidVariables.class).or(i.getBoolean(UseFlowVariableRef.class).isFalse());
+        public String computeState(final NodeParametersInput parametersInput) {
+            return RecursiveLoopEndDynamicNodeModel
+                .getValidVariablesSupplier(parametersInput::getAvailableInputFlowVariables).get().keySet().stream()
+                .findFirst().orElse("");
         }
     }
 
@@ -289,13 +290,16 @@ final class RecursiveLoopEndDynamicNodeParameters implements NodeParameters {
         }
     }
 
-    @Widget(title = "Flow variable to end loop with", description = """
-            Select the flow variable that will end the loop if its value equals &#8220;true&#8221;.
+    @Widget(title = "End loop with variable", description = """
+            Enables ending the loop based on a flow variable.
+            When selected, choose the flow variable that terminates the loop when its value equals &#8220;true&#8221;.
             """)
     @Layout(RecursionSettingsSection.class)
-    @Effect(predicate = HasNoValidVariablesOrNotUsingVariable.class, type = EffectType.HIDE)
+    @Effect(predicate = HasNoValidVariables.class, type = EffectType.DISABLE)
+    @Persistor(FlowVariableNamePersistor.class)
+    @OptionalWidget(defaultProvider = FlowVariableNameDefaultProvider.class)
     @ChoicesProvider(FlowVariableNameChoicesProvider.class)
-    String m_flowVariableName = "";
+    Optional<String> m_flowVariableName = Optional.empty();
 
     @Widget(title = "Data collection",
         description = "Configure how data from each collection port is collected across iterations.")
@@ -341,9 +345,10 @@ final class RecursiveLoopEndDynamicNodeParameters implements NodeParameters {
         private static final String CFG_KEY_ADD_ITERATION_COLUMN = "addIterationColumn";
 
         @Override
+        @SuppressWarnings("java:S3878")
         public DataCollectionPortSettings[] load(final NodeSettingsRO nodeSettings) throws InvalidSettingsException {
-            final var collectData = nodeSettings.getBooleanArray(CFG_KEY_ONLY_LAST_DATA );
-            final var addIterationColumn = nodeSettings.getBooleanArray(CFG_KEY_ADD_ITERATION_COLUMN);
+            final var collectData = nodeSettings.getBooleanArray(CFG_KEY_ONLY_LAST_DATA, new boolean[0]);
+            final var addIterationColumn = nodeSettings.getBooleanArray(CFG_KEY_ADD_ITERATION_COLUMN, new boolean[0]);
             final var numberOfItems = Math.max(collectData.length, addIterationColumn.length);
             var result = new DataCollectionPortSettings[numberOfItems];
             for (var i = 0; i < numberOfItems; i++) {

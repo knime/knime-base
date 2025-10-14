@@ -3,8 +3,7 @@
     "model" : {
       "recursionPortSettings" : [ ],
       "maxNrIterations" : 100,
-      "useFlowVariable" : false,
-      "flowVariableName" : "",
+      "flowVariableName" : null,
       "dataCollectionPortSettings" : [ ],
       "propagateFlowVariables" : false
     }
@@ -39,10 +38,10 @@
             "default" : [ ]
           },
           "flowVariableName" : {
-            "type" : "string",
-            "title" : "Flow variable to end loop with",
-            "description" : "Select the flow variable that will end the loop if its value equals &#8220;true&#8221;.\n",
-            "default" : ""
+            "type" : [ "string", "null" ],
+            "title" : "End loop with variable",
+            "description" : "Enables ending the loop based on a flow variable.\nWhen selected, choose the flow variable that terminates the loop when its value equals &#8220;true&#8221;.\n",
+            "default" : null
           },
           "maxNrIterations" : {
             "type" : "integer",
@@ -74,12 +73,6 @@
             "title" : "Minimal number of rows",
             "description" : "The minimal number of rows for each recursion input table required to continue iterating.\nIf <b>one</b> of the tables falls below its configured minimum, the loop stops.\nThe minimum can be set per recursion input table individually.\n",
             "default" : [ ]
-          },
-          "useFlowVariable" : {
-            "type" : "boolean",
-            "title" : "End loop with variable",
-            "description" : "Whether the node execution is controlled by a variable.\nWhen enabled, choose the flow variable that ends the loop if its value equals &#8220;true&#8221;.\n",
-            "default" : false
           }
         }
       }
@@ -141,35 +134,16 @@
         }
       }, {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/useFlowVariable",
-        "options" : {
-          "format" : "checkbox"
-        },
-        "rule" : {
-          "effect" : "HIDE",
-          "condition" : {
-            "schema" : { }
-          }
-        }
-      }, {
-        "type" : "Control",
         "scope" : "#/properties/model/properties/flowVariableName",
         "options" : {
-          "format" : "dropDown"
+          "format" : "dropDown",
+          "hideOnNull" : true
         },
-        "providedOptions" : [ "possibleValues" ],
+        "providedOptions" : [ "possibleValues", "default" ],
         "rule" : {
-          "effect" : "HIDE",
+          "effect" : "DISABLE",
           "condition" : {
-            "type" : "OR",
-            "conditions" : [ {
-              "schema" : { }
-            }, {
-              "scope" : "#/properties/model/properties/useFlowVariable",
-              "schema" : {
-                "const" : false
-              }
-            } ]
+            "schema" : { }
           }
         }
       } ]
@@ -231,8 +205,9 @@
           "maxNrIterations" : {
             "configKey" : "maxNrIterations"
           },
-          "useFlowVariable" : { },
-          "flowVariableName" : { },
+          "flowVariableName" : {
+            "configPaths" : [ [ "useFlowVariable" ], [ "flowVariableName" ] ]
+          },
           "dataCollectionPortSettings" : {
             "configPaths" : [ [ "onlyLastData" ], [ "addIterationColumn" ] ]
           },
@@ -248,6 +223,13 @@
     "values" : [ {
       "indices" : [ ],
       "value" : [ ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/flowVariableName",
+    "providedOptionName" : "default",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : ""
     } ]
   }, {
     "scope" : "#/properties/model/properties/flowVariableName",

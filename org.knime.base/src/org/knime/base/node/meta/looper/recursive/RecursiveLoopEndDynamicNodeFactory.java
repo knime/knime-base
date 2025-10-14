@@ -75,7 +75,7 @@ import org.knime.node.impl.description.PortDescription;
  * <code>NodeFactory</code> for the Recursive Loop End Node (arbitrary ports).
  *
  *
- * @author Jannik LÃ¶scher, KNIME GmbH, Konstanz, Germany
+ * @author Jannik Löscher, KNIME GmbH, Konstanz, Germany
  * @author Benjamin Moser, KNIME GmbH, Konstanz, Germany
  * @author AI Migration Pipeline v1.1
  */
@@ -139,7 +139,7 @@ public class RecursiveLoopEndDynamicNodeFactory extends ConfigurableNodeFactory<
                 <i>Recursive Loop Start</i> node. Starting with the second iteration, the <i>Recursive Loop Start</i>
                 node outputs the data as received by the <i>Recursive Loop End</i>.</p>
             <p>You can add more recursion input tables and collector input and output tables using the
-                &#8220;+;&#8221; button on the node. The number of recursion ports must be the same as the number of
+                &#8220;+&#8221; button on the node. The number of recursion ports must be the same as the number of
                 recursion ports of the corresponding <i>Recursive Loop Start</i> node. Recursion and collector ports are
                 independent of each other. The collection ports are always listed first.</p>
             <p>The loop runs until one of the three stopping criteria is met:</p>
