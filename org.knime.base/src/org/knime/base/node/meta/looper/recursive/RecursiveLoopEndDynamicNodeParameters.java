@@ -87,11 +87,12 @@ import org.knime.node.parameters.widget.number.NumberInputWidgetValidation;
 @LoadDefaultsForAbsentFields
 final class RecursiveLoopEndDynamicNodeParameters implements NodeParameters {
 
-    @Section(title = "Recursion")
+    @Section(title = "End Recursion Settings")
     interface RecursionSettingsSection {
     }
 
-    @Section(title = "Data Collection")
+    @Section(title = "Data Collection",
+        description = "Configure how data from each collection port is collected across iterations.")
     @After(RecursionSettingsSection.class)
     interface DataCollectionSection {
     }
@@ -101,8 +102,10 @@ final class RecursiveLoopEndDynamicNodeParameters implements NodeParameters {
     interface FlowVariablesSection {
     }
 
-    @Widget(title = "Minimum number of rows", description = """
-            Configure the minimal number of rows required on each recursion input table before the loop continues.
+    @Widget(title = "Minimal number of rows", description = """
+            The minimal number of rows for each recursion input table required to continue iterating.
+            If <b>one</b> of the tables falls below its configured minimum, the loop stops.
+            The minimum can be set per recursion input table individually.
             """)
     @Layout(RecursionSettingsSection.class)
     @ArrayWidget(elementTitle = "Recursion port", hasFixedSize = true)
@@ -119,7 +122,7 @@ final class RecursiveLoopEndDynamicNodeParameters implements NodeParameters {
 
         @Override
         public RecursionPortSettings[] load(final NodeSettingsRO nodeSettings) throws InvalidSettingsException {
-            return Arrays.stream(nodeSettings.getLongArray(CONFIG_KEY, new long[0])) //
+            return Arrays.stream(nodeSettings.getLongArray(CONFIG_KEY)) //
                 .mapToObj(minNrOfRows -> {
                     var v = new RecursionPortSettings();
                     v.m_minNrOfRows = minNrOfRows;
@@ -147,9 +150,11 @@ final class RecursiveLoopEndDynamicNodeParameters implements NodeParameters {
     }
 
     private static final class RecursionPortSettings implements NodeParameters {
-        @Widget(title = "Minimal number of rows",
-            description = "Minimal number of rows for each recursion input table required to continue iterating.")
-        @NumberInputWidget(minValidation = NumberInputWidgetValidation.MinValidation.IsPositiveDoubleValidation.class)
+        @Widget(title = "Minimal number of rows for input port", description = """
+                Minimal number of rows for the recursion input table required to continue iterating.
+                If the number of rows falls below this threshold, the loop stops.
+                """)
+        @NumberInputWidget(minValidation = NumberInputWidgetValidation.MinValidation.IsNonNegativeValidation.class)
         long m_minNrOfRows = 1;
     }
 
@@ -212,7 +217,7 @@ final class RecursiveLoopEndDynamicNodeParameters implements NodeParameters {
                 if (indices != null) {
                     return indices.length;
                 }
-            } catch (IllegalStateException ex) {
+            } catch (IllegalStateException ex) {  // NOSONAR
                 // fall through to the fallback below if no ports configuration is available
             }
             return m_portGroupSide == PortGroupSide.INPUT ? parametersInput.getInPortTypes().length
@@ -242,7 +247,7 @@ final class RecursiveLoopEndDynamicNodeParameters implements NodeParameters {
         }
     }
 
-    @Widget(title = "Maximum number of iterations",
+    @Widget(title = "Maximal number of iterations",
         description = "The maximum number of iterations the loop will run. Prevents endless loops.")
     @Layout(RecursionSettingsSection.class)
     @NumberInputWidget(minValidation = NumberInputWidgetValidation.MinValidation.IsPositiveDoubleValidation.class)
@@ -261,7 +266,8 @@ final class RecursiveLoopEndDynamicNodeParameters implements NodeParameters {
     }
 
     @Widget(title = "End loop with variable", description = """
-            The loop ends if the option is enabled and the value of the selected variable equals “true”.
+            Whether the node execution is controlled by a variable.
+            When enabled, choose the flow variable that ends the loop if its value equals &#8220;true&#8221;.
             """)
     @Layout(RecursionSettingsSection.class)
     @ValueReference(UseFlowVariableRef.class)
@@ -283,14 +289,15 @@ final class RecursiveLoopEndDynamicNodeParameters implements NodeParameters {
         }
     }
 
-    @Widget(title = "Flow variable to end loop with",
-        description = "Select the flow variable that will end the loop if its value is \"true\".")
+    @Widget(title = "Flow variable to end loop with", description = """
+            Select the flow variable that will end the loop if its value equals &#8220;true&#8221;.
+            """)
     @Layout(RecursionSettingsSection.class)
     @Effect(predicate = HasNoValidVariablesOrNotUsingVariable.class, type = EffectType.HIDE)
     @ChoicesProvider(FlowVariableNameChoicesProvider.class)
     String m_flowVariableName = "";
 
-    @Widget(title = "Collection port settings",
+    @Widget(title = "Data collection",
         description = "Configure how data from each collection port is collected across iterations.")
     @Layout(DataCollectionSection.class)
     @ArrayWidget(elementTitle = "Collection port", hasFixedSize = true)
@@ -335,8 +342,8 @@ final class RecursiveLoopEndDynamicNodeParameters implements NodeParameters {
 
         @Override
         public DataCollectionPortSettings[] load(final NodeSettingsRO nodeSettings) throws InvalidSettingsException {
-            final var collectData = nodeSettings.getBooleanArray(CFG_KEY_ONLY_LAST_DATA, new boolean[0]);
-            final var addIterationColumn = nodeSettings.getBooleanArray(CFG_KEY_ADD_ITERATION_COLUMN, new boolean[0]);
+            final var collectData = nodeSettings.getBooleanArray(CFG_KEY_ONLY_LAST_DATA );
+            final var addIterationColumn = nodeSettings.getBooleanArray(CFG_KEY_ADD_ITERATION_COLUMN);
             final var numberOfItems = Math.max(collectData.length, addIterationColumn.length);
             var result = new DataCollectionPortSettings[numberOfItems];
             for (var i = 0; i < numberOfItems; i++) {
@@ -378,20 +385,29 @@ final class RecursiveLoopEndDynamicNodeParameters implements NodeParameters {
             }
         }
 
-        @Widget(title = "Collect data from last iteration only",
-            description = "Return only the output of the final iteration and "
-                + "disable accumulation from earlier iterations.")
+        @Widget(title = "Collect data from last iteration only", description = """
+                If this option is checked, only the last input to the corresponding collecting data port is passed
+                through to the outport. Hence, the data of earlier iterations is discarded. This option can be set for
+                each collector port individually.
+                """)
         @ValueReference(CollectDataFromLastIterationOnlyRef.class)
         boolean m_collectDataFromLastIterationOnly;
 
-        @Widget(title = "Add iteration column",
-            description = "Append an iteration index column to label rows by iteration. "
-                + "Disabled when only the last iteration is collected.")
+        @Widget(title = "Add iteration column", description = """
+                Adds a column containing the iteration number to the corresponding collector output table.
+                Disabled when only the last iteration is collected. Configurable per collector port.
+                """)
         @Effect(predicate = CollectDataFromLastIterationOnlyPredicate.class, type = EffectType.DISABLE)
         boolean m_addIterationColumn;
     }
 
-    @Widget(title = "Propagate modified loop variables", description = "Export variables modified within the loop.")
+    @Widget(title = "Propagate modified loop variables", description = """
+            If checked, variables whose values are modified within the loop are exported by this node. These variables
+            must be declared outside the loop, i.e. injected into the loop from a side-branch or be available upstream
+            of the corresponding loop start node. For the latter, any modification of a variable is passed back to the
+            start node in subsequent iterations (e.g. moving sum calculation). Note that variables defined by the loop
+            start node itself are excluded as these usually represent loop controls (e.g. <i>"currentIteration"</i>).
+            """)
     @Layout(FlowVariablesSection.class)
     @Persist(configKey = "propagateFlowVariables")
     boolean m_propagateFlowVariables;

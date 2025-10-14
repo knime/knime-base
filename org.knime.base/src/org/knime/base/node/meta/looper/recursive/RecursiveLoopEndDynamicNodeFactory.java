@@ -109,12 +109,14 @@ public class RecursiveLoopEndDynamicNodeFactory extends ConfigurableNodeFactory<
     }
 
     @Override
+    @SuppressWarnings("java:S5738")
     public NodeView<RecursiveLoopEndDynamicNodeModel> createNodeView(final int viewIndex,
         final RecursiveLoopEndDynamicNodeModel nodeModel) {
         return null;
     }
 
     @Override
+    @SuppressWarnings("java:S5738")
     protected boolean hasDialog() {
         return true;
     }
@@ -128,28 +130,32 @@ public class RecursiveLoopEndDynamicNodeFactory extends ConfigurableNodeFactory<
                 to the Recursive Loop Start node.
             """;
 
-    private static final String FULL_DESCRIPTION =
-        """
-                <p>The Recursive Loop start and end nodes enable the passing of data tables from the Recursive Loop End
-                    back to the Recursive Loop Start. The Recursive Loop Start requires initialized tables. These tables
-                    are output by the Recursive Loop Start in the first iteration of the loop. The tables received by
-                    the corresponding Recursive Loop End are passed back to the Recursive Loop Start node. Starting with
-                    the second iteration, the Recursive Loop Start node outputs the data as received by the Recursive
-                    Loop End.</p>
-                <p>You can add more recursion input tables and collector input and output tables via the "plus" button
-                    on the node.</p>
-                <p>The number of recursion ports must equal the number of recursion ports of the corresponding Recursive
-                    Loop Start node. Recursion and collector ports are independent of each other. The collection ports
-                     are always listed first.</p>
-                <p>The loop runs until one of the following stopping criteria is met:</p>
-                <ul>
-                    <li>Maximum number of iterations: to ensure no endless loop is created, the loop ends after the
-                        configured number of iterations.</li>
-                    <li>Minimal number of rows: to ensure enough rows are present, the loop stops if any recursion input
-                        table contains fewer rows than the configured minimum. The minimum can be set per recursion
-                        input.</li>
-                </ul>
-                """;
+    private static final String FULL_DESCRIPTION = """
+            <p>The Recursive Loop node pair enables the passing of data tables from the
+                <i>Recursive Loop End</i> back to the <i>Recursive Loop Start</i>.</p>
+            <p>The <i>Recursive Loop Start</i> requires initialized tables. These tables are output by the
+                <i>Recursive Loop Start</i> in the first iteration of the loop.</p>
+            <p>The tables received by the corresponding <i>Recursive Loop End</i> are passed back to the
+                <i>Recursive Loop Start</i> node. Starting with the second iteration, the <i>Recursive Loop Start</i>
+                node outputs the data as received by the <i>Recursive Loop End</i>.</p>
+            <p>You can add more recursion input tables and collector input and output tables using the
+                &#8220;+;&#8221; button on the node. The number of recursion ports must be the same as the number of
+                recursion ports of the corresponding <i>Recursive Loop Start</i> node. Recursion and collector ports are
+                independent of each other. The collection ports are always listed first.</p>
+            <p>The loop runs until one of the three stopping criteria is met:</p>
+            <ul>
+                <li><i>Maximum number of iterations:</i> to ensure no endless loop is created, the loop will end
+                    after the set number of iterations.</li>
+                <li><i>Minimal number of rows:</i> to ensure enough rows are present for processing, the loop stops
+                    if <b>one</b> of its recursion input tables contains fewer rows than the set minimum. This
+                    minimum can be set for each recursion input table individually.</li>
+                <li><i>End loop with variable:</i> the loop ends if the option is enabled and the value of the
+                    selected variable equals &#8220;true&#8221;.</li>
+            </ul>
+            <p>The data passed to the collector ports is collected and passed to the <i>n</i> respective output
+                ports. The data at the recursion ports (all ports after input port <i>n</i>) is returned to the
+                <i>Recursive Loop Start</i> node.</p>
+            """;
 
     private static final List<PortDescription> INPUT_PORTS = List.of(fixedPort("Collecting data", """
             Data to be collected for the output.
@@ -173,6 +179,7 @@ public class RecursiveLoopEndDynamicNodeFactory extends ConfigurableNodeFactory<
                 """));
 
     @Override
+    @SuppressWarnings("java:S5738")
     public NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
         return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
     }

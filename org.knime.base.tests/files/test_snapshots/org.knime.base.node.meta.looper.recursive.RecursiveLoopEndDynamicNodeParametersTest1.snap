@@ -28,38 +28,38 @@
                 "addIterationColumn" : {
                   "type" : "boolean",
                   "title" : "Add iteration column",
-                  "description" : "Append an iteration index column to label rows by iteration. Disabled when only the last iteration is collected.",
+                  "description" : "Adds a column containing the iteration number to the corresponding collector output table.\nDisabled when only the last iteration is collected. Configurable per collector port.\n",
                   "default" : false
                 },
                 "collectDataFromLastIterationOnly" : {
                   "type" : "boolean",
                   "title" : "Collect data from last iteration only",
-                  "description" : "Return only the output of the final iteration and disable accumulation from earlier iterations.",
+                  "description" : "If this option is checked, only the last input to the corresponding collecting data port is passed\nthrough to the outport. Hence, the data of earlier iterations is discarded. This option can be set for\neach collector port individually.\n",
                   "default" : false
                 }
               }
             },
-            "title" : "Collection port settings",
+            "title" : "Data collection",
             "description" : "Configure how data from each collection port is collected across iterations.",
             "default" : [ ]
           },
           "flowVariableName" : {
             "type" : "string",
             "title" : "Flow variable to end loop with",
-            "description" : "Select the flow variable that will end the loop if its value is \"true\".",
+            "description" : "Select the flow variable that will end the loop if its value equals &#8220;true&#8221;.\n",
             "default" : ""
           },
           "maxNrIterations" : {
             "type" : "integer",
             "format" : "int32",
-            "title" : "Maximum number of iterations",
+            "title" : "Maximal number of iterations",
             "description" : "The maximum number of iterations the loop will run. Prevents endless loops.",
             "default" : 100
           },
           "propagateFlowVariables" : {
             "type" : "boolean",
             "title" : "Propagate modified loop variables",
-            "description" : "Export variables modified within the loop.",
+            "description" : "If checked, variables whose values are modified within the loop are exported by this node. These variables\nmust be declared outside the loop, i.e. injected into the loop from a side-branch or be available upstream\nof the corresponding loop start node. For the latter, any modification of a variable is passed back to the\nstart node in subsequent iterations (e.g. moving sum calculation). Note that variables defined by the loop\nstart node itself are excluded as these usually represent loop controls (e.g. <i>\"currentIteration\"</i>).\n",
             "default" : false
           },
           "recursionPortSettings" : {
@@ -70,20 +70,20 @@
                 "minNrOfRows" : {
                   "type" : "integer",
                   "format" : "int64",
-                  "title" : "Minimal number of rows",
-                  "description" : "Minimal number of rows for each recursion input table required to continue iterating.",
+                  "title" : "Minimal number of rows for input port",
+                  "description" : "Minimal number of rows for the recursion input table required to continue iterating.\nIf the number of rows falls below this threshold, the loop stops.\n",
                   "default" : 1
                 }
               }
             },
-            "title" : "Minimum number of rows",
-            "description" : "Configure the minimal number of rows required on each recursion input table before the loop continues.\n",
+            "title" : "Minimal number of rows",
+            "description" : "The minimal number of rows for each recursion input table required to continue iterating.\nIf <b>one</b> of the tables falls below its configured minimum, the loop stops.\nThe minimum can be set per recursion input table individually.\n",
             "default" : [ ]
           },
           "useFlowVariable" : {
             "type" : "boolean",
             "title" : "End loop with variable",
-            "description" : "The loop ends if the option is enabled and the value of the selected variable equals “true”.\n",
+            "description" : "Whether the node execution is controlled by a variable.\nWhen enabled, choose the flow variable that ends the loop if its value equals &#8220;true&#8221;.\n",
             "default" : false
           }
         }
@@ -92,7 +92,7 @@
   },
   "ui_schema" : {
     "elements" : [ {
-      "label" : "Recursion",
+      "label" : "End Recursion Settings",
       "type" : "Section",
       "elements" : [ {
         "type" : "Control",
@@ -111,9 +111,9 @@
                   }
                 },
                 "min" : {
-                  "errorMessage" : "The value must be greater than 0.",
+                  "errorMessage" : "The value must be at least 0.",
                   "parameters" : {
-                    "isExclusive" : true,
+                    "isExclusive" : false,
                     "min" : 0.0
                   }
                 }
@@ -181,6 +181,7 @@
     }, {
       "label" : "Data Collection",
       "type" : "Section",
+      "description" : "Configure how data from each collection port is collected across iterations.",
       "elements" : [ {
         "type" : "Control",
         "scope" : "#/properties/model/properties/dataCollectionPortSettings",
