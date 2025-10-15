@@ -48,24 +48,45 @@
  */
 package org.knime.base.node.io.filehandling.csv.reader2;
 
-import java.io.IOException;
+import static org.knime.node.impl.description.PortDescription.dynamicPort;
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
-import org.apache.xmlbeans.XmlException;
+import org.knime.base.node.io.filehandling.csv.reader.CSVMultiTableReadConfig;
 import org.knime.base.node.io.filehandling.csv.reader.CSVTableReaderNodeFactory;
-import org.knime.core.node.BufferedDataTable;
+import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReader;
+import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
+import org.knime.base.node.io.filehandling.csv.reader.api.StringReadAdapterFactory;
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.context.NodeCreationConfiguration;
+import org.knime.core.node.context.url.URLConfiguration;
+import org.knime.core.util.Version;
 import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.core.webui.node.dialog.NodeDialogFactory;
 import org.knime.core.webui.node.dialog.NodeDialogManager;
 import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
-import org.knime.core.webui.node.impl.PortDescription;
-import org.knime.core.webui.node.impl.WebUINodeFactory;
-import org.knime.filehandling.core.port.FileSystemPortObject;
-import org.xml.sax.SAXException;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.filehandling.core.connections.FSLocationUtil;
+import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.defaultnodesettings.EnumConfig;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
+import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
+import org.knime.filehandling.core.node.table.reader.CommonTableReaderNodeFactory;
+import org.knime.filehandling.core.node.table.reader.GenericTableReader;
+import org.knime.filehandling.core.node.table.reader.ReadAdapterFactory;
+import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
 
 /**
  * Node factory for the CSV reader node that operates similar to the {@link CSVTableReaderNodeFactory} but features a
@@ -74,14 +95,14 @@ import org.xml.sax.SAXException;
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
 @SuppressWarnings("restriction")
-public class CSVTableReaderNodeFactory2 extends CSVTableReaderNodeFactory // NOSONAR will eventually be merged into a single node
-    implements NodeDialogFactory {
+public class CSVTableReaderNodeFactory2 extends
+    CommonTableReaderNodeFactory<FSPath, TableReaderPath, CSVTableReaderConfig, Class<?>, CSVMultiTableReadConfig, String>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
-    private static final String FULL_DESCRIPTION =
-        """
-        Use this node to read CSV files into your workflow. The node will produce a data table with numbers and types of
-        columns guessed automatically.
-        """;
+    private static final String FULL_DESCRIPTION = """
+            Use this node to read CSV files into your workflow. The node will produce a data table with numbers and
+            types of columns guessed automatically.
+            """;
 
     @Override
     protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() { // NOSONAR only to make this visible to testing
@@ -89,23 +110,130 @@ public class CSVTableReaderNodeFactory2 extends CSVTableReaderNodeFactory // NOS
     }
 
     @Override
-    protected NodeDescription createNodeDescription() throws SAXException, IOException, XmlException {
-        return WebUINodeFactory.createNodeDescription("CSV Reader (Labs)", "csvreader.png",
-            new PortDescription[]{
-                new PortDescription(FS_CONNECT_GRP_ID, FileSystemPortObject.TYPE, "The file system connection.", true)},
-            new PortDescription[]{new PortDescription("File Table", BufferedDataTable.TYPE,
-                "Data table based on the file being read with number and types of columns guessed automatically.")},
-            "Reads CSV files", FULL_DESCRIPTION, CSVTableReaderNodeSettings.class, null, null, NodeType.Source,
-            new String[]{"Text", "Comma", "File", "Input", "Read"});
+    protected NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription( //
+            "CSV Reader (Labs)", //
+            "csvreader.png", //
+            List.of(dynamicPort(FS_CONNECT_GRP_ID, "Input column", "Table containing time series.")), //
+            List.of(fixedPort("File Table",
+                "Data table based on the file being read with number and types of columns guessed automatically.")), //
+            "Reads CSV files", //
+            FULL_DESCRIPTION, //
+            List.of(), //
+            CSVTableReaderNodeSettings.class, //
+            null, //
+            NodeType.Source, //
+            List.of("Text", "Comma", "File", "Input", "Read"), //
+            new Version(5, 9, 0) //
+        );
     }
 
     @Override
     public NodeDialog createNodeDialog() {
-        return new DefaultNodeDialog(SettingsType.MODEL, CSVTableReaderNodeSettings.class);
+        return new DefaultNodeDialog(SettingsType.MODEL, CSVTableReaderNodeParameters.class);
+    }
+
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, CSVTableReaderNodeParameters.class));
     }
 
     @Override
     protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
         return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    private static final String[] FILE_SUFFIXES = new String[]{".csv", ".tsv", ".txt", ".gz"};
+
+    @Override
+    protected TableReaderPath createPathSettings(final NodeCreationConfiguration nodeCreationConfig) {
+        // mostly copied from CSVTableReaderNodeFactory
+        // TODO bind "file_selection" config key to params; also de-duplicate
+        final SettingsModelReaderFileChooser settingsModel = new SettingsModelReaderFileChooser("file_selection",
+            nodeCreationConfig.getPortConfig().orElseThrow(IllegalStateException::new), FS_CONNECT_GRP_ID,
+            EnumConfig.create(FilterMode.FILE, FilterMode.FILES_IN_FOLDERS), FILE_SUFFIXES);
+        final Optional<? extends URLConfiguration> urlConfig = nodeCreationConfig.getURLConfig();
+        if (urlConfig.isPresent()) {
+            settingsModel.setLocation(FSLocationUtil.createFromURL(urlConfig.get().getUrl().toString()));
+        }
+        //        return settingsModel;
+        return new TableReaderPath();
+        // TODO how does the file selected in the params reach the model?
+    }
+
+    //    @Override
+    //    protected StorableMultiTableReadConfig<CSVTableReaderConfig, Class<?>>
+    //        createConfig(final NodeCreationConfiguration nodeCreationConfig) {
+
+    //    }
+
+    @Override
+    protected ReadAdapterFactory<Class<?>, String> getReadAdapterFactory() {
+        // copied from AbstractCSVTableReaderNodeFactory
+        return StringReadAdapterFactory.INSTANCE;
+    }
+
+    @Override
+    protected GenericTableReader<FSPath, CSVTableReaderConfig, Class<?>, String> createReader() {
+        // copied from AbstractCSVTableReaderNodeFactory
+        return new CSVTableReader();
+    }
+
+    @Override
+    protected String extractRowKey(final String value) {
+        // copied from AbstractCSVTableReaderNodeFactory
+        return value;
+    }
+
+    @Override
+    protected TypeHierarchy<Class<?>, Class<?>> getTypeHierarchy() {
+        // copied from AbstractCSVTableReaderNodeFactory
+        return StringReadAdapterFactory.TYPE_HIERARCHY;
+    }
+
+    @Override
+    protected
+        ConfigAndSourceSerializer<FSPath, TableReaderPath, CSVTableReaderConfig, Class<?>, CSVMultiTableReadConfig>
+        createSerializer() {
+        return new ConfigAndSourceSerializer<FSPath, TableReaderPath, CSVTableReaderConfig, Class<?>, CSVMultiTableReadConfig>() {
+
+            @Override
+            public void validateSettings(final TableReaderPath sourceSettings, final CSVMultiTableReadConfig config,
+                final NodeSettingsRO settings) throws InvalidSettingsException {
+                final var params = NodeParametersUtil.loadSettings(settings, CSVTableReaderNodeParameters.class);
+                params.validate();
+                // TODO move validation from CSVMultiTableReadConfigSerializer.validate and AbstractSettingsModelFileChooser.validateSettingsForModel to params
+            }
+
+            @Override
+            public void saveSettingsTo(final TableReaderPath sourceSettings, final CSVMultiTableReadConfig config,
+                final NodeSettingsWO settings) {
+                final var params = new CSVTableReaderNodeParameters();
+                params.loadFromTableReaderPathSettings(sourceSettings);
+                params.loadFromConfig(config);
+                NodeParametersUtil.saveSettings(CSVTableReaderNodeParameters.class, params, settings);
+            }
+
+            @Override
+            public void loadValidatedSettingsFrom(final TableReaderPath sourceSettings,
+                final CSVMultiTableReadConfig config, final NodeSettingsRO settings) throws InvalidSettingsException {
+                final var params = NodeParametersUtil.loadSettings(settings, CSVTableReaderNodeParameters.class);
+                params.saveToTableReaderPathSettings(sourceSettings);
+                params.saveToConfig(config);
+            }
+        };
+    }
+
+    @Override
+    protected CSVMultiTableReadConfig createConfig(final NodeCreationConfiguration nodeCreationConfig) {
+        final var cfg = new CSVMultiTableReadConfig();
+        final var defaultParams = new CSVTableReaderNodeParameters();
+        defaultParams.saveToConfig(cfg);
+        // below mostly copied from CSVTableReaderNodeFactory
+        final Optional<? extends URLConfiguration> urlConfig = nodeCreationConfig.getURLConfig();
+        if (urlConfig.isPresent() && urlConfig.get().getUrl().toString().endsWith(".tsv")) { //NOSONAR
+            cfg.getTableReadConfig().getReaderSpecificConfig().setDelimiter("\t");
+        }
+        return cfg;
     }
 }

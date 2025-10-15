@@ -125,8 +125,8 @@ import org.knime.node.parameters.widget.number.NumberInputWidget;
 import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsNonNegativeValidation;
 import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsPositiveIntegerValidation;
 import org.knime.node.parameters.widget.text.TextInputWidget;
-import org.knime.node.parameters.widget.text.TextInputWidgetValidation.PatternValidation;
 import org.knime.node.parameters.widget.text.TextInputWidgetValidation.MaxLengthValidation.HasAtMaxOneCharValidation;
+import org.knime.node.parameters.widget.text.TextInputWidgetValidation.PatternValidation;
 import org.knime.node.parameters.widget.text.TextInputWidgetValidation.PatternValidation.IsNotEmptyValidation;
 import org.knime.node.parameters.widget.text.TextInputWidgetValidation.PatternValidation.IsSingleCharacterValidation;
 
@@ -152,7 +152,7 @@ public final class CSVTableReaderNodeSettings implements NodeParameters {
     CSVTransformationSettings m_tableSpecConfig = new CSVTransformationSettings();
 
     @Modification({SetCSVExtensions.class, SetTitleAndDescriptionForUseExistingRowIds.class})
-    static class Settings extends CommonReaderNodeSettings.SettingsWithRowId {
+    static class Settings extends CommonReaderNodeSettings.SettingsWithRowId implements NodeParameters {
 
         static final class SetCSVExtensions
             extends CommonReaderNodeSettings.BaseSettings.SetFileReaderWidgetExtensions {
