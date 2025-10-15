@@ -1,0 +1,206 @@
+{
+  "data" : {
+    "model" : {
+      "enabled" : false,
+      "breakpointCondition" : "EMPTYTABLE",
+      "variableValue" : "0",
+      "customMessage" : "Breakpoint halted execution"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "breakpointCondition" : {
+            "oneOf" : [ {
+              "const" : "EMPTYTABLE",
+              "title" : "empty table"
+            }, {
+              "const" : "NONEMPTYTABLE",
+              "title" : "non-empty table"
+            }, {
+              "const" : "ACTIVEBRANCH",
+              "title" : "active branch"
+            }, {
+              "const" : "INACTIVEBRANCH",
+              "title" : "inactive branch"
+            }, {
+              "const" : "VARIABLEMATCH",
+              "title" : "variable matches value"
+            } ],
+            "title" : "Breakpoint active for",
+            "description" : "Specifies the condition that has to be met to halt execution.\n\n<ul>\n<li><b>empty table</b>: Halts execution if the input table is empty.</li>\n<li><b>non-empty table</b>: Halts execution if the input table is not empty.</li>\n<li><b>active branch</b>: Halts execution if the breakpoint node is executed on an active branch.</li>\n<li><b>inactive branch</b>: Halts execution if the breakpoint node is on an inactive branch, i.e., the incoming connection originates in a disabled port, such as the output port for an <i>IF Switch</i> node or a <i>Joiner</i> node.</li>\n<li><b>variable matches value</b>: Halts execution if a specified flow variable matches a provided value.</li>\n</ul>",
+            "default" : "EMPTYTABLE"
+          },
+          "customMessage" : {
+            "type" : [ "string", "null" ],
+            "title" : "Custom message text",
+            "description" : "Define a custom message that is printed when the breakpoint halts the execution.\n",
+            "default" : "Breakpoint halted execution"
+          },
+          "enabled" : {
+            "type" : "boolean",
+            "title" : "Breakpoint Enabled",
+            "description" : "Determines whether the breakpoint node should halt on a certain condition or just pass on the data.\n",
+            "default" : false
+          },
+          "variableName" : {
+            "type" : "string",
+            "title" : "Select Variable",
+            "description" : "Choose the flow variable that should be matched from a list of available variables.\n"
+          },
+          "variableValue" : {
+            "type" : "string",
+            "title" : "Enter Variable Value",
+            "description" : "The value to match the specified flow variable against. Can be e.g. \"true\", \"42\", or \"test\".\n",
+            "default" : "0"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/enabled",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/breakpointCondition",
+      "rule" : {
+        "effect" : "ENABLE",
+        "condition" : {
+          "scope" : "#/properties/model/properties/enabled",
+          "schema" : {
+            "const" : true
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/variableName",
+      "options" : {
+        "format" : "dropDown"
+      },
+      "providedOptions" : [ "possibleValues" ],
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "type" : "AND",
+          "conditions" : [ {
+            "scope" : "#/properties/model/properties/enabled",
+            "schema" : {
+              "const" : true
+            }
+          }, {
+            "scope" : "#/properties/model/properties/breakpointCondition",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "VARIABLEMATCH"
+              } ]
+            }
+          } ]
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/variableValue",
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "type" : "AND",
+          "conditions" : [ {
+            "scope" : "#/properties/model/properties/enabled",
+            "schema" : {
+              "const" : true
+            }
+          }, {
+            "scope" : "#/properties/model/properties/breakpointCondition",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "VARIABLEMATCH"
+              } ]
+            }
+          } ]
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/customMessage",
+      "options" : {
+        "hideOnNull" : true
+      },
+      "providedOptions" : [ "default" ],
+      "rule" : {
+        "effect" : "ENABLE",
+        "condition" : {
+          "scope" : "#/properties/model/properties/enabled",
+          "schema" : {
+            "const" : true
+          }
+        }
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "enabled" : {
+            "configKey" : "Enabled"
+          },
+          "breakpointCondition" : {
+            "configPaths" : [ [ "BreakPoint" ] ]
+          },
+          "variableName" : {
+            "configKey" : "Variable Name"
+          },
+          "variableValue" : {
+            "configKey" : "Variable Value"
+          },
+          "customMessage" : {
+            "configPaths" : [ [ "Use custom error message" ], [ "Custom error message" ] ],
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ ]
+            } ]
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/customMessage",
+    "providedOptionName" : "default",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : "Breakpoint halted execution"
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/variableName",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "knime.workspace",
+        "text" : "knime.workspace",
+        "type" : {
+          "id" : "STRING",
+          "text" : "StringType"
+        }
+      } ]
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "id" : "after-open-dialog"
+    },
+    "triggerInitially" : true,
+    "dependencies" : [ "#/properties/model/properties/variableName" ]
+  } ]
+}

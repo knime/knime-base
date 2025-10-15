@@ -41,57 +41,130 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- * 
+ *
  * History
  *   Sept 30, 2010 (mb): created
  */
 package org.knime.base.node.flowcontrol.breakpoint;
 
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
+import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
-import org.knime.core.node.NodeDialogPane;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
 
 
 /**
  * @author M. Berthold, University of Konstanz
+ * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.2
  */
-public class BreakpointNodeFactory 
-    extends NodeFactory<BreakpointNodeModel> {
-    
+@SuppressWarnings("restriction")
+public class BreakpointNodeFactory
+    extends NodeFactory<BreakpointNodeModel> implements NodeDialogFactory, KaiNodeInterfaceFactory {
+
     /** Create factory, that instantiates nodes.
      */
     public BreakpointNodeFactory() {
     }
 
-    /** {@inheritDoc} */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new BreakpointNodeDialog();
-    }
-
-    /** {@inheritDoc} */
     @Override
     public BreakpointNodeModel createNodeModel() {
         return new BreakpointNodeModel();
     }
 
-    /** {@inheritDoc} */
     @Override
     public NodeView<BreakpointNodeModel> createNodeView(
             final int index, final BreakpointNodeModel model) {
         return null;
     }
 
-    /** {@inheritDoc} */
     @Override
     protected int getNrNodeViews() {
         return 0;
     }
 
-    /** {@inheritDoc} */
     @Override
     protected boolean hasDialog() {
         return true;
+    }
+    private static final String NODE_NAME = "Breakpoint";
+    private static final String NODE_ICON = "breakpoint.png";
+    private static final String SHORT_DESCRIPTION = """
+            Allows to halt execution when a certain condition is met.
+            """;
+    private static final String FULL_DESCRIPTION = """
+            This node halts execution when the incoming data table fulfills a user-specified condition.
+            """;
+    private static final List<PortDescription> INPUT_PORTS = List.of(
+            fixedPort("Input table", """
+                The input table.
+                """)
+    );
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(
+            fixedPort("Output table", """
+                The input table if not halted.
+                """)
+    );
+
+    private static final List<String> KEYWORDS = List.of( //
+		"error message" //
+    );
+
+    /**
+     * @since 5.8
+     */
+    @Override
+    public NodeDialogPane createNodeDialogPane() {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    /**
+     * @since 5.8
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, BreakpointNodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription(
+            NODE_NAME,
+            NODE_ICON,
+            INPUT_PORTS,
+            OUTPUT_PORTS,
+            SHORT_DESCRIPTION,
+            FULL_DESCRIPTION,
+            List.of(),
+            BreakpointNodeParameters.class,
+            null,
+            NodeType.Manipulator,
+            KEYWORDS,
+            null
+        );
+    }
+
+    /**
+     * @since 5.8
+     */
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, BreakpointNodeParameters.class));
     }
 
 }

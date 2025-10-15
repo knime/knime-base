@@ -82,6 +82,20 @@ public class BreakpointNodeDialog extends DefaultNodeSettingsPane {
     /** break on variable having given value. */
     static final String VARIABLEMATCH = "variable matches value";
 
+    static final String CFG_KEY_ENABLED = "Enabled";
+
+    static final String CFG_KEY_VARIABLE_NAME = "Variable Name";
+
+    static final String CFG_KEY_VARIABLE_VALUE = "Variable Value";
+
+    static final String CFG_KEY_BREAKPOINT_CONDITION = "BreakPoint";
+
+    static final String CFG_KEY_CUSTOM_MESSAGE = "Custom error message";
+
+    static final String CFG_KEY_USE_CUSTOM_MESSAGE = "Use custom error message";
+
+    static final String DEFAULT_CUSTOM_MESSAGE = "Breakpoint halted execution";
+
     private final AtomicBoolean m_varsAvailable = new AtomicBoolean(false);
 
     private final SettingsModelString m_varNameModel = createVarNameModel();
@@ -165,7 +179,7 @@ public class BreakpointNodeDialog extends DefaultNodeSettingsPane {
      * @return settingsmodel for custom error message
      */
     static SettingsModelString createCustomMessageModel() {
-        return new SettingsModelString("Custom error message", "Breakpoint halted execution");
+        return new SettingsModelString(CFG_KEY_CUSTOM_MESSAGE, DEFAULT_CUSTOM_MESSAGE);
     }
 
     /**
@@ -173,7 +187,7 @@ public class BreakpointNodeDialog extends DefaultNodeSettingsPane {
      * @return settingsmodel for whether to use a custom error message
      */
     static SettingsModelBoolean createUseCustomMessageModel(final SettingsModelString customMessageModel) {
-        final SettingsModelBoolean useCustomMessageModel = new SettingsModelBoolean("Use custom error message", false);
+        final SettingsModelBoolean useCustomMessageModel = new SettingsModelBoolean(CFG_KEY_USE_CUSTOM_MESSAGE, false);
         useCustomMessageModel
             .addChangeListener(c -> customMessageModel.setEnabled(useCustomMessageModel.getBooleanValue()));
         return useCustomMessageModel;
@@ -186,7 +200,7 @@ public class BreakpointNodeDialog extends DefaultNodeSettingsPane {
      */
     static SettingsModelString createChoiceModel(final SettingsModelString varNameModel,
         final SettingsModelString varValueModel, final AtomicBoolean varsAvailable) {
-        final SettingsModelString choiceModel = new SettingsModelString("BreakPoint", EMTPYTABLE);
+        final SettingsModelString choiceModel = new SettingsModelString(CFG_KEY_BREAKPOINT_CONDITION, EMTPYTABLE);
 
         choiceModel.addChangeListener(e -> {
             final boolean useVar = VARIABLEMATCH.equals(choiceModel.getStringValue());
@@ -204,7 +218,7 @@ public class BreakpointNodeDialog extends DefaultNodeSettingsPane {
         final SettingsModelString varNameModel, final SettingsModelString varValueModel,
         final SettingsModelBoolean useCustomMessageModel, final SettingsModelString customMessageModel,
         final AtomicBoolean varsAvailable) {
-        final SettingsModelBoolean enableModel = new SettingsModelBoolean("Enabled", false);
+        final SettingsModelBoolean enableModel = new SettingsModelBoolean(CFG_KEY_ENABLED, false);
 
         // the enable button controls enable status of everything!
         // (but needs to keep in mind the variable choice settings)
@@ -232,13 +246,13 @@ public class BreakpointNodeDialog extends DefaultNodeSettingsPane {
      * @return settings model (choice) for node and dialog.
      */
     static SettingsModelString createVarNameModel() {
-        return new SettingsModelString("Variable Name", "");
+        return new SettingsModelString(CFG_KEY_VARIABLE_NAME, "");
     }
 
     /**
      * @return settings model (choice) for node and dialog.
      */
     static SettingsModelString createVarValueModel() {
-        return new SettingsModelString("Variable Value", "0");
+        return new SettingsModelString(CFG_KEY_VARIABLE_VALUE, "0");
     }
 }

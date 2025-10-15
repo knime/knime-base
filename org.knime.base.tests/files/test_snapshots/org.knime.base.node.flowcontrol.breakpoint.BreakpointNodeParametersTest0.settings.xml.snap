@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
+    <entry key="Enabled" type="xboolean" value="false"/>
+    <entry key="BreakPoint" type="xstring" value="empty table"/>
+    <entry key="Variable Name" type="xstring" value="knime.workspace"/>
+    <entry key="Variable Value" type="xstring" value="0"/>
+    <entry key="Use custom error message" type="xboolean" value="false"/>
+    <entry key="Custom error message" type="xstring" value=""/>
+</config>
