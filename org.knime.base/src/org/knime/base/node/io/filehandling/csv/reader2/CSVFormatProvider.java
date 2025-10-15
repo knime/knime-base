@@ -54,13 +54,15 @@ import java.nio.charset.IllegalCharsetNameException;
 import java.nio.charset.UnsupportedCharsetException;
 import java.util.function.Supplier;
 
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.CharsetRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.LimitRows.SkipFirstLinesRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.AutoDetectButtonRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.BufferSizeRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.CommentStartRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeParameters.AutoDetectButtonRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeParameters.BufferSizeRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeParameters.CommentStartRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeParameters.CustomEncodingRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeParameters.FileEncodingOption;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeParameters.FileEncodingRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeParameters.SkipFirstLinesRef;
+import org.knime.base.node.io.filehandling.csv.reader2.common.CommonTableReaderNodeParameters.FileSelectionRef;
 import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
@@ -96,14 +98,15 @@ public final class CSVFormatProvider extends CSVFormatAutoDetector implements St
         protected final CsvFormat getCsvFormat() {
             return m_csvFormatSupplier.get();
         }
-
     }
 
     // Supplier of values of settings on which the auto detection depends
 
     Supplier<Long> m_skipFirstLinesSupplier;
 
-    Supplier<CSVTableReaderNodeSettings.Encoding.Charset> m_charsetSupplier;
+    Supplier<FileEncodingOption> m_fileEncodingSupplier;
+
+    Supplier<String> m_customEncodingSupplier;
 
     Supplier<Integer> m_bufferSizeSupplier;
 
@@ -124,7 +127,9 @@ public final class CSVFormatProvider extends CSVFormatAutoDetector implements St
     @Override
     protected Charset getSelectedCharset() throws InvalidSettingsException {
         try {
-            return m_charsetSupplier.get().toNioCharset();
+            final var charsetName = CSVTableReaderNodeParameters.fileEncodingToCharsetName(m_fileEncodingSupplier.get(),
+                m_customEncodingSupplier.get());
+            return charsetName == null ? Charset.defaultCharset() : Charset.forName(charsetName);
         } catch (IllegalCharsetNameException | UnsupportedCharsetException e) {
             throw new InvalidSettingsException(e);
         }
@@ -151,10 +156,10 @@ public final class CSVFormatProvider extends CSVFormatAutoDetector implements St
         initializer.computeOnButtonClick(AutoDetectButtonRef.class);
 
         // Dependencies
-        m_fileSelectionSupplier =
-            initializer.getValueSupplier(CommonReaderNodeSettings.BaseSettings.FileSelectionRef.class);
+        m_fileSelectionSupplier = initializer.getValueSupplier(FileSelectionRef.class);
         m_skipFirstLinesSupplier = initializer.getValueSupplier(SkipFirstLinesRef.class);
-        m_charsetSupplier = initializer.getValueSupplier(CharsetRef.class);
+        m_fileEncodingSupplier = initializer.getValueSupplier(FileEncodingRef.class);
+        m_customEncodingSupplier = initializer.getValueSupplier(CustomEncodingRef.class);
         m_bufferSizeSupplier = initializer.getValueSupplier(BufferSizeRef.class);
         m_commentStartSupplier = initializer.getValueSupplier(CommentStartRef.class);
     }
