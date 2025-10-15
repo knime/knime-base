@@ -43,68 +43,46 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
- * History
- *   Sep 20, 2024 (marcbux): created
  */
-package org.knime.base.node.io.filehandling.webui.reader;
+package org.knime.base.node.io.filehandling.webui.reader2.tutorial;
 
-import java.io.IOException;
-import java.io.StringReader;
-
-import org.knime.base.node.io.filehandling.webui.reader.ReaderSpecific.ExternalDataTypeSerializer;
-import org.knime.base.node.io.filehandling.webui.reader2.WebUITableReaderNodeFactory;
-import org.knime.base.node.preproc.manipulator.TableManipulatorConfigSerializer.DataTypeSerializer;
-import org.knime.core.data.DataType;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeLogger;
-import org.knime.core.node.NodeSettings;
-import org.knime.core.node.config.base.JSONConfig;
-import org.knime.core.node.config.base.JSONConfig.WriterConfig;
+import org.knime.base.node.io.filehandling.webui.reader2.ReaderLayout;
+import org.knime.node.parameters.layout.After;
+import org.knime.node.parameters.layout.Before;
+import org.knime.node.parameters.layout.Section;
 
 /**
- * @author Marc Bux, KNIME GmbH, Berlin, Germany
- * @deprecated use {@link WebUITableReaderNodeFactory} instead
+ * TODO (#6): Adjust or delete this class based on your layout needs.
+ *
+ * Uses {@link ReaderLayout} as root layout. Define additional layouts and their position here.
+ *
+ * Convention: Interfaces that serve as @Layout for parameters to be added to a ReaderLayout section should be nested
+ * inside an interface named the same as the ReaderLayout section (e.g., DataArea). This is not required but improves
+ * readability.
+ *
+ * @author KNIME AG, Zurich, Switzerland
  */
-@Deprecated(since = "5.10")
-public interface DataTypeStringSerializer extends ExternalDataTypeSerializer<String, DataType> {
+interface TutorialReaderLayoutAdditions {
 
-    @Override
-    default String toSerializableType(final DataType externalType) {
-        return typeToString(externalType);
+    // TODO (#6): Example - Add a custom section between File and DataArea. Adjust or remove as needed.
+    @Section(title = "File Format")
+    @After(ReaderLayout.File.class)
+    @Before(ReaderLayout.DataArea.class)
+    interface FileFormat {
+        // Add layout elements for file format settings here
     }
 
-    @Override
-    default DataType toExternalType(final String serializedType) {
-        return stringToType(serializedType);
-    }
+    // TODO (#6): This interface groups layouts for parameters added to the ReaderLayout.DataArea section
+    interface DataArea {
+        // Example: Add "First row contains column names" before SkipFirstDataRows
+        @Before(ReaderLayout.DataArea.SkipFirstDataRows.class)
+        interface FirstRowContainsColumnNames {
+        }
 
-    /**
-     * Serializes a given {@link DataType} into a string
-     *
-     * @param type the to-be-serialized {@link DataType}
-     * @return the serialized string
-     */
-    static String typeToString(final DataType type) {
-        final var settings = new NodeSettings("type");
-        DataTypeSerializer.SERIALIZER_INSTANCE.save(type, settings);
-        return JSONConfig.toJSONString(settings, WriterConfig.DEFAULT);
-    }
-
-    /**
-     * De-serializes a string that has been generated via {@link JSONConfig#toJSONString} into a {@link DataType}.
-     *
-     * @param string the previously serialized string
-     * @return the de-serialized {@link DataType}
-     */
-    static DataType stringToType(final String string) {
-        try {
-            final var settings = new NodeSettings("type");
-            JSONConfig.readJSON(settings, new StringReader(string));
-            return DataTypeSerializer.SERIALIZER_INSTANCE.load(settings);
-        } catch (IOException | InvalidSettingsException e) {
-            NodeLogger.getLogger(DataTypeStringSerializer.class)
-                .error("Unknown and new columns can't be converted to the configured data type.", e);
-            return null;
+        // Example: Add "If row has less columns" after UseExistingRowId
+        @After(ReaderLayout.DataArea.UseExistingRowId.class)
+        interface IfRowHasLessColumns {
         }
     }
+
 }

@@ -46,10 +46,9 @@
  * History
  *   Sep 17, 2024 (marcbux): created
  */
-package org.knime.base.node.io.filehandling.webui.reader;
+package org.knime.base.node.io.filehandling.webui.reader2;
 
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.BaseAdvancedSettings.UseNewSchema;
-import org.knime.base.node.io.filehandling.webui.reader2.WebUITableReaderNodeFactory;
+import org.knime.base.node.io.filehandling.webui.reader2.ReaderParameters.UseNewSchema;
 import org.knime.node.parameters.Advanced;
 import org.knime.node.parameters.layout.After;
 import org.knime.node.parameters.layout.Section;
@@ -58,11 +57,9 @@ import org.knime.node.parameters.updates.Effect.EffectType;
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
- * @deprecated use {@link WebUITableReaderNodeFactory} instead
  */
 @SuppressWarnings({"restriction", "java:S1214", "java:S103"})
-@Deprecated(since = "5.10")
-public interface CommonReaderLayout {
+public interface ReaderLayout {
 
     /**
      * The first section in the dialog containing the file selection.
@@ -108,11 +105,6 @@ public interface CommonReaderLayout {
         }
 
         @After(LimitNumberOfRows.class)
-        interface MaximumNumberOfRows {
-            String DESCRIPTION = "Defines the maximum number of rows that are read.";
-        }
-
-        @After(MaximumNumberOfRows.class)
         interface UseExistingRowId {
             String DESCRIPTION = """
                     Check this box if the RowIDs from the input tables should be used for
@@ -187,11 +179,6 @@ public interface CommonReaderLayout {
                         The node will fail if adding the column with the provided name causes a name collision with any of the
                         columns in the read table.
                         """;
-        }
-
-        @After(AppendFilePathColumn.class)
-        interface FilePathColumnName {
-            String DESCRIPTION = "The name of the column containing the file path.";
         }
     }
 

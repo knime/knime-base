@@ -55,35 +55,27 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.function.Supplier;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.Charset;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.Charset.FileEncodingOption;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.CharsetRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.LimitRows.SkipFirstLinesRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.BufferSizeRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.CommentStartRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.RowDelimiterOption;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderParameters.AutoDetectButtonRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderParameters.FileEncodingOption;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderParameters.RowDelimiterOption;
 import org.knime.base.node.io.filehandling.webui.LocalWorkflowContextTest;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.BaseSettings.FileSelectionRef;
-import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.port.PortType;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersInputImpl;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
-import org.knime.node.parameters.NodeParametersInput;
-import org.knime.node.parameters.updates.ButtonReference;
-import org.knime.node.parameters.updates.ParameterReference;
-import org.knime.node.parameters.updates.StateProvider;
-
-import com.univocity.parsers.csv.CsvFormat;
+import org.knime.testing.node.dialog.updates.DialogUpdateSimulator;
 
 /**
  * Tests the behavior on autodetect button click.
  *
  * @author Paul Bärnreuther
  */
+@SuppressWarnings("restriction")
 class CSVFormatAutoDetectionTest extends LocalWorkflowContextTest {
 
     @TempDir
@@ -125,17 +117,18 @@ class CSVFormatAutoDetectionTest extends LocalWorkflowContextTest {
     }
 
     @Test
-    void testDetectsFormat() throws IOException, StateComputationFailureException {
+    void testDetectsFormat() throws IOException {
         final var file = m_tempFolder.resolve("file.csv").toAbsolutePath().toString();
         final var testFormat = new TestFormat();
         final var testFormatDependencies = new TestFormatDependencies(file);
         writeCsvFile(testFormat, testFormatDependencies);
-        final var settings = new CSVTableReaderNodeSettings();
+        final var settings = new CSVTableReaderNodeParameters();
         setFormatDependencies(settings, testFormatDependencies);
 
-        final var detectedFormat = guessCSVFormat(settings);
+        final var simulator = createSimulator(settings);
+        final var result = simulator.simulateButtonClick(AutoDetectButtonRef.class);
 
-        assertFormat(testFormat, detectedFormat);
+        assertFormat(testFormat, result);
     }
 
     @Test
@@ -144,18 +137,21 @@ class CSVFormatAutoDetectionTest extends LocalWorkflowContextTest {
         final var testFormat = new TestFormat();
         final var testFormatDependencies = new TestFormatDependencies(file);
         writeCsvFile(testFormat, testFormatDependencies);
-        final var settings = new CSVTableReaderNodeSettings();
-        settings.m_encoding.m_charset = new Charset(FileEncodingOption.OTHER, "Invalid custom encoding");
+        final var settings = new CSVTableReaderNodeParameters();
+        settings.m_csvReaderParameters.m_fileEncoding = FileEncodingOption.OTHER;
+        settings.m_csvReaderParameters.m_customEncoding = "Invalid custom encoding";
+        setFormatDependencies(settings, testFormatDependencies);
 
-        assertThrows(WidgetHandlerException.class, () -> guessCSVFormat(settings));
-
+        final var simulator = createSimulator(settings);
+        assertThrows(WidgetHandlerException.class, () -> simulator.simulateButtonClick(AutoDetectButtonRef.class));
     }
 
-    private static void setFormatDependencies(final CSVTableReaderNodeSettings settings,
+    private static void setFormatDependencies(final CSVTableReaderNodeParameters settings,
         final TestFormatDependencies testFormatDependencies) {
-        settings.m_settings.m_source.m_path = new FSLocation(FSCategory.LOCAL, testFormatDependencies.m_filePath);
-        settings.m_settings.m_commentLineCharacter = testFormatDependencies.m_commentLineCharacter;
-        settings.m_limitRows.m_skipFirstLines = testFormatDependencies.m_skipFirstLines;
+        settings.m_readerParameters.m_source.m_path =
+            new FSLocation(FSCategory.LOCAL, testFormatDependencies.m_filePath);
+        settings.m_csvReaderParameters.m_commentLineCharacter = testFormatDependencies.m_commentLineCharacter;
+        settings.m_csvReaderParameters.m_skipFirstLines = testFormatDependencies.m_skipFirstLines;
     }
 
     private static void writeCsvFile(final TestFormat format, final TestFormatDependencies formatDependencies)
@@ -177,104 +173,28 @@ class CSVFormatAutoDetectionTest extends LocalWorkflowContextTest {
         }
     }
 
-    private static CsvFormat guessCSVFormat(final CSVTableReaderNodeSettings settings) {
-        final var formatProvider = new CSVFormatProvider();
-        formatProvider.init(getStateProviderInitializer(settings));
-        return formatProvider.computeState(null);
+    private DialogUpdateSimulator createSimulator(final CSVTableReaderNodeParameters settings) {
+        final var context =
+            NodeParametersInputImpl.createDefaultNodeSettingsContext(new PortType[0], new PortObjectSpec[0], null, null);
+        return new DialogUpdateSimulator(settings, context);
     }
 
-    private static void assertFormat(final TestFormat testFormat, final CsvFormat detectedFormat)
-        throws StateComputationFailureException {
-        assertThat(getProvidedState(detectedFormat, CSVTableReaderNodeSettings.Settings.ColumnDelimiterProvider::new))
+    private static void assertFormat(final TestFormat testFormat,
+        final DialogUpdateSimulator.UpdateSimulatorResult result) {
+        assertThat(result.getValueUpdateAt("csvReaderParameters", "columnDelimiter"))
             .isEqualTo(testFormat.m_columnDelimiter);
 
-        assertThat(
-            getProvidedState(detectedFormat, CSVTableReaderNodeSettings.Settings.CustomRowDelimiterProvider::new))
-                .isEqualTo(testFormat.m_escapedCustomRowDelimiter);
+        assertThat(result.getValueUpdateAt("csvReaderParameters", "customRowDelimiter"))
+            .isEqualTo(testFormat.m_escapedCustomRowDelimiter);
 
-        assertThat(getProvidedState(detectedFormat, CSVTableReaderNodeSettings.Settings.QuoteCharacterProvider::new))
+        assertThat(result.getValueUpdateAt("csvReaderParameters", "quoteCharacter"))
             .isEqualTo(testFormat.m_quoteCharacter);
 
-        assertThat(
-            getProvidedState(detectedFormat, CSVTableReaderNodeSettings.Settings.QuoteEscapeCharacterProvider::new))
-                .isEqualTo(testFormat.m_quoteEscapeCharacter);
+        assertThat(result.getValueUpdateAt("csvReaderParameters", "quoteEscapeCharacter"))
+            .isEqualTo(testFormat.m_quoteEscapeCharacter);
 
-        assertThat(
-            getProvidedState(detectedFormat, CSVTableReaderNodeSettings.Settings.RowDelimiterOptionProvider::new))
-                .isEqualTo(RowDelimiterOption.LINE_BREAK);
-
-    }
-
-    private static <T> T getProvidedState(final CsvFormat detectedFormat,
-        final Supplier<CSVFormatProvider.ProviderFromCSVFormat<T>> constructor)
-        throws StateComputationFailureException {
-        final var providerFromCSVFormat = constructor.get();
-        providerFromCSVFormat.m_csvFormatSupplier = () -> detectedFormat;
-        return providerFromCSVFormat.computeState(null);
-    }
-
-    private static final StateProvider.StateProviderInitializer
-        getStateProviderInitializer(final CSVTableReaderNodeSettings settings) {
-        return new StateProvider.StateProviderInitializer() {
-
-            @Override
-            @SuppressWarnings("unchecked")
-            public <T> Supplier<T> getValueSupplier(final Class<? extends ParameterReference<T>> ref) {
-                if (ref.equals(SkipFirstLinesRef.class)) {
-                    return () -> (T)(Object)settings.m_limitRows.m_skipFirstLines;
-                }
-                if (ref.equals(CharsetRef.class)) {
-                    return () -> (T)settings.m_encoding.m_charset;
-                }
-                if (ref.equals(BufferSizeRef.class)) {
-                    return () -> (T)(Object)settings.m_settings.m_numberOfCharactersForAutodetection;
-                }
-                if (ref.equals(CommentStartRef.class)) {
-                    return () -> (T)settings.m_settings.m_commentLineCharacter;
-                }
-                if (ref.equals(FileSelectionRef.class)) {
-                    return () -> (T)settings.m_settings.m_source;
-                }
-                throw new IllegalStateException(String.format("Unexpected dependency %s", ref.getSimpleName()));
-            }
-
-            @Override
-            public <T> void computeOnValueChange(final Class<? extends ParameterReference<T>> id) {
-                throw new IllegalAccessError("Should not be called within this test");
-            }
-
-            @Override
-            public void computeOnButtonClick(final Class<? extends ButtonReference> ref) {
-                // Do nothing
-            }
-
-            @Override
-            public <T> Supplier<T> computeFromValueSupplier(final Class<? extends ParameterReference<T>> ref) {
-                throw new IllegalAccessError("Should not be called within this test");
-            }
-
-            @Override
-            public <T> Supplier<T>
-                computeFromProvidedState(final Class<? extends StateProvider<T>> stateProviderClass) {
-                throw new IllegalAccessError("Should not be called within this test");
-            }
-
-            @Override
-            public void computeBeforeOpenDialog() {
-                throw new IllegalAccessError("Should not be called within this test");
-            }
-
-            @Override
-            public void computeAfterOpenDialog() {
-                throw new IllegalAccessError("Should not be called within this test");
-
-            }
-
-            @Override
-            public NodeParametersInput getNodeParametersInput() {
-                throw new IllegalAccessError("Should not be called within this test");
-            }
-        };
+        assertThat(result.getValueUpdateAt("csvReaderParameters", "rowDelimiterOption"))
+            .isEqualTo(RowDelimiterOption.LINE_BREAK);
     }
 
 }

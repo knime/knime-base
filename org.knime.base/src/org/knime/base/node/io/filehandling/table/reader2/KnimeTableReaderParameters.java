@@ -44,67 +44,35 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 20, 2024 (marcbux): created
+ *   Nov 21, 2025: created
  */
-package org.knime.base.node.io.filehandling.webui.reader;
+package org.knime.base.node.io.filehandling.table.reader2;
 
-import java.io.IOException;
-import java.io.StringReader;
-
-import org.knime.base.node.io.filehandling.webui.reader.ReaderSpecific.ExternalDataTypeSerializer;
-import org.knime.base.node.io.filehandling.webui.reader2.WebUITableReaderNodeFactory;
-import org.knime.base.node.preproc.manipulator.TableManipulatorConfigSerializer.DataTypeSerializer;
-import org.knime.core.data.DataType;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeLogger;
-import org.knime.core.node.NodeSettings;
-import org.knime.core.node.config.base.JSONConfig;
-import org.knime.core.node.config.base.JSONConfig.WriterConfig;
+import org.knime.base.node.io.filehandling.table.reader.KnimeTableMultiTableReadConfig;
+import org.knime.base.node.io.filehandling.webui.reader2.ReaderParameters;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
 
 /**
- * @author Marc Bux, KNIME GmbH, Berlin, Germany
- * @deprecated use {@link WebUITableReaderNodeFactory} instead
+ * @author Paul Bärnreuther
  */
-@Deprecated(since = "5.10")
-public interface DataTypeStringSerializer extends ExternalDataTypeSerializer<String, DataType> {
+class KnimeTableReaderParameters implements NodeParameters {
 
-    @Override
-    default String toSerializableType(final DataType externalType) {
-        return typeToString(externalType);
+    @Widget(title = "Prepend file index to RowID", description = """
+            Only enabled if the existing RowIDs are used. If checked, a prefix is
+            prepended to the RowIDs that indicates which table the row came
+            from.
+            The format of the prefix is “File_0_“, “File_1_” and so on.
+                """)
+    @Layout(KnimeTableReaderLayoutAdditions.MultipleFileHandling.FirstRowContainsColumnNames.class)
+    @Effect(predicate = ReaderParameters.FirstColumnContainsRowIdsRef.class, type = EffectType.ENABLE)
+    boolean m_prependTableIndexToRowId;
+
+    void saveToConfig(final KnimeTableMultiTableReadConfig config) {
+        config.getTableReadConfig().setPrependSourceIdxToRowId(m_prependTableIndexToRowId);
     }
 
-    @Override
-    default DataType toExternalType(final String serializedType) {
-        return stringToType(serializedType);
-    }
-
-    /**
-     * Serializes a given {@link DataType} into a string
-     *
-     * @param type the to-be-serialized {@link DataType}
-     * @return the serialized string
-     */
-    static String typeToString(final DataType type) {
-        final var settings = new NodeSettings("type");
-        DataTypeSerializer.SERIALIZER_INSTANCE.save(type, settings);
-        return JSONConfig.toJSONString(settings, WriterConfig.DEFAULT);
-    }
-
-    /**
-     * De-serializes a string that has been generated via {@link JSONConfig#toJSONString} into a {@link DataType}.
-     *
-     * @param string the previously serialized string
-     * @return the de-serialized {@link DataType}
-     */
-    static DataType stringToType(final String string) {
-        try {
-            final var settings = new NodeSettings("type");
-            JSONConfig.readJSON(settings, new StringReader(string));
-            return DataTypeSerializer.SERIALIZER_INSTANCE.load(settings);
-        } catch (IOException | InvalidSettingsException e) {
-            NodeLogger.getLogger(DataTypeStringSerializer.class)
-                .error("Unknown and new columns can't be converted to the configured data type.", e);
-            return null;
-        }
-    }
 }

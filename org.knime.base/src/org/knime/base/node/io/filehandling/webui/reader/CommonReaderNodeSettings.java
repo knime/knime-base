@@ -51,7 +51,7 @@ package org.knime.base.node.io.filehandling.webui.reader;
 import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
 import org.knime.base.node.io.filehandling.webui.ReferenceStateProvider;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderLayout.DataArea.UseExistingRowId;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.SettingsWithRowId;
+import org.knime.base.node.io.filehandling.webui.reader2.WebUITableReaderNodeFactory;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -83,7 +83,6 @@ import org.knime.node.parameters.widget.message.TextMessage.MessageType;
 import org.knime.node.parameters.widget.message.TextMessage.SimpleTextMessageProvider;
 import org.knime.node.parameters.widget.text.TextInputWidget;
 import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils;
-import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils.ColumnNameValidation;
 
 /**
  * This class contains nested classes that define common settings of reader nodes. They should be implemented by all
@@ -91,7 +90,9 @@ import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils.Colu
  *
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  * @since 5.5
+ * @deprecated use {@link WebUITableReaderNodeFactory} instead
  */
+@Deprecated(since = "5.10")
 @SuppressWarnings("restriction")
 public final class CommonReaderNodeSettings {
 

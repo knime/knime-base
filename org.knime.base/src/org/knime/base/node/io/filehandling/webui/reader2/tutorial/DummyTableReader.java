@@ -42,69 +42,35 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- *
- * History
- *   Sep 20, 2024 (marcbux): created
  */
-package org.knime.base.node.io.filehandling.webui.reader;
+package org.knime.base.node.io.filehandling.webui.reader2.tutorial;
 
 import java.io.IOException;
-import java.io.StringReader;
 
-import org.knime.base.node.io.filehandling.webui.reader.ReaderSpecific.ExternalDataTypeSerializer;
-import org.knime.base.node.io.filehandling.webui.reader2.WebUITableReaderNodeFactory;
-import org.knime.base.node.preproc.manipulator.TableManipulatorConfigSerializer.DataTypeSerializer;
-import org.knime.core.data.DataType;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeLogger;
-import org.knime.core.node.NodeSettings;
-import org.knime.core.node.config.base.JSONConfig;
-import org.knime.core.node.config.base.JSONConfig.WriterConfig;
+import org.knime.core.node.ExecutionMonitor;
+import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.node.table.reader.TableReader;
+import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
+import org.knime.filehandling.core.node.table.reader.read.Read;
+import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 
 /**
- * @author Marc Bux, KNIME GmbH, Berlin, Germany
- * @deprecated use {@link WebUITableReaderNodeFactory} instead
+ * TODO (#3): DELETE THIS CLASS. Replace with your reader's TableReader implementation.
+ *
+ * @author KNIME AG, Zurich, Switzerland
  */
-@Deprecated(since = "5.10")
-public interface DataTypeStringSerializer extends ExternalDataTypeSerializer<String, DataType> {
+class DummyTableReader implements TableReader<DummyTableReaderConfig, Class<?>, String> {
 
     @Override
-    default String toSerializableType(final DataType externalType) {
-        return typeToString(externalType);
+    public TypedReaderTableSpec<Class<?>> readSpec(final FSPath path,
+        final TableReadConfig<DummyTableReaderConfig> config, final ExecutionMonitor exec) throws IOException {
+        throw new UnsupportedOperationException("Implement this method");
     }
 
     @Override
-    default DataType toExternalType(final String serializedType) {
-        return stringToType(serializedType);
+    public Read<String> read(final FSPath path, final TableReadConfig<DummyTableReaderConfig> config)
+        throws IOException {
+        throw new UnsupportedOperationException("Implement this method");
     }
 
-    /**
-     * Serializes a given {@link DataType} into a string
-     *
-     * @param type the to-be-serialized {@link DataType}
-     * @return the serialized string
-     */
-    static String typeToString(final DataType type) {
-        final var settings = new NodeSettings("type");
-        DataTypeSerializer.SERIALIZER_INSTANCE.save(type, settings);
-        return JSONConfig.toJSONString(settings, WriterConfig.DEFAULT);
-    }
-
-    /**
-     * De-serializes a string that has been generated via {@link JSONConfig#toJSONString} into a {@link DataType}.
-     *
-     * @param string the previously serialized string
-     * @return the de-serialized {@link DataType}
-     */
-    static DataType stringToType(final String string) {
-        try {
-            final var settings = new NodeSettings("type");
-            JSONConfig.readJSON(settings, new StringReader(string));
-            return DataTypeSerializer.SERIALIZER_INSTANCE.load(settings);
-        } catch (IOException | InvalidSettingsException e) {
-            NodeLogger.getLogger(DataTypeStringSerializer.class)
-                .error("Unknown and new columns can't be converted to the configured data type.", e);
-            return null;
-        }
-    }
 }
