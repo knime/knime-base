@@ -83,7 +83,6 @@ import org.knime.node.parameters.widget.message.TextMessage.MessageType;
 import org.knime.node.parameters.widget.message.TextMessage.SimpleTextMessageProvider;
 import org.knime.node.parameters.widget.text.TextInputWidget;
 import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils;
-import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils.ColumnNameValidation;
 
 /**
  * This class contains nested classes that define common settings of reader nodes. They should be implemented by all

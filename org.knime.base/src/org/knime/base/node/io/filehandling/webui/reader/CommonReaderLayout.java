@@ -105,7 +105,7 @@ public interface CommonReaderLayout {
         }
 
         @After(LimitNumberOfRows.class)
-        interface MaximumNumberOfRows {
+        interface MaximumNumberOfRows { // TODO merge with above
             String DESCRIPTION = "Defines the maximum number of rows that are read.";
         }
 
@@ -188,7 +188,7 @@ public interface CommonReaderLayout {
 
         @After(AppendFilePathColumn.class)
         interface FilePathColumnName {
-            String DESCRIPTION = "The name of the column containing the file path.";
+            String DESCRIPTION = "The name of the column containing the file path."; // TODO merge with above
         }
     }
 

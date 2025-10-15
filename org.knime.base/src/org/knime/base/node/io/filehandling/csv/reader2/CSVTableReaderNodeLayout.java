@@ -267,7 +267,7 @@ interface CSVTableReaderNodeLayout {
         }
 
         @After(CommonReaderLayout.ColumnAndDataTypeDetection.IfSchemaChanges.class)
-        interface MaximumNumberOfColumns {
+        interface MaximumNumberOfColumns { // TODO merge into one description
             String DESCRIPTION =
                 """
                         Sets the number of allowed columns (default 8192 columns) to prevent memory exhaustion. The node will
