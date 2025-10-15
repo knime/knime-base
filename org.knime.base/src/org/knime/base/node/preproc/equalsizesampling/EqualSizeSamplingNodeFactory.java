@@ -45,45 +45,122 @@
  */
 package org.knime.base.node.preproc.equalsizesampling;
 
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
 
 /**
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
+ * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.2
  */
+@SuppressWarnings("restriction")
 public final class EqualSizeSamplingNodeFactory extends
-        NodeFactory<EqualSizeSamplingNodeModel> {
+        NodeFactory<EqualSizeSamplingNodeModel> implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
-    /** {@inheritDoc} */
     @Override
     public EqualSizeSamplingNodeModel createNodeModel() {
         return new EqualSizeSamplingNodeModel();
     }
 
-    /** {@inheritDoc} */
     @Override
     protected int getNrNodeViews() {
         return 0;
     }
 
-    /** {@inheritDoc} */
     @Override
     public NodeView<EqualSizeSamplingNodeModel> createNodeView(final int viewIndex,
             final EqualSizeSamplingNodeModel nodeModel) {
         return null;
     }
 
-    /** {@inheritDoc} */
     @Override
     protected boolean hasDialog() {
         return true;
     }
 
-    /** {@inheritDoc} */
+    private static final String NODE_NAME = "Equal Size Sampling";
+    private static final String NODE_ICON = "equalsizesampling.png";
+    private static final String SHORT_DESCRIPTION = """
+            Removes rows from the input data set such that the values in a categorical column are equally
+                distributed.
+            """;
+    private static final String FULL_DESCRIPTION = """
+            <p> Removes rows from the input data set such that the values in a categorical column are equally
+                distributed. This can be useful, for instance if a learning algorithm is prone to unequal class
+                distributions and you want to downsize the data set so that the class attributes occur equally often in
+                the data set. </p> <p> The node will remove random rows belonging to the majority classes. The rows
+                returned by this node will contain all records from the minority class(es) and a random sample from each
+                of the majority classes, whereby each sample contains as many objects as the minority class contains.
+                </p>
+            """;
+    private static final List<PortDescription> INPUT_PORTS = List.of(
+            fixedPort("Input", """
+                Arbitrary input data.
+                """)
+    );
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(
+            fixedPort("Downsampled input", """
+                The input data with fewer rows.
+                """)
+    );
+
+    /**
+     * @since 5.8
+     */
     @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new EqualSizeSamplingNodeDialogPane();
+    public NodeDialogPane createNodeDialogPane() {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    /**
+     * @since 5.8
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, EqualSizeSamplingNodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription(
+            NODE_NAME,
+            NODE_ICON,
+            INPUT_PORTS,
+            OUTPUT_PORTS,
+            SHORT_DESCRIPTION,
+            FULL_DESCRIPTION,
+            List.of(),
+            EqualSizeSamplingNodeParameters.class,
+            null,
+            NodeType.Manipulator,
+            List.of(),
+            null
+        );
+    }
+
+    /**
+     * @since 5.8
+     */
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, EqualSizeSamplingNodeParameters.class));
     }
 
 }

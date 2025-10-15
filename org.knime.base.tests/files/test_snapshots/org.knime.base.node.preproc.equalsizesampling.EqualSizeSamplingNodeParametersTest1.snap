@@ -1,0 +1,184 @@
+{
+  "data" : {
+    "model" : {
+      "classColumn" : "Cluster Membership",
+      "samplingMethod" : "Exact",
+      "seedParameters" : {
+        "useRandomSeed" : false
+      }
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "classColumn" : {
+            "type" : "string",
+            "title" : "Nominal column",
+            "description" : "Select the class column here. The node will run over the data set once to count the occurrences\nin this selected column and then do the filtering in a second pass. Note that missing values in\nthis column are treated as a separate category (can also build the minority class).\n",
+            "default" : "Cluster Membership"
+          },
+          "samplingMethod" : {
+            "oneOf" : [ {
+              "const" : "Exact",
+              "title" : "Use exact sampling"
+            }, {
+              "const" : "Approximate",
+              "title" : "Use approximate sampling"
+            } ],
+            "title" : "Sampling method",
+            "description" : "Choose the sampling method for equal size sampling:\n<ul>\n<li><b>Use exact sampling</b>: The final output will be determined up-front. Each class will have the same number\nof instances in the output table. This sampling is slightly more memory expensive as each class\nwill need to be represented by a bit set containing instances of the corresponding rows. In most\ncases it is safe to select this option unless you have very large data with many different class\nlabels.\n</li>\n<li><b>Use approximate sampling</b>: The final output will be determined on the fly. The number of occurrences of each\nclass may slightly differ as the final number can't be determined beforehand.\n</li>\n</ul>",
+            "default" : "Exact"
+          },
+          "seedParameters" : {
+            "type" : "object",
+            "properties" : {
+              "drawSeed" : {
+                "type" : "object",
+                "title" : "Draw seed",
+                "description" : "Generate a random seed and set it in the Random seed input above for reproducible runs."
+              },
+              "randomSeed" : {
+                "type" : "string",
+                "title" : "Random seed",
+                "description" : "The seed value for the random number generator.\n"
+              },
+              "useRandomSeed" : {
+                "type" : "boolean",
+                "title" : "Enable static seed",
+                "description" : "If selected, the removal of rows is driven by a static seed for reproducible results.\n",
+                "default" : false
+              }
+            },
+            "default" : {
+              "useRandomSeed" : false
+            }
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/classColumn",
+      "options" : {
+        "format" : "dropDown"
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/samplingMethod",
+      "options" : {
+        "format" : "radio",
+        "radioLayout" : "vertical"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/seedParameters/properties/useRandomSeed",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/seedParameters/properties/randomSeed",
+      "options" : {
+        "validation" : {
+          "pattern" : {
+            "errorMessage" : "Please enter a valid integer number between -9223372036854775808 to 9223372036854775807.",
+            "parameters" : {
+              "pattern" : "[+-]?(0|[1-9][0-9]{0,18})"
+            }
+          }
+        }
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/seedParameters/properties/useRandomSeed",
+          "schema" : {
+            "const" : true
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/seedParameters/properties/drawSeed",
+      "options" : {
+        "format" : "simpleButton",
+        "triggerId" : "org.knime.base.node.preproc.equalsizesampling.EqualSizeSamplingNodeParameters$DrawSeedButtonRef"
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/seedParameters/properties/useRandomSeed",
+          "schema" : {
+            "const" : true
+          }
+        }
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "classColumn" : {
+            "configKey" : "classColumn"
+          },
+          "samplingMethod" : {
+            "configKey" : "samplingMethod"
+          },
+          "seedParameters" : {
+            "configPaths" : [ [ "seed" ] ]
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/classColumn",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Cluster Membership",
+        "text" : "Cluster Membership",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "Some Other Column",
+        "text" : "Some Other Column",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "Numeric Column",
+        "text" : "Numeric Column",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "id" : "after-open-dialog"
+    },
+    "triggerInitially" : true,
+    "dependencies" : [ "#/properties/model/properties/classColumn" ]
+  }, {
+    "trigger" : {
+      "id" : "org.knime.base.node.preproc.equalsizesampling.EqualSizeSamplingNodeParameters$DrawSeedButtonRef"
+    },
+    "dependencies" : [ ]
+  } ]
+}

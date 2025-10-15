@@ -52,15 +52,33 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
+import org.knime.node.parameters.widget.choices.Label;
 
 /**
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
  */
 final class EqualSizeSamplingConfiguration {
 
+    static final String CFGKEY_CLASS_COLUMN = "classColumn";
+
+    static final String CFGKEY_SAMPLING_METHOD = "samplingMethod";
+
+    static final String CFGKEY_SEED = "seed";
+
     enum SamplingMethod {
-        Approximate,
-        Exact
+        @Label(value = "Use exact sampling", description = """
+                The final output will be determined up-front. Each class will have the same number
+                of instances in the output table. This sampling is slightly more memory expensive as each class
+                will need to be represented by a bit set containing instances of the corresponding rows. In most
+                cases it is safe to select this option unless you have very large data with many different class
+                labels.
+                """)
+        Exact,
+        @Label(value = "Use approximate sampling", description = """
+                The final output will be determined on the fly. The number of occurrences of each
+                class may slightly differ as the final number can't be determined beforehand.
+                """)
+        Approximate;
     }
 
     private String m_classColumn;
@@ -103,20 +121,20 @@ final class EqualSizeSamplingConfiguration {
     }
 
     void saveConfiguration(final NodeSettingsWO settings) {
-        settings.addString("classColumn", m_classColumn);
+        settings.addString(CFGKEY_CLASS_COLUMN, m_classColumn);
         String seedS = m_seed == null ? null : Long.toString(m_seed);
-        settings.addString("seed", seedS);
-        settings.addString("samplingMethod", m_samplingMethod.name());
+        settings.addString(CFGKEY_SEED, seedS);
+        settings.addString(CFGKEY_SAMPLING_METHOD, m_samplingMethod.name());
     }
 
     void loadConfigurationInModel(final NodeSettingsRO settings)
             throws InvalidSettingsException {
-        m_classColumn = settings.getString("classColumn");
+        m_classColumn = settings.getString(CFGKEY_CLASS_COLUMN);
         if (m_classColumn == null || m_classColumn.length() == 0) {
             throw new InvalidSettingsException(
                     "Class column must not be empty/null");
         }
-        String seedS = settings.getString("seed");
+        String seedS = settings.getString(CFGKEY_SEED);
         if (seedS == null) {
             m_seed = null;
         } else {
@@ -127,7 +145,7 @@ final class EqualSizeSamplingConfiguration {
                         + seedS + "\": " + nfe.getMessage(), nfe);
             }
         }
-        String sMethod = settings.getString("samplingMethod");
+        String sMethod = settings.getString(CFGKEY_SAMPLING_METHOD);
         try {
             m_samplingMethod = SamplingMethod.valueOf(sMethod);
         } catch (Exception e) {
@@ -148,8 +166,8 @@ final class EqualSizeSamplingConfiguration {
             throw new NotConfigurableException(
                     "No nominal attribute column in input");
         }
-        m_classColumn = settings.getString("classColumn", defClassColumn);
-        String seedS = settings.getString("seed", null);
+        m_classColumn = settings.getString(CFGKEY_CLASS_COLUMN, defClassColumn);
+        String seedS = settings.getString(CFGKEY_SEED, null);
         if (seedS == null) {
             m_seed = null;
         } else {
@@ -160,7 +178,7 @@ final class EqualSizeSamplingConfiguration {
             }
         }
         String sMethod = settings.getString(
-                "samplingMethod", SamplingMethod.Exact.name());
+                CFGKEY_SAMPLING_METHOD, SamplingMethod.Exact.name());
         try {
             m_samplingMethod = SamplingMethod.valueOf(sMethod);
         } catch (Exception e) {
