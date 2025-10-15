@@ -47,56 +47,123 @@
  */
 package org.knime.base.node.preproc.refcolumnresorter;
 
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
 
 /**
  * The factory of the reference column resorter node.
  *
  * @author Ferry Abt, KNIME AG, Konstanz, Germany
+ * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.2
  */
+@SuppressWarnings("restriction")
 public class ReferenceColumnResorterNodeFactory extends
-        NodeFactory<ReferenceColumnResorterNodeModel> {
+        NodeFactory<ReferenceColumnResorterNodeModel> implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public ReferenceColumnResorterNodeModel createNodeModel() {
         return new ReferenceColumnResorterNodeModel();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected int getNrNodeViews() {
         return 0;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public NodeView<ReferenceColumnResorterNodeModel> createNodeView(final int viewIndex,
             final ReferenceColumnResorterNodeModel nodeModel) {
         return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected boolean hasDialog() {
         return true;
     }
 
+    private static final String NODE_NAME = "Reference Column Resorter";
+    private static final String NODE_ICON = "ref_column_resorter.png";
+    private static final String SHORT_DESCRIPTION = """
+            Resorts columns based on a second input table
+            """;
+    private static final String FULL_DESCRIPTION = """
+            <p> This node changes the order of the input columns based on the order provided at the second input
+                table. The latter has to contain a string column with columns names as in the first input table. The
+                columns of the first input are then sorted according to this column's (row) order. Columns not part of
+                this sort column are sorted to the start or end or entirely dropped from the output. The sort column
+                must not contain duplicates (node will error out). Unknown column identifiers are ignored. </p>
+            """;
+    private static final List<PortDescription> INPUT_PORTS = List.of(
+            fixedPort("Input data", """
+                Table containing columns to rearrange.
+                """),
+            fixedPort("Column Order", """
+                Table containing the new order for the columns.
+                """)
+    );
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(
+            fixedPort("Output data", """
+                Table with rearranged columns.
+                """)
+    );
+
     /**
-     * {@inheritDoc}
+     * @since 5.8
      */
     @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new ReferenceColumnResorterNodeDialog();
+    public NodeDialogPane createNodeDialogPane() {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    /**
+     * @since 5.8
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, ReferenceColumnResorterNodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription(
+            NODE_NAME,
+            NODE_ICON,
+            INPUT_PORTS,
+            OUTPUT_PORTS,
+            SHORT_DESCRIPTION,
+            FULL_DESCRIPTION,
+            List.of(),
+            ReferenceColumnResorterNodeParameters.class,
+            null,
+            NodeType.Manipulator,
+            List.of(),
+            null
+        );
+    }
+
+    /**
+     * @since 5.8
+     */
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, ReferenceColumnResorterNodeParameters.class));
     }
 }

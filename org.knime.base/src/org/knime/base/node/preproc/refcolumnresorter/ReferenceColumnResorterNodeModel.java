@@ -108,7 +108,11 @@ final class ReferenceColumnResorterNodeModel extends NodeModel {
 
     private final SettingsModelString m_orderCol = new SettingsModelString(CFGKEY_ORDERCOL, DEFAULT_ORDERCOL);
 
-    static final String[] AVAILABLE_STRATEGIES = new String[]{"Last", "First", "Drop"};
+    static final String LAST_STRATEGY = "Last";
+    static final String FIRST_STRATEGY = "First";
+    static final String DROP_STRATEGY = "Drop";
+
+    static final String[] AVAILABLE_STRATEGIES = new String[]{LAST_STRATEGY, FIRST_STRATEGY, DROP_STRATEGY};
 
     /**
      * Creates new instance of <code>ReferenceColumnResorterNodeModel</code>.

@@ -1,0 +1,107 @@
+{
+  "data" : {
+    "model" : {
+      "orderColumn" : "Column1",
+      "strategy" : "LAST"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "orderColumn" : {
+            "type" : "string",
+            "title" : "Order column",
+            "description" : "The column in the second input storing the ordered list of column names in the first input.",
+            "default" : "Column1"
+          },
+          "strategy" : {
+            "oneOf" : [ {
+              "const" : "LAST",
+              "title" : "Last"
+            }, {
+              "const" : "FIRST",
+              "title" : "First"
+            }, {
+              "const" : "DROP",
+              "title" : "Drop"
+            } ],
+            "title" : "Strategy for unspecified columns",
+            "description" : "Strategy for handling columns whose positions are not specified by the second input:\n<ul>\n<li><b>Last</b>: Put columns whose positions are not specified by the second input in their original order at the last positions.</li>\n<li><b>First</b>: Put columns whose positions are not specified by the second input in their original order at the first positions.</li>\n<li><b>Drop</b>: Drop the columns whose positions are not specified by the second input.</li>\n</ul>",
+            "default" : "LAST"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/orderColumn",
+      "options" : {
+        "format" : "dropDown"
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/strategy",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "orderColumn" : {
+            "configKey" : "OrderCol"
+          },
+          "strategy" : {
+            "configPaths" : [ [ "Strategy" ] ]
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/orderColumn",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Column1",
+        "text" : "Column1",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "Column2",
+        "text" : "Column2",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "Column3",
+        "text" : "Column3",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "id" : "after-open-dialog"
+    },
+    "triggerInitially" : true,
+    "dependencies" : [ "#/properties/model/properties/orderColumn" ]
+  } ]
+}
