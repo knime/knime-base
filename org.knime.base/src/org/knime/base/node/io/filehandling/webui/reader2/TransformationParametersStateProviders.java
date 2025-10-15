@@ -46,9 +46,7 @@
  * History
  *   Sep 19, 2024 (marcbux): created
  */
-package org.knime.base.node.io.filehandling.webui.reader;
-
-import static org.knime.base.node.io.filehandling.webui.reader.ReaderSpecific.toSpecMap;
+package org.knime.base.node.io.filehandling.webui.reader2;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -67,21 +65,17 @@ import java.util.stream.Stream;
 
 import org.knime.base.node.io.filehandling.webui.FileChooserPathAccessor;
 import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
-import org.knime.base.node.io.filehandling.webui.ReferenceStateProvider;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.AdvancedSettingsWithMultipleFileHandling.HowToCombineColumnsOption;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.AdvancedSettingsWithMultipleFileHandling.HowToCombineColumnsOptionRef;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.BaseSettings.FileSelectionRef;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.ColumnSpecSettings;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.ConfigIdRef;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.ConfigIdSettings;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.TableSpecSettings;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.TableSpecSettingsRef;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.TransformationElementSettings;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.TransformationElementSettings.ColumnNameRef;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.TransformationElementSettingsRef;
-import org.knime.base.node.io.filehandling.webui.reader.ReaderSpecific.ExternalDataTypeSerializer;
-import org.knime.base.node.io.filehandling.webui.reader.ReaderSpecific.ProductionPathProviderAndTypeHierarchy;
-import org.knime.base.node.io.filehandling.webui.reader2.WebUITableReaderNodeFactory;
+import org.knime.base.node.io.filehandling.webui.reader2.ReaderParameters.FileSelectionRef;
+import org.knime.base.node.io.filehandling.webui.reader2.ReaderParameters.HowToCombineColumnsOption;
+import org.knime.base.node.io.filehandling.webui.reader2.ReaderParameters.HowToCombineColumnsOptionRef;
+import org.knime.base.node.io.filehandling.webui.reader2.ReaderSpecific.ExternalDataTypeSerializer;
+import org.knime.base.node.io.filehandling.webui.reader2.ReaderSpecific.ProductionPathProviderAndTypeHierarchy;
+import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.ColumnSpecSettings;
+import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.TableSpecSettings;
+import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.TableSpecSettingsRef;
+import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.TransformationElementSettings;
+import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.TransformationElementSettings.ColumnNameRef;
+import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.TransformationElementSettingsRef;
 import org.knime.core.data.DataType;
 import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.node.ExecutionMonitor;
@@ -93,15 +87,15 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.node.table.reader.config.AbstractMultiTableReadConfig;
+import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
-import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
 import org.knime.filehandling.core.util.WorkflowContextUtil;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.updates.StateProvider;
-import org.knime.node.parameters.updates.StateProvider.TypeReference;
 import org.knime.node.parameters.updates.ValueProvider;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.StringChoice;
@@ -114,40 +108,25 @@ import org.knime.node.parameters.widget.choices.StringChoicesProvider;
  *
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  * @author Paul Bärnreuther
- * @deprecated use {@link WebUITableReaderNodeFactory} instead
  */
-@Deprecated(since = "5.10")
 @SuppressWarnings("restriction")
-public final class CommonReaderTransformationSettingsStateProviders {
+public final class TransformationParametersStateProviders {
 
-    static final NodeLogger LOGGER = NodeLogger.getLogger(CommonReaderTransformationSettingsStateProviders.class);
-
-    public static class SourceIdProvider implements StateProvider<String> {
-
-        protected Supplier<FileSelection> m_fileSelectionSupplier;
-
-        @Override
-        public void init(final StateProviderInitializer initializer) {
-            m_fileSelectionSupplier = initializer.computeFromValueSupplier(FileSelectionRef.class);
-            initializer.computeAfterOpenDialog();
-        }
-
-        @Override
-        public String computeState(final NodeParametersInput context) {
-            return m_fileSelectionSupplier.get().getFSLocation().getPath();
-        }
-    }
+    static final NodeLogger LOGGER = NodeLogger.getLogger(TransformationParametersStateProviders.class);
 
     /**
-     * Implemented by all stateProviders which need the {@link FileChooser} transformed into a list of {@link FSPath}
-     * objects. Note that it is not possible to make this an independent StateProvider<FSPath[]> since the file system
-     * needs to be kept open while the paths are accessed.
+     * This state provider uses the extracted fs paths and the reader specific dependencies to configure a reader and
+     * read the them to table specs.
      *
-     * @param <S> the provided state
+     * @param <C> The reader specific [C]onfiguration
+     * @param <T> the type used to represent external data [T]ypes
+     * @param <M> The [M]ulti-table read configuration
      */
-    abstract static class PathsProvider<S> implements StateProvider<S> {
+    public abstract static class TypedReaderTableSpecsProvider<//
+            C extends ReaderSpecificConfig<C>, T, M extends AbstractMultiTableReadConfig<C, DefaultTableReadConfig<C>, T, M>>
+        implements StateProvider<Map<FSLocation, TypedReaderTableSpec<T>>>, ReaderSpecific.ConfigAndReader<C, T, M> {
 
-        protected Supplier<FileSelection> m_fileSelectionSupplier;
+        private Supplier<FileSelection> m_fileSelectionSupplier;
 
         @Override
         public void init(final StateProviderInitializer initializer) {
@@ -155,17 +134,18 @@ public final class CommonReaderTransformationSettingsStateProviders {
         }
 
         @Override
-        public S computeState(final NodeParametersInput context) throws StateComputationFailureException {
+        public final Map<FSLocation, TypedReaderTableSpec<T>> computeState(final NodeParametersInput context)
+            throws StateComputationFailureException {
             final var fileSelection = m_fileSelectionSupplier.get();
             if (!WorkflowContextUtil.hasWorkflowContext() // no workflow context available
                 // no file selected (yet)
                 || fileSelection.getFSLocation().equals(new FSLocation(FSCategory.LOCAL, ""))) {
-                return computeStateFromPaths(Collections.emptyList());
+                return null;
             }
 
             var fsConnection = FileSystemPortConnectionUtil.getFileSystemConnection(context);
             if (fileSelection.getFSLocation().getFSCategory() == FSCategory.CONNECTED && fsConnection.isEmpty()) {
-                return computeStateFromPaths(Collections.emptyList());
+                return null;
             }
 
             try (final var accessor = new FileChooserPathAccessor(fileSelection, fsConnection)) {
@@ -178,74 +158,37 @@ public final class CommonReaderTransformationSettingsStateProviders {
                 }));
             } catch (IOException | InvalidSettingsException e) {
                 LOGGER.error(e);
-                return computeStateFromPaths(Collections.emptyList());
+                return null;
             }
         }
 
-        abstract S computeStateFromPaths(List<FSPath> paths) throws StateComputationFailureException;
-    }
-
-    public static class FSLocationsProvider extends PathsProvider<FSLocation[]> {
-        @Override
-        public void init(final StateProviderInitializer initializer) {
-            super.init(initializer);
-            initializer.computeAfterOpenDialog();
-            initializer.computeOnValueChange(FileSelectionRef.class);
-        }
-
-        @Override
-        FSLocation[] computeStateFromPaths(final List<FSPath> paths) {
-            return paths.stream().map(FSPath::toFSLocation).toArray(FSLocation[]::new);
-        }
-    }
-
-    /**
-     * This state provider uses the extracted fs paths and the reader specific dependencies to configure a reader and
-     * read the them to table specs.
-     *
-     * @param <C> The reader specific [C]onfiguration
-     * @param <I> The config [I]d settings used within the transformation settings
-     * @param <T> the type used to represent external data [T]ypes
-     */
-    public abstract static class TypedReaderTableSpecsProvider<//
-            C extends ReaderSpecificConfig<C>, I extends ConfigIdSettings<C>, T>
-        extends PathsProvider<Map<String, TypedReaderTableSpec<T>>> implements ReaderSpecific.ConfigAndReader<C, T> {
-
-        private Supplier<I> m_configIdSupplier;
-
-        @Override
-        public void init(final StateProviderInitializer initializer) {
-            super.init(initializer);
-            m_configIdSupplier = initializer.getValueSupplier(ConfigIdRef.class, getConfigIdTypeReference());
-        }
-
         /**
+         * Overwrite this method and use suppliers constructed via {@link StateProviderInitializer#getValueSupplier} in
+         * {@link #init(StateProviderInitializer)} to apply parameters to the given config. All parameters that are
+         * necessary to read the table specs must be applied here. Note that it might be best to use references to
+         * widget groups here in contrast to listing the individual triggers.
          *
-         * Boilerplate method to provide the correct type reference for the config id settings.
-         *
-         * @return new TypeReference<>() { } (the type inference will fill in the correct type).
+         * @param config the multi-table read config to apply parameters to
          */
-        protected abstract TypeReference<I> getConfigIdTypeReference();
+        protected abstract void applyParametersToConfig(M config);
 
-        @Override
-        protected Map<String, TypedReaderTableSpec<T>> computeStateFromPaths(final List<FSPath> paths)
+        private Map<FSLocation, TypedReaderTableSpec<T>> computeStateFromPaths(final List<FSPath> paths)
             throws StateComputationFailureException {
-            final var config = getMultiTableReadConfig().getTableReadConfig();
-            final var configIdSettings = m_configIdSupplier.get();
+            final M config = createMultiTableReadConfig();
             try {
-                configIdSettings.applyToConfig(config);
+                applyParametersToConfig(config);
             } catch (IllegalArgumentException e) {
                 LOGGER.error(e);
                 throw new StateComputationFailureException();
             }
 
-            final var tableReader = getTableReader();
+            final var tableReader = createTableReader();
             final var exec = new ExecutionMonitor();
-            final var specs = new HashMap<String, TypedReaderTableSpec<T>>();
+            final var specs = new HashMap<FSLocation, TypedReaderTableSpec<T>>();
             for (var path : paths) {
                 try {
-                    specs.put(path.toFSLocation().getPath(),
-                        MultiTableUtils.assignNamesIfMissing(tableReader.readSpec(path, config, exec)));
+                    specs.put(path.toFSLocation(), MultiTableUtils
+                        .assignNamesIfMissing(tableReader.readSpec(path, config.getTableReadConfig(), exec)));
                 } catch (IOException | IllegalArgumentException e) {
                     LOGGER.error(e);
                     return Collections.emptyMap();
@@ -265,28 +208,36 @@ public final class CommonReaderTransformationSettingsStateProviders {
 
             /**
              * @param <C> The reader specific [C]onfiguration
-             * @param <I> The config [I]d settings used within the transformation settings
              * @return the class of the reader specific implementation of {@link TypedReaderTableSpecsProvider}
              */
-            <C extends ReaderSpecificConfig<C>, I extends ConfigIdSettings<C>>
-                Class<? extends TypedReaderTableSpecsProvider<C, I, T>> getTypedReaderTableSpecsProvider();
+            <C extends ReaderSpecificConfig<C>, S extends AbstractMultiTableReadConfig<C, DefaultTableReadConfig<C>, T, S>>
+                Class<? extends TypedReaderTableSpecsProvider<C, T, S>> getTypedReaderTableSpecsProvider();
+
+            /**
+             * List all triggers here (using initializer.computeOnValueChange(...)) that should lead to a recomputation
+             * of the table specs. I.e. the fields referenced here should be a subset of the dependencies of
+             * {@link TypedReaderTableSpecsProvider#applyParametersToConfig(AbstractMultiTableReadConfig)}.
+             *
+             * @param initializer the initializer
+             */
+            void initConfigIdTriggers(final StateProviderInitializer initializer);
         }
     }
 
-    abstract static class DependsOnTypedReaderTableSpecProvider<P, S, T>
-        implements StateProvider<P>, TypedReaderTableSpecsProvider.Dependent<T>, ExternalDataTypeSerializer<S, T> {
+    abstract static class DependsOnTypedReaderTableSpecProvider<P, T>
+        implements StateProvider<P>, TypedReaderTableSpecsProvider.Dependent<T>, ExternalDataTypeSerializer<T> {
 
-        protected Supplier<Map<String, TypedReaderTableSpec<T>>> m_specSupplier;
+        protected Supplier<Map<FSLocation, TypedReaderTableSpec<T>>> m_specSupplier;
 
         @Override
         public void init(final StateProviderInitializer initializer) {
-            initFileChanges(initializer);
-            initializer.computeOnValueChange(ConfigIdRef.class);
+            initTriggers(initializer);
             m_specSupplier = initializer.computeFromProvidedState(getTypedReaderTableSpecsProvider());
         }
 
-        protected void initFileChanges(final StateProviderInitializer initializer) {
+        private void initTriggers(final StateProviderInitializer initializer) {
             initializer.computeAfterOpenDialog();
+            initConfigIdTriggers(initializer);
             initializer.computeOnValueChange(FileSelectionRef.class);
         }
     }
@@ -295,39 +246,43 @@ public final class CommonReaderTransformationSettingsStateProviders {
      *
      * Transforms the extracted {@link TypedReaderTableSpec}s into a serializable form.
      *
-     * @param <S> the type used to [S]erialize external data types
      * @param <T> the type used to represent external data [T]ypes
      */
-    public abstract static class TableSpecSettingsProvider<S, T>
-        extends DependsOnTypedReaderTableSpecProvider<List<TableSpecSettings<S>>, S, T> {
+    public abstract static class TableSpecSettingsProvider<T>
+        extends DependsOnTypedReaderTableSpecProvider<TableSpecSettings[], T> {
 
         @Override
-        public List<TableSpecSettings<S>> computeState(final NodeParametersInput context) {
+        public TableSpecSettings[] computeState(final NodeParametersInput context) {
 
-            return m_specSupplier.get().entrySet().stream()
-                .map(e -> new TableSpecSettings<>(e.getKey(),
+            final var suppliedSpecs = m_specSupplier.get();
+
+            if (suppliedSpecs == null) {
+                return null;
+            }
+
+            return suppliedSpecs.entrySet().stream()
+                .map(e -> new TableSpecSettings(e.getKey(),
                     e.getValue().stream()
-                        .map(spec -> new ColumnSpecSettings<>(spec.getName().get(), toSerializableType(spec.getType())))
-                        .toList()))
-                .toList();
+                        .map(spec -> new ColumnSpecSettings(spec.getName().get(), toSerializableType(spec.getType())))
+                        .toArray(ColumnSpecSettings[]::new)))
+                .toArray(TableSpecSettings[]::new);
         }
     }
 
     /**
      * This value provider is used to change the displayed array layout elements in the transformation settings dialog.
      *
-     * @param <S> the type used to [S]erialize external data types
      * @param <T> the type used to represent external data [T]ypes
      */
-    public abstract static class TransformationElementSettingsProvider<S, T>
-        extends DependsOnTypedReaderTableSpecProvider<TransformationElementSettings[], S, T>
+    public abstract static class TransformationElementSettingsProvider<T>
+        extends DependsOnTypedReaderTableSpecProvider<TransformationElementSettings[], T>
         implements ProductionPathProviderAndTypeHierarchy<T> {
 
         private Supplier<HowToCombineColumnsOption> m_howToCombineColumnsSup;
 
         private Supplier<TransformationElementSettings[]> m_existingSettings;
 
-        private Supplier<List<TableSpecSettings<S>>> m_existingSpecs;
+        private Supplier<TableSpecSettings[]> m_existingSpecs;
 
         @Override
         public void init(final StateProviderInitializer initializer) {
@@ -338,34 +293,24 @@ public final class CommonReaderTransformationSettingsStateProviders {
                 m_howToCombineColumnsSup = () -> HowToCombineColumnsOption.FAIL;
             }
             m_existingSettings = initializer.getValueSupplier(TransformationElementSettingsRef.class);
-            m_existingSpecs = initializer.getValueSupplier(
-                /** Contains a wildcard instead of S, since this is a common field */
-                TableSpecSettingsRef.class,
-                /** So we need to rectify the type by type reference */
-                getTableSpecSettingsTypeReference());
+            m_existingSpecs = initializer.getValueSupplier(TableSpecSettingsRef.class);
         }
 
         /**
-         *
-         * Boilerplate method to provide the correct type reference for the specs.
-         *
-         * @return new TypeReference<>() { } (the type inference will fill in the correct type).
-         */
-        protected abstract TypeReference<List<TableSpecSettings<S>>> getTableSpecSettingsTypeReference();
-
-        /**
          * @return true if the node supports handling multiple files
-         * @see CommonReaderNodeSettings.AdvancedSettingsWithMultipleFileHandling
          */
         protected abstract boolean hasMultipleFileHandling();
 
         @Override
         public TransformationElementSettings[] computeState(final NodeParametersInput context) {
-            return toTransformationElements(m_specSupplier.get(), m_howToCombineColumnsSup.get(),
-                m_existingSettings.get(), getExistingSpecsUnion());
+
+            final var suppliedSpecs = m_specSupplier.get();
+
+            return toTransformationElements(suppliedSpecs == null ? Map.of() : suppliedSpecs,
+                m_howToCombineColumnsSup.get(), m_existingSettings.get(), getExistingSpecsUnion());
         }
 
-        TransformationElementSettings[] toTransformationElements(final Map<String, TypedReaderTableSpec<T>> specs,
+        TransformationElementSettings[] toTransformationElements(final Map<FSLocation, TypedReaderTableSpec<T>> specs,
             final HowToCombineColumnsOption howToCombineColumnsOption,
             final TransformationElementSettings[] existingSettings, final TypedReaderTableSpec<T> existingSpecsUnion) {
 
@@ -508,12 +453,12 @@ public final class CommonReaderTransformationSettingsStateProviders {
 
         private Supplier<String> m_columnNameSupplier;
 
-        private Supplier<Map<String, TypedReaderTableSpec<T>>> m_specSupplier;
+        private Supplier<Map<FSLocation, TypedReaderTableSpec<T>>> m_specSupplier;
 
         @Override
         public void init(final StateProviderInitializer initializer) {
             m_columnNameSupplier = initializer.getValueSupplier(ColumnNameRef.class);
-            initializer.computeOnValueChange(CommonReaderTransformationSettings.TableSpecSettingsRef.class);
+            initializer.computeOnValueChange(TransformationParameters.TableSpecSettingsRef.class);
             m_specSupplier = initializer.computeFromProvidedState(getTypedReaderTableSpecsProvider());
         }
 
@@ -529,7 +474,9 @@ public final class CommonReaderTransformationSettingsStateProviders {
                 return Stream.concat(Stream.of(defaultChoice), dataTypeChoices.stream()).toList();
             }
 
-            final var union = toRawSpec(m_specSupplier.get()).getUnion();
+            final var suppliedSpecs = m_specSupplier.get();
+
+            final var union = toRawSpec(suppliedSpecs == null ? Map.of() : suppliedSpecs).getUnion();
             final var columnSpecOpt =
                 union.stream().filter(colSpec -> colSpec.getName().get().equals(columnName)).findAny();
             if (columnSpecOpt.isEmpty()) {
@@ -545,29 +492,27 @@ public final class CommonReaderTransformationSettingsStateProviders {
     }
 
     static String getDataTypeId(final DataType type) {
-        return DataTypeStringSerializer.typeToString(type);
+        return DataTypeSerializer.typeToString(type);
     }
 
     static DataType fromDataTypeId(final String id) {
-        return DataTypeStringSerializer.stringToType(id);
+        return DataTypeSerializer.stringToType(id);
     }
 
     /**
      * Put a reader specific implementation of this class in a {@link Modification} annotation on the reader specific
-     * implementation of {@link CommonReaderTransformationSettings}. This ensures, that the common fields within these
-     * settings are updated as expected.
+     * implementation of {@link TransformationParameters}. This ensures, that the common fields within these settings
+     * are updated as expected.
      *
      * For filling the abstract methods within this class, some abstract state providers need to be implemented. But
-     * none of the to be overwritten methods of these state providers apart from the boilerplate methods to construct
-     * {@link TypeReference}s should be implemented directly, since they stem from interfaces which are used for
-     * multiple state providers and for the {@link CommonReaderTransformationSettingsPersistor}. Instead, extend these
-     * interfaces (in {@link ReaderSpecific}) by ones that overwrite all methods with default implementations and use
-     * those in the respective places.
+     * none of the to be overwritten methods of these state providers should be implemented directly, since they stem
+     * from interfaces which are used for multiple state providers. Instead, extend these interfaces (in
+     * {@link ReaderSpecific}) by ones that overwrite all methods with default implementations and use those in the
+     * respective places.
      *
-     * @param <S> the type used to [S]erialize external data types
      * @param <T> the type used to represent external data [T]ypes
      */
-    public abstract static class TransformationSettingsWidgetModification<S, T> implements Modification.Modifier {
+    public abstract static class TransformationSettingsWidgetModification<T> implements Modification.Modifier {
 
         static class ConfigIdSettingsRef implements Modification.Reference {
         }
@@ -581,25 +526,6 @@ public final class CommonReaderTransformationSettingsStateProviders {
         static final class TransformationElementSettingsArrayWidgetRef implements Modification.Reference {
         }
 
-        static final class AppendPathColumnRef extends ReferenceStateProvider<Boolean>
-            implements Modification.Reference {
-        }
-
-        protected static final class SourceIdRef extends ReferenceStateProvider<String>
-            implements Modification.Reference {
-        }
-
-        protected static final class FSLocationsRef extends ReferenceStateProvider<FSLocation[]>
-            implements Modification.Reference {
-        }
-
-        static final class PathColumnNameRef extends ReferenceStateProvider<String> implements Modification.Reference {
-        }
-
-        static final class ColumnFilterModeRef extends ReferenceStateProvider<ColumnFilterMode>
-            implements Modification.Reference {
-        }
-
         @Override
         public void modify(final Modification.WidgetGroupModifier group) {
             group.find(SpecsRef.class).addAnnotation(ValueProvider.class).withValue(getSpecsValueProvider()).modify();
@@ -607,23 +533,17 @@ public final class CommonReaderTransformationSettingsStateProviders {
                 .withValue(getTypeChoicesProvider()).modify();
             group.find(TransformationElementSettingsArrayWidgetRef.class).addAnnotation(ValueProvider.class)
                 .withValue(getTransformationSettingsValueProvider()).modify();
-            if (!hasMultipleFileHandling()) {
-                // remove value providers to fall back to defaults
-                group.find(AppendPathColumnRef.class).removeAnnotation(ValueProvider.class);
-                group.find(PathColumnNameRef.class).removeAnnotation(ValueProvider.class);
-                group.find(ColumnFilterModeRef.class).removeAnnotation(ValueProvider.class);
-            }
         }
 
         /**
          * @return the value provider for the specs.
          */
-        protected abstract Class<? extends TableSpecSettingsProvider<S, T>> getSpecsValueProvider();
+        protected abstract Class<? extends TableSpecSettingsProvider<T>> getSpecsValueProvider();
 
         /**
          * @return the value provider for the transformation settings array layout.
          */
-        protected abstract Class<? extends TransformationElementSettingsProvider<S, T>>
+        protected abstract Class<? extends TransformationElementSettingsProvider<T>>
             getTransformationSettingsValueProvider();
 
         /**
@@ -631,14 +551,9 @@ public final class CommonReaderTransformationSettingsStateProviders {
          */
         protected abstract Class<? extends TypeChoicesProvider<T>> getTypeChoicesProvider();
 
-        /**
-         * @return true if the node supports handling multiple files
-         * @see CommonReaderNodeSettings.AdvancedSettingsWithMultipleFileHandling
-         */
-        protected abstract boolean hasMultipleFileHandling();
     }
 
-    private CommonReaderTransformationSettingsStateProviders() {
+    private TransformationParametersStateProviders() {
         // Utility class
     }
 }

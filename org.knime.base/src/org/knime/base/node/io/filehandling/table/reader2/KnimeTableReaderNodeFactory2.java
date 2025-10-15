@@ -44,9 +44,9 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Dec 11, 2023 (Marc Bux, KNIME GmbH, Berlin, Germany): created
+ *   Nov 21, 2025: created
  */
-package org.knime.base.node.io.filehandling.csv.reader2;
+package org.knime.base.node.io.filehandling.table.reader2;
 
 import static org.knime.node.impl.description.PortDescription.dynamicPort;
 import static org.knime.node.impl.description.PortDescription.fixedPort;
@@ -54,14 +54,16 @@ import static org.knime.node.impl.description.PortDescription.fixedPort;
 import java.util.List;
 import java.util.Optional;
 
-import org.knime.base.node.io.filehandling.csv.reader.CSVMultiTableReadConfig;
-import org.knime.base.node.io.filehandling.csv.reader.CSVTableReaderNodeFactory;
-import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReader;
-import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
-import org.knime.base.node.io.filehandling.csv.reader.api.StringReadAdapterFactory;
+import org.knime.base.node.io.filehandling.table.reader.KnimeTableMultiTableReadConfig;
+import org.knime.base.node.io.filehandling.table.reader.KnimeTableReader;
 import org.knime.base.node.io.filehandling.webui.reader2.FileSelectionPath;
 import org.knime.base.node.io.filehandling.webui.reader2.NodeParametersConfigAndSourceSerializer;
 import org.knime.base.node.io.filehandling.webui.reader2.WebUITableReaderNodeFactory;
+import org.knime.base.node.preproc.manipulator.TableManipulatorConfig;
+import org.knime.base.node.preproc.manipulator.mapping.DataTypeTypeHierarchy;
+import org.knime.base.node.preproc.manipulator.mapping.DataValueReadAdapterFactory;
+import org.knime.core.data.DataType;
+import org.knime.core.data.DataValue;
 import org.knime.core.node.NodeDescription;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.util.Version;
@@ -73,83 +75,80 @@ import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarch
 import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
 
 /**
- * Node factory for the CSV reader node that operates similar to the {@link CSVTableReaderNodeFactory} but features a
- * modern / Web UI {@link NodeDialog}.
+ * Node factory for the Table Reader node featuring a WebUI {@link NodeDialog}.
  *
- * @author Marc Bux, KNIME GmbH, Berlin, Germany
+ * @author Paul Bärnreuther
  */
 @SuppressWarnings("restriction")
-public class CSVTableReaderNodeFactory2 extends
-    WebUITableReaderNodeFactory<CSVTableReaderNodeParameters, FSPath, FileSelectionPath, CSVTableReaderConfig, Class<?>, String, CSVMultiTableReadConfig> {
+public class KnimeTableReaderNodeFactory2 extends
+    WebUITableReaderNodeFactory<KnimeTableReaderNodeParameters, FSPath, FileSelectionPath, TableManipulatorConfig, DataType, DataValue, KnimeTableMultiTableReadConfig> {
 
     @SuppressWarnings("javadoc")
-    public CSVTableReaderNodeFactory2() {
-        super(CSVTableReaderNodeParameters.class);
+    public KnimeTableReaderNodeFactory2() {
+        super(KnimeTableReaderNodeParameters.class);
     }
 
-    private static final String FULL_DESCRIPTION = """
-            Use this node to read CSV files into your workflow. The node will produce a data table with numbers and
-            types of columns guessed automatically.
-            """;
-
     @Override
-    protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() { // NOSONAR only to make this visible to testing
+    protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
         return super.createPortsConfigBuilder();
     }
 
     @Override
     protected NodeDescription createNodeDescription() {
         return DefaultNodeDescriptionUtil.createNodeDescription( //
-            "CSV Reader (Labs)", //
-            "csvreader.png", //
+            "Table Reader", //
+            "../reader/tableread.png", //
             List.of(dynamicPort(FS_CONNECT_GRP_ID, "File System Connection", "The file system connection.")), //
-            List.of(fixedPort("File Table",
-                "Data table based on the file being read with number and types of columns guessed automatically.")), //
-            "Reads CSV files", //
-            FULL_DESCRIPTION, //
+            List.of(fixedPort("Read table", "The table contained in the selected file.")), //
+            "Reads table written by the Table Writer node.", //
+            """
+                    This node reads files that have been written using the Table Writer node
+                    (which uses an internal format). It retains all meta information
+                    such as domain, properties, colors, size.
+                    """, //
             List.of(), //
-            CSVTableReaderNodeParameters.class, //
+            KnimeTableReaderNodeParameters.class, //
             null, //
             NodeType.Source, //
-            List.of("Text", "Comma", "File", "Input", "Read"), //
-            new Version(5, 9, 0) //
+            List.of("Table", "Read", "Input"), //
+            new Version(5, 5, 0) //
         );
     }
 
     @Override
-    protected ReadAdapterFactory<Class<?>, String> getReadAdapterFactory() {
-        return StringReadAdapterFactory.INSTANCE;
+    protected ReadAdapterFactory<DataType, DataValue> getReadAdapterFactory() {
+        return DataValueReadAdapterFactory.INSTANCE;
     }
 
     @Override
-    protected GenericTableReader<FSPath, CSVTableReaderConfig, Class<?>, String> createReader() {
-        return new CSVTableReader();
+    protected GenericTableReader<FSPath, TableManipulatorConfig, DataType, DataValue> createReader() {
+        return new KnimeTableReader();
     }
 
     @Override
-    protected String extractRowKey(final String value) {
-        return value;
+    protected String extractRowKey(final DataValue value) {
+        return value.toString();
     }
 
     @Override
-    protected TypeHierarchy<Class<?>, Class<?>> getTypeHierarchy() {
-        return StringReadAdapterFactory.TYPE_HIERARCHY;
+    protected TypeHierarchy<DataType, DataType> getTypeHierarchy() {
+        return DataTypeTypeHierarchy.INSTANCE;
     }
 
     @Override
-    protected CSVConfigAndSourceSerializer createSerializer() {
-        return new CSVConfigAndSourceSerializer();
+    protected KnimeTableConfigAndSourceSerializer createSerializer() {
+        return new KnimeTableConfigAndSourceSerializer();
     }
 
-    private final class CSVConfigAndSourceSerializer extends
-        NodeParametersConfigAndSourceSerializer<CSVTableReaderNodeParameters, FSPath, FileSelectionPath, CSVTableReaderConfig, Class<?>, CSVMultiTableReadConfig> {
-        protected CSVConfigAndSourceSerializer() {
-            super(CSVTableReaderNodeParameters.class);
+    private final class KnimeTableConfigAndSourceSerializer extends
+        NodeParametersConfigAndSourceSerializer<KnimeTableReaderNodeParameters, FSPath, FileSelectionPath, TableManipulatorConfig, DataType, KnimeTableMultiTableReadConfig> {
+        protected KnimeTableConfigAndSourceSerializer() {
+            super(KnimeTableReaderNodeParameters.class);
         }
 
         @Override
-        protected void saveToSourceAndConfig(final CSVTableReaderNodeParameters params,
-            final FileSelectionPath sourceSettings, final CSVMultiTableReadConfig config) {
+        protected void saveToSourceAndConfig(final KnimeTableReaderNodeParameters params,
+            final FileSelectionPath sourceSettings, final KnimeTableMultiTableReadConfig config) {
             params.saveToSource(sourceSettings);
             params.saveToConfig(config);
         }
@@ -158,15 +157,15 @@ public class CSVTableReaderNodeFactory2 extends
     @Override
     protected FileSelectionPath createPathSettings(final NodeCreationConfiguration nodeCreationConfig) {
         final var source = new FileSelectionPath();
-        final var defaultParams = new CSVTableReaderNodeParameters(nodeCreationConfig);
+        final var defaultParams = new KnimeTableReaderNodeParameters(nodeCreationConfig);
         defaultParams.saveToSource(source);
         return source;
     }
 
     @Override
-    protected CSVMultiTableReadConfig createConfig(final NodeCreationConfiguration nodeCreationConfig) {
-        final var cfg = new CSVMultiTableReadConfig();
-        final var defaultParams = new CSVTableReaderNodeParameters(nodeCreationConfig);
+    protected KnimeTableMultiTableReadConfig createConfig(final NodeCreationConfiguration nodeCreationConfig) {
+        final var cfg = new KnimeTableMultiTableReadConfig();
+        final var defaultParams = new KnimeTableReaderNodeParameters(nodeCreationConfig);
         defaultParams.saveToConfig(cfg);
         return cfg;
     }

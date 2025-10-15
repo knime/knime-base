@@ -49,12 +49,15 @@
 package org.knime.base.node.io.filehandling.webui.reader;
 
 import org.knime.base.node.io.filehandling.webui.reader.ReaderSpecific.ExternalDataTypeSerializer;
+import org.knime.base.node.io.filehandling.webui.reader2.WebUITableReaderNodeFactory;
 
 /**
  * A serializer for classes that does not change the class, since Class<?> is already serializable.
  *
  * @author Paul Bärnreuther
+ * @deprecated use {@link WebUITableReaderNodeFactory} instead
  */
+@Deprecated(since = "5.10")
 public interface ClassNoopSerializer extends ExternalDataTypeSerializer<Class<?>, Class<?>> {
 
     @Override

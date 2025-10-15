@@ -46,15 +46,14 @@
  * History
  *   Sep 20, 2024 (marcbux): created
  */
-package org.knime.base.node.io.filehandling.webui.reader;
+package org.knime.base.node.io.filehandling.webui.reader2;
 
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.TableSpecSettings;
-import org.knime.base.node.io.filehandling.webui.reader2.WebUITableReaderNodeFactory;
+import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.TableSpecSettings;
 import org.knime.core.data.DataType;
+import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.RawSpecFactory;
 import org.knime.filehandling.core.node.table.reader.TableReader;
@@ -69,14 +68,11 @@ import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarch
 /**
  *
  * This utility class provides interfaces that are used to define the settings for a table reader. Since one does need
- * the same interface for multiple classes (e.g. in the {@link CommonReaderTransformationSettingsPersistor} and for
- * classes in {@link CommonReaderTransformationSettingsStateProviders}, extends these interfaces by ones that overwrite
- * the methods with default implementations and extend those by the respective classes.
+ * the same interface for multiple classes in {@link TransformationParametersStateProviders}, extends these interfaces
+ * by ones that overwrite the methods with default implementations and extend those by the respective classes.
  *
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
- * @deprecated use {@link WebUITableReaderNodeFactory} instead
  */
-@Deprecated(since = "5.10")
 public final class ReaderSpecific {
 
     /**
@@ -88,54 +84,49 @@ public final class ReaderSpecific {
      *
      * @param <C> The reader specific [C]onfiguration
      * @param <T> the type used to represent external data [T]ypes
+     * @param <M> the type of the [M]ulti table read config
      */
-    public interface ConfigAndReader<C extends ReaderSpecificConfig<C>, T> {
+    public interface ConfigAndReader<C extends ReaderSpecificConfig<C>, T, M extends AbstractMultiTableReadConfig<C, DefaultTableReadConfig<C>, T, M>> {
 
         /**
          * We need to use the AbstractMultiTableReadConfig as a type here because the MultiTableReadConfig does not
          * allow to set the TableReadConfig generic.
          *
-         * @param <S> the type of the multi table read config
          * @return an instance of the multi table read config whose reader specific config is the default one
          */
-        <S extends AbstractMultiTableReadConfig<C, DefaultTableReadConfig<C>, T, S>>
-            AbstractMultiTableReadConfig<C, DefaultTableReadConfig<C>, T, S> getMultiTableReadConfig();
+        M createMultiTableReadConfig();
 
         /**
          * @param <V> the type of tokens a row read in consists of
          * @return the reader
          */
-        <V> TableReader<C, T, V> getTableReader();
+        <V> TableReader<C, T, V> createTableReader();
     }
 
     /**
      * <ul>
-     * <li>For <T> being {@link Class}, use the {@link ClassNoopSerializer}.</li>
-     * <li>For <T> being {@link DataType}, use the {@link DataTypeStringSerializer}.</li>
+     * <li>For <T> being {@link Class}, use the {@link ClassSerializer}.</li>
+     * <li>For <T> being {@link DataType}, use the {@link DataTypeSerializer}.</li>
+     *
+     * Replicates {@link org.knime.filehandling.core.node.table.reader.config.tablespec.NodeSettingsSerializer}
      *
      * @param <S> the type used to [S]erialize external data types
      * @param <T> the type used to represent external data [T]ypes
      */
-    interface ExternalDataTypeSerializer<S, T> {
+    interface ExternalDataTypeSerializer<T> {
 
-        S toSerializableType(T externalType);
+        String toSerializableType(T externalType);
 
-        T toExternalType(S serializedType);
+        T toExternalType(String serializedType) throws ExternalDataTypeParseException;
 
     }
 
-    static <S, T> Map<String, TypedReaderTableSpec<T>> toSpecMap(final ExternalDataTypeSerializer<S, T> serializer,
-        final List<TableSpecSettings<S>> specs) {
-        final var individualSpecs = new LinkedHashMap<String, TypedReaderTableSpec<T>>();
-        for (final var tableSpec : specs) {
-            final TypedReaderTableSpecBuilder<T> specBuilder = TypedReaderTableSpec.builder();
-            for (final var colSpec : tableSpec.m_spec) {
-                specBuilder.addColumn(colSpec.m_name, serializer.toExternalType(colSpec.m_type), true);
-            }
-            final var spec = specBuilder.build();
-            individualSpecs.put(tableSpec.m_sourceId, spec);
+    static final class ExternalDataTypeParseException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
+
+        ExternalDataTypeParseException(final String message, final Throwable cause) {
+            super(message, cause);
         }
-        return individualSpecs;
     }
 
     /**
@@ -162,7 +153,28 @@ public final class ReaderSpecific {
          * {@noimplement} Same for all readers. This method is part of this interface just for convenience.
          */
         @SuppressWarnings("javadoc")
-        default RawSpec<T> toRawSpec(final Map<String, TypedReaderTableSpec<T>> spec) {
+        default Map<FSLocation, TypedReaderTableSpec<T>> toSpecMap(final ExternalDataTypeSerializer<T> serializer,
+            final TableSpecSettings[] specs) {
+            final var individualSpecs = new LinkedHashMap<FSLocation, TypedReaderTableSpec<T>>();
+            if (specs == null) {
+                return individualSpecs;
+            }
+            for (final var tableSpec : specs) {
+                final TypedReaderTableSpecBuilder<T> specBuilder = TypedReaderTableSpec.builder();
+                for (final var colSpec : tableSpec.m_spec) {
+                    specBuilder.addColumn(colSpec.m_name, serializer.toExternalType(colSpec.m_type), true);
+                }
+                final var spec = specBuilder.build();
+                individualSpecs.put(tableSpec.m_fsLocation, spec);
+            }
+            return individualSpecs;
+        }
+
+        /**
+         * {@noimplement} Same for all readers. This method is part of this interface just for convenience.
+         */
+        @SuppressWarnings("javadoc")
+        default RawSpec<T> toRawSpec(final Map<FSLocation, TypedReaderTableSpec<T>> spec) {
             if (spec.isEmpty()) {
                 final var emptySpec = new TypedReaderTableSpec<T>();
                 return new RawSpec<>(emptySpec, emptySpec);

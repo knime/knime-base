@@ -44,67 +44,52 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 20, 2024 (marcbux): created
+ *   Oct 16, 2025 (Marc Bux, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.base.node.io.filehandling.webui.reader;
+package org.knime.base.node.io.filehandling.webui.reader2;
 
-import java.io.IOException;
-import java.io.StringReader;
+import java.util.function.Consumer;
 
-import org.knime.base.node.io.filehandling.webui.reader.ReaderSpecific.ExternalDataTypeSerializer;
-import org.knime.base.node.io.filehandling.webui.reader2.WebUITableReaderNodeFactory;
-import org.knime.base.node.preproc.manipulator.TableManipulatorConfigSerializer.DataTypeSerializer;
-import org.knime.core.data.DataType;
+import org.knime.base.node.io.filehandling.webui.reader2.ReaderPathConfiguration.ReaderPathConfigResult;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeLogger;
-import org.knime.core.node.NodeSettings;
-import org.knime.core.node.config.base.JSONConfig;
-import org.knime.core.node.config.base.JSONConfig.WriterConfig;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSystemOption;
+import org.knime.filehandling.core.connections.FSLocation;
+import org.knime.filehandling.core.connections.FSLocationSpec;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
+import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
+import org.knime.filehandling.core.node.table.reader.paths.Path;
 
-/**
- * @author Marc Bux, KNIME GmbH, Berlin, Germany
- * @deprecated use {@link WebUITableReaderNodeFactory} instead
- */
-@Deprecated(since = "5.10")
-public interface DataTypeStringSerializer extends ExternalDataTypeSerializer<String, DataType> {
+@SuppressWarnings("restriction")
+abstract class AbstractFileSelectionPath implements Path {
+
+    final ReaderPathConfiguration m_configuration =
+        new ReaderPathConfiguration(this::getFSLocation, this::setFSLocationSpec, this::isDirectory, FileSystemOption.values(), 0);
+
+    private ReaderPathConfigResult m_configureResult;
 
     @Override
-    default String toSerializableType(final DataType externalType) {
-        return typeToString(externalType);
+    public void configureInModel(final PortObjectSpec[] specs, final Consumer<StatusMessage> statusMessageConsumer)
+        throws InvalidSettingsException {
+        m_configureResult = m_configuration.validateAndExtractPortFSConnection(specs, statusMessageConsumer);
+    }
+
+    abstract FSLocation getFSLocation();
+
+    abstract void setFSLocationSpec(FSLocationSpec fsLocationSpec);
+
+    abstract boolean isDirectory();
+
+    abstract ReadPathAccessor createReadPathAccessor(ReaderPathConfigResult configureResult);
+
+    @Override
+    public final ReadPathAccessor createReadPathAccessor() {
+        return createReadPathAccessor(m_configureResult);
     }
 
     @Override
-    default DataType toExternalType(final String serializedType) {
-        return stringToType(serializedType);
+    public String getPath() {
+        return getFSLocation().getPath();
     }
 
-    /**
-     * Serializes a given {@link DataType} into a string
-     *
-     * @param type the to-be-serialized {@link DataType}
-     * @return the serialized string
-     */
-    static String typeToString(final DataType type) {
-        final var settings = new NodeSettings("type");
-        DataTypeSerializer.SERIALIZER_INSTANCE.save(type, settings);
-        return JSONConfig.toJSONString(settings, WriterConfig.DEFAULT);
-    }
-
-    /**
-     * De-serializes a string that has been generated via {@link JSONConfig#toJSONString} into a {@link DataType}.
-     *
-     * @param string the previously serialized string
-     * @return the de-serialized {@link DataType}
-     */
-    static DataType stringToType(final String string) {
-        try {
-            final var settings = new NodeSettings("type");
-            JSONConfig.readJSON(settings, new StringReader(string));
-            return DataTypeSerializer.SERIALIZER_INSTANCE.load(settings);
-        } catch (IOException | InvalidSettingsException e) {
-            NodeLogger.getLogger(DataTypeStringSerializer.class)
-                .error("Unknown and new columns can't be converted to the configured data type.", e);
-            return null;
-        }
-    }
 }

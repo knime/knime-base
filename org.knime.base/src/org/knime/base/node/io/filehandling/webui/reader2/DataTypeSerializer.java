@@ -46,27 +46,25 @@
  * History
  *   Sep 20, 2024 (marcbux): created
  */
-package org.knime.base.node.io.filehandling.webui.reader;
+package org.knime.base.node.io.filehandling.webui.reader2;
+
+import static org.knime.base.node.preproc.manipulator.TableManipulatorConfigSerializer.DataTypeSerializer.SERIALIZER_INSTANCE;
 
 import java.io.IOException;
 import java.io.StringReader;
 
-import org.knime.base.node.io.filehandling.webui.reader.ReaderSpecific.ExternalDataTypeSerializer;
-import org.knime.base.node.io.filehandling.webui.reader2.WebUITableReaderNodeFactory;
-import org.knime.base.node.preproc.manipulator.TableManipulatorConfigSerializer.DataTypeSerializer;
+import org.knime.base.node.io.filehandling.webui.reader2.ReaderSpecific.ExternalDataTypeParseException;
+import org.knime.base.node.io.filehandling.webui.reader2.ReaderSpecific.ExternalDataTypeSerializer;
 import org.knime.core.data.DataType;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.config.base.JSONConfig;
 import org.knime.core.node.config.base.JSONConfig.WriterConfig;
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
- * @deprecated use {@link WebUITableReaderNodeFactory} instead
  */
-@Deprecated(since = "5.10")
-public interface DataTypeStringSerializer extends ExternalDataTypeSerializer<String, DataType> {
+public interface DataTypeSerializer extends ExternalDataTypeSerializer<DataType> {
 
     @Override
     default String toSerializableType(final DataType externalType) {
@@ -74,7 +72,7 @@ public interface DataTypeStringSerializer extends ExternalDataTypeSerializer<Str
     }
 
     @Override
-    default DataType toExternalType(final String serializedType) {
+    default DataType toExternalType(final String serializedType) throws ExternalDataTypeParseException {
         return stringToType(serializedType);
     }
 
@@ -86,7 +84,7 @@ public interface DataTypeStringSerializer extends ExternalDataTypeSerializer<Str
      */
     static String typeToString(final DataType type) {
         final var settings = new NodeSettings("type");
-        DataTypeSerializer.SERIALIZER_INSTANCE.save(type, settings);
+        SERIALIZER_INSTANCE.save(type, settings);
         return JSONConfig.toJSONString(settings, WriterConfig.DEFAULT);
     }
 
@@ -96,15 +94,13 @@ public interface DataTypeStringSerializer extends ExternalDataTypeSerializer<Str
      * @param string the previously serialized string
      * @return the de-serialized {@link DataType}
      */
-    static DataType stringToType(final String string) {
+    static DataType stringToType(final String string) throws ExternalDataTypeParseException {
         try {
             final var settings = new NodeSettings("type");
             JSONConfig.readJSON(settings, new StringReader(string));
-            return DataTypeSerializer.SERIALIZER_INSTANCE.load(settings);
+            return SERIALIZER_INSTANCE.load(settings);
         } catch (IOException | InvalidSettingsException e) {
-            NodeLogger.getLogger(DataTypeStringSerializer.class)
-                .error("Unknown and new columns can't be converted to the configured data type.", e);
-            return null;
+            throw new ExternalDataTypeParseException("An unexpected error occurred while deserializing data type JSON.", e);
         }
     }
 }

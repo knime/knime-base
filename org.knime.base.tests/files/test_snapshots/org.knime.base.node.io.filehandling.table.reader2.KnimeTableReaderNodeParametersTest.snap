@@ -1,0 +1,623 @@
+{
+  "data" : {
+    "model" : {
+      "readerParameters" : {
+        "source" : {
+          "path" : {
+            "fsCategory" : "LOCAL",
+            "path" : "",
+            "timeout" : 10000,
+            "context" : {
+              "fsToString" : "(LOCAL, )"
+            }
+          }
+        },
+        "skipFirstDataRows" : 0,
+        "maximumNumberOfRows" : null,
+        "firstColumnContainsRowIds" : false,
+        "ifSchemaChangesOption" : "FAIL",
+        "howToCombineColumns" : "FAIL",
+        "appendPathColumn" : null
+      },
+      "knimeTableReaderParameters" : {
+        "prependTableIndexToRowId" : false
+      },
+      "transformationParameters" : {
+        "enforceTypes" : true,
+        "columnTransformation" : [ {
+          "columnName" : null,
+          "originalType" : "<default-columntype>",
+          "originalTypeLabel" : "Default columntype",
+          "includeInOutput" : true,
+          "columnRename" : null,
+          "type" : "<default-columntype>"
+        } ]
+      }
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "knimeTableReaderParameters" : {
+            "type" : "object",
+            "properties" : {
+              "prependTableIndexToRowId" : {
+                "type" : "boolean",
+                "title" : "Prepend file index to RowID",
+                "description" : "Only enabled if the existing RowIDs are used. If checked, a prefix is\nprepended to the RowIDs that indicates which table the row came\nfrom.\nThe format of the prefix is “File_0_“, “File_1_” and so on.\n",
+                "default" : false
+              }
+            },
+            "default" : {
+              "prependTableIndexToRowId" : false
+            }
+          },
+          "readerParameters" : {
+            "type" : "object",
+            "properties" : {
+              "appendPathColumn" : {
+                "type" : [ "string", "null" ],
+                "title" : "Append file path column",
+                "description" : "Select this box if you want to add a column containing the path of the file from which the row is read.\nThe node will fail if adding the column with the provided name causes a name collision with any of the\ncolumns in the read table.\n",
+                "default" : null
+              },
+              "fileSystemFromPortNotAvailableMessage" : {
+                "type" : "object"
+              },
+              "firstColumnContainsRowIds" : {
+                "type" : "boolean",
+                "title" : "Use existing RowID",
+                "description" : "Check this box if the RowIDs from the input tables should be used for\nthe output tables. If unchecked, a new RowID is generated.\nThe generated RowID follows the schema \"Row0\", \"Row1\" and so on.\n",
+                "default" : false
+              },
+              "howToCombineColumns" : {
+                "oneOf" : [ {
+                  "const" : "FAIL",
+                  "title" : "Fail if different"
+                }, {
+                  "const" : "UNION",
+                  "title" : "Union"
+                }, {
+                  "const" : "INTERSECTION",
+                  "title" : "Intersection"
+                } ],
+                "title" : "How to combine columns",
+                "description" : "Specifies how to deal with reading multiple files in which not all column names are identical.\n<ul>\n<li><b>Fail if different</b>: The node will fail if multiple files are read and not all files have the same column names.</li>\n<li><b>Union</b>: Any column that is part of any input file is considered. If a file is missing a column, it is filled\nup with missing values.\n</li>\n<li><b>Intersection</b>: Only columns that appear in all files are considered for the output table.</li>\n</ul>",
+                "default" : "FAIL"
+              },
+              "ifSchemaChangesOption" : {
+                "oneOf" : [ {
+                  "const" : "FAIL",
+                  "title" : "Fail"
+                }, {
+                  "const" : "USE_NEW_SCHEMA",
+                  "title" : "Use new schema"
+                } ],
+                "title" : "If schema changes",
+                "description" : "Specifies the node behavior if the content of the configured file/folder changes between executions,\ni.e., columns are added/removed to/from the file(s) or their types change. The following options are\navailable:\n\n<ul>\n<li><b>Fail</b>: If set, the node fails if the column names in the file have changed. Changes in column types will not be\ndetected.\n</li>\n<li><b>Use new schema</b>: If set, the node will compute a new table specification for the current schema of the file at the time\nwhen the node is executed. Note that the node will not output a table specification before execution and\nthat it will not apply transformations, therefore the transformation tab is disabled.\n</li>\n</ul>",
+                "default" : "FAIL"
+              },
+              "maximumNumberOfRows" : {
+                "type" : [ "integer", "null" ],
+                "format" : "int64",
+                "title" : "Limit number of rows",
+                "description" : "If enabled, only the specified number of data rows are read. The column header row (if selected) is not\ntaken into account. Limiting rows prevents parallel reading of individual files.\n",
+                "default" : null
+              },
+              "skipFirstDataRows" : {
+                "type" : "integer",
+                "format" : "int64",
+                "title" : "Skip first data rows",
+                "description" : "Use this option to skip the specified number of valid data rows. This has no effect on which row will be\nchosen as a column header. Skipping rows prevents parallel reading of individual files.\n",
+                "default" : 0
+              },
+              "source" : {
+                "type" : "object",
+                "properties" : {
+                  "path" : {
+                    "type" : "object",
+                    "default" : {
+                      "fsCategory" : "LOCAL",
+                      "path" : "",
+                      "timeout" : 10000,
+                      "context" : {
+                        "fsToString" : "(LOCAL, )"
+                      }
+                    }
+                  }
+                },
+                "title" : "Source",
+                "description" : "Select a file location which stores the data you want to read. When clicking on the browse button,\nthere are two default file system options to choose from:\n<br/>\n<ul>\n    <li><b>The current Hub space</b>: Allows to select a file relative to the Hub space on which the\n        workflow is run.</li>\n    <li><b>URL</b>: Allows to specify a URL (e.g. file://, http:// or knime:// protocol).</li>\n</ul>\n",
+                "default" : {
+                  "path" : {
+                    "fsCategory" : "LOCAL",
+                    "path" : "",
+                    "timeout" : 10000,
+                    "context" : {
+                      "fsToString" : "(LOCAL, )"
+                    }
+                  }
+                }
+              }
+            },
+            "default" : {
+              "source" : {
+                "path" : {
+                  "fsCategory" : "LOCAL",
+                  "path" : "",
+                  "timeout" : 10000,
+                  "context" : {
+                    "fsToString" : "(LOCAL, )"
+                  }
+                }
+              },
+              "skipFirstDataRows" : 0,
+              "maximumNumberOfRows" : null,
+              "firstColumnContainsRowIds" : false,
+              "ifSchemaChangesOption" : "FAIL",
+              "howToCombineColumns" : "FAIL",
+              "appendPathColumn" : null
+            }
+          },
+          "transformationParameters" : {
+            "type" : "object",
+            "properties" : {
+              "columnTransformation" : {
+                "type" : "array",
+                "items" : {
+                  "type" : "object",
+                  "properties" : {
+                    "columnName" : {
+                      "type" : "string"
+                    },
+                    "columnRename" : {
+                      "type" : "string",
+                      "title" : "Column name"
+                    },
+                    "includeInOutput" : {
+                      "type" : "boolean",
+                      "title" : "Include in output",
+                      "default" : false
+                    },
+                    "originalType" : {
+                      "type" : "string"
+                    },
+                    "originalTypeLabel" : {
+                      "type" : "string"
+                    },
+                    "type" : {
+                      "type" : "string",
+                      "title" : "Column type"
+                    }
+                  }
+                },
+                "title" : "Transformations",
+                "description" : "Use this option to modify the structure of the table. You can deselect each column to filter it out of the\noutput table, use the arrows to reorder the columns, or change the column name or column type of each\ncolumn. Note that the positions of columns are reset in the dialog if a new file or folder is selected.\nWhether and where to add unknown columns during execution is specified via the special row &lt;any unknown\nnew column&gt;. It is also possible to select the type new columns should be converted to. Note that the\nnode will fail if this conversion is not possible e.g. if the selected type is Integer but the new column is\nof type Double.\n",
+                "default" : [ {
+                  "columnName" : null,
+                  "originalType" : "<default-columntype>",
+                  "originalTypeLabel" : "Default columntype",
+                  "includeInOutput" : true,
+                  "columnRename" : null,
+                  "type" : "<default-columntype>"
+                } ]
+              },
+              "enforceTypes" : {
+                "type" : "boolean",
+                "title" : "Enforce types",
+                "description" : "Controls how columns whose type changes are dealt with.\nIf selected, the mapping to the KNIME type you configured is attempted.\nThe node will fail if that is not possible.\nIf unselected, the KNIME type corresponding to the new type is used.\n",
+                "default" : true
+              },
+              "specs" : {
+                "type" : "array",
+                "items" : {
+                  "type" : "object",
+                  "properties" : {
+                    "fsLocation" : {
+                      "type" : "object"
+                    },
+                    "spec" : {
+                      "type" : "array",
+                      "items" : {
+                        "type" : "object",
+                        "properties" : {
+                          "name" : {
+                            "type" : "string"
+                          },
+                          "type" : {
+                            "type" : "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "default" : {
+              "enforceTypes" : true,
+              "columnTransformation" : [ {
+                "columnName" : null,
+                "originalType" : "<default-columntype>",
+                "originalTypeLabel" : "Default columntype",
+                "includeInOutput" : true,
+                "columnRename" : null,
+                "type" : "<default-columntype>"
+              } ]
+            }
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "label" : "File",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "id" : "#/properties/model/properties/readerParameters/properties/fileSystemFromPortNotAvailableMessage",
+        "options" : {
+          "format" : "textMessage"
+        },
+        "providedOptions" : [ "message" ]
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/readerParameters/properties/source",
+        "options" : {
+          "fileExtensions" : [ "table" ],
+          "isLocal" : true,
+          "spaceFSOptions" : {
+            "mountId" : "Local space"
+          },
+          "format" : "fileChooser"
+        }
+      } ]
+    }, {
+      "label" : "Data Area",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/readerParameters/properties/skipFirstDataRows",
+        "options" : {
+          "validation" : {
+            "max" : {
+              "errorMessage" : "Value too large to process without risking precision loss (> 9007199254740991).",
+              "parameters" : {
+                "isExclusive" : false,
+                "max" : 9.007199254740991E15
+              }
+            },
+            "min" : {
+              "errorMessage" : "The value must be at least 0.",
+              "parameters" : {
+                "isExclusive" : false,
+                "min" : 0.0
+              }
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/readerParameters/properties/maximumNumberOfRows",
+        "options" : {
+          "validation" : {
+            "max" : {
+              "errorMessage" : "Value too large to process without risking precision loss (> 9007199254740991).",
+              "parameters" : {
+                "isExclusive" : false,
+                "max" : 9.007199254740991E15
+              }
+            },
+            "min" : {
+              "errorMessage" : "The value must be at least 0.",
+              "parameters" : {
+                "isExclusive" : false,
+                "min" : 0.0
+              }
+            }
+          },
+          "isAdvanced" : true,
+          "hideOnNull" : true
+        },
+        "providedOptions" : [ "default" ]
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/readerParameters/properties/firstColumnContainsRowIds",
+        "options" : {
+          "format" : "checkbox"
+        }
+      } ]
+    }, {
+      "label" : "Column and Data Type Detection",
+      "type" : "Section",
+      "options" : {
+        "isAdvanced" : true
+      },
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/readerParameters/properties/ifSchemaChangesOption",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      } ]
+    }, {
+      "label" : "Multiple File Handling",
+      "type" : "Section",
+      "options" : {
+        "isAdvanced" : true
+      },
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/readerParameters/properties/howToCombineColumns",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/knimeTableReaderParameters/properties/prependTableIndexToRowId",
+        "options" : {
+          "format" : "checkbox"
+        },
+        "rule" : {
+          "effect" : "ENABLE",
+          "condition" : {
+            "scope" : "#/properties/model/properties/readerParameters/properties/firstColumnContainsRowIds",
+            "schema" : {
+              "const" : true
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/readerParameters/properties/appendPathColumn",
+        "options" : {
+          "validation" : {
+            "pattern" : {
+              "errorMessage" : "The string must start and end with a non-whitespace character.",
+              "parameters" : {
+                "pattern" : "\\S(.*\\S)?"
+              }
+            }
+          },
+          "hideOnNull" : true
+        },
+        "providedOptions" : [ "default" ]
+      } ]
+    }, {
+      "label" : "Table Transformation",
+      "type" : "Section",
+      "description" : "Use this option to modify the structure of the table. You can deselect each column to filter it out of the\noutput table, use the arrows to reorder the columns, or change the column name or column type of each\ncolumn. Note that the positions of columns are reset in the dialog if a new file or folder is selected.\nWhether and where to add unknown columns during execution is specified via the special row &lt;any unknown\nnew column&gt;. It is also possible to select the type new columns should be converted to. Note that the\nnode will fail if this conversion is not possible e.g. if the selected type is Integer but the new column is\nof type Double.\n",
+      "options" : {
+        "isAdvanced" : true
+      },
+      "rule" : {
+        "effect" : "HIDE",
+        "condition" : {
+          "scope" : "#/properties/model/properties/readerParameters/properties/ifSchemaChangesOption",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "USE_NEW_SCHEMA"
+            } ]
+          }
+        }
+      },
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/transformationParameters/properties/enforceTypes",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/transformationParameters/properties/columnTransformation",
+        "options" : {
+          "detail" : [ {
+            "type" : "Control",
+            "scope" : "#/properties/columnRename",
+            "options" : {
+              "validation" : {
+                "pattern" : {
+                  "errorMessage" : "The string must start and end with a non-whitespace character.",
+                  "parameters" : {
+                    "pattern" : "\\S(.*\\S)?"
+                  }
+                }
+              },
+              "hideControlHeader" : true
+            },
+            "rule" : {
+              "effect" : "SHOW",
+              "condition" : {
+                "type" : "AND",
+                "conditions" : [ {
+                  "scope" : "#/properties/_edit",
+                  "schema" : {
+                    "const" : true
+                  }
+                }, {
+                  "scope" : "#/properties/columnName",
+                  "schema" : {
+                    "not" : {
+                      "const" : null
+                    }
+                  }
+                } ]
+              }
+            }
+          }, {
+            "type" : "Control",
+            "scope" : "#/properties/type",
+            "options" : {
+              "hideControlHeader" : true,
+              "format" : "dropDown"
+            },
+            "providedOptions" : [ "possibleValues" ],
+            "rule" : {
+              "effect" : "SHOW",
+              "condition" : {
+                "scope" : "#/properties/_edit",
+                "schema" : {
+                  "const" : true
+                }
+              }
+            }
+          } ],
+          "arrayElementTitle" : "Column",
+          "showSortButtons" : true,
+          "hasFixedSize" : true,
+          "withEditAndReset" : true,
+          "elementCheckboxScope" : "#/properties/includeInOutput"
+        },
+        "providedOptions" : [ "arrayElementTitle", "elementSubTitle" ],
+        "rule" : {
+          "effect" : "HIDE",
+          "condition" : {
+            "schema" : {
+              "not" : { }
+            }
+          }
+        }
+      } ]
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "readerParameters" : {
+            "type" : "object",
+            "properties" : {
+              "fileSystemFromPortNotAvailableMessage" : { },
+              "source" : {
+                "type" : "object",
+                "properties" : {
+                  "path" : { }
+                }
+              },
+              "skipFirstDataRows" : { },
+              "maximumNumberOfRows" : {
+                "configPaths" : [ [ "maximumNumberOfRows_is_present" ], [ "maximumNumberOfRows" ] ]
+              },
+              "firstColumnContainsRowIds" : { },
+              "ifSchemaChangesOption" : { },
+              "howToCombineColumns" : { },
+              "appendPathColumn" : {
+                "configPaths" : [ [ "appendPathColumn_is_present" ], [ "appendPathColumn" ] ]
+              }
+            }
+          },
+          "knimeTableReaderParameters" : {
+            "type" : "object",
+            "properties" : {
+              "prependTableIndexToRowId" : { }
+            }
+          },
+          "transformationParameters" : {
+            "type" : "object",
+            "properties" : {
+              "specs" : {
+                "type" : "array",
+                "items" : {
+                  "type" : "object",
+                  "properties" : {
+                    "fsLocation" : { },
+                    "spec" : {
+                      "type" : "array",
+                      "items" : {
+                        "type" : "object",
+                        "properties" : {
+                          "name" : { },
+                          "type" : { }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "enforceTypes" : { },
+              "columnTransformation" : {
+                "type" : "array",
+                "items" : {
+                  "type" : "object",
+                  "properties" : {
+                    "columnName" : { },
+                    "originalType" : { },
+                    "originalTypeLabel" : { },
+                    "includeInOutput" : { },
+                    "columnRename" : { },
+                    "type" : { }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/readerParameters/properties/appendPathColumn",
+    "providedOptionName" : "default",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : "File Path"
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/readerParameters/properties/maximumNumberOfRows",
+    "providedOptionName" : "default",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : 50
+    } ]
+  }, {
+    "id" : "#/properties/model/properties/readerParameters/properties/fileSystemFromPortNotAvailableMessage",
+    "providedOptionName" : "message",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : null
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "id" : "ElementResetButton"
+    },
+    "dependencies" : [ "#/properties/model/properties/transformationParameters/properties/columnTransformation/items/properties/columnName", "#/properties/model/properties/transformationParameters/properties/columnTransformation/items/properties/originalType" ]
+  }, {
+    "trigger" : {
+      "id" : "after-open-dialog"
+    },
+    "triggerInitially" : true,
+    "dependencies" : [ "#/properties/model/properties/knimeTableReaderParameters", "#/properties/model/properties/readerParameters", "#/properties/model/properties/readerParameters/properties/howToCombineColumns", "#/properties/model/properties/readerParameters/properties/source", "#/properties/model/properties/transformationParameters/properties/columnTransformation", "#/properties/model/properties/transformationParameters/properties/specs" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/readerParameters/properties/firstColumnContainsRowIds"
+    },
+    "dependencies" : [ "#/properties/model/properties/knimeTableReaderParameters", "#/properties/model/properties/readerParameters", "#/properties/model/properties/readerParameters/properties/howToCombineColumns", "#/properties/model/properties/readerParameters/properties/source", "#/properties/model/properties/transformationParameters/properties/columnTransformation", "#/properties/model/properties/transformationParameters/properties/specs" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/readerParameters/properties/howToCombineColumns"
+    },
+    "dependencies" : [ "#/properties/model/properties/knimeTableReaderParameters", "#/properties/model/properties/readerParameters", "#/properties/model/properties/readerParameters/properties/howToCombineColumns", "#/properties/model/properties/readerParameters/properties/source", "#/properties/model/properties/transformationParameters/properties/columnTransformation", "#/properties/model/properties/transformationParameters/properties/specs" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/readerParameters/properties/skipFirstDataRows"
+    },
+    "dependencies" : [ "#/properties/model/properties/knimeTableReaderParameters", "#/properties/model/properties/readerParameters", "#/properties/model/properties/readerParameters/properties/howToCombineColumns", "#/properties/model/properties/readerParameters/properties/source", "#/properties/model/properties/transformationParameters/properties/columnTransformation", "#/properties/model/properties/transformationParameters/properties/specs" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/readerParameters/properties/source"
+    },
+    "dependencies" : [ "#/properties/model/properties/knimeTableReaderParameters", "#/properties/model/properties/readerParameters", "#/properties/model/properties/readerParameters/properties/howToCombineColumns", "#/properties/model/properties/readerParameters/properties/source", "#/properties/model/properties/transformationParameters/properties/columnTransformation", "#/properties/model/properties/transformationParameters/properties/specs" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/transformationParameters/properties/specs"
+    },
+    "dependencies" : [ "#/properties/model/properties/knimeTableReaderParameters", "#/properties/model/properties/readerParameters", "#/properties/model/properties/readerParameters/properties/source", "#/properties/model/properties/transformationParameters/properties/columnTransformation/items/properties/columnName", "#/properties/model/properties/transformationParameters/properties/columnTransformation/items/properties/originalTypeLabel" ]
+  } ]
+}

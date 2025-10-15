@@ -878,7 +878,7 @@
             after="org.knime.base.node.io.filehandling.table.reader.KnimeTableReaderNodeFactory"
             category-path="/io/read"
             deprecated="false"
-            factory-class="org.knime.base.node.io.filehandling.table.reader2.TableReaderNodeFactory2"
+            factory-class="org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeFactory2"
             hidden="true"/>
         <node
               after="org.knime.base.node.io.arffwriter.ARFFWriterNodeFactory"
@@ -2522,7 +2522,7 @@
      <extension
            point="org.knime.workbench.repository.registeredFileExtensions">
         <FileExtensionMapping
-              NodeFactory="org.knime.base.node.io.filehandling.csv.reader.CSVTableReaderNodeFactory">
+              NodeFactory="org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeFactory2">
            <FileExtension
                  extension=".csv">
            </FileExtension>
@@ -2540,7 +2540,7 @@
            </FileExtension>
         </FileExtensionMapping>
         <FileExtensionMapping
-              NodeFactory="org.knime.base.node.io.filehandling.table.reader.KnimeTableReaderNodeFactory">
+              NodeFactory="org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeFactory2">
            <FileExtension
                  extension=".table">
            </FileExtension>

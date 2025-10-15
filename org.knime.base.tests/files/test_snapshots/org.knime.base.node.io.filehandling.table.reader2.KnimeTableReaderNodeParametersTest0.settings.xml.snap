@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
+    <config key="readerParameters">
+        <config key="source">
+            <config key="path">
+                <entry key="location_present" type="xboolean" value="true"/>
+                <entry key="file_system_type" type="xstring" value="RELATIVE"/>
+                <entry key="file_system_specifier" type="xstring" value="knime.workflow.data"/>
+                <entry key="path" type="xstring" value="test.table"/>
+            </config>
+        </config>
+        <entry key="skipFirstDataRows" type="xlong" value="0"/>
+        <entry key="maximumNumberOfRows" type="xlong" value="0"/>
+        <entry key="maximumNumberOfRows_is_present" type="xboolean" value="false"/>
+        <entry key="firstColumnContainsRowIds" type="xboolean" value="false"/>
+        <entry key="ifSchemaChangesOption" type="xstring" value="FAIL"/>
+        <entry key="howToCombineColumns" type="xstring" value="FAIL"/>
+        <entry key="appendPathColumn" type="xstring" value="File Path"/>
+        <entry key="appendPathColumn_is_present" type="xboolean" value="true"/>
+    </config>
+    <config key="knimeTableReaderParameters">
+        <entry key="prependTableIndexToRowId" type="xboolean" value="false"/>
+    </config>
+    <config key="transformationParameters">
+        <config key="specs">
+            <config key="0">
+                <config key="fsLocation">
+                    <entry key="location_present" type="xboolean" value="true"/>
+                    <entry key="file_system_type" type="xstring" value="RELATIVE"/>
+                    <entry key="file_system_specifier" type="xstring" value="knime.workflow.data"/>
+                    <entry key="path" type="xstring" value="test.table"/>
+                </config>
+                <config key="spec">
+                    <config key="0">
+                        <entry key="name" type="xstring" value="Universe_0_0"/>
+                        <entry key="type" type="xstring" value="{&quot;name&quot;:&quot;type&quot;,&quot;value&quot;:{&quot;type&quot;:{&quot;type&quot;:&quot;tree&quot;,&quot;value&quot;:{&quot;cell_class&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;value&quot;:&quot;org.knime.core.data.def.DoubleCell&quot;},&quot;is_null&quot;:{&quot;type&quot;:&quot;boolean&quot;,&quot;value&quot;:false}}}}}"/>
+                    </config>
+                    <config key="1">
+                        <entry key="name" type="xstring" value="Universe_0_1"/>
+                        <entry key="type" type="xstring" value="{&quot;name&quot;:&quot;type&quot;,&quot;value&quot;:{&quot;type&quot;:{&quot;type&quot;:&quot;tree&quot;,&quot;value&quot;:{&quot;cell_class&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;value&quot;:&quot;org.knime.core.data.def.DoubleCell&quot;},&quot;is_null&quot;:{&quot;type&quot;:&quot;boolean&quot;,&quot;value&quot;:false}}}}}"/>
+                    </config>
+                    <config key="2">
+                        <entry key="name" type="xstring" value="Universe_1_0"/>
+                        <entry key="type" type="xstring" value="{&quot;name&quot;:&quot;type&quot;,&quot;value&quot;:{&quot;type&quot;:{&quot;type&quot;:&quot;tree&quot;,&quot;value&quot;:{&quot;cell_class&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;value&quot;:&quot;org.knime.core.data.def.DoubleCell&quot;},&quot;is_null&quot;:{&quot;type&quot;:&quot;boolean&quot;,&quot;value&quot;:false}}}}}"/>
+                    </config>
+                    <config key="3">
+                        <entry key="name" type="xstring" value="Universe_1_1"/>
+                        <entry key="type" type="xstring" value="{&quot;name&quot;:&quot;type&quot;,&quot;value&quot;:{&quot;type&quot;:{&quot;type&quot;:&quot;tree&quot;,&quot;value&quot;:{&quot;cell_class&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;value&quot;:&quot;org.knime.core.data.def.DoubleCell&quot;},&quot;is_null&quot;:{&quot;type&quot;:&quot;boolean&quot;,&quot;value&quot;:false}}}}}"/>
+                    </config>
+                    <config key="4">
+                        <entry key="name" type="xstring" value="Cluster Membership"/>
+                        <entry key="type" type="xstring" value="{&quot;name&quot;:&quot;type&quot;,&quot;value&quot;:{&quot;type&quot;:{&quot;type&quot;:&quot;tree&quot;,&quot;value&quot;:{&quot;cell_class&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;value&quot;:&quot;org.knime.core.data.def.StringCell&quot;},&quot;is_null&quot;:{&quot;type&quot;:&quot;boolean&quot;,&quot;value&quot;:false}}}}}"/>
+                    </config>
+                </config>
+            </config>
+        </config>
+        <entry key="enforceTypes" type="xboolean" value="false"/>
+        <config key="columnTransformation">
+            <config key="0">
+                <entry key="columnName" type="xstring" value="Universe_0_1"/>
+                <entry key="originalType" type="xstring" value="CELL_CONVERTER_IDENTITY_FACTORY"/>
+                <entry key="originalTypeLabel" type="xstring" value="Number (Float)"/>
+                <entry key="includeInOutput" type="xboolean" value="true"/>
+                <entry key="columnRename" type="xstring" value="Universe_0_1"/>
+                <entry key="type" type="xstring" value="CELL_CONVERTER_IDENTITY_FACTORY"/>
+            </config>
+            <config key="1">
+                <entry key="columnName" type="xstring" value="Universe_0_0"/>
+                <entry key="originalType" type="xstring" value="CELL_CONVERTER_IDENTITY_FACTORY"/>
+                <entry key="originalTypeLabel" type="xstring" value="Number (Float)"/>
+                <entry key="includeInOutput" type="xboolean" value="true"/>
+                <entry key="columnRename" type="xstring" value="Universe_0_0"/>
+                <entry key="type" type="xstring" value="CELL_CONVERTER_IDENTITY_FACTORY"/>
+            </config>
+            <config key="2">
+                <entry key="columnName" type="xstring" value="Universe_1_0"/>
+                <entry key="originalType" type="xstring" value="CELL_CONVERTER_IDENTITY_FACTORY"/>
+                <entry key="originalTypeLabel" type="xstring" value="Number (Float)"/>
+                <entry key="includeInOutput" type="xboolean" value="false"/>
+                <entry key="columnRename" type="xstring" value="Universe_1_0"/>
+                <entry key="type" type="xstring" value="CELL_CONVERTER_IDENTITY_FACTORY"/>
+            </config>
+            <config key="3">
+                <entry key="columnName" type="xstring" value="Universe_1_1"/>
+                <entry key="originalType" type="xstring" value="CELL_CONVERTER_IDENTITY_FACTORY"/>
+                <entry key="originalTypeLabel" type="xstring" value="Number (Float)"/>
+                <entry key="includeInOutput" type="xboolean" value="true"/>
+                <entry key="columnRename" type="xstring" value="Universe_1_1"/>
+                <entry key="type" type="xstring" value="CELL_CONVERTER_IDENTITY_FACTORY"/>
+            </config>
+            <config key="4">
+                <entry key="columnName" type="xstring" isnull="true" value=""/>
+                <entry key="originalType" type="xstring" value="&lt;default-columntype&gt;"/>
+                <entry key="originalTypeLabel" type="xstring" value="Default columntype"/>
+                <entry key="includeInOutput" type="xboolean" value="true"/>
+                <entry key="columnRename" type="xstring" isnull="true" value=""/>
+                <entry key="type" type="xstring" value="&lt;default-columntype&gt;"/>
+            </config>
+            <config key="5">
+                <entry key="columnName" type="xstring" value="Cluster Membership"/>
+                <entry key="originalType" type="xstring" value="CELL_CONVERTER_IDENTITY_FACTORY"/>
+                <entry key="originalTypeLabel" type="xstring" value="String"/>
+                <entry key="includeInOutput" type="xboolean" value="true"/>
+                <entry key="columnRename" type="xstring" value="Cluster Membership"/>
+                <entry key="type" type="xstring" value="CELL_CONVERTER_IDENTITY_FACTORY"/>
+            </config>
+        </config>
+    </config>
+</config>
