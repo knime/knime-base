@@ -44,67 +44,60 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 20, 2024 (marcbux): created
+ *   Nov 21, 2025: created
  */
-package org.knime.base.node.io.filehandling.webui.reader;
+package org.knime.base.node.io.filehandling.table.reader2;
 
-import java.io.IOException;
-import java.io.StringReader;
-
-import org.knime.base.node.io.filehandling.webui.reader.ReaderSpecific.ExternalDataTypeSerializer;
-import org.knime.base.node.io.filehandling.webui.reader2.WebUITableReaderNodeFactory;
-import org.knime.base.node.preproc.manipulator.TableManipulatorConfigSerializer.DataTypeSerializer;
+import org.knime.base.node.io.filehandling.table.reader.KnimeTableMultiTableReadConfig;
+import org.knime.base.node.io.filehandling.table.reader.KnimeTableReader;
+import org.knime.base.node.io.filehandling.webui.reader2.ReaderSpecific;
+import org.knime.base.node.preproc.manipulator.TableManipulatorConfig;
+import org.knime.base.node.preproc.manipulator.mapping.DataTypeTypeHierarchy;
+import org.knime.base.node.preproc.manipulator.mapping.DataValueReadAdapterFactory;
 import org.knime.core.data.DataType;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeLogger;
-import org.knime.core.node.NodeSettings;
-import org.knime.core.node.config.base.JSONConfig;
-import org.knime.core.node.config.base.JSONConfig.WriterConfig;
+import org.knime.filehandling.core.node.table.reader.DefaultProductionPathProvider;
+import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
+import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
 
 /**
- * @author Marc Bux, KNIME GmbH, Berlin, Germany
- * @deprecated use {@link WebUITableReaderNodeFactory} instead
+ * Reader-specific interfaces for the Table Reader Node.
+ *
+ * @author Paul Bärnreuther
  */
-@Deprecated(since = "5.10")
-public interface DataTypeStringSerializer extends ExternalDataTypeSerializer<String, DataType> {
+final class KnimeTableReaderSpecific {
 
-    @Override
-    default String toSerializableType(final DataType externalType) {
-        return typeToString(externalType);
-    }
+    static final ProductionPathProvider<DataType> PRODUCTION_PATH_PROVIDER =
+        new DefaultProductionPathProvider<>(DataValueReadAdapterFactory.INSTANCE.getProducerRegistry(),
+            DataValueReadAdapterFactory.INSTANCE::getDefaultType);
 
-    @Override
-    default DataType toExternalType(final String serializedType) {
-        return stringToType(serializedType);
-    }
-
-    /**
-     * Serializes a given {@link DataType} into a string
-     *
-     * @param type the to-be-serialized {@link DataType}
-     * @return the serialized string
-     */
-    static String typeToString(final DataType type) {
-        final var settings = new NodeSettings("type");
-        DataTypeSerializer.SERIALIZER_INSTANCE.save(type, settings);
-        return JSONConfig.toJSONString(settings, WriterConfig.DEFAULT);
-    }
-
-    /**
-     * De-serializes a string that has been generated via {@link JSONConfig#toJSONString} into a {@link DataType}.
-     *
-     * @param string the previously serialized string
-     * @return the de-serialized {@link DataType}
-     */
-    static DataType stringToType(final String string) {
-        try {
-            final var settings = new NodeSettings("type");
-            JSONConfig.readJSON(settings, new StringReader(string));
-            return DataTypeSerializer.SERIALIZER_INSTANCE.load(settings);
-        } catch (IOException | InvalidSettingsException e) {
-            NodeLogger.getLogger(DataTypeStringSerializer.class)
-                .error("Unknown and new columns can't be converted to the configured data type.", e);
-            return null;
+    interface ProductionPathProviderAndTypeHierarchy
+        extends ReaderSpecific.ProductionPathProviderAndTypeHierarchy<DataType> {
+        @Override
+        default ProductionPathProvider<DataType> getProductionPathProvider() {
+            return PRODUCTION_PATH_PROVIDER;
         }
+
+        @Override
+        default TypeHierarchy<DataType, DataType> getTypeHierarchy() {
+            return DataTypeTypeHierarchy.INSTANCE;
+        }
+    }
+
+    interface ConfigAndReader extends ReaderSpecific.ConfigAndReader<TableManipulatorConfig, DataType, KnimeTableMultiTableReadConfig> {
+
+        @Override
+        default KnimeTableMultiTableReadConfig createMultiTableReadConfig() {
+            return new KnimeTableMultiTableReadConfig();
+        }
+
+        @Override
+        default KnimeTableReader createTableReader() {
+            return new KnimeTableReader();
+        }
+
+    }
+
+    private KnimeTableReaderSpecific() {
+        // Utility class
     }
 }

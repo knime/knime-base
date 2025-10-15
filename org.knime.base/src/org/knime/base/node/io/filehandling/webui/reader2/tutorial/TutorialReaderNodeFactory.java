@@ -43,10 +43,8 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
- * History
- *   Dec 11, 2023 (Marc Bux, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.base.node.io.filehandling.csv.reader2;
+package org.knime.base.node.io.filehandling.webui.reader2.tutorial;
 
 import static org.knime.node.impl.description.PortDescription.dynamicPort;
 import static org.knime.node.impl.description.PortDescription.fixedPort;
@@ -54,18 +52,12 @@ import static org.knime.node.impl.description.PortDescription.fixedPort;
 import java.util.List;
 import java.util.Optional;
 
-import org.knime.base.node.io.filehandling.csv.reader.CSVMultiTableReadConfig;
-import org.knime.base.node.io.filehandling.csv.reader.CSVTableReaderNodeFactory;
-import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReader;
-import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
-import org.knime.base.node.io.filehandling.csv.reader.api.StringReadAdapterFactory;
 import org.knime.base.node.io.filehandling.webui.reader2.FileSelectionPath;
 import org.knime.base.node.io.filehandling.webui.reader2.NodeParametersConfigAndSourceSerializer;
 import org.knime.base.node.io.filehandling.webui.reader2.WebUITableReaderNodeFactory;
 import org.knime.core.node.NodeDescription;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.util.Version;
-import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.node.table.reader.GenericTableReader;
 import org.knime.filehandling.core.node.table.reader.ReadAdapterFactory;
@@ -73,83 +65,80 @@ import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarch
 import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
 
 /**
- * Node factory for the CSV reader node that operates similar to the {@link CSVTableReaderNodeFactory} but features a
- * modern / Web UI {@link NodeDialog}.
- *
- * @author Marc Bux, KNIME GmbH, Berlin, Germany
+ * @author KNIME AG, Zurich, Switzerland
  */
 @SuppressWarnings("restriction")
-public class CSVTableReaderNodeFactory2 extends
-    WebUITableReaderNodeFactory<CSVTableReaderNodeParameters, FSPath, FileSelectionPath, CSVTableReaderConfig, Class<?>, String, CSVMultiTableReadConfig> {
+// TODO (#4): Adjust Class<?> (T) and String (V) to match your TableReader's type parameters if needed
+public class TutorialReaderNodeFactory extends
+    WebUITableReaderNodeFactory<TutorialReaderNodeParameters, FSPath, FileSelectionPath, DummyTableReaderConfig, Class<?>, String, DummyMultiTableReadConfig> {
 
     @SuppressWarnings("javadoc")
-    public CSVTableReaderNodeFactory2() {
-        super(CSVTableReaderNodeParameters.class);
+    public TutorialReaderNodeFactory() {
+        super(TutorialReaderNodeParameters.class);
     }
 
-    private static final String FULL_DESCRIPTION = """
-            Use this node to read CSV files into your workflow. The node will produce a data table with numbers and
-            types of columns guessed automatically.
-            """;
-
     @Override
-    protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() { // NOSONAR only to make this visible to testing
+    protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
         return super.createPortsConfigBuilder();
     }
 
+    // TODO (#5): Complete the node description
     @Override
     protected NodeDescription createNodeDescription() {
         return DefaultNodeDescriptionUtil.createNodeDescription( //
-            "CSV Reader (Labs)", //
-            "csvreader.png", //
+            "TODO (#5): Name", //
+            "TODO (#5): Icon", //
             List.of(dynamicPort(FS_CONNECT_GRP_ID, "File System Connection", "The file system connection.")), //
-            List.of(fixedPort("File Table",
-                "Data table based on the file being read with number and types of columns guessed automatically.")), //
-            "Reads CSV files", //
-            FULL_DESCRIPTION, //
+            List.of(fixedPort("TODO (#5): Output name", "TODO (#5): Output description")), //
+            "TODO (#5): short description", //
+            "TODO (#5): Full description", //
             List.of(), //
-            CSVTableReaderNodeParameters.class, //
+            TutorialReaderNodeParameters.class, //
             null, //
             NodeType.Source, //
-            List.of("Text", "Comma", "File", "Input", "Read"), //
-            new Version(5, 9, 0) //
+            List.of("Input", "Read"), // TODO (#5): set additional keywords
+            new Version(5, 9, 0) // TODO (#5): Set the version when the node is first introduced
         );
     }
 
+    // TODO (#5): Return your ReadAdapterFactory instance
     @Override
     protected ReadAdapterFactory<Class<?>, String> getReadAdapterFactory() {
-        return StringReadAdapterFactory.INSTANCE;
+        return null;
     }
 
+    // TODO (#3): Return new instance of your TableReader
     @Override
-    protected GenericTableReader<FSPath, CSVTableReaderConfig, Class<?>, String> createReader() {
-        return new CSVTableReader();
+    protected GenericTableReader<FSPath, DummyTableReaderConfig, Class<?>, String> createReader() {
+        return new DummyTableReader();
     }
 
+    // TODO (#5): Implement if your V type requires special handling
     @Override
     protected String extractRowKey(final String value) {
         return value;
     }
 
+    // TODO (#5): Return your ReadAdapterFactory's TYPE_HIERARCHY
     @Override
     protected TypeHierarchy<Class<?>, Class<?>> getTypeHierarchy() {
-        return StringReadAdapterFactory.TYPE_HIERARCHY;
+        return null;
     }
 
     @Override
-    protected CSVConfigAndSourceSerializer createSerializer() {
-        return new CSVConfigAndSourceSerializer();
+    protected TutorialConfigAndSourceSerializer createSerializer() {
+        return new TutorialConfigAndSourceSerializer();
     }
 
-    private final class CSVConfigAndSourceSerializer extends
-        NodeParametersConfigAndSourceSerializer<CSVTableReaderNodeParameters, FSPath, FileSelectionPath, CSVTableReaderConfig, Class<?>, CSVMultiTableReadConfig> {
-        protected CSVConfigAndSourceSerializer() {
-            super(CSVTableReaderNodeParameters.class);
+    private final class TutorialConfigAndSourceSerializer extends
+        NodeParametersConfigAndSourceSerializer<TutorialReaderNodeParameters, FSPath, FileSelectionPath, DummyTableReaderConfig, Class<?>, DummyMultiTableReadConfig> {
+        protected TutorialConfigAndSourceSerializer() {
+            super(TutorialReaderNodeParameters.class);
         }
 
         @Override
-        protected void saveToSourceAndConfig(final CSVTableReaderNodeParameters params,
-            final FileSelectionPath sourceSettings, final CSVMultiTableReadConfig config) {
+        protected void saveToSourceAndConfig(final TutorialReaderNodeParameters params,
+            final FileSelectionPath sourceSettings, final DummyMultiTableReadConfig config) {
             params.saveToSource(sourceSettings);
             params.saveToConfig(config);
         }
@@ -158,15 +147,15 @@ public class CSVTableReaderNodeFactory2 extends
     @Override
     protected FileSelectionPath createPathSettings(final NodeCreationConfiguration nodeCreationConfig) {
         final var source = new FileSelectionPath();
-        final var defaultParams = new CSVTableReaderNodeParameters(nodeCreationConfig);
+        final var defaultParams = new TutorialReaderNodeParameters(nodeCreationConfig);
         defaultParams.saveToSource(source);
         return source;
     }
 
     @Override
-    protected CSVMultiTableReadConfig createConfig(final NodeCreationConfiguration nodeCreationConfig) {
-        final var cfg = new CSVMultiTableReadConfig();
-        final var defaultParams = new CSVTableReaderNodeParameters(nodeCreationConfig);
+    protected DummyMultiTableReadConfig createConfig(final NodeCreationConfiguration nodeCreationConfig) {
+        final var cfg = new DummyMultiTableReadConfig();
+        final var defaultParams = new TutorialReaderNodeParameters(nodeCreationConfig);
         defaultParams.saveToConfig(cfg);
         return cfg;
     }

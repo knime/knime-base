@@ -44,67 +44,88 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 20, 2024 (marcbux): created
+ *   Mar 6, 2024 (marcbux): created
  */
-package org.knime.base.node.io.filehandling.webui.reader;
+package org.knime.base.node.io.filehandling.csv.reader2;
 
-import java.io.IOException;
-import java.io.StringReader;
-
-import org.knime.base.node.io.filehandling.webui.reader.ReaderSpecific.ExternalDataTypeSerializer;
-import org.knime.base.node.io.filehandling.webui.reader2.WebUITableReaderNodeFactory;
-import org.knime.base.node.preproc.manipulator.TableManipulatorConfigSerializer.DataTypeSerializer;
-import org.knime.core.data.DataType;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeLogger;
-import org.knime.core.node.NodeSettings;
-import org.knime.core.node.config.base.JSONConfig;
-import org.knime.core.node.config.base.JSONConfig.WriterConfig;
+import org.knime.base.node.io.filehandling.webui.reader2.ReaderLayout;
+import org.knime.base.node.io.filehandling.webui.reader2.ReaderParameters;
+import org.knime.node.parameters.layout.After;
+import org.knime.node.parameters.layout.Before;
+import org.knime.node.parameters.layout.HorizontalLayout;
+import org.knime.node.parameters.layout.Section;
 
 /**
+ * The CSV Reader uses {@link ReaderParameters} wich have to use {@link ReaderLayout} as root layout. For the additional
+ * CSV specific parameters this interface defines the additional layouts and their position within the overall layout.
+ *
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
- * @deprecated use {@link WebUITableReaderNodeFactory} instead
  */
-@Deprecated(since = "5.10")
-public interface DataTypeStringSerializer extends ExternalDataTypeSerializer<String, DataType> {
+interface CSVTableReaderLayoutAdditions {
 
-    @Override
-    default String toSerializableType(final DataType externalType) {
-        return typeToString(externalType);
+    interface File {
+        @After(ReaderLayout.File.Source.class)
+        interface FileEncoding {
+        }
+
     }
 
-    @Override
-    default DataType toExternalType(final String serializedType) {
-        return stringToType(serializedType);
+    @Section(title = "File Format")
+    @After(ReaderLayout.File.class)
+    @Before(ReaderLayout.DataArea.class)
+    interface FileFormat {
+
+        @HorizontalLayout
+        interface QuoteCharactersHorizontal {
+            interface QuoteCharacter {
+            }
+
+            @After(QuoteCharacter.class)
+            interface QuoteEscapeCharacter {
+            }
+        }
+
+        @After(QuoteCharactersHorizontal.class)
+        interface AutodetectFormat {
+        }
+
     }
 
-    /**
-     * Serializes a given {@link DataType} into a string
-     *
-     * @param type the to-be-serialized {@link DataType}
-     * @return the serialized string
-     */
-    static String typeToString(final DataType type) {
-        final var settings = new NodeSettings("type");
-        DataTypeSerializer.SERIALIZER_INSTANCE.save(type, settings);
-        return JSONConfig.toJSONString(settings, WriterConfig.DEFAULT);
+    interface DataArea {
+
+        @Before(ReaderLayout.DataArea.SkipFirstDataRows.class)
+        interface FirstRowContainsColumnNames {
+        }
+
+        @After(ReaderLayout.DataArea.UseExistingRowId.class)
+        interface IfRowHasLessColumns {
+        }
+
     }
 
-    /**
-     * De-serializes a string that has been generated via {@link JSONConfig#toJSONString} into a {@link DataType}.
-     *
-     * @param string the previously serialized string
-     * @return the de-serialized {@link DataType}
-     */
-    static DataType stringToType(final String string) {
-        try {
-            final var settings = new NodeSettings("type");
-            JSONConfig.readJSON(settings, new StringReader(string));
-            return DataTypeSerializer.SERIALIZER_INSTANCE.load(settings);
-        } catch (IOException | InvalidSettingsException e) {
-            NodeLogger.getLogger(DataTypeStringSerializer.class)
-                .error("Unknown and new columns can't be converted to the configured data type.", e);
-            return null;
+    @Section(title = "Values")
+    @After(ReaderLayout.DataArea.class)
+    @Before(ReaderLayout.ColumnAndDataTypeDetection.class)
+    interface Values {
+    }
+
+    interface ColumnAndDataTypeDetection {
+
+        @Before(ReaderLayout.ColumnAndDataTypeDetection.IfSchemaChanges.class)
+        interface LimitScannedRows {
+        }
+
+        @After(ReaderLayout.ColumnAndDataTypeDetection.IfSchemaChanges.class)
+        interface MaximumNumberOfColumnsAndLimitMemoryPerColumn {
+
+        }
+
+    }
+
+    interface MulitpleFileHandling {
+        @After(ReaderLayout.MultipleFileHandling.HowToCombineColumns.class)
+        @Before(ReaderLayout.MultipleFileHandling.AppendFilePathColumn.class)
+        interface PrependFileIndexToRowId {
         }
     }
 }

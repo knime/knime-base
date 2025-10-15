@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="settings.xml">
+    <entry key="node_file" type="xstring" value="settings.xml"/>
+    <config key="flow_stack"/>
+    <config key="internal_node_subsettings">
+        <entry key="memory_policy" type="xstring" value="CacheSmallInMemory"/>
+    </config>
+    <config key="model">
+        <config key="readerParameters">
+            <config key="source">
+                <config key="path">
+                    <entry key="location_present" type="xboolean" value="true"/>
+                    <entry key="file_system_type" type="xstring" value="LOCAL"/>
+                    <entry key="path" type="xstring" value="/Users/paulbaernreuther/knime/files/test.csv"/>
+                </config>
+            </config>
+            <entry key="skipFirstDataRows" type="xlong" value="0"/>
+            <entry key="maximumNumberOfRows" type="xlong" value="0"/>
+            <entry key="maximumNumberOfRows_is_present" type="xboolean" value="false"/>
+            <entry key="firstColumnContainsRowIds" type="xboolean" value="false"/>
+            <entry key="ifSchemaChangesOption" type="xstring" value="FAIL"/>
+            <entry key="howToCombineColumns" type="xstring" value="FAIL"/>
+            <entry key="appendPathColumn" type="xstring" value="File Path"/>
+            <entry key="appendPathColumn_is_present" type="xboolean" value="true"/>
+        </config>
+        <config key="csvReaderParameters">
+            <entry key="fileEncoding" type="xstring" value="UTF_8"/>
+            <entry key="customEncoding" type="xstring" value=""/>
+            <entry key="skipFirstLines" type="xlong" value="0"/>
+            <entry key="commentLineCharacter" type="xstring" value="#"/>
+            <entry key="rowDelimiterOption" type="xstring" value="LINE_BREAK"/>
+            <entry key="customRowDelimiter" type="xstring" value="%%00010"/>
+            <entry key="columnDelimiter" type="xstring" value=","/>
+            <entry key="quotedStringsContainNoRowDelimiters" type="xboolean" value="false"/>
+            <entry key="quoteCharacter" type="xstring" value="&quot;"/>
+            <entry key="quoteEscapeCharacter" type="xstring" value="&quot;"/>
+            <entry key="numberOfCharactersForAutodetection" type="xint" value="1048576"/>
+            <entry key="firstRowContainsColumnNames" type="xboolean" value="true"/>
+            <entry key="ifRowHasLessColumnsOption" type="xstring" value="INSERT_MISSING"/>
+            <entry key="decimalSeparator" type="xstring" value="."/>
+            <entry key="thousandsSeparator" type="xstring" value=""/>
+            <entry key="replaceEmptyQuotedStringsByMissingValues" type="xboolean" value="true"/>
+            <entry key="quotedStringsOption" type="xstring" value="REMOVE_QUOTES_AND_TRIM"/>
+            <entry key="maxDataRowsScanned" type="xlong" value="9999"/>
+            <entry key="maxDataRowsScanned_is_present" type="xboolean" value="true"/>
+            <entry key="maximumNumberOfColumns" type="xint" value="8192"/>
+            <entry key="limitMemoryPerColumn" type="xboolean" value="true"/>
+            <entry key="prependFileIndexToRowId" type="xboolean" value="true"/>
+        </config>
+        <config key="transformationParameters">
+            <config key="specs">
+                <config key="0">
+                    <config key="fsLocation">
+                        <entry key="location_present" type="xboolean" value="true"/>
+                        <entry key="file_system_type" type="xstring" value="LOCAL"/>
+                        <entry key="path" type="xstring" value="/Users/paulbaernreuther/knime/files/test.csv"/>
+                    </config>
+                    <config key="spec">
+                        <config key="0">
+                            <entry key="name" type="xstring" value="first"/>
+                            <entry key="type" type="xstring" value="java.lang.Integer"/>
+                        </config>
+                        <config key="1">
+                            <entry key="name" type="xstring" value="second"/>
+                            <entry key="type" type="xstring" value="java.lang.Integer"/>
+                        </config>
+                        <config key="2">
+                            <entry key="name" type="xstring" value="third"/>
+                            <entry key="type" type="xstring" value="java.lang.String"/>
+                        </config>
+                    </config>
+                </config>
+            </config>
+            <entry key="enforceTypes" type="xboolean" value="true"/>
+            <config key="columnTransformation">
+                <config key="0">
+                    <entry key="columnName" type="xstring" value="second"/>
+                    <entry key="originalType" type="xstring" value="org.knime.core.data.def.IntCell$IntCellFactory.create(class java.lang.Integer)"/>
+                    <entry key="originalTypeLabel" type="xstring" value="Number (Integer)"/>
+                    <entry key="includeInOutput" type="xboolean" value="true"/>
+                    <entry key="columnRename" type="xstring" value="second"/>
+                    <entry key="type" type="xstring" value="org.knime.core.data.def.IntCell$IntCellFactory.create(class java.lang.Integer)"/>
+                </config>
+                <config key="1">
+                    <entry key="columnName" type="xstring" value="first"/>
+                    <entry key="originalType" type="xstring" value="org.knime.core.data.def.IntCell$IntCellFactory.create(class java.lang.Integer)"/>
+                    <entry key="originalTypeLabel" type="xstring" value="Number (Integer)"/>
+                    <entry key="includeInOutput" type="xboolean" value="true"/>
+                    <entry key="columnRename" type="xstring" value="first"/>
+                    <entry key="type" type="xstring" value="org.knime.core.data.def.IntCell$IntCellFactory.create(class java.lang.Integer)"/>
+                </config>
+                <config key="2">
+                    <entry key="columnName" type="xstring" value="third"/>
+                    <entry key="originalType" type="xstring" value="org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)"/>
+                    <entry key="originalTypeLabel" type="xstring" value="String"/>
+                    <entry key="includeInOutput" type="xboolean" value="true"/>
+                    <entry key="columnRename" type="xstring" value="My third"/>
+                    <entry key="type" type="xstring" value="org.knime.core.data.xml.XMLCellFactory.create(class java.lang.String)"/>
+                </config>
+                <config key="3">
+                    <entry key="columnName" type="xstring" isnull="true" value=""/>
+                    <entry key="originalType" type="xstring" value="&lt;default-columntype&gt;"/>
+                    <entry key="originalTypeLabel" type="xstring" value="Default columntype"/>
+                    <entry key="includeInOutput" type="xboolean" value="true"/>
+                    <entry key="columnRename" type="xstring" isnull="true" value=""/>
+                    <entry key="type" type="xstring" value="&lt;default-columntype&gt;"/>
+                </config>
+            </config>
+        </config>
+    </config>
+    <config key="variables"/>
+    <entry key="customDescription" type="xstring" isnull="true" value=""/>
+    <entry key="state" type="xstring" value="CONFIGURED"/>
+    <config key="nodecontainer_message">
+        <entry key="type" type="xstring" value="ERROR"/>
+        <entry key="message" type="xstring" value="Execute failed: Row with ID 'Row0' can't be converted to the configured data types. Increasing the number of scanned rows or changing the target types might resolve the issue. Content of row: [1, 0, something]"/>
+    </config>
+    <entry key="factory" type="xstring" value="org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeFactory2"/>
+    <entry key="node-name" type="xstring" value="CSV Reader (Labs)"/>
+    <entry key="node-bundle-name" type="xstring" value="KNIME Base Nodes"/>
+    <entry key="node-bundle-symbolic-name" type="xstring" value="org.knime.base"/>
+    <entry key="node-bundle-vendor" type="xstring" value="KNIME AG, Zurich, Switzerland"/>
+    <entry key="node-bundle-version" type="xstring" value="5.9.0.qualifier"/>
+    <entry key="node-feature-name" type="xstring" isnull="true" value=""/>
+    <entry key="node-feature-symbolic-name" type="xstring" isnull="true" value=""/>
+    <entry key="node-feature-vendor" type="xstring" isnull="true" value=""/>
+    <entry key="node-feature-version" type="xstring" value="0.0.0"/>
+    <config key="factory_settings"/>
+    <config key="node_creation_config">
+        <config key="File System Connection"/>
+        <config key="Data Table"/>
+    </config>
+    <entry key="name" type="xstring" value="CSV Reader (Labs)"/>
+    <entry key="hasContent" type="xboolean" value="false"/>
+    <entry key="isInactive" type="xboolean" value="false"/>
+    <config key="ports">
+        <config key="port_1">
+            <entry key="index" type="xint" value="1"/>
+            <entry key="port_dir_location" type="xstring" isnull="true" value=""/>
+        </config>
+    </config>
+    <config key="filestores">
+        <entry key="file_store_location" type="xstring" isnull="true" value=""/>
+        <entry key="file_store_id" type="xstring" isnull="true" value=""/>
+    </config>
+</config>

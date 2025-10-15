@@ -64,9 +64,11 @@ import java.util.Optional;
 import org.apache.xmlbeans.XmlException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.knime.base.node.io.filehandling.csv.reader.CSVMultiTableReadConfig;
 import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.Charset.FileEncodingOption;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderParameters.FileEncodingOption;
 import org.knime.base.node.io.filehandling.webui.LocalWorkflowContextTest;
+import org.knime.base.node.io.filehandling.webui.reader2.FileSelectionPath;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ConfigurableNodeFactory;
 import org.knime.core.node.InvalidSettingsException;
@@ -85,8 +87,6 @@ import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.node.table.reader.TableReaderNodeModel;
-import org.knime.filehandling.core.node.table.reader.config.StorableMultiTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.paths.SourceSettings;
 import org.knime.testing.util.WorkflowManagerUtil;
 import org.xml.sax.SAXException;
 
@@ -107,8 +107,8 @@ class CSVTableReaderNodeModel2Test extends LocalWorkflowContextTest {
     void testReadValidCSV() throws IOException, InvalidSettingsException {
         final var file = createCsvFile();
 
-        final var settings = new CSVTableReaderNodeSettings();
-        settings.m_settings.m_source = new FileSelection(new FSLocation(FSCategory.LOCAL, file.toString()));
+        final var settings = new CSVTableReaderNodeParameters();
+        settings.m_readerParameters.m_source = new FileSelection(new FSLocation(FSCategory.LOCAL, file.toString()));
         setSettings(settings);
 
         m_wfm.executeAllAndWaitUntilDone();
@@ -136,9 +136,9 @@ class CSVTableReaderNodeModel2Test extends LocalWorkflowContextTest {
 
     @Test
     void testReadMissingFile() throws InvalidSettingsException {
-        final var settings = new CSVTableReaderNodeSettings();
+        final var settings = new CSVTableReaderNodeParameters();
         final var missingFile = "foo";
-        settings.m_settings.m_source = new FileSelection(new FSLocation(FSCategory.LOCAL, missingFile));
+        settings.m_readerParameters.m_source = new FileSelection(new FSLocation(FSCategory.LOCAL, missingFile));
         setSettings(settings);
 
         assertTrue(m_csvReader.getNodeContainerState().isConfigured());
@@ -150,9 +150,9 @@ class CSVTableReaderNodeModel2Test extends LocalWorkflowContextTest {
 
     @Test
     void testThrowInvalidSettingsExceptionOnBlankCustomEncoding() throws IOException, InvalidSettingsException {
-        final var settings = new CSVTableReaderNodeSettings();
-        settings.m_encoding.m_charset.m_fileEncoding = FileEncodingOption.OTHER;
-        settings.m_encoding.m_charset.m_customEncoding = " ";
+        final var settings = new CSVTableReaderNodeParameters();
+        settings.m_csvReaderParameters.m_fileEncoding = FileEncodingOption.OTHER;
+        settings.m_csvReaderParameters.m_customEncoding = " ";
         assertThrows(InvalidSettingsException.class, () -> setSettings(settings));
     }
 
@@ -192,16 +192,17 @@ class CSVTableReaderNodeModel2Test extends LocalWorkflowContextTest {
         return (BufferedDataTable)m_csvReader.getOutPort(1).getPortObject();
     }
 
-    private void setSettings(final CSVTableReaderNodeSettings settings) throws InvalidSettingsException {
+    private void setSettings(final CSVTableReaderNodeParameters settings) throws InvalidSettingsException {
         final var nodeSettings = new NodeSettings("CSVReader");
         m_wfm.saveNodeSettings(m_csvReader.getID(), nodeSettings);
         var modelSettings = nodeSettings.addNodeSettings("model");
-        NodeParametersUtil.saveSettings(CSVTableReaderNodeSettings.class, settings, modelSettings);
+        NodeParametersUtil.saveSettings(CSVTableReaderNodeParameters.class, settings, modelSettings);
         m_wfm.loadNodeSettings(m_csvReader.getID(), nodeSettings);
     }
 
     private static class TestCSVTableReaderNodeFactory2
-        extends ConfigurableNodeFactory<TableReaderNodeModel<FSPath, SourceSettings<FSPath>, CSVTableReaderConfig, Class<?>, StorableMultiTableReadConfig<CSVTableReaderConfig, Class<?>>>>
+        extends ConfigurableNodeFactory<TableReaderNodeModel<FSPath, FileSelectionPath, CSVTableReaderConfig, Class<?>, //
+                CSVMultiTableReadConfig>>
         implements NodeDialogFactory {
 
         private final CSVTableReaderNodeFactory2 m_delegate = new CSVTableReaderNodeFactory2();
@@ -224,9 +225,8 @@ class CSVTableReaderNodeModel2Test extends LocalWorkflowContextTest {
         }
 
         @Override
-        protected
-            TableReaderNodeModel<FSPath, SourceSettings<FSPath>, CSVTableReaderConfig, Class<?>, StorableMultiTableReadConfig<CSVTableReaderConfig, Class<?>>>
-            createNodeModel(NodeCreationConfiguration creationConfig) {
+        protected TableReaderNodeModel<FSPath, FileSelectionPath, CSVTableReaderConfig, Class<?>, CSVMultiTableReadConfig>
+            createNodeModel(final NodeCreationConfiguration creationConfig) {
             final var modifiableCreationConfig = (ModifiableNodeCreationConfiguration)creationConfig;
             modifiableCreationConfig.setURLConfiguration(m_url);
             return m_delegate.createNodeModel(modifiableCreationConfig);
@@ -234,7 +234,7 @@ class CSVTableReaderNodeModel2Test extends LocalWorkflowContextTest {
 
         @Override
         protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
-            return m_delegate.createNodeDialogPane(creationConfig);
+            return null;
         }
 
         @Override
@@ -245,9 +245,10 @@ class CSVTableReaderNodeModel2Test extends LocalWorkflowContextTest {
         @Deprecated
         @Override
         public
-            NodeView<TableReaderNodeModel<FSPath, SourceSettings<FSPath>, CSVTableReaderConfig, Class<?>, StorableMultiTableReadConfig<CSVTableReaderConfig, Class<?>>>>
+            NodeView<TableReaderNodeModel<FSPath, FileSelectionPath, CSVTableReaderConfig, Class<?>, CSVMultiTableReadConfig>>
             createNodeView(final int viewIndex,
-                final TableReaderNodeModel<FSPath, SourceSettings<FSPath>, CSVTableReaderConfig, Class<?>, StorableMultiTableReadConfig<CSVTableReaderConfig, Class<?>>> nodeModel) {
+                final TableReaderNodeModel<FSPath, FileSelectionPath, CSVTableReaderConfig, Class<?>, //
+                        CSVMultiTableReadConfig> nodeModel) {
             return m_delegate.createNodeView(viewIndex, nodeModel);
         }
 

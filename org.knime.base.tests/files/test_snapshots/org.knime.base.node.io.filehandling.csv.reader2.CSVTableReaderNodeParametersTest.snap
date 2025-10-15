@@ -1,0 +1,1269 @@
+{
+  "data" : {
+    "model" : {
+      "readerParameters" : {
+        "source" : {
+          "path" : {
+            "fsCategory" : "LOCAL",
+            "path" : "",
+            "timeout" : 10000,
+            "context" : {
+              "fsToString" : "(LOCAL, )"
+            }
+          }
+        },
+        "skipFirstDataRows" : 0,
+        "maximumNumberOfRows" : null,
+        "firstColumnContainsRowIds" : false,
+        "ifSchemaChangesOption" : "FAIL",
+        "howToCombineColumns" : "FAIL",
+        "appendPathColumn" : null
+      },
+      "csvReaderParameters" : {
+        "fileEncoding" : "UTF_8",
+        "customEncoding" : "",
+        "skipFirstLines" : 0,
+        "commentLineCharacter" : "#",
+        "rowDelimiterOption" : "LINE_BREAK",
+        "customRowDelimiter" : "\n",
+        "columnDelimiter" : ",",
+        "quotedStringsContainNoRowDelimiters" : false,
+        "quoteCharacter" : "\"",
+        "quoteEscapeCharacter" : "\"",
+        "numberOfCharactersForAutodetection" : 1048576,
+        "firstRowContainsColumnNames" : true,
+        "ifRowHasLessColumnsOption" : "FAIL",
+        "decimalSeparator" : ".",
+        "thousandsSeparator" : "",
+        "replaceEmptyQuotedStringsByMissingValues" : true,
+        "quotedStringsOption" : "REMOVE_QUOTES_AND_TRIM",
+        "maxDataRowsScanned" : 10000,
+        "maximumNumberOfColumns" : 8192,
+        "limitMemoryPerColumn" : true,
+        "prependFileIndexToRowId" : false
+      },
+      "transformationParameters" : {
+        "enforceTypes" : true,
+        "columnTransformation" : [ {
+          "columnName" : null,
+          "originalType" : "<default-columntype>",
+          "originalTypeLabel" : "Default columntype",
+          "includeInOutput" : true,
+          "columnRename" : null,
+          "type" : "<default-columntype>"
+        } ]
+      }
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "csvReaderParameters" : {
+            "type" : "object",
+            "properties" : {
+              "autoDetectButton" : {
+                "type" : "object",
+                "title" : "Autodetect format",
+                "description" : "By pressing this button, the format of the file will be guessed automatically. It is not guaranteed that\nthe correct values are being detected.\n"
+              },
+              "columnDelimiter" : {
+                "type" : "string",
+                "title" : "Column delimiter",
+                "description" : "Defines the character string delimiting columns. Use '\t' for tab characters. Can get detected\nautomatically.\n",
+                "default" : ","
+              },
+              "commentLineCharacter" : {
+                "type" : "string",
+                "title" : "Comment line character",
+                "description" : "Defines the character indicating line comments.",
+                "default" : "#"
+              },
+              "customEncoding" : {
+                "type" : "string",
+                "title" : "Custom encoding",
+                "description" : "A custom character set used to read a CSV file.",
+                "default" : ""
+              },
+              "customRowDelimiter" : {
+                "type" : "string",
+                "title" : "Custom row delimiter",
+                "description" : "Defines the character to be used as custom row delimiter.",
+                "default" : "\n"
+              },
+              "decimalSeparator" : {
+                "type" : "string",
+                "title" : "Decimal separator",
+                "description" : "Specifies the decimal separator character for parsing numbers. The decimal separator is only used for\nthe parsing of double values. Note that the decimal separator must differ from the thousands separator.\nYou must always provide a decimal separator.\n",
+                "default" : "."
+              },
+              "fileEncoding" : {
+                "oneOf" : [ {
+                  "const" : "DEFAULT",
+                  "title" : "OS default"
+                }, {
+                  "const" : "ISO_8859_1",
+                  "title" : "ISO-8859-1"
+                }, {
+                  "const" : "US_ASCII",
+                  "title" : "US-ASCII"
+                }, {
+                  "const" : "UTF_8",
+                  "title" : "UTF-8"
+                }, {
+                  "const" : "UTF_16",
+                  "title" : "UTF-16"
+                }, {
+                  "const" : "UTF_16BE",
+                  "title" : "UTF-16BE"
+                }, {
+                  "const" : "UTF_16LE",
+                  "title" : "UTF-16LE"
+                }, {
+                  "const" : "OTHER",
+                  "title" : "Other"
+                } ],
+                "title" : "File encoding",
+                "description" : "Defines the character set used to read a CSV file that contains characters in a different encoding. You can choose from a list of character encodings (UTF-8, UTF-16, etc.), or specify any other encoding supported by your Java Virtual Machine (VM). The default value uses the default encoding of the Java VM, which may depend on the locale or the Java property &quot;file.encoding&quot;.\n\n<ul>\n<li><b>OS default</b>: Uses the default decoding set by the operating system.</li>\n<li><b>ISO-8859-1</b>: ISO Latin Alphabet No. 1, a.k.a. ISO-LATIN-1.</li>\n<li><b>US-ASCII</b>: Seven-bit ASCII, also referred to as US-ASCII.</li>\n<li><b>UTF-8</b>: Eight-bit UCS Transformation Format.</li>\n<li><b>UTF-16</b>: Sixteen-bit UCS Transformation Format, byte order identified by an optional byte-order mark in the file.</li>\n<li><b>UTF-16BE</b>: Sixteen-bit UCS Transformation Format, big-endian byte order.</li>\n<li><b>UTF-16LE</b>: Sixteen-bit UCS Transformation Format, little-endian byte order.</li>\n<li><b>Other</b>: Enter a valid charset name supported by the Java Virtual Machine.</li>\n</ul>",
+                "default" : "UTF_8"
+              },
+              "firstRowContainsColumnNames" : {
+                "type" : "boolean",
+                "title" : "First row contains column names",
+                "description" : "Select this box if the first row contains column name headers.",
+                "default" : true
+              },
+              "ifRowHasLessColumnsOption" : {
+                "oneOf" : [ {
+                  "const" : "FAIL",
+                  "title" : "Fail"
+                }, {
+                  "const" : "INSERT_MISSING",
+                  "title" : "Insert missing"
+                } ],
+                "title" : "If row has fewer columns",
+                "description" : "Specifies the behavior in case some rows are shorter than others. \n<ul>\n<li><b>Fail</b>: if there are shorter rows in the input file the node execution fails.</li>\n<li><b>Insert missing</b>: the shorter rows are completed with missing values.</li>\n</ul>",
+                "default" : "FAIL"
+              },
+              "limitMemoryPerColumn" : {
+                "type" : "boolean",
+                "title" : "Limit memory per column",
+                "description" : "If selected the memory per column is restricted to 1MB in order to prevent memory exhaustion. Uncheck\nthis option to disable these memory restrictions.\n",
+                "default" : true
+              },
+              "maxDataRowsScanned" : {
+                "type" : [ "integer", "null" ],
+                "format" : "int64",
+                "title" : "Limit scanned rows",
+                "description" : "If enabled, only the specified number of input <i>rows</i> are used to analyze the file (i.e to\ndetermine the column types). This option is recommended for long files where the first <i>n</i> rows are\nrepresentative for the whole file. The \"Skip first data rows\" option has no effect on the scanning. Note\nalso, that this option and the \"Limit number of rows\" option are independent from each other, i.e., if\nthe value in \"Limit number of rows\" is smaller than the value specified here, we will still read as many\nrows as specified here.\n",
+                "default" : 10000
+              },
+              "maximumNumberOfColumns" : {
+                "type" : "integer",
+                "format" : "int32",
+                "title" : "Maximum number of columns",
+                "description" : "Sets the number of allowed columns (default 8192 columns) to prevent memory exhaustion. The node will\n            fail if the number of columns exceeds the set limit.\n",
+                "default" : 8192
+              },
+              "numberOfCharactersForAutodetection" : {
+                "type" : "integer",
+                "format" : "int32",
+                "title" : "Number of characters for autodetection",
+                "description" : "Specifies on how many characters of the selected file should be used for autodetection. The\nautodetection by default is based on the first 1024 * 1024 characters.\n",
+                "default" : 1048576
+              },
+              "prependFileIndexToRowId" : {
+                "type" : "boolean",
+                "title" : "Prepend file index to RowID",
+                "description" : "Select this box if you want to prepend a prefix that depends on the index of the source file to the\nRowIDs. The prefix for the first file is \"File_0_\", for the second \"File_1_\" and so on. This option is\nuseful if the RowIDs within a single file are unique but the same RowIDs appear in multiple files.\nPrepending the file index prevents parallel reading of individual files.\n",
+                "default" : false
+              },
+              "quoteCharacter" : {
+                "type" : "string",
+                "title" : "Quote character",
+                "description" : "The character indicating quotes. Can get detected automatically.",
+                "default" : "\""
+              },
+              "quoteEscapeCharacter" : {
+                "type" : "string",
+                "title" : "Quote escape character",
+                "description" : "The character used for escaping quotes inside an already quoted value. Can get detected\nautomatically.\n",
+                "default" : "\""
+              },
+              "quotedStringsContainNoRowDelimiters" : {
+                "type" : "boolean",
+                "title" : "Quoted strings contain no row delimiters",
+                "description" : "Check this box if there are no quotes that contain row delimiters inside the files. Row delimiters\nshould not be inside of quotes for parallel reading of individual files.\n",
+                "default" : false
+              },
+              "quotedStringsOption" : {
+                "oneOf" : [ {
+                  "const" : "REMOVE_QUOTES_AND_TRIM",
+                  "title" : "Remove quotes and trim whitespace"
+                }, {
+                  "const" : "KEEP_QUOTES",
+                  "title" : "Keep quotes"
+                } ],
+                "title" : "Quoted strings",
+                "description" : "Specifies the behavior in case there are quoted strings in the input table.\n<ul>\n<li><b>Remove quotes and trim whitespace</b>: Quotes will be removed from the value followed by trimming any leading/trailing whitespaces.</li>\n<li><b>Keep quotes</b>: Quotes of a value will be kept. Note: No trimming will be done inside the quotes.</li>\n</ul>",
+                "default" : "REMOVE_QUOTES_AND_TRIM"
+              },
+              "replaceEmptyQuotedStringsByMissingValues" : {
+                "type" : "boolean",
+                "title" : "Replace empty quoted string by missing values",
+                "description" : "Select this box if you want <b>quoted</b> empty strings to be replaced by missing value cells.",
+                "default" : true
+              },
+              "rowDelimiterOption" : {
+                "oneOf" : [ {
+                  "const" : "LINE_BREAK",
+                  "title" : "Line break"
+                }, {
+                  "const" : "CUSTOM",
+                  "title" : "Custom"
+                } ],
+                "title" : "Row delimiter",
+                "description" : "Defines the character string delimiting rows. Can get detected automatically.\n<ul>\n<li><b>Line break</b>: Uses the line break character as row delimiter. This option is platform-agnostic.</li>\n<li><b>Custom</b>: Uses the provided string as row delimiter.</li>\n</ul>",
+                "default" : "LINE_BREAK"
+              },
+              "skipFirstLines" : {
+                "type" : "integer",
+                "format" : "int64",
+                "title" : "Skip first lines of file",
+                "description" : "Use this option to skip lines that do not fit in the table structure (e.g. multi-line comments).\n<br/>\nThe specified number of lines are skipped in the input file before the parsing starts. Skipping lines\nprevents parallel reading of individual files.\n",
+                "default" : 0
+              },
+              "thousandsSeparator" : {
+                "type" : "string",
+                "title" : "Thousands separator",
+                "description" : "Specifies the thousands separator character for parsing numbers. The thousands separator is used for\ninteger, long and double parsing. Note that the thousands separator must differ from the decimal\nseparator. It is possible to leave the thousands separator unspecified.\n",
+                "default" : ""
+              }
+            },
+            "default" : {
+              "fileEncoding" : "UTF_8",
+              "customEncoding" : "",
+              "skipFirstLines" : 0,
+              "commentLineCharacter" : "#",
+              "rowDelimiterOption" : "LINE_BREAK",
+              "customRowDelimiter" : "\n",
+              "columnDelimiter" : ",",
+              "quotedStringsContainNoRowDelimiters" : false,
+              "quoteCharacter" : "\"",
+              "quoteEscapeCharacter" : "\"",
+              "numberOfCharactersForAutodetection" : 1048576,
+              "firstRowContainsColumnNames" : true,
+              "ifRowHasLessColumnsOption" : "FAIL",
+              "decimalSeparator" : ".",
+              "thousandsSeparator" : "",
+              "replaceEmptyQuotedStringsByMissingValues" : true,
+              "quotedStringsOption" : "REMOVE_QUOTES_AND_TRIM",
+              "maxDataRowsScanned" : 10000,
+              "maximumNumberOfColumns" : 8192,
+              "limitMemoryPerColumn" : true,
+              "prependFileIndexToRowId" : false
+            }
+          },
+          "readerParameters" : {
+            "type" : "object",
+            "properties" : {
+              "appendPathColumn" : {
+                "type" : [ "string", "null" ],
+                "title" : "Append file path column",
+                "description" : "Select this box if you want to add a column containing the path of the file from which the row is read.\nThe node will fail if adding the column with the provided name causes a name collision with any of the\ncolumns in the read table.\n",
+                "default" : null
+              },
+              "fileSystemFromPortNotAvailableMessage" : {
+                "type" : "object"
+              },
+              "firstColumnContainsRowIds" : {
+                "type" : "boolean",
+                "title" : "First column contains RowIDs",
+                "description" : "Select this box if the first column contains RowIDs (no duplicates allowed).",
+                "default" : false
+              },
+              "howToCombineColumns" : {
+                "oneOf" : [ {
+                  "const" : "FAIL",
+                  "title" : "Fail if different"
+                }, {
+                  "const" : "UNION",
+                  "title" : "Union"
+                }, {
+                  "const" : "INTERSECTION",
+                  "title" : "Intersection"
+                } ],
+                "title" : "How to combine columns",
+                "description" : "Specifies how to deal with reading multiple files in which not all column names are identical.\n<ul>\n<li><b>Fail if different</b>: The node will fail if multiple files are read and not all files have the same column names.</li>\n<li><b>Union</b>: Any column that is part of any input file is considered. If a file is missing a column, it is filled\nup with missing values.\n</li>\n<li><b>Intersection</b>: Only columns that appear in all files are considered for the output table.</li>\n</ul>",
+                "default" : "FAIL"
+              },
+              "ifSchemaChangesOption" : {
+                "oneOf" : [ {
+                  "const" : "FAIL",
+                  "title" : "Fail"
+                }, {
+                  "const" : "USE_NEW_SCHEMA",
+                  "title" : "Use new schema"
+                } ],
+                "title" : "If schema changes",
+                "description" : "Specifies the node behavior if the content of the configured file/folder changes between executions,\ni.e., columns are added/removed to/from the file(s) or their types change. The following options are\navailable:\n\n<ul>\n<li><b>Fail</b>: If set, the node fails if the column names in the file have changed. Changes in column types will not be\ndetected.\n</li>\n<li><b>Use new schema</b>: If set, the node will compute a new table specification for the current schema of the file at the time\nwhen the node is executed. Note that the node will not output a table specification before execution and\nthat it will not apply transformations, therefore the transformation tab is disabled.\n</li>\n</ul>",
+                "default" : "FAIL"
+              },
+              "maximumNumberOfRows" : {
+                "type" : [ "integer", "null" ],
+                "format" : "int64",
+                "title" : "Limit number of rows",
+                "description" : "If enabled, only the specified number of data rows are read. The column header row (if selected) is not\ntaken into account. Limiting rows prevents parallel reading of individual files.\n",
+                "default" : null
+              },
+              "skipFirstDataRows" : {
+                "type" : "integer",
+                "format" : "int64",
+                "title" : "Skip first data rows",
+                "description" : "Use this option to skip the specified number of valid data rows. This has no effect on which row will be\nchosen as a column header. Skipping rows prevents parallel reading of individual files.\n",
+                "default" : 0
+              },
+              "source" : {
+                "type" : "object",
+                "properties" : {
+                  "path" : {
+                    "type" : "object",
+                    "default" : {
+                      "fsCategory" : "LOCAL",
+                      "path" : "",
+                      "timeout" : 10000,
+                      "context" : {
+                        "fsToString" : "(LOCAL, )"
+                      }
+                    }
+                  }
+                },
+                "title" : "Source",
+                "description" : "Select a file location which stores the data you want to read. When clicking on the browse button,\nthere are two default file system options to choose from:\n<br/>\n<ul>\n    <li><b>The current Hub space</b>: Allows to select a file relative to the Hub space on which the\n        workflow is run.</li>\n    <li><b>URL</b>: Allows to specify a URL (e.g. file://, http:// or knime:// protocol).</li>\n</ul>\n",
+                "default" : {
+                  "path" : {
+                    "fsCategory" : "LOCAL",
+                    "path" : "",
+                    "timeout" : 10000,
+                    "context" : {
+                      "fsToString" : "(LOCAL, )"
+                    }
+                  }
+                }
+              }
+            },
+            "default" : {
+              "source" : {
+                "path" : {
+                  "fsCategory" : "LOCAL",
+                  "path" : "",
+                  "timeout" : 10000,
+                  "context" : {
+                    "fsToString" : "(LOCAL, )"
+                  }
+                }
+              },
+              "skipFirstDataRows" : 0,
+              "maximumNumberOfRows" : null,
+              "firstColumnContainsRowIds" : false,
+              "ifSchemaChangesOption" : "FAIL",
+              "howToCombineColumns" : "FAIL",
+              "appendPathColumn" : null
+            }
+          },
+          "transformationParameters" : {
+            "type" : "object",
+            "properties" : {
+              "columnTransformation" : {
+                "type" : "array",
+                "items" : {
+                  "type" : "object",
+                  "properties" : {
+                    "columnName" : {
+                      "type" : "string"
+                    },
+                    "columnRename" : {
+                      "type" : "string",
+                      "title" : "Column name"
+                    },
+                    "includeInOutput" : {
+                      "type" : "boolean",
+                      "title" : "Include in output",
+                      "default" : false
+                    },
+                    "originalType" : {
+                      "type" : "string"
+                    },
+                    "originalTypeLabel" : {
+                      "type" : "string"
+                    },
+                    "type" : {
+                      "type" : "string",
+                      "title" : "Column type"
+                    }
+                  }
+                },
+                "title" : "Transformations",
+                "description" : "Use this option to modify the structure of the table. You can deselect each column to filter it out of the\noutput table, use the arrows to reorder the columns, or change the column name or column type of each\ncolumn. Note that the positions of columns are reset in the dialog if a new file or folder is selected.\nWhether and where to add unknown columns during execution is specified via the special row &lt;any unknown\nnew column&gt;. It is also possible to select the type new columns should be converted to. Note that the\nnode will fail if this conversion is not possible e.g. if the selected type is Integer but the new column is\nof type Double.\n",
+                "default" : [ {
+                  "columnName" : null,
+                  "originalType" : "<default-columntype>",
+                  "originalTypeLabel" : "Default columntype",
+                  "includeInOutput" : true,
+                  "columnRename" : null,
+                  "type" : "<default-columntype>"
+                } ]
+              },
+              "enforceTypes" : {
+                "type" : "boolean",
+                "title" : "Enforce types",
+                "description" : "Controls how columns whose type changes are dealt with.\nIf selected, the mapping to the KNIME type you configured is attempted.\nThe node will fail if that is not possible.\nIf unselected, the KNIME type corresponding to the new type is used.\n",
+                "default" : true
+              },
+              "specs" : {
+                "type" : "array",
+                "items" : {
+                  "type" : "object",
+                  "properties" : {
+                    "fsLocation" : {
+                      "type" : "object"
+                    },
+                    "spec" : {
+                      "type" : "array",
+                      "items" : {
+                        "type" : "object",
+                        "properties" : {
+                          "name" : {
+                            "type" : "string"
+                          },
+                          "type" : {
+                            "type" : "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "default" : {
+              "enforceTypes" : true,
+              "columnTransformation" : [ {
+                "columnName" : null,
+                "originalType" : "<default-columntype>",
+                "originalTypeLabel" : "Default columntype",
+                "includeInOutput" : true,
+                "columnRename" : null,
+                "type" : "<default-columntype>"
+              } ]
+            }
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "label" : "File",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "id" : "#/properties/model/properties/readerParameters/properties/fileSystemFromPortNotAvailableMessage",
+        "options" : {
+          "format" : "textMessage"
+        },
+        "providedOptions" : [ "message" ]
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/readerParameters/properties/source",
+        "options" : {
+          "fileExtensions" : [ "csv", "tsv", "txt", "gz" ],
+          "isLocal" : true,
+          "spaceFSOptions" : {
+            "mountId" : "Local space"
+          },
+          "format" : "fileChooser"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/csvReaderParameters/properties/fileEncoding",
+        "options" : {
+          "isAdvanced" : true,
+          "format" : "dropDown"
+        },
+        "providedOptions" : [ "possibleValues" ]
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/csvReaderParameters/properties/customEncoding",
+        "options" : {
+          "validation" : {
+            "pattern" : {
+              "errorMessage" : "The field cannot be blank (it must contain at least one non-whitespace character).",
+              "parameters" : {
+                "pattern" : ".*\\S.*"
+              }
+            }
+          },
+          "isAdvanced" : true
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/csvReaderParameters/properties/fileEncoding",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "OTHER"
+              } ]
+            }
+          }
+        }
+      } ]
+    }, {
+      "label" : "File Format",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/csvReaderParameters/properties/skipFirstLines",
+        "options" : {
+          "validation" : {
+            "max" : {
+              "errorMessage" : "Value too large to process without risking precision loss (> 9007199254740991).",
+              "parameters" : {
+                "isExclusive" : false,
+                "max" : 9.007199254740991E15
+              }
+            },
+            "min" : {
+              "errorMessage" : "The value must be at least 0.",
+              "parameters" : {
+                "isExclusive" : false,
+                "min" : 0.0
+              }
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/csvReaderParameters/properties/commentLineCharacter",
+        "options" : {
+          "validation" : {
+            "maxLength" : {
+              "errorMessage" : "The string must not exceed 1 character.",
+              "parameters" : {
+                "maxLength" : 1
+              }
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/csvReaderParameters/properties/rowDelimiterOption",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/csvReaderParameters/properties/customRowDelimiter",
+        "options" : {
+          "validation" : {
+            "pattern" : {
+              "errorMessage" : "The value must be a single character, “\\t”, “\\n”, “\\r” or “\\r\\n”.",
+              "parameters" : {
+                "pattern" : ".|\\\\(t|r|n)|\\\\r\\\\n"
+              }
+            }
+          }
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/csvReaderParameters/properties/rowDelimiterOption",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "CUSTOM"
+              } ]
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/csvReaderParameters/properties/columnDelimiter",
+        "options" : {
+          "validation" : {
+            "minLength" : {
+              "errorMessage" : "The field cannot be empty (it must contain at least one character).",
+              "parameters" : {
+                "minLength" : 1
+              }
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/csvReaderParameters/properties/quotedStringsContainNoRowDelimiters",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "HorizontalLayout",
+        "elements" : [ {
+          "type" : "Control",
+          "scope" : "#/properties/model/properties/csvReaderParameters/properties/quoteCharacter",
+          "options" : {
+            "validation" : {
+              "maxLength" : {
+                "errorMessage" : "The string must not exceed 1 character.",
+                "parameters" : {
+                  "maxLength" : 1
+                }
+              }
+            }
+          }
+        }, {
+          "type" : "Control",
+          "scope" : "#/properties/model/properties/csvReaderParameters/properties/quoteEscapeCharacter",
+          "options" : {
+            "validation" : {
+              "maxLength" : {
+                "errorMessage" : "The string must not exceed 1 character.",
+                "parameters" : {
+                  "maxLength" : 1
+                }
+              }
+            }
+          }
+        } ]
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/csvReaderParameters/properties/autoDetectButton",
+        "options" : {
+          "format" : "simpleButton",
+          "triggerId" : "org.knime.base.node.io.filehandling.csv.reader2.CSVReaderParameters$AutoDetectButtonRef",
+          "icon" : "reload"
+        },
+        "rule" : {
+          "effect" : "DISABLE",
+          "condition" : {
+            "schema" : {
+              "not" : { }
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/csvReaderParameters/properties/numberOfCharactersForAutodetection",
+        "options" : {
+          "validation" : {
+            "max" : {
+              "errorMessage" : "The value must not exceed 2147483647.",
+              "parameters" : {
+                "isExclusive" : false,
+                "max" : 2.147483647E9
+              }
+            },
+            "min" : {
+              "errorMessage" : "The value must be at least 1.",
+              "parameters" : {
+                "isExclusive" : false,
+                "min" : 1.0
+              }
+            }
+          },
+          "isAdvanced" : true
+        }
+      } ]
+    }, {
+      "label" : "Data Area",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/csvReaderParameters/properties/firstRowContainsColumnNames",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/readerParameters/properties/skipFirstDataRows",
+        "options" : {
+          "validation" : {
+            "max" : {
+              "errorMessage" : "Value too large to process without risking precision loss (> 9007199254740991).",
+              "parameters" : {
+                "isExclusive" : false,
+                "max" : 9.007199254740991E15
+              }
+            },
+            "min" : {
+              "errorMessage" : "The value must be at least 0.",
+              "parameters" : {
+                "isExclusive" : false,
+                "min" : 0.0
+              }
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/readerParameters/properties/maximumNumberOfRows",
+        "options" : {
+          "validation" : {
+            "max" : {
+              "errorMessage" : "Value too large to process without risking precision loss (> 9007199254740991).",
+              "parameters" : {
+                "isExclusive" : false,
+                "max" : 9.007199254740991E15
+              }
+            },
+            "min" : {
+              "errorMessage" : "The value must be at least 0.",
+              "parameters" : {
+                "isExclusive" : false,
+                "min" : 0.0
+              }
+            }
+          },
+          "isAdvanced" : true,
+          "hideOnNull" : true
+        },
+        "providedOptions" : [ "default" ]
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/readerParameters/properties/firstColumnContainsRowIds",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/csvReaderParameters/properties/ifRowHasLessColumnsOption",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      } ]
+    }, {
+      "label" : "Values",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/csvReaderParameters/properties/decimalSeparator",
+        "options" : {
+          "validation" : {
+            "pattern" : {
+              "errorMessage" : "The string must be a single character.",
+              "parameters" : {
+                "pattern" : "^.$"
+              }
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/csvReaderParameters/properties/thousandsSeparator",
+        "options" : {
+          "validation" : {
+            "maxLength" : {
+              "errorMessage" : "The string must not exceed 1 character.",
+              "parameters" : {
+                "maxLength" : 1
+              }
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/csvReaderParameters/properties/replaceEmptyQuotedStringsByMissingValues",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/csvReaderParameters/properties/quotedStringsOption",
+        "options" : {
+          "isAdvanced" : true,
+          "format" : "radio",
+          "radioLayout" : "vertical"
+        }
+      } ]
+    }, {
+      "label" : "Column and Data Type Detection",
+      "type" : "Section",
+      "options" : {
+        "isAdvanced" : true
+      },
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/csvReaderParameters/properties/maxDataRowsScanned",
+        "options" : {
+          "validation" : {
+            "max" : {
+              "errorMessage" : "Value too large to process without risking precision loss (> 9007199254740991).",
+              "parameters" : {
+                "isExclusive" : false,
+                "max" : 9.007199254740991E15
+              }
+            },
+            "min" : {
+              "errorMessage" : "The value must be at least 0.",
+              "parameters" : {
+                "isExclusive" : false,
+                "min" : 0.0
+              }
+            }
+          },
+          "hideOnNull" : true
+        },
+        "providedOptions" : [ "default" ]
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/readerParameters/properties/ifSchemaChangesOption",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/csvReaderParameters/properties/maximumNumberOfColumns",
+        "options" : {
+          "validation" : {
+            "max" : {
+              "errorMessage" : "The value must not exceed 2147483647.",
+              "parameters" : {
+                "isExclusive" : false,
+                "max" : 2.147483647E9
+              }
+            },
+            "min" : {
+              "errorMessage" : "The value must be at least 0.",
+              "parameters" : {
+                "isExclusive" : false,
+                "min" : 0.0
+              }
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/csvReaderParameters/properties/limitMemoryPerColumn",
+        "options" : {
+          "format" : "checkbox"
+        }
+      } ]
+    }, {
+      "label" : "Multiple File Handling",
+      "type" : "Section",
+      "options" : {
+        "isAdvanced" : true
+      },
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/readerParameters/properties/howToCombineColumns",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/csvReaderParameters/properties/prependFileIndexToRowId",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/readerParameters/properties/appendPathColumn",
+        "options" : {
+          "validation" : {
+            "pattern" : {
+              "errorMessage" : "The string must start and end with a non-whitespace character.",
+              "parameters" : {
+                "pattern" : "\\S(.*\\S)?"
+              }
+            }
+          },
+          "hideOnNull" : true
+        },
+        "providedOptions" : [ "default" ]
+      } ]
+    }, {
+      "label" : "Table Transformation",
+      "type" : "Section",
+      "description" : "Use this option to modify the structure of the table. You can deselect each column to filter it out of the\noutput table, use the arrows to reorder the columns, or change the column name or column type of each\ncolumn. Note that the positions of columns are reset in the dialog if a new file or folder is selected.\nWhether and where to add unknown columns during execution is specified via the special row &lt;any unknown\nnew column&gt;. It is also possible to select the type new columns should be converted to. Note that the\nnode will fail if this conversion is not possible e.g. if the selected type is Integer but the new column is\nof type Double.\n",
+      "options" : {
+        "isAdvanced" : true
+      },
+      "rule" : {
+        "effect" : "HIDE",
+        "condition" : {
+          "scope" : "#/properties/model/properties/readerParameters/properties/ifSchemaChangesOption",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "USE_NEW_SCHEMA"
+            } ]
+          }
+        }
+      },
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/transformationParameters/properties/enforceTypes",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/transformationParameters/properties/columnTransformation",
+        "options" : {
+          "detail" : [ {
+            "type" : "Control",
+            "scope" : "#/properties/columnRename",
+            "options" : {
+              "validation" : {
+                "pattern" : {
+                  "errorMessage" : "The string must start and end with a non-whitespace character.",
+                  "parameters" : {
+                    "pattern" : "\\S(.*\\S)?"
+                  }
+                }
+              },
+              "hideControlHeader" : true
+            },
+            "rule" : {
+              "effect" : "SHOW",
+              "condition" : {
+                "type" : "AND",
+                "conditions" : [ {
+                  "scope" : "#/properties/_edit",
+                  "schema" : {
+                    "const" : true
+                  }
+                }, {
+                  "scope" : "#/properties/columnName",
+                  "schema" : {
+                    "not" : {
+                      "const" : null
+                    }
+                  }
+                } ]
+              }
+            }
+          }, {
+            "type" : "Control",
+            "scope" : "#/properties/type",
+            "options" : {
+              "hideControlHeader" : true,
+              "format" : "dropDown"
+            },
+            "providedOptions" : [ "possibleValues" ],
+            "rule" : {
+              "effect" : "SHOW",
+              "condition" : {
+                "scope" : "#/properties/_edit",
+                "schema" : {
+                  "const" : true
+                }
+              }
+            }
+          } ],
+          "arrayElementTitle" : "Column",
+          "showSortButtons" : true,
+          "hasFixedSize" : true,
+          "withEditAndReset" : true,
+          "elementCheckboxScope" : "#/properties/includeInOutput"
+        },
+        "providedOptions" : [ "arrayElementTitle", "elementSubTitle" ],
+        "rule" : {
+          "effect" : "HIDE",
+          "condition" : {
+            "schema" : {
+              "not" : { }
+            }
+          }
+        }
+      } ]
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "readerParameters" : {
+            "type" : "object",
+            "properties" : {
+              "fileSystemFromPortNotAvailableMessage" : { },
+              "source" : {
+                "type" : "object",
+                "properties" : {
+                  "path" : { }
+                }
+              },
+              "skipFirstDataRows" : { },
+              "maximumNumberOfRows" : {
+                "configPaths" : [ [ "maximumNumberOfRows_is_present" ], [ "maximumNumberOfRows" ] ]
+              },
+              "firstColumnContainsRowIds" : { },
+              "ifSchemaChangesOption" : { },
+              "howToCombineColumns" : { },
+              "appendPathColumn" : {
+                "configPaths" : [ [ "appendPathColumn_is_present" ], [ "appendPathColumn" ] ]
+              }
+            }
+          },
+          "csvReaderParameters" : {
+            "type" : "object",
+            "properties" : {
+              "fileEncoding" : { },
+              "customEncoding" : { },
+              "skipFirstLines" : { },
+              "commentLineCharacter" : { },
+              "rowDelimiterOption" : { },
+              "customRowDelimiter" : { },
+              "columnDelimiter" : { },
+              "quotedStringsContainNoRowDelimiters" : { },
+              "quoteCharacter" : { },
+              "quoteEscapeCharacter" : { },
+              "autoDetectButton" : { },
+              "numberOfCharactersForAutodetection" : { },
+              "firstRowContainsColumnNames" : { },
+              "ifRowHasLessColumnsOption" : { },
+              "decimalSeparator" : { },
+              "thousandsSeparator" : { },
+              "replaceEmptyQuotedStringsByMissingValues" : { },
+              "quotedStringsOption" : { },
+              "maxDataRowsScanned" : {
+                "configPaths" : [ [ "maxDataRowsScanned_is_present" ], [ "maxDataRowsScanned" ] ]
+              },
+              "maximumNumberOfColumns" : { },
+              "limitMemoryPerColumn" : { },
+              "prependFileIndexToRowId" : { }
+            }
+          },
+          "transformationParameters" : {
+            "type" : "object",
+            "properties" : {
+              "specs" : {
+                "type" : "array",
+                "items" : {
+                  "type" : "object",
+                  "properties" : {
+                    "fsLocation" : { },
+                    "spec" : {
+                      "type" : "array",
+                      "items" : {
+                        "type" : "object",
+                        "properties" : {
+                          "name" : { },
+                          "type" : { }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "enforceTypes" : { },
+              "columnTransformation" : {
+                "type" : "array",
+                "items" : {
+                  "type" : "object",
+                  "properties" : {
+                    "columnName" : { },
+                    "originalType" : { },
+                    "originalTypeLabel" : { },
+                    "includeInOutput" : { },
+                    "columnRename" : { },
+                    "type" : { }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/csvReaderParameters/properties/fileEncoding",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "DEFAULT",
+        "text" : "OS default (UTF-8)"
+      }, {
+        "id" : "ISO_8859_1",
+        "text" : "ISO-8859-1"
+      }, {
+        "id" : "US_ASCII",
+        "text" : "US-ASCII"
+      }, {
+        "id" : "UTF_8",
+        "text" : "UTF-8"
+      }, {
+        "id" : "UTF_16",
+        "text" : "UTF-16"
+      }, {
+        "id" : "UTF_16BE",
+        "text" : "UTF-16BE"
+      }, {
+        "id" : "UTF_16LE",
+        "text" : "UTF-16LE"
+      }, {
+        "id" : "OTHER",
+        "text" : "Other"
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/csvReaderParameters/properties/maxDataRowsScanned",
+    "providedOptionName" : "default",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : 10000
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/readerParameters/properties/appendPathColumn",
+    "providedOptionName" : "default",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : "File Path"
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/readerParameters/properties/maximumNumberOfRows",
+    "providedOptionName" : "default",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : 50
+    } ]
+  }, {
+    "id" : "#/properties/model/properties/readerParameters/properties/fileSystemFromPortNotAvailableMessage",
+    "providedOptionName" : "message",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : null
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "id" : "ElementResetButton"
+    },
+    "dependencies" : [ "#/properties/model/properties/transformationParameters/properties/columnTransformation/items/properties/columnName", "#/properties/model/properties/transformationParameters/properties/columnTransformation/items/properties/originalType" ]
+  }, {
+    "trigger" : {
+      "id" : "after-open-dialog"
+    },
+    "triggerInitially" : true,
+    "dependencies" : [ "#/properties/model/properties/csvReaderParameters", "#/properties/model/properties/readerParameters", "#/properties/model/properties/readerParameters/properties/howToCombineColumns", "#/properties/model/properties/readerParameters/properties/source", "#/properties/model/properties/transformationParameters/properties/columnTransformation", "#/properties/model/properties/transformationParameters/properties/specs" ]
+  }, {
+    "trigger" : {
+      "id" : "org.knime.base.node.io.filehandling.csv.reader2.CSVReaderParameters$AutoDetectButtonRef"
+    },
+    "dependencies" : [ "#/properties/model/properties/csvReaderParameters/properties/commentLineCharacter", "#/properties/model/properties/csvReaderParameters/properties/customEncoding", "#/properties/model/properties/csvReaderParameters/properties/fileEncoding", "#/properties/model/properties/csvReaderParameters/properties/numberOfCharactersForAutodetection", "#/properties/model/properties/csvReaderParameters/properties/skipFirstLines", "#/properties/model/properties/readerParameters/properties/source" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/csvReaderParameters/properties/columnDelimiter"
+    },
+    "dependencies" : [ "#/properties/model/properties/csvReaderParameters", "#/properties/model/properties/readerParameters", "#/properties/model/properties/readerParameters/properties/howToCombineColumns", "#/properties/model/properties/readerParameters/properties/source", "#/properties/model/properties/transformationParameters/properties/columnTransformation", "#/properties/model/properties/transformationParameters/properties/specs" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/csvReaderParameters/properties/commentLineCharacter"
+    },
+    "dependencies" : [ "#/properties/model/properties/csvReaderParameters", "#/properties/model/properties/readerParameters", "#/properties/model/properties/readerParameters/properties/howToCombineColumns", "#/properties/model/properties/readerParameters/properties/source", "#/properties/model/properties/transformationParameters/properties/columnTransformation", "#/properties/model/properties/transformationParameters/properties/specs" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/csvReaderParameters/properties/customEncoding"
+    },
+    "dependencies" : [ "#/properties/model/properties/csvReaderParameters", "#/properties/model/properties/readerParameters", "#/properties/model/properties/readerParameters/properties/howToCombineColumns", "#/properties/model/properties/readerParameters/properties/source", "#/properties/model/properties/transformationParameters/properties/columnTransformation", "#/properties/model/properties/transformationParameters/properties/specs" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/csvReaderParameters/properties/customRowDelimiter"
+    },
+    "dependencies" : [ "#/properties/model/properties/csvReaderParameters", "#/properties/model/properties/readerParameters", "#/properties/model/properties/readerParameters/properties/howToCombineColumns", "#/properties/model/properties/readerParameters/properties/source", "#/properties/model/properties/transformationParameters/properties/columnTransformation", "#/properties/model/properties/transformationParameters/properties/specs" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/csvReaderParameters/properties/decimalSeparator"
+    },
+    "dependencies" : [ "#/properties/model/properties/csvReaderParameters", "#/properties/model/properties/readerParameters", "#/properties/model/properties/readerParameters/properties/howToCombineColumns", "#/properties/model/properties/readerParameters/properties/source", "#/properties/model/properties/transformationParameters/properties/columnTransformation", "#/properties/model/properties/transformationParameters/properties/specs" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/csvReaderParameters/properties/fileEncoding"
+    },
+    "dependencies" : [ "#/properties/model/properties/csvReaderParameters", "#/properties/model/properties/readerParameters", "#/properties/model/properties/readerParameters/properties/howToCombineColumns", "#/properties/model/properties/readerParameters/properties/source", "#/properties/model/properties/transformationParameters/properties/columnTransformation", "#/properties/model/properties/transformationParameters/properties/specs" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/csvReaderParameters/properties/firstRowContainsColumnNames"
+    },
+    "dependencies" : [ "#/properties/model/properties/csvReaderParameters", "#/properties/model/properties/readerParameters", "#/properties/model/properties/readerParameters/properties/howToCombineColumns", "#/properties/model/properties/readerParameters/properties/source", "#/properties/model/properties/transformationParameters/properties/columnTransformation", "#/properties/model/properties/transformationParameters/properties/specs" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/csvReaderParameters/properties/limitMemoryPerColumn"
+    },
+    "dependencies" : [ "#/properties/model/properties/csvReaderParameters", "#/properties/model/properties/readerParameters", "#/properties/model/properties/readerParameters/properties/howToCombineColumns", "#/properties/model/properties/readerParameters/properties/source", "#/properties/model/properties/transformationParameters/properties/columnTransformation", "#/properties/model/properties/transformationParameters/properties/specs" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/csvReaderParameters/properties/maxDataRowsScanned"
+    },
+    "dependencies" : [ "#/properties/model/properties/csvReaderParameters", "#/properties/model/properties/readerParameters", "#/properties/model/properties/readerParameters/properties/howToCombineColumns", "#/properties/model/properties/readerParameters/properties/source", "#/properties/model/properties/transformationParameters/properties/columnTransformation", "#/properties/model/properties/transformationParameters/properties/specs" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/csvReaderParameters/properties/maximumNumberOfColumns"
+    },
+    "dependencies" : [ "#/properties/model/properties/csvReaderParameters", "#/properties/model/properties/readerParameters", "#/properties/model/properties/readerParameters/properties/howToCombineColumns", "#/properties/model/properties/readerParameters/properties/source", "#/properties/model/properties/transformationParameters/properties/columnTransformation", "#/properties/model/properties/transformationParameters/properties/specs" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/csvReaderParameters/properties/quoteCharacter"
+    },
+    "dependencies" : [ "#/properties/model/properties/csvReaderParameters", "#/properties/model/properties/readerParameters", "#/properties/model/properties/readerParameters/properties/howToCombineColumns", "#/properties/model/properties/readerParameters/properties/source", "#/properties/model/properties/transformationParameters/properties/columnTransformation", "#/properties/model/properties/transformationParameters/properties/specs" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/csvReaderParameters/properties/quoteEscapeCharacter"
+    },
+    "dependencies" : [ "#/properties/model/properties/csvReaderParameters", "#/properties/model/properties/readerParameters", "#/properties/model/properties/readerParameters/properties/howToCombineColumns", "#/properties/model/properties/readerParameters/properties/source", "#/properties/model/properties/transformationParameters/properties/columnTransformation", "#/properties/model/properties/transformationParameters/properties/specs" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/csvReaderParameters/properties/quotedStringsOption"
+    },
+    "dependencies" : [ "#/properties/model/properties/csvReaderParameters", "#/properties/model/properties/readerParameters", "#/properties/model/properties/readerParameters/properties/howToCombineColumns", "#/properties/model/properties/readerParameters/properties/source", "#/properties/model/properties/transformationParameters/properties/columnTransformation", "#/properties/model/properties/transformationParameters/properties/specs" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/csvReaderParameters/properties/replaceEmptyQuotedStringsByMissingValues"
+    },
+    "dependencies" : [ "#/properties/model/properties/csvReaderParameters", "#/properties/model/properties/readerParameters", "#/properties/model/properties/readerParameters/properties/howToCombineColumns", "#/properties/model/properties/readerParameters/properties/source", "#/properties/model/properties/transformationParameters/properties/columnTransformation", "#/properties/model/properties/transformationParameters/properties/specs" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/csvReaderParameters/properties/rowDelimiterOption"
+    },
+    "dependencies" : [ "#/properties/model/properties/csvReaderParameters", "#/properties/model/properties/readerParameters", "#/properties/model/properties/readerParameters/properties/howToCombineColumns", "#/properties/model/properties/readerParameters/properties/source", "#/properties/model/properties/transformationParameters/properties/columnTransformation", "#/properties/model/properties/transformationParameters/properties/specs" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/csvReaderParameters/properties/skipFirstLines"
+    },
+    "dependencies" : [ "#/properties/model/properties/csvReaderParameters", "#/properties/model/properties/readerParameters", "#/properties/model/properties/readerParameters/properties/howToCombineColumns", "#/properties/model/properties/readerParameters/properties/source", "#/properties/model/properties/transformationParameters/properties/columnTransformation", "#/properties/model/properties/transformationParameters/properties/specs" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/csvReaderParameters/properties/thousandsSeparator"
+    },
+    "dependencies" : [ "#/properties/model/properties/csvReaderParameters", "#/properties/model/properties/readerParameters", "#/properties/model/properties/readerParameters/properties/howToCombineColumns", "#/properties/model/properties/readerParameters/properties/source", "#/properties/model/properties/transformationParameters/properties/columnTransformation", "#/properties/model/properties/transformationParameters/properties/specs" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/readerParameters/properties/firstColumnContainsRowIds"
+    },
+    "dependencies" : [ "#/properties/model/properties/csvReaderParameters", "#/properties/model/properties/readerParameters", "#/properties/model/properties/readerParameters/properties/howToCombineColumns", "#/properties/model/properties/readerParameters/properties/source", "#/properties/model/properties/transformationParameters/properties/columnTransformation", "#/properties/model/properties/transformationParameters/properties/specs" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/readerParameters/properties/howToCombineColumns"
+    },
+    "dependencies" : [ "#/properties/model/properties/csvReaderParameters", "#/properties/model/properties/readerParameters", "#/properties/model/properties/readerParameters/properties/howToCombineColumns", "#/properties/model/properties/readerParameters/properties/source", "#/properties/model/properties/transformationParameters/properties/columnTransformation", "#/properties/model/properties/transformationParameters/properties/specs" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/readerParameters/properties/skipFirstDataRows"
+    },
+    "dependencies" : [ "#/properties/model/properties/csvReaderParameters", "#/properties/model/properties/readerParameters", "#/properties/model/properties/readerParameters/properties/howToCombineColumns", "#/properties/model/properties/readerParameters/properties/source", "#/properties/model/properties/transformationParameters/properties/columnTransformation", "#/properties/model/properties/transformationParameters/properties/specs" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/readerParameters/properties/source"
+    },
+    "dependencies" : [ "#/properties/model/properties/csvReaderParameters", "#/properties/model/properties/readerParameters", "#/properties/model/properties/readerParameters/properties/howToCombineColumns", "#/properties/model/properties/readerParameters/properties/source", "#/properties/model/properties/transformationParameters/properties/columnTransformation", "#/properties/model/properties/transformationParameters/properties/specs" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/transformationParameters/properties/specs"
+    },
+    "dependencies" : [ "#/properties/model/properties/csvReaderParameters", "#/properties/model/properties/readerParameters", "#/properties/model/properties/readerParameters/properties/source", "#/properties/model/properties/transformationParameters/properties/columnTransformation/items/properties/columnName", "#/properties/model/properties/transformationParameters/properties/columnTransformation/items/properties/originalTypeLabel" ]
+  } ]
+}

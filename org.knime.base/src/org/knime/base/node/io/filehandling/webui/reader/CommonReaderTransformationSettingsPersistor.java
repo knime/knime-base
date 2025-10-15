@@ -66,6 +66,7 @@ import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformati
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.TypeChoicesProvider;
 import org.knime.base.node.io.filehandling.webui.reader.ReaderSpecific.ConfigAndReader;
 import org.knime.base.node.io.filehandling.webui.reader.ReaderSpecific.ExternalDataTypeSerializer;
+import org.knime.base.node.io.filehandling.webui.reader2.WebUITableReaderNodeFactory;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataType;
@@ -105,8 +106,9 @@ import org.knime.node.parameters.persistence.NodeParametersPersistor;
  * @param <S> the type used to [S]erialize external data types
  * @param <T> the type used to represent external data [T]ypes
  * @param <R> the [R]eader specific implementation of {@link CommonReaderTransformationSettings}
+ * @deprecated use {@link WebUITableReaderNodeFactory} instead
  */
-@SuppressWarnings("restriction")
+@Deprecated(since = "5.10")
 public abstract class CommonReaderTransformationSettingsPersistor<C extends ReaderSpecificConfig<C>, //
         I extends ConfigIdSettings<C>, S, T, R extends CommonReaderTransformationSettings<I, S>>
     implements NodeParametersPersistor<R>, ReaderSpecific.ProductionPathProviderAndTypeHierarchy<T>,
