@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -25,7 +26,7 @@
  *  you the additional permission to use and propagate KNIME together with
  *  ECLIPSE with only the license terms in place for ECLIPSE applying to
  *  ECLIPSE and the GNU GPL Version 3 applying for KNIME, provided the
- *  license terms of ECLIPSE themselves allow for the respective use and
+ *  license terms of KNIME themselves allow for the respective use and
  *  propagation of ECLIPSE together with KNIME.
  *
  *  Additional permission relating to nodes for KNIME that extend the Node
@@ -42,70 +43,34 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ------------------------------------------------------------------------
  */
+
 package org.knime.base.node.preproc.groupby;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
-import org.knime.core.webui.node.dialog.NodeDialog;
-import org.knime.core.webui.node.dialog.NodeDialogFactory;
-import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.base.node.preproc.groupby.GroupByNodeModel.TypeMatch;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
 
 /**
- * Factory class of the group by node.
+ * Legacy persistor for TypeMatch in GroupBy node.
  *
- * @author Tobias Koetter, University of Konstanz
+ * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-public class GroupByNodeFactory extends NodeFactory<GroupByNodeModel> implements NodeDialogFactory {
+final class LegacyTypeMatchPersistor implements NodeParametersPersistor<TypeMatch> {
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public GroupByNodeModel createNodeModel() {
-        return new GroupByNodeModel();
+    public TypeMatch load(final NodeSettingsRO settings) throws InvalidSettingsException {
+        return TypeMatch.loadSettingsFrom(settings);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public NodeView<GroupByNodeModel> createNodeView(final int viewIndex,
-            final GroupByNodeModel nodeModel) {
-        return null;
+    public void save(final TypeMatch obj, final NodeSettingsWO settings) {
+        obj.saveSettingsTo(settings);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected int getNrNodeViews() {
-        return 0;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected boolean hasDialog() {
-        return true;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new GroupByNodeDialog();
-    }
-
-    /**
-     * {@inheritDoc}
-     * @since 5.8
-     */
-    @Override
-    public NodeDialog createNodeDialog() {
-        return new DefaultNodeDialog(SettingsType.MODEL, GroupByNodeParameters.class);
+    public String[][] getConfigPaths() {
+        return new String[][]{new String[]{"typeMatch"}};
     }
 }
