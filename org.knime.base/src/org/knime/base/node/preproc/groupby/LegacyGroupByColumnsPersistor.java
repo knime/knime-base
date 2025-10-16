@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -42,70 +43,38 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ------------------------------------------------------------------------
  */
+
 package org.knime.base.node.preproc.groupby;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
-import org.knime.core.webui.node.dialog.NodeDialog;
-import org.knime.core.webui.node.dialog.NodeDialogFactory;
-import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.defaultnodesettings.SettingsModelFilterString;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
 
 /**
- * Factory class of the group by node.
+ * Legacy persistor for GroupBy column filter settings.
  *
- * @author Tobias Koetter, University of Konstanz
+ * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-public class GroupByNodeFactory extends NodeFactory<GroupByNodeModel> implements NodeDialogFactory {
+final class LegacyGroupByColumnsPersistor implements NodeParametersPersistor<String[]> {
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public GroupByNodeModel createNodeModel() {
-        return new GroupByNodeModel();
+    public String[] load(final NodeSettingsRO settings) throws InvalidSettingsException {
+        final SettingsModelFilterString model = GroupByNodeModel.createGroupByColsSettings();
+        model.loadSettingsFrom(settings);
+        return model.getIncludeList().toArray(new String[0]);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public NodeView<GroupByNodeModel> createNodeView(final int viewIndex,
-            final GroupByNodeModel nodeModel) {
-        return null;
+    public void save(final String[] obj, final NodeSettingsWO settings) {
+        final SettingsModelFilterString model = GroupByNodeModel.createGroupByColsSettings();
+        model.setIncludeList(java.util.Arrays.asList(obj));
+        model.saveSettingsTo(settings);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected int getNrNodeViews() {
-        return 0;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected boolean hasDialog() {
-        return true;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new GroupByNodeDialog();
-    }
-
-    /**
-     * {@inheritDoc}
-     * @since 5.8
-     */
-    @Override
-    public NodeDialog createNodeDialog() {
-        return new DefaultNodeDialog(SettingsType.MODEL, GroupByNodeParameters.class);
+    public String[][] getConfigPaths() {
+        return new String[][] { new String[] { GroupByNodeModel.CFG_GROUP_BY_COLUMNS }};
     }
 }
