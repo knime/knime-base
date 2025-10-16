@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -40,72 +41,38 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * ------------------------------------------------------------------------
+ * ---------------------------------------------------------------------
+ *
+ * History
+ *   16 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.base.node.preproc.groupby;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
-import org.knime.core.webui.node.dialog.NodeDialog;
-import org.knime.core.webui.node.dialog.NodeDialogFactory;
-import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import java.util.List;
+
+import org.knime.base.node.preproc.groupby.GroupByNodeParameters.ColumnAggregatorElement;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.node.parameters.migration.ConfigMigration;
+import org.knime.node.parameters.migration.NodeParametersMigration;
+import org.knime.node.parameters.migration.ParametersLoader;
 
 /**
- * Factory class of the group by node.
  *
- * @author Tobias Koetter, University of Konstanz
+ * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-public class GroupByNodeFactory extends NodeFactory<GroupByNodeModel> implements NodeDialogFactory {
+class LegacyColumnAggregatorsMigration implements NodeParametersMigration<ColumnAggregatorElement[]>{
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public GroupByNodeModel createNodeModel() {
-        return new GroupByNodeModel();
+    public List<ConfigMigration<ColumnAggregatorElement[]>> getConfigMigrations() {
+        return List.of(ConfigMigration.builder(new ParametersLoader<ColumnAggregatorElement[]>() {
+
+            @Override
+            public ColumnAggregatorElement[] load(final NodeSettingsRO settings) throws InvalidSettingsException {
+                return null;
+            }
+
+        }).withMatcher(s -> false).withDeprecatedConfigPath("aggregationOperatorSettings").build());
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeView<GroupByNodeModel> createNodeView(final int viewIndex,
-            final GroupByNodeModel nodeModel) {
-        return null;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected int getNrNodeViews() {
-        return 0;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected boolean hasDialog() {
-        return true;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new GroupByNodeDialog();
-    }
-
-    /**
-     * {@inheritDoc}
-     * @since 5.8
-     */
-    @Override
-    public NodeDialog createNodeDialog() {
-        return new DefaultNodeDialog(SettingsType.MODEL, GroupByNodeParameters.class);
-    }
 }
