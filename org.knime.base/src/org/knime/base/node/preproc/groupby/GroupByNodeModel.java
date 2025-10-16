@@ -271,7 +271,7 @@ public class GroupByNodeModel extends NodeModel {
     private final SettingsModelString m_valueDelimiter = new SettingsModelString(GroupByNodeModel.CFG_VALUE_DELIMITER,
             GlobalSettings.STANDARD_DELIMITER);
 
-    //used to now the implementation version of the node
+    //used to know the implementation version of the node
     private final SettingsModelInteger m_version = createVersionModel();
 
     /**

@@ -1,0 +1,834 @@
+{
+  "data" : {
+    "model" : {
+      "groupByColumns" : {
+        "keepAllColumnsSelected" : false,
+        "twinList" : {
+          "inclList" : [ ],
+          "exclList" : [ "Universe_0_0", "Universe_0_1", "Universe_1_0", "Universe_1_1", "Cluster Membership" ]
+        }
+      },
+      "columnAggregators" : [ {
+        "column" : "Universe_1_0",
+        "dataType" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.DoubleCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "aggregationMethod" : "Mean_V4.6",
+        "supportsMissingValueOption" : false,
+        "includeMissing" : "EXCLUDE"
+      } ],
+      "patternAggregators" : [ ],
+      "dataTypeAggregators" : [ ],
+      "typeMatch" : "STRICT",
+      "columnNamePolicy" : "AGGREGATION_METHOD_COLUMN_NAME",
+      "maxUniqueValues" : 10000,
+      "valueDelimiter" : {
+        "delimiter" : ", ",
+        "version" : 1
+      },
+      "enableHiliting" : false,
+      "processInMemory" : false,
+      "retainOrder" : false
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columnAggregators" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "aggregationMethod" : {
+                  "type" : "string",
+                  "title" : "Aggregation",
+                  "description" : "The aggregation method to use"
+                },
+                "column" : {
+                  "type" : "string",
+                  "title" : "Column",
+                  "description" : "The column to aggregate",
+                  "default" : "Universe_0_0"
+                },
+                "dataType" : {
+                  "type" : "string"
+                },
+                "includeMissing" : {
+                  "oneOf" : [ {
+                    "const" : "EXCLUDE",
+                    "title" : "Exclude"
+                  }, {
+                    "const" : "INCLUDE",
+                    "title" : "Include"
+                  } ],
+                  "title" : "Missing values",
+                  "description" : "Missing values are considered during aggregation if the missing\noption set to \"Included\".\nSome aggregation methods do not support the changing of the missing\noption such as \"Mean\".\n",
+                  "default" : "EXCLUDE"
+                },
+                "parameters" : {
+                  "type" : "object"
+                },
+                "supportsMissingValueOption" : {
+                  "type" : "boolean",
+                  "default" : false
+                }
+              }
+            },
+            "title" : "Manual",
+            "description" : "Select one or more column(s) for aggregation from the available\ncolumns list. Change the aggregation method in the Aggregation\ncolumn of the table. You can add the same column multiple\ntimes. In order to change the aggregation method of more than one\ncolumn select all columns to change, open the context menu with a\nright mouse click and select the aggregation method to use.\n",
+            "default" : [ ]
+          },
+          "columnNamePolicy" : {
+            "oneOf" : [ {
+              "const" : "KEEP_ORIGINAL_NAME",
+              "title" : "Keep original name(s)"
+            }, {
+              "const" : "AGGREGATION_METHOD_COLUMN_NAME",
+              "title" : "Aggregation method (column name)"
+            }, {
+              "const" : "COLUMN_NAME_AGGREGATION_METHOD",
+              "title" : "Column name (aggregation method)"
+            } ],
+            "title" : "Column naming",
+            "description" : "The name of the resulting aggregation column(s) depends on the\nselected naming schema.\n<ul>\n    <li>Keep original name(s):\n    Keeps the original column names.\n    Note that you can use all aggregation columns only once with\n    this column naming option to prevent duplicate column names.\n    </li>\n    <li>Aggregation method (column name):\n    Uses the aggregation method first and appends the column name\n    in brackets\n    </li>\n    <li>Column name (aggregation method):\n    Uses the column name first and appends the aggregation method\n    in brackets\n    </li>\n</ul>\nAll aggregation methods get a * appended if the missing value option\nis not ticked in the aggregation settings in order to distinguish\nbetween columns that considered missing values in the aggregation\nprocess and columns that do not.\n",
+            "default" : "AGGREGATION_METHOD_COLUMN_NAME"
+          },
+          "dataTypeAggregators" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "aggregationMethod" : {
+                  "type" : "string",
+                  "title" : "Aggregation",
+                  "description" : "The aggregation method to use",
+                  "default" : "First"
+                },
+                "dataType" : {
+                  "type" : "string",
+                  "title" : "Data Type",
+                  "description" : "Select the data type to apply the aggregation on.\nYou can add the same data type multiple times.\nThe list contains all registered data types the system knows about.\n",
+                  "default" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.StringCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}"
+                },
+                "includeMissing" : {
+                  "oneOf" : [ {
+                    "const" : "EXCLUDE",
+                    "title" : "Exclude"
+                  }, {
+                    "const" : "INCLUDE",
+                    "title" : "Include"
+                  } ],
+                  "title" : "Missing values",
+                  "description" : "Missing values are considered during aggregation if the missing\noption set to \"Included\".\nSome aggregation methods do not support the changing of the missing\noption such as \"Mean\".\n",
+                  "default" : "EXCLUDE"
+                },
+                "parameters" : {
+                  "type" : "object"
+                },
+                "supportsMissingValueOption" : {
+                  "type" : "boolean",
+                  "default" : false
+                }
+              }
+            },
+            "title" : "Type",
+            "description" : "Aggregations are applied to all columns of the selected type.\n",
+            "default" : [ ]
+          },
+          "enableHiliting" : {
+            "type" : "boolean",
+            "title" : "Enable hiliting",
+            "description" : "If enabled, the hiliting of a group row will hilite all rows of this\ngroup in other views. Depending on the number of rows, enabling this\nfeature might consume a lot of memory.\n",
+            "default" : false
+          },
+          "groupByColumns" : {
+            "type" : "object",
+            "properties" : {
+              "keepAllColumnsSelected" : {
+                "type" : "boolean",
+                "default" : false
+              },
+              "twinList" : {
+                "type" : "object",
+                "properties" : {
+                  "exclList" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    },
+                    "default" : [ ]
+                  },
+                  "inclList" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    },
+                    "title" : "Group columns",
+                    "description" : "Select one or more column(s) according to which the group(s)\nis/are created.\n",
+                    "default" : [ ]
+                  }
+                },
+                "default" : {
+                  "inclList" : [ ],
+                  "exclList" : [ ]
+                }
+              }
+            },
+            "default" : {
+              "keepAllColumnsSelected" : false,
+              "twinList" : {
+                "inclList" : [ ],
+                "exclList" : [ ]
+              }
+            }
+          },
+          "maxUniqueValues" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Maximum unique values per group",
+            "description" : "Defines the maximum number of unique values per group to avoid\nproblems with memory overloading. All groups with more unique\nvalues are skipped during the calculation and a missing value is set\nin the corresponding column, and a warning is displayed.\n",
+            "default" : 100000
+          },
+          "patternAggregators" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "aggregationMethod" : {
+                  "type" : "string",
+                  "title" : "Aggregation",
+                  "description" : "The aggregation method to use",
+                  "default" : "First"
+                },
+                "includeMissing" : {
+                  "oneOf" : [ {
+                    "const" : "EXCLUDE",
+                    "title" : "Exclude"
+                  }, {
+                    "const" : "INCLUDE",
+                    "title" : "Include"
+                  } ],
+                  "title" : "Missing values",
+                  "description" : "Missing values are considered during aggregation if the missing\noption set to \"Included\".\nSome aggregation methods do not support the changing of the missing\noption such as \"Mean\".\n",
+                  "default" : "EXCLUDE"
+                },
+                "parameters" : {
+                  "type" : "object"
+                },
+                "pattern" : {
+                  "type" : "string",
+                  "title" : "Search pattern",
+                  "description" : "Wildcard or regular expression pattern",
+                  "default" : ".*"
+                },
+                "patternType" : {
+                  "oneOf" : [ {
+                    "const" : "WILDCARD",
+                    "title" : "Wildcard"
+                  }, {
+                    "const" : "REGEX",
+                    "title" : "Regular Expression"
+                  } ],
+                  "title" : "Pattern type",
+                  "description" : "Specifies whether the search pattern is a regular expression or a string with wildcards\n(<code>*</code> and <code>?</code>).\n",
+                  "default" : "REGEX"
+                },
+                "supportsMissingValueOption" : {
+                  "type" : "boolean",
+                  "default" : false
+                }
+              }
+            },
+            "title" : "Pattern",
+            "description" : "<p>The search pattern can either be a string with wildcards or a\n<a href=\"https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Pattern.html#sum\">\nregular expression</a>.</p>\n\nSupported wildcards are <code>*</code> (matches any number of characters) and <code>?</code>\n(matches one character) e.g. <code>KNI*</code>\nwould match all strings that start with \"KNI\" such as \"KNIME\" whereas <code>KNI?</code> would match only\nstrings that start with \"KNI\" followed by a fourth character.\n",
+            "default" : [ ]
+          },
+          "processInMemory" : {
+            "type" : "boolean",
+            "title" : "Process in memory",
+            "description" : "Process the table in the memory. Requires more memory but is faster\nsince the table needs not to be sorted prior aggregation.\nThe memory consumption depends on the number of unique groups and\nthe chosen aggregation method. The row order of the input table is\nautomatically retained.\n",
+            "default" : false
+          },
+          "retainOrder" : {
+            "type" : "boolean",
+            "title" : "Retain row order",
+            "description" : "Retains the original row order of the input table.\nCould result in longer execution time.\nThe row order is automatically retained if the process in memory\noption is selected.\n",
+            "default" : false
+          },
+          "typeMatch" : {
+            "oneOf" : [ {
+              "const" : "STRICT",
+              "title" : "Strict"
+            }, {
+              "const" : "SUB_TYPE",
+              "title" : "Sub type"
+            } ],
+            "title" : "Type matching",
+            "description" : "<ul>\n    <li><b>Strict:</b> the type based aggregation method is only applied to columns of the\n        selected type.\n    </li>\n    <li><b>Include sub-types:</b> the type based aggregation method is also applied to columns containing\n        sub-types of the selected type. For example <i>Boolean</i> is a sub-type of <i>Integer</i>,\n    <i>Integer</i> of <i>Long</i>, and <i>Long</i> of <i>Double</i>.</li>\n</ul>\n",
+            "default" : "STRICT"
+          },
+          "valueDelimiter" : {
+            "type" : "object",
+            "properties" : {
+              "delimiter" : {
+                "type" : "string",
+                "title" : "Value delimiter",
+                "description" : "The value delimiter used by aggregation methods such as concatenate."
+              },
+              "version" : {
+                "type" : "integer",
+                "format" : "int32",
+                "default" : 1
+              }
+            },
+            "default" : {
+              "delimiter" : ", ",
+              "version" : 1
+            }
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/groupByColumns/properties/twinList/properties/inclList",
+      "options" : {
+        "format" : "twinList",
+        "includedLabel" : "Group columns",
+        "excludedLabel" : "Available columns"
+      },
+      "providedOptions" : [ "possibleValues" ],
+      "rule" : {
+        "effect" : "DISABLE",
+        "condition" : {
+          "scope" : "#/properties/model/properties/groupByColumns/properties/keepAllColumnsSelected",
+          "schema" : {
+            "const" : true
+          }
+        }
+      }
+    }, {
+      "label" : "Aggregation",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/columnAggregators",
+        "options" : {
+          "detail" : [ {
+            "type" : "Control",
+            "scope" : "#/properties/column",
+            "options" : {
+              "format" : "dropDown"
+            },
+            "providedOptions" : [ "possibleValues" ]
+          }, {
+            "type" : "ControlWithSubParameters",
+            "elements" : [ {
+              "type" : "Control",
+              "scope" : "#/properties/parameters",
+              "options" : {
+                "format" : "dynamicInput"
+              },
+              "providedOptions" : [ "dynamicSettings" ]
+            } ],
+            "control" : {
+              "providedOptions" : [ "showSubParameters", "possibleValues" ],
+              "type" : "Control",
+              "scope" : "#/properties/aggregationMethod",
+              "options" : {
+                "format" : "dropDown"
+              }
+            }
+          }, {
+            "type" : "Control",
+            "scope" : "#/properties/includeMissing",
+            "options" : {
+              "format" : "valueSwitch"
+            },
+            "rule" : {
+              "effect" : "SHOW",
+              "condition" : {
+                "scope" : "#/properties/supportsMissingValueOption",
+                "schema" : {
+                  "const" : true
+                }
+              }
+            }
+          } ],
+          "addButtonText" : "Add manual",
+          "arrayElementTitle" : "Column Aggregator"
+        },
+        "providedOptions" : [ "elementDefaultValue" ]
+      } ]
+    }, {
+      "label" : "Pattern Based Aggregation",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/patternAggregators",
+        "options" : {
+          "detail" : [ {
+            "type" : "Control",
+            "scope" : "#/properties/pattern"
+          }, {
+            "type" : "Control",
+            "scope" : "#/properties/patternType",
+            "options" : {
+              "format" : "valueSwitch"
+            }
+          }, {
+            "type" : "ControlWithSubParameters",
+            "elements" : [ {
+              "type" : "Control",
+              "scope" : "#/properties/parameters",
+              "options" : {
+                "format" : "dynamicInput"
+              },
+              "providedOptions" : [ "dynamicSettings" ]
+            } ],
+            "control" : {
+              "providedOptions" : [ "showSubParameters", "possibleValues" ],
+              "type" : "Control",
+              "scope" : "#/properties/aggregationMethod",
+              "options" : {
+                "format" : "dropDown"
+              }
+            }
+          }, {
+            "type" : "Control",
+            "scope" : "#/properties/includeMissing",
+            "options" : {
+              "format" : "valueSwitch"
+            },
+            "rule" : {
+              "effect" : "SHOW",
+              "condition" : {
+                "scope" : "#/properties/supportsMissingValueOption",
+                "schema" : {
+                  "const" : true
+                }
+              }
+            }
+          } ],
+          "addButtonText" : "Add pattern",
+          "arrayElementTitle" : "Pattern Aggregator"
+        }
+      } ]
+    }, {
+      "label" : "Type Based Aggregation",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/dataTypeAggregators",
+        "options" : {
+          "detail" : [ {
+            "type" : "Control",
+            "scope" : "#/properties/dataType",
+            "options" : {
+              "format" : "dropDown"
+            },
+            "providedOptions" : [ "possibleValues", "possibleValues" ]
+          }, {
+            "type" : "ControlWithSubParameters",
+            "elements" : [ {
+              "type" : "Control",
+              "scope" : "#/properties/parameters",
+              "options" : {
+                "format" : "dynamicInput"
+              },
+              "providedOptions" : [ "dynamicSettings" ]
+            } ],
+            "control" : {
+              "providedOptions" : [ "showSubParameters", "possibleValues" ],
+              "type" : "Control",
+              "scope" : "#/properties/aggregationMethod",
+              "options" : {
+                "format" : "dropDown"
+              }
+            }
+          }, {
+            "type" : "Control",
+            "scope" : "#/properties/includeMissing",
+            "options" : {
+              "format" : "valueSwitch"
+            },
+            "rule" : {
+              "effect" : "SHOW",
+              "condition" : {
+                "scope" : "#/properties/supportsMissingValueOption",
+                "schema" : {
+                  "const" : true
+                }
+              }
+            }
+          } ],
+          "addButtonText" : "Add type",
+          "arrayElementTitle" : "Data Type Aggregator"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/typeMatch",
+        "options" : {
+          "format" : "valueSwitch"
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/dataTypeAggregators",
+            "schema" : {
+              "contains" : { }
+            }
+          }
+        }
+      } ]
+    }, {
+      "label" : "Output",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/columnNamePolicy"
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/maxUniqueValues",
+        "options" : {
+          "validation" : {
+            "max" : {
+              "errorMessage" : "The value must not exceed 2147483647.",
+              "parameters" : {
+                "isExclusive" : false,
+                "max" : 2.147483647E9
+              }
+            },
+            "min" : {
+              "errorMessage" : "The value must be at least -2147483648.",
+              "parameters" : {
+                "isExclusive" : false,
+                "min" : -2.147483648E9
+              }
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/valueDelimiter/properties/delimiter"
+      } ]
+    }, {
+      "label" : "Performance",
+      "type" : "Section",
+      "description" : "The performance settings allow to optimize memory consumption and configure settings that may\nnegatively affect performance and are therefore disabled by default.\n",
+      "options" : {
+        "isAdvanced" : true
+      },
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/enableHiliting",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/processInMemory",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/retainOrder",
+        "options" : {
+          "format" : "checkbox"
+        },
+        "rule" : {
+          "effect" : "DISABLE",
+          "condition" : {
+            "scope" : "#/properties/model/properties/processInMemory",
+            "schema" : {
+              "const" : true
+            }
+          }
+        }
+      } ]
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "groupByColumns" : {
+            "type" : "object",
+            "properties" : {
+              "keepAllColumnsSelected" : {
+                "configKey" : "keep_all_columns_selected"
+              },
+              "twinList" : {
+                "type" : "object",
+                "properties" : {
+                  "inclList" : {
+                    "configPaths" : [ [ "InclList" ], [ "ExclList" ] ]
+                  },
+                  "exclList" : {
+                    "configKey" : "ExclList"
+                  }
+                },
+                "propertiesRoute" : [ ".." ]
+              }
+            },
+            "configKey" : "grouByColumns"
+          },
+          "columnAggregators" : {
+            "configPaths" : [ [ "aggregationColumn", "columnNames" ], [ "aggregationColumn", "columnTypes" ], [ "aggregationColumn", "aggregationMethod" ], [ "aggregationColumn", "inclMissingVals" ] ],
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "aggregationOperatorSettings" ] ]
+            } ]
+          },
+          "patternAggregators" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "pattern" : {
+                  "route" : [ "..", ".." ],
+                  "configPaths" : [ [ "patternAggregators", "f_${array_index}", "inputPattern" ] ]
+                },
+                "patternType" : {
+                  "route" : [ "..", ".." ],
+                  "configPaths" : [ [ "patternAggregators", "f_${array_index}", "isRegularExpression" ] ]
+                },
+                "aggregationMethod" : {
+                  "route" : [ "..", ".." ],
+                  "configPaths" : [ [ "patternAggregators", "f_${array_index}", "aggregationMethod" ] ]
+                },
+                "supportsMissingValueOption" : {
+                  "route" : [ "..", ".." ],
+                  "configPaths" : [ ]
+                },
+                "includeMissing" : {
+                  "route" : [ "..", ".." ],
+                  "configPaths" : [ [ "patternAggregators", "f_${array_index}", "inclMissingVals" ] ]
+                },
+                "parameters" : {
+                  "route" : [ "..", ".." ],
+                  "configPaths" : [ ]
+                }
+              }
+            }
+          },
+          "dataTypeAggregators" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "dataType" : {
+                  "route" : [ "..", ".." ],
+                  "configPaths" : [ [ "dataTypeAggregators", "f_${array_index}", "dataType" ] ]
+                },
+                "aggregationMethod" : {
+                  "route" : [ "..", ".." ],
+                  "configPaths" : [ [ "dataTypeAggregators", "f_${array_index}", "aggregationMethod" ] ]
+                },
+                "supportsMissingValueOption" : {
+                  "route" : [ "..", ".." ],
+                  "configPaths" : [ ]
+                },
+                "includeMissing" : {
+                  "route" : [ "..", ".." ],
+                  "configPaths" : [ [ "dataTypeAggregators", "f_${array_index}", "inclMissingVals" ] ]
+                },
+                "parameters" : {
+                  "route" : [ "..", ".." ],
+                  "configPaths" : [ ]
+                }
+              }
+            }
+          },
+          "typeMatch" : {
+            "configPaths" : [ [ "typeMatch" ] ]
+          },
+          "columnNamePolicy" : {
+            "configPaths" : [ [ "columnNamePolicy" ] ]
+          },
+          "maxUniqueValues" : {
+            "configKey" : "maxNoneNumericalVals"
+          },
+          "valueDelimiter" : {
+            "configPaths" : [ [ "valueDelimiter" ] ]
+          },
+          "enableHiliting" : {
+            "configKey" : "enableHilite"
+          },
+          "processInMemory" : {
+            "configKey" : "inMemory"
+          },
+          "retainOrder" : {
+            "configKey" : "retainOrder"
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/columnAggregators/items/properties/aggregationMethod",
+    "providedOptionName" : "showSubParameters",
+    "values" : [ {
+      "indices" : [ 0 ],
+      "value" : false
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/columnAggregators/items/properties/column",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Universe_0_0",
+        "text" : "Universe_0_0",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Universe_0_1",
+        "text" : "Universe_0_1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Universe_1_0",
+        "text" : "Universe_1_0",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Universe_1_1",
+        "text" : "Universe_1_1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Cluster Membership",
+        "text" : "Cluster Membership",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/columnAggregators",
+    "providedOptionName" : "elementDefaultValue",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : {
+        "column" : "Universe_0_0",
+        "supportsMissingValueOption" : false,
+        "includeMissing" : "EXCLUDE"
+      }
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/groupByColumns/properties/twinList/properties/exclList",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ "Universe_0_0", "Universe_0_1", "Universe_1_0", "Universe_1_1", "Cluster Membership" ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/groupByColumns/properties/twinList/properties/inclList",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Universe_0_0",
+        "text" : "Universe_0_0",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Universe_0_1",
+        "text" : "Universe_0_1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Universe_1_0",
+        "text" : "Universe_1_0",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Universe_1_1",
+        "text" : "Universe_1_1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Cluster Membership",
+        "text" : "Cluster Membership",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "id" : "after-open-dialog"
+    },
+    "triggerInitially" : true,
+    "dependencies" : [ "#/properties/model/properties/columnAggregators/items/properties/aggregationMethod", "#/properties/model/properties/columnAggregators/items/properties/column", "#/properties/model/properties/dataTypeAggregators/items/properties/aggregationMethod", "#/properties/model/properties/dataTypeAggregators/items/properties/dataType", "#/properties/model/properties/groupByColumns", "#/properties/model/properties/patternAggregators/items/properties/aggregationMethod" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/columnAggregators/items/properties/aggregationMethod"
+    },
+    "dependencies" : [ "#/properties/model/properties/columnAggregators/items/properties/aggregationMethod", "#/properties/model/properties/columnAggregators/items/properties/parameters" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/columnAggregators/items/properties/column"
+    },
+    "dependencies" : [ "#/properties/model/properties/columnAggregators/items/properties/column" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/columnAggregators/items/properties/dataType"
+    },
+    "dependencies" : [ "#/properties/model/properties/columnAggregators/items/properties/aggregationMethod", "#/properties/model/properties/columnAggregators/items/properties/dataType" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/dataTypeAggregators/items/properties/aggregationMethod"
+    },
+    "dependencies" : [ "#/properties/model/properties/dataTypeAggregators/items/properties/aggregationMethod", "#/properties/model/properties/dataTypeAggregators/items/properties/parameters" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/dataTypeAggregators/items/properties/dataType"
+    },
+    "dependencies" : [ "#/properties/model/properties/dataTypeAggregators/items/properties/aggregationMethod", "#/properties/model/properties/dataTypeAggregators/items/properties/dataType" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/groupByColumns"
+    },
+    "dependencies" : [ "#/properties/model/properties/groupByColumns" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/groupByColumns/properties/twinList/properties/inclList"
+    },
+    "dependencies" : [ "#/properties/model/properties/groupByColumns/properties/twinList/properties/inclList" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/patternAggregators/items/properties/aggregationMethod"
+    },
+    "dependencies" : [ "#/properties/model/properties/patternAggregators/items/properties/aggregationMethod", "#/properties/model/properties/patternAggregators/items/properties/parameters" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/processInMemory"
+    },
+    "dependencies" : [ "#/properties/model/properties/processInMemory", "#/properties/model/properties/retainOrder" ]
+  } ]
+}

@@ -55,6 +55,7 @@ import java.util.Map;
 import javax.swing.JPanel;
 
 import org.knime.base.data.aggregation.AggregationOperator;
+import org.knime.base.data.aggregation.AggregationOperatorParameters;
 import org.knime.base.data.aggregation.GlobalSettings;
 import org.knime.base.data.aggregation.OperatorColumnSettings;
 import org.knime.base.data.aggregation.OperatorData;
@@ -72,6 +73,11 @@ import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.ButtonGroupEnumInterface;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
+import org.knime.node.parameters.persistence.Persistor;
+import org.knime.node.parameters.widget.choices.Label;
+import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
 
 /**
  * Abstract base class for aggregation operators that return the median of a group. This class covers
@@ -209,6 +215,14 @@ public abstract class AbstractMedianOperator extends SortedListCellOperator {
             m_settingsPanel = new MedianSettingsPanel(m_settings, m_methodDescs);
         }
         return m_settingsPanel;
+    }
+
+    /**
+     * @since 5.9
+     */
+    @Override
+    public Class<? extends AggregationOperatorParameters> getParametersClass() {
+        return AbstractMedianOperatorParameters.class;
     }
 
     /**
@@ -573,4 +587,63 @@ public abstract class AbstractMedianOperator extends SortedListCellOperator {
             // nothing to configure by default; override if operator requires configuration
         }
     }
+
+    private enum MedianMethod {
+            // yes, the labels are the ids
+            @Label(value = EvenListMedianMethodDescription.LOWER_MEDIAN_LABEL)
+            LOWER(EvenListMedianMethodDescription.LOWER_MEDIAN_LABEL),
+            @Label(value = EvenListMedianMethodDescription.MEAN_MEDIAN_LABEL)
+            MEAN(EvenListMedianMethodDescription.MEAN_MEDIAN_LABEL),
+            @Label(value = EvenListMedianMethodDescription.UPPER_MEDIAN_LABEL)
+            UPPER(EvenListMedianMethodDescription.UPPER_MEDIAN_LABEL);
+
+        private final String m_id;
+
+        MedianMethod(final String id) {
+            m_id = id;
+        }
+
+        static MedianMethod byID(final String id) {
+            return switch (id) {
+                case EvenListMedianMethodDescription.LOWER_MEDIAN_LABEL -> LOWER;
+                case EvenListMedianMethodDescription.MEAN_MEDIAN_LABEL -> MEAN;
+                case EvenListMedianMethodDescription.UPPER_MEDIAN_LABEL -> UPPER;
+                default -> throw new IllegalArgumentException("Unknown MedianMethod id: " + id);
+            };
+        }
+    }
+
+
+    /**
+     * Operator parameters for {@link AbstractMedianOperator}.
+     */
+    static final class AbstractMedianOperatorParameters implements AggregationOperatorParameters {
+
+        @Widget(title = "Median method", description = "Method to use for calculating median of even-sized groups.")
+        @RadioButtonsWidget
+        @Persistor(MedianMethodPersistor.class)
+        MedianMethod m_medianMethod = MedianMethod.byID(MedianSettings.DEFAULT_MEDIAN_METHOD);
+
+        static final class MedianMethodPersistor implements NodeParametersPersistor<MedianMethod> {
+
+            @Override
+            public MedianMethod load(final NodeSettingsRO settings) throws InvalidSettingsException {
+                String id = settings.getString(MedianSettings.CFG_MEDIAN_METHOD,
+                    MedianSettings.DEFAULT_MEDIAN_METHOD);
+                return MedianMethod.byID(id);
+            }
+
+            @Override
+            public void save(final MedianMethod param, final NodeSettingsWO settings) {
+                settings.addString(MedianSettings.CFG_MEDIAN_METHOD, param.m_id);
+            }
+
+            @Override
+            public String[][] getConfigPaths() {
+                return new String[][] { { MedianSettings.CFG_MEDIAN_METHOD } };
+            }}
+
+
+    }
+
 }

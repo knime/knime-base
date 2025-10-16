@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
+    <config key="grouByColumns">
+        <entry key="keep_all_columns_selected" type="xboolean" value="false"/>
+        <config key="InclList">
+            <entry key="array-size" type="xint" value="0"/>
+        </config>
+        <config key="ExclList">
+            <entry key="array-size" type="xint" value="5"/>
+            <entry key="0" type="xstring" value="Universe_0_0"/>
+            <entry key="1" type="xstring" value="Universe_0_1"/>
+            <entry key="2" type="xstring" value="Universe_1_0"/>
+            <entry key="3" type="xstring" value="Universe_1_1"/>
+            <entry key="4" type="xstring" value="Cluster Membership"/>
+        </config>
+    </config>
+    <config key="aggregationColumn">
+        <config key="columnNames">
+            <entry key="array-size" type="xint" value="1"/>
+            <entry key="0" type="xstring" value="Universe_1_0"/>
+        </config>
+        <config key="columnTypes">
+            <entry key="array-size" type="xint" value="1"/>
+            <config key="0">
+                <entry key="cell_class" type="xstring" value="org.knime.core.data.def.DoubleCell"/>
+                <entry key="is_null" type="xboolean" value="false"/>
+            </config>
+        </config>
+        <config key="aggregationMethod">
+            <entry key="array-size" type="xint" value="1"/>
+            <entry key="0" type="xstring" value="Mean_V4.6"/>
+        </config>
+        <config key="inclMissingVals">
+            <entry key="array-size" type="xint" value="1"/>
+            <entry key="0" type="xboolean" value="false"/>
+        </config>
+    </config>
+    <config key="aggregationOperatorSettings"/>
+    <config key="patternAggregators"/>
+    <config key="dataTypeAggregators"/>
+    <entry key="typeMatch" type="xbyte" value="0"/>
+    <entry key="columnNamePolicy" type="xstring" value="Aggregation method (column name)"/>
+    <entry key="maxNoneNumericalVals" type="xint" value="10000"/>
+    <entry key="valueDelimiter" type="xstring" value=", "/>
+    <entry key="nodeVersion" type="xint" value="1"/>
+    <entry key="enableHilite" type="xboolean" value="false"/>
+    <entry key="inMemory" type="xboolean" value="false"/>
+    <entry key="retainOrder" type="xboolean" value="false"/>
+</config>

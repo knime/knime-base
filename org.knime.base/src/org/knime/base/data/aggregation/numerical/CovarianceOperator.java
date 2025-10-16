@@ -51,15 +51,21 @@ package org.knime.base.data.aggregation.numerical;
 import org.apache.commons.math.util.ResizableDoubleArray;
 import org.apache.commons.math3.stat.correlation.Covariance;
 import org.knime.base.data.aggregation.AggregationOperator;
+import org.knime.base.data.aggregation.AggregationOperatorParameters;
 import org.knime.base.data.aggregation.GlobalSettings;
 import org.knime.base.data.aggregation.OperatorColumnSettings;
 import org.knime.base.data.aggregation.OperatorData;
 import org.knime.base.data.aggregation.general.ColumnSelectorOperator;
+import org.knime.base.data.aggregation.numerical.CovarianceOperator.CovarianceOperatorParameters.CovarianceOperatorParametersModifier;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DoubleValue;
 import org.knime.core.data.def.DoubleCell;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.widget.choices.ColumnChoicesProvider;
+import org.knime.node.parameters.widget.choices.util.CompatibleColumnsProvider.DoubleColumnsProvider;
 
 /**
  * Calculates the covariance between two columns per group.
@@ -179,8 +185,55 @@ public class CovarianceOperator extends ColumnSelectorOperator {
      */
     @Override
     protected boolean computeInternal(final DataCell cell) {
-        // TODO Auto-generated method stub
         return false;
+    }
+
+    /**
+     * @since 5.9
+     */
+    @Override
+    public Class<? extends AggregationOperatorParameters> getParametersClass() {
+        return CovarianceOperatorParameters.class;
+    }
+
+    /**
+     * Parameters for the Covariance operator.
+     */
+    @Modification(CovarianceOperatorParametersModifier.class)
+    static final class CovarianceOperatorParameters extends ColumnSelectorOperatorParameters {
+
+        /**
+         * Called by the framework.
+         */
+        public CovarianceOperatorParameters() {
+            super();
+        }
+
+        /**
+         * Called by the framework.
+         */
+        public CovarianceOperatorParameters(final NodeParametersInput parametersInput) {
+            super(parametersInput);
+        }
+
+        static final class CovarianceOperatorParametersModifier extends ColumnSelectorOperatorParametersModifier {
+
+            @Override
+            protected Class<? extends ColumnChoicesProvider> getChoicesProviderClass() {
+                return DoubleColumnsProvider.class;
+            }
+
+            @Override
+            protected String getTitle() {
+                return "Covariance column";
+            }
+
+            @Override
+            protected String getDescription() {
+                return "Select the column to compute the covariance with.";
+            }
+
+        }
     }
 
 }

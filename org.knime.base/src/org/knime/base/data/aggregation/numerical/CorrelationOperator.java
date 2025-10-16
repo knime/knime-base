@@ -56,6 +56,7 @@ import org.apache.commons.math.util.ResizableDoubleArray;
 import org.apache.commons.math3.stat.correlation.KendallsCorrelation;
 import org.apache.commons.math3.stat.correlation.SpearmansCorrelation;
 import org.knime.base.data.aggregation.AggregationOperator;
+import org.knime.base.data.aggregation.AggregationOperatorParameters;
 import org.knime.base.data.aggregation.GlobalSettings;
 import org.knime.base.data.aggregation.OperatorColumnSettings;
 import org.knime.base.data.aggregation.OperatorData;
@@ -73,6 +74,15 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.util.ButtonGroupEnumInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.widget.choices.ColumnChoicesProvider;
+import org.knime.node.parameters.widget.choices.Label;
+import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
+import org.knime.node.parameters.widget.choices.util.CompatibleColumnsProvider.DoubleColumnsProvider;
 
 /**
  * Calculates correlation coefficients
@@ -159,8 +169,8 @@ public class CorrelationOperator extends ColumnSelectorOperator {
     @Override
     public AggregationOperator createInstance(final GlobalSettings globalSettings,
         final OperatorColumnSettings opColSettings) {
-        return new CorrelationOperator(globalSettings, opColSettings, getColumnName(), m_settings
-            .getCorrelationMethodModel().getStringValue());
+        return new CorrelationOperator(globalSettings, opColSettings, getColumnName(),
+            m_settings.getCorrelationMethodModel().getStringValue());
     }
 
     /**
@@ -238,9 +248,8 @@ public class CorrelationOperator extends ColumnSelectorOperator {
     private DialogComponentButtonGroup getDialogComponent() {
         if (m_correlationComponent == null) {
             final SettingsModelString correlationModel = m_settings.getCorrelationMethodModel();
-            m_correlationComponent =
-                new DialogComponentButtonGroup(correlationModel, "Correlation method", false,
-                    CorrelationMethods.values());
+            m_correlationComponent = new DialogComponentButtonGroup(correlationModel, "Correlation method", false,
+                CorrelationMethods.values());
         }
         return m_correlationComponent;
     }
@@ -294,29 +303,36 @@ public class CorrelationOperator extends ColumnSelectorOperator {
     }
 
     enum CorrelationMethods implements ButtonGroupEnumInterface {
-        PEARSON("Pearson", "Computes the Pearson correlation coefficient.", new Method() {
-            @Override
-            public double compute(final double[] x, final double[] y) {
-                PearsonsCorrelation corr = new PearsonsCorrelation();
-                return corr.correlation(x, y);
-            }
-        }),
 
-        SPEARMAN("Spearman", "Computes the Spearman correlation coefficient.", new Method() {
-            @Override
-            public double compute(final double[] x, final double[] y) {
-                SpearmansCorrelation corr = new SpearmansCorrelation();
-                return corr.correlation(x, y);
-            }
-        }),
+            @Label(value = "Pearson",
+                description = "Computes the <a href=\"http://en.wikipedia.org/wiki/Pearson_product-moment_correlation_coefficient\">Pearson</a> correlation coefficient.")
+            PEARSON("Pearson", "Computes the Pearson correlation coefficient.", new Method() {
+                @Override
+                public double compute(final double[] x, final double[] y) {
+                    PearsonsCorrelation corr = new PearsonsCorrelation();
+                    return corr.correlation(x, y);
+                }
+            }),
 
-        KENDALL("Kendall", "Computes the Kendall correlation coefficient.", new Method() {
-            @Override
-            public double compute(final double[] x, final double[] y) {
-                KendallsCorrelation corr = new KendallsCorrelation();
-                return corr.correlation(x, y);
-            }
-        });
+            @Label(value = "Spearman",
+                description = "Computes the <a href=\"http://en.wikipedia.org/wiki/Spearman%27s_rank_correlation_coefficient\">Spearman</a> correlation coefficient.")
+            SPEARMAN("Spearman", "Computes the Spearman correlation coefficient.", new Method() {
+                @Override
+                public double compute(final double[] x, final double[] y) {
+                    SpearmansCorrelation corr = new SpearmansCorrelation();
+                    return corr.correlation(x, y);
+                }
+            }),
+
+            @Label(value = "Kendall",
+                description = "Computes the <a href=\"http://en.wikipedia.org/wiki/Kendall_tau_rank_correlation_coefficient\">Kendall</a> correlation coefficient.")
+            KENDALL("Kendall", "Computes the Kendall correlation coefficient.", new Method() {
+                @Override
+                public double compute(final double[] x, final double[] y) {
+                    KendallsCorrelation corr = new KendallsCorrelation();
+                    return corr.correlation(x, y);
+                }
+            });
 
         private String m_label;
 
@@ -372,7 +388,7 @@ public class CorrelationOperator extends ColumnSelectorOperator {
      *
      * @author Lara Gorini
      */
-    private class CorrelationMethodSettings {
+    private static class CorrelationMethodSettings {
 
         private static final String CFG_CUSTOM_CORRELATION = "customCorrelation";
 
@@ -445,7 +461,64 @@ public class CorrelationOperator extends ColumnSelectorOperator {
          */
         public void saveSettingsTo(final NodeSettingsWO settings) {
             m_correlationMethodModel.saveSettingsTo(settings);
+        }
+    }
 
+    /**
+     * @since 5.9
+     */
+    @Override
+    public Class<? extends AggregationOperatorParameters> getParametersClass() {
+        return CorrelationOperatorParameters.class;
+    }
+
+    /**
+     * Operator parameters for {@link CorrelationOperator}.
+     */
+    static final class CorrelationOperatorParameters implements AggregationOperatorParameters {
+
+        CorrelationOperatorParameters() {
+            // for framework
+        }
+
+        CorrelationOperatorParameters(final NodeParametersInput params) {
+            m_columnSelectorParams = new ColumnSelectorOperatorParameters(params);
+        }
+
+        @Persist(configKey = COLUMN_SETTINGS)
+        @Modification(CorrelatedColumnSelectorModification.class)
+        ColumnSelectorOperatorParameters m_columnSelectorParams;
+
+        static final class CorrelatedColumnSelectorModification
+            extends ColumnSelectorOperatorParameters.ColumnSelectorOperatorParametersModifier {
+
+            @Override
+            protected Class<? extends ColumnChoicesProvider> getChoicesProviderClass() {
+                return DoubleColumnsProvider.class;
+            }
+
+            @Override
+            protected String getTitle() {
+                return "Correlation column";
+            }
+
+            @Override
+            protected String getDescription() {
+                return "Select a second column to compute the correlation with.";
+            }
+
+        }
+
+        @Persist(configKey = CORRELATION_SETTINGS)
+        CorrelationParameters m_correlationSettings = new CorrelationParameters();
+
+        static final class CorrelationParameters implements NodeParameters {
+
+            @Widget(title = "Correlation method", description = "Method to use for calculating correlation coefficient")
+            @RadioButtonsWidget
+            @Persist(configKey = CorrelationMethodSettings.CFG_CUSTOM_CORRELATION)
+            CorrelationMethods m_correlationMethod =
+                CorrelationMethods.valueOf(CorrelationMethodSettings.DEFAULT_METHOD);
         }
 
     }

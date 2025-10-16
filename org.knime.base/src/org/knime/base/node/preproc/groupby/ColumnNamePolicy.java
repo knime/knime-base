@@ -50,6 +50,7 @@ package org.knime.base.node.preproc.groupby;
 
 
 import org.knime.base.data.aggregation.ColumnAggregator;
+import org.knime.node.parameters.widget.choices.Label;
 
 
 /**
@@ -60,10 +61,13 @@ import org.knime.base.data.aggregation.ColumnAggregator;
 public enum ColumnNamePolicy {
 
     /**Keeps the original column name.*/
+    @Label("Keep original name(s)")
     KEEP_ORIGINAL_NAME("Keep original name(s)"),
     /**Combines the aggregation method with the column name e.g. Avg(col1).*/
+    @Label("Aggregation method (column name)")
     AGGREGATION_METHOD_COLUMN_NAME("Aggregation method (column name)"),
     /**Combines the column name with the aggregation method e.g. col1(Avg).*/
+    @Label("Column name (aggregation method)")
     COLUMN_NAME_AGGREGATION_METHOD("Column name (aggregation method)");
 
     private final String m_label;

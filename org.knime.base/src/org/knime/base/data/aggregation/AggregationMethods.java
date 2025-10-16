@@ -56,8 +56,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.stream.Stream;
 
 import javax.swing.JComponent;
 import javax.swing.JEditorPane;
@@ -188,6 +190,7 @@ public final class AggregationMethods implements AggregationFunctionProvider<Agg
      * operators are not shown to the user.*/
     private final Map<String, AggregationOperator> m_deprecatedOperators = new HashMap<>();
 
+
     private final AggregationMethod m_defNotNumericalMeth;
     private final AggregationMethod m_defNumericalMeth;
     private final AggregationMethod m_rowOrderMethod;
@@ -211,12 +214,12 @@ public final class AggregationMethods implements AggregationFunctionProvider<Agg
             /**XOR count.*/
             addOperator(new XORElementCountOperator(GlobalSettings.DEFAULT,
                 OperatorColumnSettings.DEFAULT_INCL_MISSING));
-            /**Element counter.*/
+            /** Element counter. */
             addOperator(new ElementCountOperator(GlobalSettings.DEFAULT, OperatorColumnSettings.DEFAULT_INCL_MISSING));
-            /**Append.*/
+            /** Append. */
             addOperator(new AppendElementOperator(GlobalSettings.DEFAULT, OperatorColumnSettings.DEFAULT_INCL_MISSING));
             //The date methods
-            /**Date mean operator.*/
+            /** Date mean operator. */
             addOperator(new DateMeanOperator(GlobalSettings.DEFAULT, OperatorColumnSettings.DEFAULT_EXCL_MISSING));
             /**Median date operator.*/
             addOperator(new MedianDateOperator(GlobalSettings.DEFAULT, OperatorColumnSettings.DEFAULT_EXCL_MISSING));
@@ -233,11 +236,11 @@ public final class AggregationMethods implements AggregationFunctionProvider<Agg
             m_defNumericalMeth = getOperator(meanOperator.getId());
             /**Standard deviation.*/
             addOperator(new StdDeviationOperator(GlobalSettings.DEFAULT, OperatorColumnSettings.DEFAULT_EXCL_MISSING));
-            /**Variance.*/
+            /** Variance. */
             addOperator(new VarianceOperator(GlobalSettings.DEFAULT, OperatorColumnSettings.DEFAULT_EXCL_MISSING));
-            /**Median.*/
+            /** Median. */
             addOperator(new MedianOperator(GlobalSettings.DEFAULT, OperatorColumnSettings.DEFAULT_EXCL_MISSING));
-            /**Sum.*/
+            /** Sum. */
             addOperator(new SumOperator(GlobalSettings.DEFAULT, OperatorColumnSettings.DEFAULT_EXCL_MISSING));
             /**Product.*/
             addOperator(new ProductOperator(GlobalSettings.DEFAULT, OperatorColumnSettings.DEFAULT_EXCL_MISSING));
@@ -461,6 +464,7 @@ public final class AggregationMethods implements AggregationFunctionProvider<Agg
         }
     }
 
+
     private void addOperator(final AggregationOperator operator)
             throws DuplicateOperatorException {
         if (operator == null) {
@@ -502,6 +506,37 @@ public final class AggregationMethods implements AggregationFunctionProvider<Agg
      */
     private Collection<AggregationOperator> getOperators() {
         return Collections.unmodifiableCollection(m_operators.values());
+    }
+
+    /**
+     * Gets the custom parameters class for the given operator. Note that the optional returned can be empty even if the
+     * operator has optional parameters, but it cannot be present if the operator has no optional parameters.
+     *
+     * @param operatorID the operator ID to get custom parameters for
+     * @return the class representing the custom parameters, or {@link Optional#empty()} if there is no such class
+     *
+     * @since 5.9
+     */
+    public Optional<Class<? extends AggregationOperatorParameters>>
+            getParametersClassFor(final String operatorID) {
+        return Optional.ofNullable(getOperator(operatorID).getParametersClass());
+    }
+
+    /**
+     * Get all registered parameter classes.
+     *
+     * @return all registered parameter classes
+     * @since 5.9
+     */
+    public static Collection<Class<? extends AggregationOperatorParameters>> getAllParameterClasses() {
+        List<Class<? extends AggregationOperatorParameters>> paramClasses = new ArrayList<>();
+        for (AggregationOperator operator : getInstance().getAllOperators()) {
+            final var paramClass = operator.getParametersClass();
+            if (paramClass != null) {
+                paramClasses.add(paramClass);
+            }
+        }
+        return paramClasses;
     }
 
     /**
@@ -760,6 +795,10 @@ public final class AggregationMethods implements AggregationFunctionProvider<Agg
             operator = m_deprecatedOperators.get(id);
         }
         return cloneOperator(operator);
+    }
+
+    private List<AggregationOperator> getAllOperators() {
+        return Stream.concat(m_operators.values().stream(), m_deprecatedOperators.values().stream()).toList();
     }
 
     private static AggregationOperator cloneOperator(final AggregationOperator operator) {

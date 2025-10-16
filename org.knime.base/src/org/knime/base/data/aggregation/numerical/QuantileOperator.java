@@ -55,6 +55,7 @@ import org.apache.commons.math3.stat.descriptive.rank.Percentile;
 import org.apache.commons.math3.stat.descriptive.rank.Percentile.EstimationType;
 import org.apache.commons.math3.util.KthSelector;
 import org.knime.base.data.aggregation.AggregationOperator;
+import org.knime.base.data.aggregation.AggregationOperatorParameters;
 import org.knime.base.data.aggregation.GlobalSettings;
 import org.knime.base.data.aggregation.OperatorColumnSettings;
 import org.knime.base.data.aggregation.OperatorData;
@@ -71,6 +72,11 @@ import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
 import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
 import org.knime.core.node.defaultnodesettings.SettingsModelDouble;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.widget.number.NumberInputWidget;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MaxValidation;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsNonNegativeValidation;
 
 /**
  * Computes the pth quantile per group.
@@ -177,15 +183,17 @@ public class QuantileOperator extends StoreResizableDoubleArrayOperator {
         return "Calculates the quantile per group.";
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    private static final String DESC_DETAIL_QUANT = "Calculates the quantile per group by skipping missing cells.";
+
+    private static final String DESC_DETAIL_ESTIMATION = "There are several algorithms you can choose from (see "
+            + "<a href=\"" + ExternalLinks.QUANTILE_ESTIMATION + "\">here</a>)."
+            + "The default algorithm is 'LEGACY' with h=(N+1)p and Q<sub>p</sub> = x<sub>[h-1/2]</sub></p>";
+
+    private static final String DESC_DETAIL = DESC_DETAIL_QUANT + " " + DESC_DETAIL_ESTIMATION;
+
     @Override
     public String getDetailedDescription() {
-        return "Calculates the quantile per group by skipping missing cells. "
-            + "There are several algorithms you can choose for (see advanced tab and "
-            + "<a href=\"http://en.wikipedia.org/wiki/Quantile#Estimating_the_quantiles_of_a_population\">here</a>)."
-            + "The default algorithm is 'LEGACY' with h=(N+1)p and Q<sub>p</sub> = x<sub>[h-1/2]</sub></p>";
+        return DESC_DETAIL;
     }
 
     /**
@@ -291,11 +299,49 @@ public class QuantileOperator extends StoreResizableDoubleArrayOperator {
     }
 
     /**
+     * @since 5.9
+     */
+    @Override
+    public Class<? extends AggregationOperatorParameters> getParametersClass() {
+        return QuantileOperatorParameters.class;
+    }
+
+    /**
+     * Node parameters for the {@link QuantileOperator}.
+     */
+    static final class QuantileOperatorParameters implements AggregationOperatorParameters {
+
+        @Widget(title = "Quantile", description = DESC_DETAIL_QUANT)
+        @Persist(configKey = QuantileFuntionSettings.CFG_CUSTOM_QUANTILE)
+        @NumberInputWidget(minValidation = IsNonNegativeValidation.class, maxValidation = IsLessThanOneValidation.class)
+        double m_quantile = QuantileFuntionSettings.DEFAULT_QUANTILE;
+
+        static final class IsLessThanOneValidation extends MaxValidation {
+
+            @Override
+            protected double getMax() {
+                return QuantileFuntionSettings.MAX_VALUE;
+            }
+
+            @Override
+            public boolean isExclusive() {
+                return true;
+            }
+
+        }
+
+        @Widget(title = "Estimation", description = DESC_DETAIL_ESTIMATION)
+        @Persist(configKey = QuantileFuntionSettings.CFG_CUSTOM_ESTIMATIOM)
+        EstimationType m_estimationType = EstimationType.valueOf(QuantileFuntionSettings.DEFAULT_ESTIMATION);
+
+    }
+
+    /**
      * Class that save the settings of the {@link QuantileSettingsPanel}.
      *
      * @author Lara Gorini
      */
-    private class QuantileFuntionSettings {
+    private static class QuantileFuntionSettings {
 
         private static final String CFG_CUSTOM_QUANTILE = "customQuantile";
 

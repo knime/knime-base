@@ -135,7 +135,7 @@
             <option name="Aggregation settings">
                 Use the "Add" button to add a new row with a search pattern to the aggregation settings.
                 The search pattern can either be a string with wildcards or a 
-                <a href="http://www.java.sun.com/javase/6/docs/api/java/util/regex/Pattern.html#sum">regular expression</a>.
+                <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Pattern.html#sum">regular expression</a>.
                 Supported wildcards are * (matches any number of characters) and ? (matches one character) e.g. KNI*
                 would match all strings that start with KNI such as KNIME whereas KNI? would match only strings that start
                 with KNI followed by a fourth character. 

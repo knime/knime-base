@@ -52,6 +52,7 @@ import javax.swing.JPanel;
 
 import org.apache.commons.math3.stat.descriptive.rank.PSquarePercentile;
 import org.knime.base.data.aggregation.AggregationOperator;
+import org.knime.base.data.aggregation.AggregationOperatorParameters;
 import org.knime.base.data.aggregation.GlobalSettings;
 import org.knime.base.data.aggregation.OperatorColumnSettings;
 import org.knime.base.data.aggregation.OperatorData;
@@ -63,6 +64,10 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
 import org.knime.core.node.defaultnodesettings.SettingsModelDouble;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.widget.number.NumberInputWidget;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation;
 
 /**
  * Computes the percentiles using the P^2 algorithm
@@ -94,11 +99,11 @@ public class PSquarePercentileOperator extends StorelessUnivariantStatisticOpera
      * @param percentile the percentile value
      * @since 3.6
      */
-    public PSquarePercentileOperator(final GlobalSettings globalSettings,
-        final OperatorColumnSettings opColSettings, final double percentile) {
+    public PSquarePercentileOperator(final GlobalSettings globalSettings, final OperatorColumnSettings opColSettings,
+        final double percentile) {
         super(new OperatorData("P^2 Percentile", "P^2 percentile", false, false, DoubleValue.class, false),
-            globalSettings, AggregationOperator.setInclMissingFlag(opColSettings, false), new PSquarePercentile(
-                percentile));
+            globalSettings, AggregationOperator.setInclMissingFlag(opColSettings, false),
+            new PSquarePercentile(percentile));
         m_settings.setPercentile(percentile);
 
     }
@@ -109,8 +114,8 @@ public class PSquarePercentileOperator extends StorelessUnivariantStatisticOpera
     @Override
     public AggregationOperator createInstance(final GlobalSettings globalSettings,
         final OperatorColumnSettings opColSettings) {
-        return new PSquarePercentileOperator(globalSettings, opColSettings, m_settings.getFunctionModel()
-            .getDoubleValue());
+        return new PSquarePercentileOperator(globalSettings, opColSettings,
+            m_settings.getFunctionModel().getDoubleValue());
 
     }
 
@@ -229,7 +234,7 @@ public class PSquarePercentileOperator extends StorelessUnivariantStatisticOpera
      *
      * @author Lara Gorini
      */
-    private class PSquarePercentileFuntionSettings {
+    private static class PSquarePercentileFuntionSettings {
 
         private static final String CFG_CUSTOM_PERCENTILE = "customPercentile";
 
@@ -309,6 +314,36 @@ public class PSquarePercentileOperator extends StorelessUnivariantStatisticOpera
          */
         public void saveSettingsTo(final NodeSettingsWO settings) {
             m_function.saveSettingsTo(settings);
+        }
+
+    }
+
+    /**
+     * @since 5.9
+     */
+    @Override
+    public Class<? extends AggregationOperatorParameters> getParametersClass() {
+        return PSquarePercentileOperatorParameters.class;
+    }
+
+    /**
+     * Operator parameters for {@link PSquarePercentileOperator}.
+     */
+    static final class PSquarePercentileOperatorParameters implements AggregationOperatorParameters {
+
+        @Widget(title = "Percentile", description = "The percentile to compute (0-100)")
+        @NumberInputWidget(minValidation = NumberInputWidgetValidation.MinValidation.IsNonNegativeValidation.class,
+            maxValidation = AtMost100.class)
+        @Persist(configKey = PSquarePercentileFuntionSettings.CFG_CUSTOM_PERCENTILE)
+        double m_percentile = PSquarePercentileFuntionSettings.DEFAULT_PERCENTILE;
+
+        private static final class AtMost100 extends NumberInputWidgetValidation.MaxValidation {
+
+            @Override
+            protected double getMax() {
+                return 100.0;
+            }
+
         }
 
     }
