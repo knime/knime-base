@@ -73,7 +73,9 @@ import org.knime.node.parameters.array.ArrayWidget;
 import org.knime.node.parameters.layout.After;
 import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.layout.Section;
+import org.knime.node.parameters.layout.SubParameters;
 import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
+import org.knime.node.parameters.migration.Migration;
 import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.persistence.legacy.LegacyStringFilter;
@@ -150,6 +152,7 @@ class GroupByNodeParameters implements NodeParameters {
     @Widget(title = "Manual", description = "...")
     @ArrayWidget(addButtonText = "Add manual")
     @Persistor(LegacyColumnAggregatorsPersistor.class)
+    @Migration(LegacyColumnAggregatorsMigration.class)
     ColumnAggregatorElement[] m_columnAggregators = new ColumnAggregatorElement[0];
 
     enum MissingValueOption {
@@ -159,8 +162,8 @@ class GroupByNodeParameters implements NodeParameters {
     }
 
     /**
-     * Common interface for legacy fallback parameters and new extension point-based parameters
-     * for aggregation operators that have custom settings.
+     * Common interface for legacy fallback parameters and new extension point-based parameters for aggregation
+     * operators that have custom settings.
      */
     interface AggregationOperatorParameters extends DynamicParameters.DynamicNodeParameters {
     }
@@ -176,8 +179,8 @@ class GroupByNodeParameters implements NodeParameters {
     }
 
     /**
-     * Placeholder for new extension point-based parameters, such that we can upgrade often-used operator
-     * settings to proper node parameters with a default node dialog.
+     * Placeholder for new extension point-based parameters, such that we can upgrade often-used operator settings to
+     * proper node parameters with a default node dialog.
      */
     // TODO define via extension point
     static final class ViaExtensionPointAggregationOperatorParameters implements AggregationOperatorParameters {
@@ -189,13 +192,11 @@ class GroupByNodeParameters implements NodeParameters {
         // empty, no settings
     }
 
-    static final class AggregationoperatorParametersRef
-        implements ParameterReference<AggregationOperatorParameters> {
+    static final class AggregationoperatorParametersRef implements ParameterReference<AggregationOperatorParameters> {
     }
 
-
     static final class AggregationOperatorParametersProvider
-            implements DynamicParameters.DynamicParametersWithFallbackProvider<AggregationOperatorParameters> {
+        implements DynamicParameters.DynamicParametersWithFallbackProvider<AggregationOperatorParameters> {
 
         private Supplier<AggregationOperatorParameters> m_currentValueSupplier;
 
@@ -217,12 +218,12 @@ class GroupByNodeParameters implements NodeParameters {
             throws StateComputationFailureException {
             final var currentValue = m_currentValueSupplier.get();
             if (currentValue instanceof LegacyAggregationOperatorParameters fallbackParams) {
-//                final var nodeSettings = fallbackParams.getNodeSettings();
-//                try {
-//                    return NodeParametersUtil.loadSettings(nodeSettings, LegacyAggregationOperatorParameters.class);
-//                } catch (InvalidSettingsException ex) {
-//                    return new MyDynamicParametersNodeParameters();
-//                }
+                //                final var nodeSettings = fallbackParams.getNodeSettings();
+                //                try {
+                //                    return NodeParametersUtil.loadSettings(nodeSettings, LegacyAggregationOperatorParameters.class);
+                //                } catch (InvalidSettingsException ex) {
+                //                    return new MyDynamicParametersNodeParameters();
+                //                }
                 LOGGER.debug("instanceof fallback params");
             } else if (currentValue != null) {
                 return currentValue;
@@ -232,7 +233,7 @@ class GroupByNodeParameters implements NodeParameters {
 
         @Override
         public NodeSettings computeFallbackSettings(final NodeParametersInput parametersInput)
-                throws StateComputationFailureException {
+            throws StateComputationFailureException {
             // TODO only if no new params defined in ext point (then return null)
             final var currentValue = m_currentValueSupplier.get();
             if (currentValue instanceof LegacyAggregationOperatorParameters legacy) {
@@ -250,8 +251,43 @@ class GroupByNodeParameters implements NodeParameters {
 
     }
 
+    static class AggregationMethodRef implements ParameterReference<AggMethod> {
+    }
+
     static class AggregationColumnsProvider extends AllColumnsProvider {
-        // TODO should we remove group columns?
+    }
+
+    static class HasOperatorParameters implements StateProvider<Boolean> {
+
+        private Supplier<AggMethod> m_aggMethod;
+
+        @Override
+        public void init(final StateProviderInitializer init) {
+            m_aggMethod = init.computeFromValueSupplier(AggregationMethodRef.class);
+        }
+
+        @Override
+        public Boolean computeState(final NodeParametersInput in) throws StateComputationFailureException {
+            return m_aggMethod.get().m_hasOptionalSettings;
+        }
+
+    }
+
+    static final class AggMethod implements NodeParameters {
+
+        @Widget(title = "Aggregation", description = "...")
+        String m_id;
+
+        private boolean m_hasOptionalSettings;
+
+        AggMethod() {
+            // for serialization
+        }
+
+        AggMethod(final String id, final boolean hasOptionalSettings) {
+            m_id = id;
+            m_hasOptionalSettings = hasOptionalSettings;
+        }
     }
 
     static class ColumnAggregatorElement implements NodeParameters {
@@ -260,7 +296,11 @@ class GroupByNodeParameters implements NodeParameters {
         String m_column;
 
         @Widget(title = "Aggregation", description = "The aggregation method to use")
-        String m_aggregationMethod;
+        @SubParameters(subLayoutRoot = AggregationoperatorParametersRef.class,
+            showSubParametersProvider = HasOperatorParameters.class)
+        @ValueReference(AggregationMethodRef.class)
+        // TODO fill choices via extension point (show labels instead of IDs)
+        AggMethod m_aggregationMethod;
 
         @Widget(title = "Missing values", description = "")
         @ValueSwitchWidget
@@ -271,6 +311,7 @@ class GroupByNodeParameters implements NodeParameters {
             widgetAppearingInNodeDescription = @Widget(title = "Operator settings", description = "...",
                 advanced = true))
         @ValueReference(AggregationoperatorParametersRef.class)
+        @Layout(AggregationoperatorParametersRef.class)
         AggregationOperatorParameters m_parameters = new NoOperatorParameters();
     }
 
