@@ -1,0 +1,300 @@
+{
+  "data" : {
+    "model" : {
+      "columnSelection" : {
+        "firstColumn" : "Cluster Membership",
+        "secondColumn" : "new column"
+      },
+      "sortingStrategy" : "INSERTION_ORDER",
+      "reverseOrder" : false,
+      "usePrefixParameters" : {
+        "usePrefix" : false
+      },
+      "missingValueHandling" : "IGNORE"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columnSelection" : {
+            "type" : "object",
+            "properties" : {
+              "firstColumn" : {
+                "type" : "string",
+                "title" : "First column",
+                "description" : "The first column represents the real classes of the data."
+              },
+              "sameColumnWarning" : {
+                "type" : "object"
+              },
+              "secondColumn" : {
+                "type" : "string",
+                "title" : "Second column",
+                "description" : "The second column represents the predicted classes of the data."
+              }
+            },
+            "default" : {
+              "firstColumn" : "additional_column",
+              "secondColumn" : "new column"
+            }
+          },
+          "missingValueHandling" : {
+            "oneOf" : [ {
+              "const" : "IGNORE",
+              "title" : "Ignore"
+            }, {
+              "const" : "FAIL",
+              "title" : "Fail"
+            } ],
+            "title" : "Missing values",
+            "description" : "Choose how to treat missing values in either the reference or prediction column. Default is to ignore them (treat them as if the row did not exist). Alternatively, you can expect the table to not contain missing values in these two columns. If they do, the node will fail during execution.\n<ul>\n<li><b>Ignore</b>: Ignore missing values (treat them as if the row did not exist).</li>\n<li><b>Fail</b>: Fail execution if missing values are encountered.</li>\n</ul>",
+            "default" : "IGNORE"
+          },
+          "reverseOrder" : {
+            "type" : "boolean",
+            "title" : "Reverse order",
+            "description" : "Reverse the order of the elements.",
+            "default" : false
+          },
+          "sortingStrategy" : {
+            "oneOf" : [ {
+              "const" : "INSERTION_ORDER",
+              "title" : "Insertion order"
+            }, {
+              "const" : "NUMERIC",
+              "title" : "Numeric"
+            }, {
+              "const" : "LEXICAL",
+              "title" : "Lexical"
+            }, {
+              "const" : "UNSORTED",
+              "title" : "Unsorted"
+            } ],
+            "title" : "Sorting strategy",
+            "description" : "Whether to sort the labels according to their appearance, or use the lexical/numeric ordering.\n<ul>\n<li><b>Insertion order</b>: Keep the original order as they appear in the data.</li>\n<li><b>Numeric</b>: Sort values numerically.</li>\n<li><b>Lexical</b>: Sort values lexicographically.</li>\n<li><b>Unsorted</b>: Do not modify the current order.</li>\n</ul>",
+            "default" : "INSERTION_ORDER"
+          },
+          "usePrefixParameters" : {
+            "type" : "object",
+            "properties" : {
+              "flowVariablePrefix" : {
+                "type" : "string",
+                "title" : "Prefix for flow variables",
+                "description" : "The prefix to use for flow variable names.",
+                "default" : ""
+              },
+              "usePrefix" : {
+                "type" : "boolean",
+                "title" : "Use name prefix",
+                "description" : "The scores (i.e. accuracy, error rate, number of correct and wrong classification) are exported as flow variables with a hard coded name. This option allows you to define a prefix for these variable identifiers so that name conflicts are resolved.",
+                "default" : false
+              }
+            },
+            "default" : {
+              "usePrefix" : false,
+              "flowVariablePrefix" : ""
+            }
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/columnSelection/properties/firstColumn",
+      "options" : {
+        "validation" : {
+          "pattern" : {
+            "errorMessage" : "The field cannot be blank (it must contain at least one non-whitespace character).",
+            "parameters" : {
+              "pattern" : ".*\\S.*"
+            }
+          }
+        },
+        "format" : "dropDown"
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/columnSelection/properties/secondColumn",
+      "options" : {
+        "validation" : {
+          "pattern" : {
+            "errorMessage" : "The field cannot be blank (it must contain at least one non-whitespace character).",
+            "parameters" : {
+              "pattern" : ".*\\S.*"
+            }
+          }
+        },
+        "format" : "dropDown"
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "id" : "#/properties/model/properties/columnSelection/properties/sameColumnWarning",
+      "options" : {
+        "format" : "textMessage"
+      },
+      "providedOptions" : [ "message" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/sortingStrategy",
+      "options" : {
+        "format" : "dropDown",
+        "radioLayout" : "vertical"
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/reverseOrder",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/usePrefixParameters/properties/usePrefix",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/usePrefixParameters/properties/flowVariablePrefix",
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/usePrefixParameters/properties/usePrefix",
+          "schema" : {
+            "const" : true
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/missingValueHandling",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columnSelection" : {
+            "configPaths" : [ [ "first" ], [ "second" ] ]
+          },
+          "sortingStrategy" : {
+            "configPaths" : [ [ "sortingStrategy" ] ]
+          },
+          "reverseOrder" : {
+            "configKey" : "sortingReversed"
+          },
+          "usePrefixParameters" : {
+            "configPaths" : [ [ "flowVarPrefix" ] ]
+          },
+          "missingValueHandling" : {
+            "configPaths" : [ [ "ignore<dot>missing<dot>values" ] ]
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/columnSelection",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : {
+        "firstColumn" : "Cluster Membership",
+        "secondColumn" : "new column"
+      }
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/columnSelection/properties/firstColumn",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Cluster Membership",
+        "text" : "Cluster Membership",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "new column",
+        "text" : "new column",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "additional_column",
+        "text" : "additional_column",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/columnSelection/properties/secondColumn",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Cluster Membership",
+        "text" : "Cluster Membership",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "new column",
+        "text" : "new column",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "additional_column",
+        "text" : "additional_column",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/sortingStrategy",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "INSERTION_ORDER",
+        "text" : "Insertion order"
+      }, {
+        "id" : "LEXICAL",
+        "text" : "Lexical"
+      } ]
+    } ]
+  }, {
+    "id" : "#/properties/model/properties/columnSelection/properties/sameColumnWarning",
+    "providedOptionName" : "message",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : null
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/columnSelection"
+    },
+    "dependencies" : [ "#/properties/model/properties/columnSelection" ]
+  } ]
+}
