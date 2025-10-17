@@ -46,6 +46,8 @@
  */
 package org.knime.base.util;
 
+import org.knime.node.parameters.widget.choices.Label;
+
 /**
  * Possible comparison strategies for {@link String}s and numbers.
  *
@@ -53,7 +55,9 @@ package org.knime.base.util;
  * @since 2.9
  */
 public enum SortingStrategy {
+
     /** Could be the keep as is. Do not modify the order. */
+    @Label(value = "Insertion order", description = "Keep the original order as they appear in the data.")
     InsertionOrder {
         /**
          * {@inheritDoc}
@@ -64,6 +68,7 @@ public enum SortingStrategy {
         }
     },
     /** Numeric values in ascending order. */
+    @Label(value = "Numeric", description = "Sort values numerically.")
     Numeric {
         /**
          * {@inheritDoc}
@@ -74,6 +79,7 @@ public enum SortingStrategy {
         }
     },
     /** Lexicographical ordering based on the collator selected. */
+    @Label(value = "Lexical", description = "Sort values lexicographically.")
     Lexical {
         /**
          * {@inheritDoc}
@@ -84,6 +90,7 @@ public enum SortingStrategy {
         }
     },
     /** Do not modify the current order. */
+    @Label(value = "Unsorted", description = "Do not modify the current order.")
     Unsorted {
         /**
          * {@inheritDoc}

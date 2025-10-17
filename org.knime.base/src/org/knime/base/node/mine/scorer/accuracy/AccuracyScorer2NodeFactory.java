@@ -44,17 +44,38 @@
  */
 package org.knime.base.node.mine.scorer.accuracy;
 
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
+import org.knime.node.impl.description.ViewDescription;
 
 /**
  * The factory for the hilite scorer node.
  *
  * @author Lars Schweikardt, KNIME GmbH, Konstanz
+ * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.2
  * @since 4.2
  */
-public final class AccuracyScorer2NodeFactory extends NodeFactory<AccuracyScorer2NodeModel> {
+@SuppressWarnings("restriction")
+public final class AccuracyScorer2NodeFactory extends NodeFactory<AccuracyScorer2NodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     @Override
     public AccuracyScorer2NodeModel createNodeModel() {
@@ -80,8 +101,73 @@ public final class AccuracyScorer2NodeFactory extends NodeFactory<AccuracyScorer
         return true;
     }
 
+    private static final String NODE_NAME = "Scorer";
+
+    private static final String NODE_ICON = "./scorer.png";
+
+    private static final String SHORT_DESCRIPTION = "Compares two columns by their attribute value pairs.";
+
+    private static final String FULL_DESCRIPTION = """
+            Compares two columns by their attribute value pairs and shows the confusion matrix, i.e. how many rows
+                of which attribute and their classification match. Additionally, it is possible to hilight cells of this
+                matrix to determine the underlying rows. The dialog allows you to select two columns for comparison; the
+                values from the first selected column are represented in the confusion matrix's rows and the values from
+                the second column by the confusion matrix's columns. The output of the node is the confusion matrix with
+                the number of matches in each cell. Additionally, the second out-port reports a number of <a
+                href="https://en.wikipedia.org/wiki/Confusion_matrix"> accuracy statistics</a> such as True-Positives,
+                False-Positives, True-Negatives, False-Negatives, Recall, Precision, Sensitivity, Specificity,
+                F-measure, as well as the overall accuracy and <a
+                href="https://en.wikipedia.org/wiki/Cohen%27s_kappa">Cohen's kappa</a>.
+            """;
+
+    private static final List<PortDescription> INPUT_PORTS =
+        List.of(fixedPort("Input table", "Table containing the columns to compare."));
+
+    private static final List<PortDescription> OUTPUT_PORTS =
+        List.of(fixedPort("Confusion matrix", "The confusion matrix."),
+            fixedPort("Accuracy statistics", "The accuracy statistics table."));
+
+    private static final List<ViewDescription> VIEWS = List.of(new ViewDescription("Confusion Matrix", """
+            Displays the confusion matrix in a table view. It is possible to hilight cells of the matrix which
+            propagates highlighting to the corresponding rows. Therefore, it is possible for example to identify
+            wrong predictions.
+            """));
+
+    private static final List<String> KEYWORDS = List.of( //
+        "model comparison", //
+        "cohens kappa", //
+        "accuracy" //
+    );
+
+    /**
+     * @since 5.9
+     */
     @Override
     public NodeDialogPane createNodeDialogPane() {
-        return new AccuracyScorer2NodeDialog();
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
     }
+
+    /**
+     * @since 5.9
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, AccuracyScorer2NodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription(NODE_NAME, NODE_ICON, INPUT_PORTS, OUTPUT_PORTS,
+            SHORT_DESCRIPTION, FULL_DESCRIPTION, List.of(), AccuracyScorer2NodeParameters.class, VIEWS, NodeType.Other,
+            KEYWORDS, null);
+    }
+
+    /**
+     * @since 5.9
+     */
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, AccuracyScorer2NodeParameters.class));
+    }
+
 }

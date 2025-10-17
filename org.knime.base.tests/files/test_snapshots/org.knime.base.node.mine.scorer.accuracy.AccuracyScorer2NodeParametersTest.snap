@@ -1,0 +1,281 @@
+{
+  "data" : {
+    "model" : {
+      "firstColumn" : "additional_column",
+      "secondColumn" : "new column",
+      "sortingStrategy" : "InsertionOrder",
+      "reverseOrder" : false,
+      "usePrefixParameters" : {
+        "usePrefix" : false,
+        "flowVariablePrefix" : ""
+      },
+      "missingValueHandling" : "IGNORE"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "firstColumn" : {
+            "type" : "string",
+            "title" : "First column",
+            "description" : "The first column represents the real classes of the data.",
+            "default" : "additional_column"
+          },
+          "missingValueHandling" : {
+            "oneOf" : [ {
+              "const" : "IGNORE",
+              "title" : "Ignore"
+            }, {
+              "const" : "FAIL",
+              "title" : "Fail"
+            } ],
+            "title" : "Missing values",
+            "description" : "Choose how to treat missing values in either the reference or prediction column. Default is to ignore them (treat them as if the row did not exist). Alternatively, you can expect the table to not contain missing values in these two columns. If they do, the node will fail during execution.\n<ul>\n<li><b>Ignore</b>: Ignore missing values (treat them as if the row did not exist).</li>\n<li><b>Fail</b>: Fail execution if missing values are encountered.</li>\n</ul>",
+            "default" : "IGNORE"
+          },
+          "reverseOrder" : {
+            "type" : "boolean",
+            "title" : "Reverse order",
+            "description" : "Reverse the order of the elements.",
+            "default" : false
+          },
+          "sameColumnWarning" : {
+            "type" : "object"
+          },
+          "secondColumn" : {
+            "type" : "string",
+            "title" : "Second column",
+            "description" : "The second column represents the predicted classes of the data.",
+            "default" : "new column"
+          },
+          "sortingStrategy" : {
+            "oneOf" : [ {
+              "const" : "InsertionOrder",
+              "title" : "Insertion order"
+            }, {
+              "const" : "Numeric",
+              "title" : "Numeric"
+            }, {
+              "const" : "Lexical",
+              "title" : "Lexical"
+            }, {
+              "const" : "Unsorted",
+              "title" : "Unsorted"
+            } ],
+            "title" : "Sorting strategy",
+            "description" : "Whether to sort the labels according to their appearance, or use the lexical/numeric ordering.\n<ul>\n<li><b>Insertion order</b>: Keep the original order as they appear in the data.</li>\n<li><b>Numeric</b>: Sort values numerically.</li>\n<li><b>Lexical</b>: Sort values lexicographically.</li>\n<li><b>Unsorted</b>: Do not modify the current order.</li>\n</ul>",
+            "default" : "InsertionOrder"
+          },
+          "usePrefixParameters" : {
+            "type" : "object",
+            "properties" : {
+              "flowVariablePrefix" : {
+                "type" : "string",
+                "title" : "Prefix for flow variables",
+                "description" : "The prefix to use for flow variable names.",
+                "default" : ""
+              },
+              "usePrefix" : {
+                "type" : "boolean",
+                "title" : "Use name prefix",
+                "description" : "The scores (i.e. accuracy, error rate, number of correct and wrong classification) are exported as flow variables with a hard coded name. This option allows you to define a prefix for these variable identifiers so that name conflicts are resolved.",
+                "default" : false
+              }
+            },
+            "default" : {
+              "usePrefix" : false,
+              "flowVariablePrefix" : ""
+            }
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/firstColumn",
+      "options" : {
+        "format" : "dropDown"
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/secondColumn",
+      "options" : {
+        "format" : "dropDown"
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "id" : "#/properties/model/properties/sameColumnWarning",
+      "options" : {
+        "format" : "textMessage"
+      },
+      "providedOptions" : [ "message" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/sortingStrategy",
+      "options" : {
+        "format" : "dropDown"
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/reverseOrder",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/usePrefixParameters/properties/usePrefix",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/usePrefixParameters/properties/flowVariablePrefix",
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/usePrefixParameters/properties/usePrefix",
+          "schema" : {
+            "const" : true
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/missingValueHandling",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "firstColumn" : {
+            "configKey" : "first"
+          },
+          "secondColumn" : {
+            "configKey" : "second"
+          },
+          "sameColumnWarning" : { },
+          "sortingStrategy" : {
+            "configPaths" : [ [ "sortingStrategy" ] ]
+          },
+          "reverseOrder" : {
+            "configKey" : "sortingReversed"
+          },
+          "usePrefixParameters" : {
+            "configPaths" : [ [ "flowVarPrefix" ] ]
+          },
+          "missingValueHandling" : {
+            "configPaths" : [ [ "ignore<dot>missing<dot>values" ] ]
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/firstColumn",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Cluster Membership",
+        "text" : "Cluster Membership",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "new column",
+        "text" : "new column",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "additional_column",
+        "text" : "additional_column",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/secondColumn",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Cluster Membership",
+        "text" : "Cluster Membership",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "new column",
+        "text" : "new column",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "additional_column",
+        "text" : "additional_column",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/sortingStrategy",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "InsertionOrder",
+        "text" : "Insertion order"
+      }, {
+        "id" : "Lexical",
+        "text" : "Lexical"
+      } ]
+    } ]
+  }, {
+    "id" : "#/properties/model/properties/sameColumnWarning",
+    "providedOptionName" : "message",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : null
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "id" : "after-open-dialog"
+    },
+    "triggerInitially" : true,
+    "dependencies" : [ "#/properties/model/properties/firstColumn", "#/properties/model/properties/secondColumn" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/firstColumn"
+    },
+    "dependencies" : [ "#/properties/model/properties/firstColumn", "#/properties/model/properties/secondColumn" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/secondColumn"
+    },
+    "dependencies" : [ "#/properties/model/properties/firstColumn", "#/properties/model/properties/secondColumn" ]
+  } ]
+}

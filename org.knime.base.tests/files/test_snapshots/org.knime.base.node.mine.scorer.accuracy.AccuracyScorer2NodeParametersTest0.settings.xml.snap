@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
+    <entry key="first" type="xstring" value="Cluster Membership"/>
+    <entry key="second" type="xstring" value="new column"/>
+    <entry key="sortingStrategy" type="xint" value="0"/>
+    <entry key="sortingReversed" type="xboolean" value="false"/>
+    <entry key="flowVarPrefix" type="xstring" isnull="true" value=""/>
+    <entry key="ignore.missing.values" type="xboolean" value="true"/>
+</config>
