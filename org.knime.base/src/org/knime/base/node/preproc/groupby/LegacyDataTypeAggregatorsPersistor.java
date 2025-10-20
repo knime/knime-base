@@ -47,12 +47,14 @@
 package org.knime.base.node.preproc.groupby;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
+import org.knime.base.data.aggregation.AggregationMethods;
 import org.knime.base.data.aggregation.dialogutil.type.DataTypeAggregator;
-import org.knime.base.node.preproc.groupby.GroupByNodeParameters.DataTypeAggregatorElement;
-import org.knime.base.node.preproc.groupby.GroupByNodeParameters.MissingValueOption;
+import org.knime.base.node.preproc.groupby.OptionalParameters.LegacyAggregationOperatorParameters;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.node.parameters.persistence.NodeParametersPersistor;
@@ -66,52 +68,57 @@ final class LegacyDataTypeAggregatorsPersistor implements NodeParametersPersisto
 
     @Override
     public DataTypeAggregatorElement[] load(final NodeSettingsRO settings) throws InvalidSettingsException {
-        // Try to load legacy DataTypeAggregator format
-        try {
+        final var aggregators =
+            DataTypeAggregator.loadAggregators(settings, GroupByNodeModel.CFG_DATA_TYPE_AGGREGATORS);
 
-            final var aggregators =
-                DataTypeAggregator.loadAggregators(settings, GroupByNodeModel.CFG_DATA_TYPE_AGGREGATORS);
-
-            final List<DataTypeAggregatorElement> elements = new ArrayList<>();
-            for (final var aggr : aggregators) {
-                final var element = new DataTypeAggregatorElement();
-                element.m_dataType = aggr.getDataType();
-                element.m_aggregationMethod = aggr.getId();
-                element.m_includeMissing =
-                    aggr.inclMissingCells() ? MissingValueOption.INCLUDE : MissingValueOption.EXCLUDE;
-                element.m_parameters = "";
-                elements.add(element);
+        // the optional operator settings are stored in each operator's config object, not as a "sidecar"
+        final List<DataTypeAggregatorElement> elements = new ArrayList<>();
+        for (final var aggr : aggregators) {
+            final var element = new DataTypeAggregatorElement();
+            element.m_dataType = aggr.getDataType();
+            element.m_aggregationMethod = aggr.getId();
+            element.m_includeMissing =
+                aggr.inclMissingCells() ? MissingValueOption.INCLUDE : MissingValueOption.EXCLUDE;
+            if (aggr.hasOptionalSettings()) {
+                // since these are not in a "sidecar" nodesettings, they all are under the same key
+                final var operatorSettings = new NodeSettings("functionSettings");
+                aggr.saveSettingsTo(operatorSettings);
+                element.m_parameters = new LegacyAggregationOperatorParameters(operatorSettings);
             }
-
-            return elements.toArray(new DataTypeAggregatorElement[0]);
-        } catch (Exception ex) {
-            // Fallback to empty array if legacy format cannot be loaded
-            return new DataTypeAggregatorElement[0];
+            elements.add(element);
         }
+        return elements.toArray(new DataTypeAggregatorElement[0]);
     }
 
     @Override
-    public void save(final DataTypeAggregatorElement[] obj, final NodeSettingsWO settings) {
-        final NodeSettingsWO aggSettings = settings.addNodeSettings(GroupByNodeModel.CFG_DATA_TYPE_AGGREGATORS);
-        //        aggSettings.addInt("numDataTypeAggregators", obj.length);
-        //
-        //        for (int i = 0; i < obj.length; i++) {
-        //            final NodeSettingsWO aggrSetting = aggSettings.addNodeSettings("dataTypeAggregator_" + i);
-        //            try {
-        //                final DataType dataType = DataType.getType(obj[i].dataType);
-        //                final DataTypeAggregator aggr = new DataTypeAggregator(
-        //                    dataType,
-        //                    obj[i].aggregationMethod,
-        //                    obj[i].includeMissing);
-        //                aggr.saveSettingsTo(aggrSetting);
-        //            } catch (Exception ex) {
-        //                // Skip invalid aggregators
-        //            }
-        //        }
+    public void save(final DataTypeAggregatorElement[] elems, final NodeSettingsWO settings) {
+        final var aggregators = Arrays.stream(elems).map(LegacyDataTypeAggregatorsPersistor::mapToAggregator).toList();
+        DataTypeAggregator.saveAggregators(settings, GroupByNodeModel.CFG_DATA_TYPE_AGGREGATORS, aggregators);
+    }
+
+    private static DataTypeAggregator mapToAggregator(final DataTypeAggregatorElement elem) {
+        final var method = AggregationMethods.getMethod4Id(elem.m_aggregationMethod);
+        final var type = elem.m_dataType;
+        final var includeMissing = elem.m_includeMissing == MissingValueOption.INCLUDE;
+        final var agg = new DataTypeAggregator(type, method, includeMissing);
+        if (elem.m_parameters instanceof LegacyAggregationOperatorParameters legacyParams) {
+            try {
+                agg.loadValidatedSettings(legacyParams.getNodeSettings());
+            } catch (InvalidSettingsException e) {
+                throw new IllegalStateException("Failed to map optional settings", e);
+            }
+        }
+        return agg;
     }
 
     @Override
     public String[][] getConfigPaths() {
-        return new String[][]{new String[]{GroupByNodeModel.CFG_DATA_TYPE_AGGREGATORS}};
+        return new String[][]{ //
+            new String[]{GroupByNodeModel.CFG_DATA_TYPE_AGGREGATORS}, // TODO each operator is in a config with f_<idx>
+                //            new String[]{GroupByNodeModel.CFG_DATA_TYPE_AGGREGATORS, "dataType"}, //
+                //            new String[]{GroupByNodeModel.CFG_DATA_TYPE_AGGREGATORS, "inclMissingValues"}, //
+                //            new String[]{GroupByNodeModel.CFG_DATA_TYPE_AGGREGATORS, "aggregationMethod"}, //
+                //            new String[]{GroupByNodeModel.CFG_DATA_TYPE_AGGREGATORS, "functionSettings"} //
+        };
     }
 }

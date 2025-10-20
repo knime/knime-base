@@ -44,34 +44,20 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   16 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   20 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.base.node.preproc.groupby;
 
-import java.util.List;
-
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.node.parameters.migration.ConfigMigration;
-import org.knime.node.parameters.migration.NodeParametersMigration;
-import org.knime.node.parameters.migration.ParametersLoader;
+import org.knime.node.parameters.widget.choices.Label;
 
 /**
+ * Options for missing value handling in aggregation operators.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-class LegacyColumnAggregatorsMigration implements NodeParametersMigration<ColumnAggregatorElement[]>{
-
-    @Override
-    public List<ConfigMigration<ColumnAggregatorElement[]>> getConfigMigrations() {
-        return List.of(ConfigMigration.builder(new ParametersLoader<ColumnAggregatorElement[]>() {
-
-            @Override
-            public ColumnAggregatorElement[] load(final NodeSettingsRO settings) throws InvalidSettingsException {
-                return null;
-            }
-
-        }).withMatcher(s -> false).withDeprecatedConfigPath("aggregationOperatorSettings").build());
-    }
-
+enum MissingValueOption {
+        @Label("Exclude")
+        EXCLUDE, //
+        @Label("Include")
+        INCLUDE
 }

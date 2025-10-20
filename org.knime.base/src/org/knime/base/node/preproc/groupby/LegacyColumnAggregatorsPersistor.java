@@ -54,9 +54,7 @@ import java.util.Map;
 
 import org.knime.base.data.aggregation.AggregationMethods;
 import org.knime.base.data.aggregation.ColumnAggregator;
-import org.knime.base.node.preproc.groupby.GroupByNodeParameters.ColumnAggregatorElement;
-import org.knime.base.node.preproc.groupby.GroupByNodeParameters.LegacyAggregationOperatorParameters;
-import org.knime.base.node.preproc.groupby.GroupByNodeParameters.MissingValueOption;
+import org.knime.base.node.preproc.groupby.OptionalParameters.LegacyAggregationOperatorParameters;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
@@ -97,7 +95,6 @@ final class LegacyColumnAggregatorsPersistor implements NodeParametersPersistor<
             final var element = new ColumnAggregatorElement();
             element.m_column = aggr.getOriginalColName();
             element.m_dataType = aggr.getOriginalDataType();
-            // TODO review last param
             element.m_aggregationMethod = aggr.getId();
             element.m_includeMissing =
                 aggr.inclMissingCells() ? MissingValueOption.INCLUDE : MissingValueOption.EXCLUDE;
@@ -155,8 +152,11 @@ final class LegacyColumnAggregatorsPersistor implements NodeParametersPersistor<
     }
     @Override
     public String[][] getConfigPaths() {
-        return new String[][]{new String[]{CNFG_AGGR_COL_SECTION, CNFG_COL_NAMES},
-            new String[]{CNFG_AGGR_COL_SECTION, CNFG_COL_TYPES}, new String[]{CNFG_AGGR_COL_SECTION, CNFG_AGGR_METHOD},
-            new String[]{CNFG_AGGR_COL_SECTION, CNFG_INCL_MISSING}};
+        return new String[][]{ //
+            new String[]{CNFG_AGGR_COL_SECTION, CNFG_COL_NAMES}, //
+            new String[]{CNFG_AGGR_COL_SECTION, CNFG_COL_TYPES}, //
+            new String[]{CNFG_AGGR_COL_SECTION, CNFG_AGGR_METHOD}, //
+            new String[]{CNFG_AGGR_COL_SECTION, CNFG_INCL_MISSING} //
+        };
     }
 }

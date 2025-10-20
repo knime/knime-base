@@ -47,13 +47,15 @@
 package org.knime.base.node.preproc.groupby;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
+import org.knime.base.data.aggregation.AggregationMethods;
 import org.knime.base.data.aggregation.dialogutil.pattern.PatternAggregator;
-import org.knime.base.node.preproc.groupby.GroupByNodeParameters.MissingValueOption;
-import org.knime.base.node.preproc.groupby.GroupByNodeParameters.PatternAggregatorElement;
+import org.knime.base.node.preproc.groupby.OptionalParameters.LegacyAggregationOperatorParameters;
 import org.knime.base.node.util.regex.PatternType;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.node.parameters.persistence.NodeParametersPersistor;
@@ -67,49 +69,56 @@ final class LegacyPatternAggregatorsPersistor implements NodeParametersPersistor
 
     @Override
     public PatternAggregatorElement[] load(final NodeSettingsRO settings) throws InvalidSettingsException {
-        // Try to load legacy PatternAggregator format
-        try {
-            final var aggregators =
-                PatternAggregator.loadAggregators(settings, GroupByNodeModel.CFG_PATTERN_AGGREGATORS);
+        final var aggregators = PatternAggregator.loadAggregators(settings, GroupByNodeModel.CFG_PATTERN_AGGREGATORS);
 
-            final List<PatternAggregatorElement> elements = new ArrayList<>();
-            for (final var aggr : aggregators) {
-                final var element = new PatternAggregatorElement();
-                element.m_pattern = aggr.getInputPattern();
-                element.m_isRegex = aggr.isRegex() ? PatternType.REGEX : PatternType.WILDCARD;
-                element.m_aggregationMethod = aggr.getId();
-                element.m_includeMissing =
-                    aggr.inclMissingCells() ? MissingValueOption.INCLUDE : MissingValueOption.EXCLUDE;
-                element.m_parameters = "";
-                elements.add(element);
+        // optional operator settings are stored in each operator's config object, not as a "sidecar"
+        final List<PatternAggregatorElement> aggregatorElements = new ArrayList<>();
+        for (final PatternAggregator aggr : aggregators) {
+            final var elem = new PatternAggregatorElement();
+            elem.m_pattern = aggr.getInputPattern();
+            elem.m_aggregationMethod = aggr.getId();
+            elem.m_isRegex = aggr.isRegex() ? PatternType.REGEX : PatternType.WILDCARD;
+            elem.m_includeMissing = aggr.inclMissingCells() ? MissingValueOption.INCLUDE : MissingValueOption.EXCLUDE;
+            if (aggr.hasOptionalSettings()) {
+                final var operatorSettings = new NodeSettings("functionSettings");
+                aggr.saveSettingsTo(operatorSettings);
+                elem.m_parameters = new LegacyAggregationOperatorParameters(operatorSettings);
             }
-
-            return elements.toArray(new PatternAggregatorElement[0]);
-        } catch (Exception ex) {
-            // Fallback to empty array if legacy format cannot be loaded
-            return new PatternAggregatorElement[0];
+            aggregatorElements.add(elem);
         }
+        return aggregatorElements.toArray(PatternAggregatorElement[]::new);
     }
 
     @Override
-    public void save(final PatternAggregatorElement[] obj, final NodeSettingsWO settings) {
-        //        final NodeSettingsWO aggSettings = settings.addNodeSettings(GroupByNodeModel.CFG_PATTERN_AGGREGATORS);
-        //        aggSettings.addInt("numPatternAggregators", obj.length);
-        //
-        //        for (int i = 0; i < obj.length; i++) {
-        //            final NodeSettingsWO aggrSetting = aggSettings.addNodeSettings("patternAggregator_" + i);
-        //            try {
-        //                final PatternAggregator aggr = new PatternAggregator(obj[i].pattern, obj[i].isRegex,
-        //                    obj[i].aggregationMethod, obj[i].includeMissing);
-        //                aggr.saveSettingsTo(aggrSetting);
-        //            } catch (Exception ex) {
-        //                // Skip invalid aggregators
-        //            }
-        //        }
+    public void save(final PatternAggregatorElement[] elems, final NodeSettingsWO settings) {
+        final var aggregators = Arrays.stream(elems).map(LegacyPatternAggregatorsPersistor::mapToAggregator).toList();
+        PatternAggregator.saveAggregators(settings, GroupByNodeModel.CFG_PATTERN_AGGREGATORS, aggregators);
+    }
+
+    private static PatternAggregator mapToAggregator(final PatternAggregatorElement elem) {
+        final var method = AggregationMethods.getMethod4Id(elem.m_aggregationMethod);
+        final var includeMissing = elem.m_includeMissing == MissingValueOption.INCLUDE;
+        final var agg =
+            new PatternAggregator(elem.m_pattern, elem.m_isRegex == PatternType.REGEX, method, includeMissing);
+        if (elem.m_parameters instanceof LegacyAggregationOperatorParameters legacyParams) {
+            try {
+                agg.loadValidatedSettings(legacyParams.getNodeSettings());
+            } catch (InvalidSettingsException e) {
+                throw new IllegalStateException("Failed to map optional settings", e);
+            }
+        }
+        return agg;
     }
 
     @Override
     public String[][] getConfigPaths() {
-        return new String[][]{new String[]{GroupByNodeModel.CFG_PATTERN_AGGREGATORS}};
+        return new String[][]{ //
+            new String[]{GroupByNodeModel.CFG_PATTERN_AGGREGATORS} // TODO each operator is in a config with f_<idx>
+                //            new String[]{GroupByNodeModel.CFG_PATTERN_AGGREGATORS, "inputPattern"}, //
+                //            new String[]{GroupByNodeModel.CFG_PATTERN_AGGREGATORS, "isRegularExpression"}, //
+                //            new String[]{GroupByNodeModel.CFG_PATTERN_AGGREGATORS, "inclMissingValues"}, //
+                //            new String[]{GroupByNodeModel.CFG_PATTERN_AGGREGATORS, "aggregationMethod"}, //
+                //            new String[]{GroupByNodeModel.CFG_PATTERN_AGGREGATORS, "functionSettings"} //
+        };
     }
 }
