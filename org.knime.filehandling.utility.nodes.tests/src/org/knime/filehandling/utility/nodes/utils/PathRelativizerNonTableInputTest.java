@@ -48,16 +48,15 @@
  */
 package org.knime.filehandling.utility.nodes.utils;
 
-import static org.junit.Assert.assertEquals;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
-import org.knime.filehandling.utility.nodes.utils.PathRelativizer;
-import org.knime.filehandling.utility.nodes.utils.PathRelativizerNonTableInput;
 
 /**
  * Tests for the {@link PathRelativizer}.

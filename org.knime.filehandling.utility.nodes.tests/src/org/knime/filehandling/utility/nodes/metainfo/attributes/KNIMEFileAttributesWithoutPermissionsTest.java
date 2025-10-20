@@ -48,9 +48,12 @@
  */
 package org.knime.filehandling.utility.nodes.metainfo.attributes;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import java.io.IOException;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
 
 /**
  * Tests {@link KNIMEFileAttributesWithoutPermissions}.
@@ -69,9 +72,11 @@ public class KNIMEFileAttributesWithoutPermissionsTest extends KNIMEFileAttribut
      *
      * @throws IOException - Cannot happen
      */
-    @Test(expected = UnsupportedOperationException.class)
+    @Test
     public void testReadPermissionsNotSupported() throws IOException {
-        initAttributes(false).isReadable();
+        assertThrows(UnsupportedOperationException.class,
+            () -> initAttributes(false).isReadable(),
+            "Accessing the file permissions is not permitted.");
     }
 
     /**
@@ -79,9 +84,11 @@ public class KNIMEFileAttributesWithoutPermissionsTest extends KNIMEFileAttribut
      *
      * @throws IOException - Cannot happen
      */
-    @Test(expected = UnsupportedOperationException.class)
+    @Test
     public void testWritePermissionsNotSupported() throws IOException {
-        initAttributes(false).isWritable();
+        assertThrows(UnsupportedOperationException.class,
+            () -> initAttributes(false).isWritable(),
+            "Accessing the file permissions is not permitted.");
     }
 
     /**
@@ -89,9 +96,11 @@ public class KNIMEFileAttributesWithoutPermissionsTest extends KNIMEFileAttribut
      *
      * @throws IOException - Cannot happen
      */
-    @Test(expected = UnsupportedOperationException.class)
+    @Test
     public void testExecPermissionsNotSupported() throws IOException {
-        initAttributes(false).isExecutable();
+        assertThrows(UnsupportedOperationException.class,
+            () -> initAttributes(false).isExecutable(),
+            "Accessing the file permissions is not permitted.");
     }
 
 }

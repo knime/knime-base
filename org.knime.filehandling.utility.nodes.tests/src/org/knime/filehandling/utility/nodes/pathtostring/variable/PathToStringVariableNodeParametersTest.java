@@ -41,42 +41,50 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * ---------------------------------------------------------------------
- *
- * History
- *   Sep 14, 2020 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
+ * ------------------------------------------------------------------------
  */
-package org.knime.filehandling.utility.nodes;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.AllTests;
-import org.knime.testing.core.AbstractTestcaseCollector;
+package org.knime.filehandling.utility.nodes.pathtostring.variable;
 
-import junit.framework.JUnit4TestAdapter;
-import junit.framework.TestSuite;
+import java.io.FileInputStream;
+import java.io.IOException;
+
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettings;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
+import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
+import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 
 /**
- * This class collects all unit tests related to the filehandling utility nodes.
+ * Snapshot test for PathToStringVariableNodeParameters.
  *
- * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
+ * @author AI Migration Pipeline v1.2
  */
-@RunWith(AllTests.class)
-public final class UtilityNodesTestcaseCollector extends AbstractTestcaseCollector {
+@SuppressWarnings("restriction")
+final class PathToStringVariableNodeParametersTest extends DefaultNodeSettingsSnapshotTest {
 
-    /**
-     * This is called via the JUnit framework in order to collect all testcases.
-     *
-     * @return a test suite with all testcases
-     *
-     * @throws Exception if something goes wrong
-     */
-    public static TestSuite suite() throws Exception { //NOSONAR
-        final TestSuite suite = new TestSuite();
+    PathToStringVariableNodeParametersTest() {
+        super(getConfig());
+    }
 
-        for (Class<?> testClass : new UtilityNodesTestcaseCollector().getUnittestsClasses()) {
-            suite.addTest(new JUnit4TestAdapter(testClass));
+    private static SnapshotTestConfiguration getConfig() {
+        return SnapshotTestConfiguration.builder() //
+            .testNodeSettingsStructure(() -> readSettings()) //
+            .build();
+    }
+
+    private static PathToStringVariableNodeParameters readSettings() {
+        try {
+            var path = getSnapshotPath(PathToStringVariableNodeParameters.class).getParent().resolve("node_settings")
+                .resolve("PathToStringVariableNodeParameters.xml");
+            try (var fis = new FileInputStream(path.toFile())) {
+                var nodeSettings = NodeSettings.loadFromXML(fis);
+                return NodeParametersUtil.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
+                    PathToStringVariableNodeParameters.class);
+            }
+        } catch (IOException | InvalidSettingsException e) {
+            throw new IllegalStateException(e);
         }
-
-        return suite;
     }
 }
