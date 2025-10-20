@@ -44,34 +44,55 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   16 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   20 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.base.node.preproc.groupby;
 
-import java.util.List;
-
-import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.node.parameters.migration.ConfigMigration;
-import org.knime.node.parameters.migration.NodeParametersMigration;
-import org.knime.node.parameters.migration.ParametersLoader;
+import org.knime.core.webui.node.dialog.FallbackDialogNodeParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
+import org.knime.node.parameters.Widget;
 
 /**
+ * Utility class for the optional parameters of the GroupBy aggregation operators.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-class LegacyColumnAggregatorsMigration implements NodeParametersMigration<ColumnAggregatorElement[]>{
+@SuppressWarnings("restriction")
+final class OptionalParameters {
 
-    @Override
-    public List<ConfigMigration<ColumnAggregatorElement[]>> getConfigMigrations() {
-        return List.of(ConfigMigration.builder(new ParametersLoader<ColumnAggregatorElement[]>() {
-
-            @Override
-            public ColumnAggregatorElement[] load(final NodeSettingsRO settings) throws InvalidSettingsException {
-                return null;
-            }
-
-        }).withMatcher(s -> false).withDeprecatedConfigPath("aggregationOperatorSettings").build());
+    private OptionalParameters() {
+        // utility
     }
 
+    /**
+     * Common interface for legacy fallback parameters and new extension point-based parameters for aggregation
+     * operators that have custom settings.
+     */
+    interface AggregationOperatorParameters extends DynamicParameters.DynamicNodeParameters {
+    }
+
+    /**
+     * Parameters to display legacy operator settings in "fallback style".
+     */
+    static final class LegacyAggregationOperatorParameters extends FallbackDialogNodeParameters
+        implements AggregationOperatorParameters {
+        public LegacyAggregationOperatorParameters(final NodeSettingsRO nodeSettings) {
+            super(nodeSettings);
+        }
+    }
+
+    /**
+     * Placeholder for new extension point-based parameters, such that we can upgrade often-used operator settings to
+     * proper node parameters with a default node dialog.
+     */
+    // TODO define via extension point
+    static final class ViaExtensionPointAggregationOperatorParameters implements AggregationOperatorParameters {
+        @Widget(title = "New param 1", description = "Coming from extension point.")
+        String m_newParam1 = "placeholder";
+    }
+
+    static final class NoOperatorParameters implements AggregationOperatorParameters {
+        // empty, no settings
+    }
 }

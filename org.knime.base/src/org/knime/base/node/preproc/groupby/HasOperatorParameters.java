@@ -44,34 +44,33 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   16 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   20 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.base.node.preproc.groupby;
 
-import java.util.List;
+import java.util.function.Supplier;
 
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.node.parameters.migration.ConfigMigration;
-import org.knime.node.parameters.migration.NodeParametersMigration;
-import org.knime.node.parameters.migration.ParametersLoader;
+import org.knime.base.data.aggregation.AggregationMethods;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.StateProvider;
 
-/**
- *
- * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
- */
-class LegacyColumnAggregatorsMigration implements NodeParametersMigration<ColumnAggregatorElement[]>{
+abstract class HasOperatorParameters implements StateProvider<Boolean> {
+
+    private Supplier<String> m_agg;
+
+    abstract Class<? extends ParameterReference<String>> getAggregationMethodRefClass();
 
     @Override
-    public List<ConfigMigration<ColumnAggregatorElement[]>> getConfigMigrations() {
-        return List.of(ConfigMigration.builder(new ParametersLoader<ColumnAggregatorElement[]>() {
+    public void init(final StateProviderInitializer init) {
+        init.computeAfterOpenDialog();
+        m_agg = init.computeFromValueSupplier(getAggregationMethodRefClass());
+    }
 
-            @Override
-            public ColumnAggregatorElement[] load(final NodeSettingsRO settings) throws InvalidSettingsException {
-                return null;
-            }
-
-        }).withMatcher(s -> false).withDeprecatedConfigPath("aggregationOperatorSettings").build());
+    @Override
+    public Boolean computeState(final NodeParametersInput in) throws StateComputationFailureException {
+        return AggregationMethods.getMethod4Id(m_agg.get()).hasOptionalSettings();
     }
 
 }

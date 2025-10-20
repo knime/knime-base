@@ -46,25 +46,12 @@
 
 package org.knime.base.node.preproc.groupby;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
-import org.knime.base.data.aggregation.AggregationMethods;
 import org.knime.base.data.aggregation.GlobalSettings;
 import org.knime.base.node.preproc.groupby.GroupByNodeModel.TypeMatch;
-import org.knime.base.node.util.regex.PatternType;
-import org.knime.core.data.DataType;
-import org.knime.core.data.DataTypeRegistry;
 import org.knime.core.node.NodeLogger;
-import org.knime.core.node.NodeSettings;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.webui.node.dialog.FallbackDialogNodeParameters;
-import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.ClassIdStrategy;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DefaultClassIdStrategy;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
-import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.node.parameters.Advanced;
 import org.knime.node.parameters.NodeParameters;
@@ -88,11 +75,7 @@ import org.knime.node.parameters.updates.StateProvider;
 import org.knime.node.parameters.updates.ValueProvider;
 import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
-import org.knime.node.parameters.widget.choices.DataTypeChoicesProvider;
 import org.knime.node.parameters.widget.choices.EnumChoicesProvider;
-import org.knime.node.parameters.widget.choices.Label;
-import org.knime.node.parameters.widget.choices.StringChoice;
-import org.knime.node.parameters.widget.choices.StringChoicesProvider;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 import org.knime.node.parameters.widget.choices.util.AllColumnsProvider;
 import org.knime.node.parameters.widget.number.NumberInputWidget;
@@ -107,7 +90,7 @@ import org.knime.node.parameters.widget.text.TextInputWidget;
 @SuppressWarnings("restriction") // internal API use
 class GroupByNodeParameters implements NodeParameters {
 
-    private static final NodeLogger LOGGER = NodeLogger.getLogger(GroupByNodeParameters.class);
+    static final NodeLogger LOGGER = NodeLogger.getLogger(GroupByNodeParameters.class);
 
     private interface Sections {
         @Section(title = "Group", description = "...")
@@ -120,9 +103,9 @@ class GroupByNodeParameters implements NodeParameters {
         }
 
         @Section(title = "Type- and pattern-based aggregation", description = "...", sideDrawer = true,
-            sideDrawerSetText = "Type/Pattern")
+                sideDrawerSetText = "Type- and pattern-based aggregations")
         @After(Aggregation.class)
-        @Advanced
+        @Advanced // TODO if no manual aggregations, the dialog looks confusing, especially if in a side drawer
         interface TypeAndPatternAggregations {
         }
 
@@ -138,17 +121,17 @@ class GroupByNodeParameters implements NodeParameters {
         }
     }
 
+    @Layout(Sections.Group.class)
+    @Persist(configKey = GroupByNodeModel.CFG_GROUP_BY_COLUMNS)
+    @Modification(GroupByColumnsModification.class)
+    LegacyStringFilter m_groupByColumns = new LegacyStringFilter(new String[0], new String[0]);
+
     static final class GroupByColumnsModification extends LegacyStringFilter.LegacyStringFilterModification {
         GroupByColumnsModification() {
             super(false, "Group settings", "DESCRIPTION", "Available column(s)", "Group column(s)",
                 AllColumnsProvider.class);
         }
     }
-
-    @Layout(Sections.Group.class)
-    @Persist(configKey = GroupByNodeModel.CFG_GROUP_BY_COLUMNS)
-    @Modification(GroupByColumnsModification.class)
-    LegacyStringFilter m_groupByColumns = new LegacyStringFilter(new String[0], new String[0]);
 
     @Layout(Sections.Aggregation.class)
     @Widget(title = "Manual", description = "...")
@@ -157,242 +140,11 @@ class GroupByNodeParameters implements NodeParameters {
     @Migration(LegacyColumnAggregatorsMigration.class)
     ColumnAggregatorElement[] m_columnAggregators = new ColumnAggregatorElement[0];
 
-    enum MissingValueOption {
-            @Label("Exclude")
-            EXCLUDE, @Label("Include")
-            INCLUDE
-    }
-
-    /**
-     * Common interface for legacy fallback parameters and new extension point-based parameters for aggregation
-     * operators that have custom settings.
-     */
-    interface AggregationOperatorParameters extends DynamicParameters.DynamicNodeParameters {
-    }
-
-    /**
-     * Parameters to display legacy operator settings in "fallback style".
-     */
-    static final class LegacyAggregationOperatorParameters extends FallbackDialogNodeParameters
-        implements AggregationOperatorParameters {
-        public LegacyAggregationOperatorParameters(final NodeSettingsRO nodeSettings) {
-            super(nodeSettings);
-        }
-    }
-
-    /**
-     * Placeholder for new extension point-based parameters, such that we can upgrade often-used operator settings to
-     * proper node parameters with a default node dialog.
-     */
-    // TODO define via extension point
-    static final class ViaExtensionPointAggregationOperatorParameters implements AggregationOperatorParameters {
-        @Widget(title = "New param 1", description = "Coming from extension point.")
-        String m_newParam1 = "placeholder";
-    }
-
-    static final class NoOperatorParameters implements AggregationOperatorParameters {
-        // empty, no settings
-    }
-
-    static final class AggregationOperatorParametersRef implements ParameterReference<AggregationOperatorParameters> {
-    }
-
-    static final class AggregationOperatorParametersProvider
-        implements DynamicParameters.DynamicParametersWithFallbackProvider<AggregationOperatorParameters> {
-
-        private Supplier<AggregationOperatorParameters> m_currentValueSupplier;
-
-        @Override
-        public void init(final StateProviderInitializer initializer) {
-            m_currentValueSupplier = initializer.getValueSupplier(AggregationOperatorParametersRef.class);
-            initializer.computeAfterOpenDialog();
-        }
-
-        @Override
-        public ClassIdStrategy getClassIdStrategy() {
-            // TODO from extension point
-            return new DefaultClassIdStrategy<>(List.of(NoOperatorParameters.class,
-                LegacyAggregationOperatorParameters.class, ViaExtensionPointAggregationOperatorParameters.class));
-        }
-
-        @Override
-        public AggregationOperatorParameters computeParameters(final NodeParametersInput parametersInput)
-            throws StateComputationFailureException {
-            final var currentValue = m_currentValueSupplier.get();
-            if (currentValue instanceof LegacyAggregationOperatorParameters fallbackParams) {
-                //                final var nodeSettings = fallbackParams.getNodeSettings();
-                //                try {
-                //                    return NodeParametersUtil.loadSettings(nodeSettings, LegacyAggregationOperatorParameters.class);
-                //                } catch (InvalidSettingsException ex) {
-                //                    return new MyDynamicParametersNodeParameters();
-                //                }
-                LOGGER.debug("instanceof fallback params");
-            } else if (currentValue != null) {
-                return currentValue;
-            }
-            return new ViaExtensionPointAggregationOperatorParameters();
-        }
-
-        @Override
-        public NodeSettings computeFallbackSettings(final NodeParametersInput parametersInput)
-            throws StateComputationFailureException {
-            // TODO only if no new params defined in ext point (then return null)
-            final var currentValue = m_currentValueSupplier.get();
-            if (currentValue instanceof LegacyAggregationOperatorParameters legacy) {
-                return legacy.getNodeSettings();
-            }
-            final var settings = new NodeSettings("settings");
-            NodeParametersUtil.saveSettings(currentValue.getClass(), currentValue, settings);
-            return settings;
-        }
-
-        @Override
-        public FallbackDialogNodeParameters getParametersFromFallback(final NodeSettingsRO fallbackSettings) {
-            return new LegacyAggregationOperatorParameters(fallbackSettings);
-        }
-
-    }
-
-    static class AggregationMethodRef implements ParameterReference<String> {
-    }
-
-    static class AggregationColumnsProvider extends AllColumnsProvider {
-    }
-
-    static class HasOperatorParameters implements StateProvider<Boolean> {
-
-        private Supplier<String> m_agg;
-
-        @Override
-        public void init(final StateProviderInitializer init) {
-            m_agg = init.computeFromValueSupplier(AggregationMethodRef.class);
-        }
-
-        @Override
-        public Boolean computeState(final NodeParametersInput in) throws StateComputationFailureException {
-            return AggregationMethods.getMethod4Id(m_agg.get()).hasOptionalSettings();
-        }
-
-    }
-
-    static final class SelectedColumnRef implements ParameterReference<String> {
-    }
-
-    static final class SelectedColumnTypeProvider implements StateProvider<DataType> {
-
-        private Supplier<String> m_columnNameSupplier;
-
-        @Override
-        public void init(final StateProviderInitializer initializer) {
-            m_columnNameSupplier = initializer.computeFromValueSupplier(SelectedColumnRef.class);
-        }
-
-        @Override
-        public DataType computeState(final NodeParametersInput parametersInput)
-            throws StateComputationFailureException {
-            final var dataTableSpec = parametersInput.getInTableSpecs();
-            if (dataTableSpec.length <= 0) {
-                return null;
-            }
-            final var dcs = dataTableSpec[0].getColumnSpec(m_columnNameSupplier.get());
-            if (dcs == null) {
-                return null;
-            }
-            return dcs.getType();
-        }
-
-    }
-
-    static class AggregationMethodChoices implements StringChoicesProvider {
-
-        private Supplier<String> m_column;
-
-        @Override
-        public void init(final StateProviderInitializer initializer) {
-            initializer.computeBeforeOpenDialog();
-            m_column = initializer.computeFromValueSupplier(SelectedColumnRef.class);
-        }
-
-        @Override
-        public List<StringChoice> computeState(final NodeParametersInput parametersInput) {
-            final var dts = parametersInput.getInTableSpec(0).orElseThrow();
-            final var column = dts.getColumnSpec(m_column.get());
-            if (column == null) {
-                return List.of();
-            }
-            final var type = column.getType();
-            return AggregationMethods.getCompatibleMethods(type, true).stream()
-                .map(agg -> new StringChoice(agg.getId(), agg.getLabel())
-                ).toList();
-        }
-
-    }
-
-    static class ColumnAggregatorElement implements NodeParameters {
-        @Widget(title = "Column", description = "The column to aggregate")
-        @ChoicesProvider(AggregationColumnsProvider.class)
-        @ValueReference(SelectedColumnRef.class)
-        String m_column;
-
-        // not exposed in UI, but we need this for saving aggregation operators to the settings in the legacy persistor
-        @ValueProvider(SelectedColumnTypeProvider.class)
-        DataType m_dataType;
-
-        @Widget(title = "Aggregation", description = "The aggregation method to use")
-//        @SubParameters(subLayoutRoot = AggregationOperatorParametersRef.class,
-//            showSubParametersProvider = HasOperatorParameters.class)
-        @ValueReference(AggregationMethodRef.class)
-        @ChoicesProvider(AggregationMethodChoices.class)
-        String m_aggregationMethod;
-
-        @Widget(title = "Missing values", description = "")
-        @ValueSwitchWidget
-        MissingValueOption m_includeMissing = MissingValueOption.EXCLUDE;
-
-        // TODO show new parameters via extension point if defined
-        @DynamicParameters(value = AggregationOperatorParametersProvider.class,
-            widgetAppearingInNodeDescription = @Widget(title = "Operator settings", description = "...",
-                advanced = true))
-        @ValueReference(AggregationOperatorParametersRef.class)
-//        @Layout(AggregationOperatorParametersRef.class)
-        AggregationOperatorParameters m_parameters = new NoOperatorParameters();
-    }
-
     @Layout(Sections.TypeAndPatternAggregations.class)
     @Widget(title = "Pattern", description = "...")
     @ArrayWidget(addButtonText = "Add pattern")
     @Persistor(LegacyPatternAggregatorsPersistor.class)
     PatternAggregatorElement[] m_patternAggregators = new PatternAggregatorElement[0];
-
-    static class PatternAggregatorElement implements NodeParameters {
-        @Widget(title = "Search pattern", description = "The search pattern to match column names")
-        String m_pattern;
-
-        static final class PatternTypeChoices implements EnumChoicesProvider<PatternType> {
-            @Override
-            public List<PatternType> choices(final NodeParametersInput context) {
-                return List.of(PatternType.WILDCARD, PatternType.REGEX);
-            }
-        }
-
-        @Widget(title = "Pattern type", description = "...")
-        @ValueSwitchWidget
-        @ChoicesProvider(PatternTypeChoices.class)
-        PatternType m_isRegex = PatternType.WILDCARD;
-
-        @Widget(title = "Aggregation", description = "The aggregation method to use")
-        String m_aggregationMethod;
-
-        @Widget(title = "Missing values", description = "")
-        @ValueSwitchWidget
-        MissingValueOption m_includeMissing = MissingValueOption.EXCLUDE;
-
-        @Widget(title = "Parameter", description = "...")
-        String m_parameters = "";
-    }
-
-    static final class TypeAggregationsRef implements ParameterReference<DataTypeAggregatorElement[]> {
-    }
 
     @Layout(Sections.TypeAndPatternAggregations.class)
     @Widget(title = "Type", description = "...")
@@ -401,29 +153,16 @@ class GroupByNodeParameters implements NodeParameters {
     @ValueReference(TypeAggregationsRef.class)
     DataTypeAggregatorElement[] m_dataTypeAggregators = new DataTypeAggregatorElement[0];
 
-    static final class RegisteredTypesChoicesProvider implements DataTypeChoicesProvider {
-        @Override
-        public List<DataType> choices(final NodeParametersInput context) {
-            final var registered = DataTypeRegistry.getInstance().availableDataTypes();
-            return registered instanceof List<DataType> list ? list : new ArrayList<>(registered);
-        }
+    static final class TypeAggregationsRef implements ParameterReference<DataTypeAggregatorElement[]> {
     }
 
-    static class DataTypeAggregatorElement implements NodeParameters {
-        @Widget(title = "Data Type", description = "The data type to aggregate")
-        @ChoicesProvider(RegisteredTypesChoicesProvider.class)
-        DataType m_dataType;
-
-        @Widget(title = "Aggregation", description = "The aggregation method to use")
-        String m_aggregationMethod;
-
-        @Widget(title = "Missing values", description = "")
-        @ValueSwitchWidget
-        MissingValueOption m_includeMissing = MissingValueOption.EXCLUDE;
-
-        @Widget(title = "Parameter", description = "...")
-        String m_parameters = "";
-    }
+    @Layout(Sections.TypeAndPatternAggregations.class)
+    @Effect(predicate = HasTypeAggregations.class, type = EffectType.SHOW)
+    @Widget(title = "Type matching", description = "...", advanced = true)
+    @ChoicesProvider(TypeMatchChoicesProvider.class)
+    @ValueSwitchWidget
+    @Persistor(LegacyTypeMatchPersistor.class)
+    TypeMatch m_typeMatch = TypeMatch.STRICT;
 
     static final class TypeMatchChoicesProvider implements EnumChoicesProvider<TypeMatch> {
         @Override
@@ -440,13 +179,11 @@ class GroupByNodeParameters implements NodeParameters {
         }
     }
 
-    @Layout(Sections.TypeAndPatternAggregations.class)
-    @Effect(predicate = HasTypeAggregations.class, type = EffectType.SHOW)
-    @Widget(title = "Type matching", description = "...", advanced = true)
-    @ChoicesProvider(TypeMatchChoicesProvider.class)
-    @ValueSwitchWidget
-    @Persistor(LegacyTypeMatchPersistor.class)
-    TypeMatch m_typeMatch = TypeMatch.STRICT;
+    @Layout(Sections.Output.class)
+    @Widget(title = "Column naming", description = "...")
+    @ChoicesProvider(ColumnNamePolicyChoicesProvider.class)
+    @Persistor(LegacyColumnNamePolicyPersistor.class)
+    ColumnNamePolicy m_columnNamePolicy = ColumnNamePolicy.getDefault();
 
     static final class ColumnNamePolicyChoicesProvider implements EnumChoicesProvider<ColumnNamePolicy> {
         @Override
@@ -454,12 +191,6 @@ class GroupByNodeParameters implements NodeParameters {
             return List.of(ColumnNamePolicy.values());
         }
     }
-
-    @Layout(Sections.Output.class)
-    @Widget(title = "Column naming", description = "...")
-    @ChoicesProvider(ColumnNamePolicyChoicesProvider.class)
-    @Persistor(LegacyColumnNamePolicyPersistor.class)
-    ColumnNamePolicy m_columnNamePolicy = ColumnNamePolicy.getDefault();
 
     @Layout(Sections.Output.class)
     @Widget(title = "Maximum unique values per group", description = "...")
@@ -479,17 +210,14 @@ class GroupByNodeParameters implements NodeParameters {
     @Persist(configKey = GroupByNodeModel.CFG_ENABLE_HILITE)
     boolean m_enableHiliting;
 
-    static final class ProcessInMemoryRef implements ParameterReference<Boolean> {
-        // empty class used for EffectPredicateProvider
-    }
-
     @Layout(Sections.Performance.class)
     @Widget(title = "Process in memory", description = "...")
     @ValueReference(ProcessInMemoryRef.class)
     @Persist(configKey = GroupByNodeModel.CFG_IN_MEMORY)
     boolean m_processInMemory;
 
-    static final class RetainOrderRef implements ParameterReference<Boolean> {
+    static final class ProcessInMemoryRef implements ParameterReference<Boolean> {
+        // empty class used for EffectPredicateProvider
     }
 
     @Layout(Sections.Performance.class)
@@ -500,9 +228,9 @@ class GroupByNodeParameters implements NodeParameters {
     @Persist(configKey = GroupByNodeModel.CFG_RETAIN_ORDER)
     boolean m_retainOrder;
 
-    /**
-     * Effect class for when process in memory setting changes.
-     */
+    static final class RetainOrderRef implements ParameterReference<Boolean> {
+    }
+
     static final class ProcessInMemoryEffect implements EffectPredicateProvider, StateProvider<Boolean> {
 
         private Supplier<Boolean> m_processInMemoryChange;
