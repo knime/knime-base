@@ -48,7 +48,7 @@
  */
 package org.knime.filehandling.utility.nodes.metainfo.attributes;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -60,9 +60,8 @@ import java.nio.file.attribute.PosixFileAttributes;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.knime.core.data.DataType;
 import org.knime.core.data.def.BooleanCell;
 import org.knime.core.data.def.BooleanCell.BooleanCellFactory;
@@ -71,26 +70,24 @@ import org.knime.core.data.def.LongCell.LongCellFactory;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.data.time.localdatetime.LocalDateTimeCellFactory;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
 
 /**
  * Unit tests for the KNIMEFileAttributes.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-@RunWith(MockitoJUnitRunner.class)
 public class KNIMEFileAttributesConverterTest {
 
     @Mock
-    private Path m_path = null;
+    private Path m_path = mock(Path.class);
 
-    BasicFileAttributes m_basicFileAttributes = null;
+    private static BasicFileAttributes m_basicFileAttributes = null;
 
     /**
      * Initializes the {@link PosixFileAttributes} mock.
      */
-    @Before
-    public void init() {
+    @BeforeAll
+    public static void init() {
         m_basicFileAttributes = mock(BasicFileAttributes.class);
     }
 

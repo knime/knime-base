@@ -48,7 +48,7 @@
  */
 package org.knime.filehandling.utility.nodes.metainfo.attributes;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -57,32 +57,29 @@ import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
 
 /**
  * Unit tests for the KNIMEFileAttributes.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-@RunWith(MockitoJUnitRunner.class)
 public abstract class KNIMEFileAttributesTest {
 
-    private BasicFileAttributes m_fileAttributes = null;
+    private static BasicFileAttributes m_fileAttributes = null;
 
     /**
      * Initializes the {@link BasicFileAttributes} mock
      */
-    @Before
-    public void init() {
+    @BeforeAll
+    public static void init() {
         m_fileAttributes = mock(BasicFileAttributes.class);
     }
 
     @Mock
-    private Path m_path = null;
+    private Path m_path = mock(Path.class);
 
     /**
      * Tests the is directory accessor.

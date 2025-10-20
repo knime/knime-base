@@ -48,16 +48,36 @@
  */
 package org.knime.filehandling.utility.nodes.pathtostring.variable;
 
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
 
 /**
  * The {@link NodeFactory} to create the path to string (variable) node model.
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
+ * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.2
  */
-public final class PathToStringVariableNodeFactory extends NodeFactory<PathToStringVariableNodeModel> {
+@SuppressWarnings("restriction")
+public final class PathToStringVariableNodeFactory extends NodeFactory<PathToStringVariableNodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     @Override
     public PathToStringVariableNodeModel createNodeModel() {
@@ -70,7 +90,8 @@ public final class PathToStringVariableNodeFactory extends NodeFactory<PathToStr
     }
 
     @Override
-    public NodeView<PathToStringVariableNodeModel> createNodeView(final int viewIndex, final PathToStringVariableNodeModel nodeModel) {
+    public NodeView<PathToStringVariableNodeModel> createNodeView(final int viewIndex,
+        final PathToStringVariableNodeModel nodeModel) {
         return null;
     }
 
@@ -78,10 +99,71 @@ public final class PathToStringVariableNodeFactory extends NodeFactory<PathToStr
     protected boolean hasDialog() {
         return true;
     }
+    private static final String NODE_NAME = "Path to String (Variable)";
+    private static final String NODE_ICON = "../pathtostring.png";
+    private static final String SHORT_DESCRIPTION = """
+            Converts Path variables into String variables.
+            """;
+    private static final String FULL_DESCRIPTION = """
+            <p>This node converts the selected <a
+                href="https://docs.knime.com/2021-06/analytics_platform_file_handling_guide/index.html#path"> path flow
+                variables</a> into variables of type string.</p> <p> <i>More information about file handling in KNIME
+                can be found in the official</i> <a
+                href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html"><i>File Handling
+                Guide.</i></a> </p>
+            """;
+    private static final List<PortDescription> INPUT_PORTS = List.of(
+            fixedPort("Input variables", """
+                Input variables.
+                """)
+    );
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(
+            fixedPort("Appended variables", """
+                Input variables with additional converted String variables.
+                """)
+    );
+
+    /**
+     * @since 5.9
+     */
+    @Override
+    public NodeDialogPane createNodeDialogPane() {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    /**
+     * @since 5.9
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, PathToStringVariableNodeParameters.class);
+    }
 
     @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new PathToStringVariableNodeDialog();
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription(
+            NODE_NAME,
+            NODE_ICON,
+            INPUT_PORTS,
+            OUTPUT_PORTS,
+            SHORT_DESCRIPTION,
+            FULL_DESCRIPTION,
+            List.of(),
+            PathToStringVariableNodeParameters.class,
+            null,
+            NodeType.Manipulator,
+            List.of(),
+            null
+        );
     }
+
+    /**
+     * @since 5.9
+     */
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, PathToStringVariableNodeParameters.class));
+    }
+
 
 }

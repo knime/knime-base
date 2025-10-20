@@ -98,11 +98,11 @@ final class PathToStringVariableNodeModel extends NodeModel {
 
     static final String CFG_VARIABLE_FILTER = "variable_filter";
 
-    private static final String CFG_ON_FV_CONFLICT_MAKE_UNIQUE = "on_fv_conflict_make_unique";
+    static final String CFG_ON_FV_CONFLICT_MAKE_UNIQUE = "on_fv_conflict_make_unique";
 
-    private static final String CFG_CREATED_VARIABLE_NAME = "suffix";
+    static final String CFG_CREATED_VARIABLE_NAME = "suffix";
 
-    private static final String CFG_CREATE_KNIME_URL = "create_knime_url";
+    static final String CFG_CREATE_KNIME_URL = "create_knime_url";
 
     /* Since 5.3 (AP-19943) */
     private SettingsModelBoolean m_onFVConflictMakeUnique = createSettingsModelOnFVConflictMakeUnique();

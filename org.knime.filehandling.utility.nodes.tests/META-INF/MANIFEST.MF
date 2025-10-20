@@ -2,14 +2,15 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Unit-Tests for org.knime.filehandling.utility.nodes
 Bundle-SymbolicName: org.knime.filehandling.utility.nodes.tests;singleton:=true
-Bundle-Version: 5.6.0.qualifier
+Bundle-Version: 5.9.0.qualifier
 Bundle-Vendor: KNIME AG, Zurich, Switzerland
-Fragment-Host: org.knime.filehandling.utility.nodes;bundle-version="[5.6.0,6.0.0)"
+Fragment-Host: org.knime.filehandling.utility.nodes;bundle-version="[5.9.0,6.0.0)"
 Automatic-Module-Name: org.knime.filehandling.utility.nodes.tests
 Bundle-RequiredExecutionEnvironment: JavaSE-17
 Require-Bundle: org.knime.testing;bundle-version="[5.6.0,6.0.0)",
- org.junit;bundle-version="[4.13.0,5.0.0)",
  org.mockito.mockito-core;bundle-version="[5.18.0,6.0.0)",
  org.hamcrest.library;bundle-version="[2.2.0,3.0.0)",
- org.hamcrest;bundle-version="[2.2.0,3.0.0)"
+ org.hamcrest.core;bundle-version="[2.2.0,3.0.0)",
+ org.knime.core.ui.testing;bundle-version="[5.8.0,6.0.0)",
+ junit-jupiter-api;bundle-version="[5.10.2,6.0.0)"
 
