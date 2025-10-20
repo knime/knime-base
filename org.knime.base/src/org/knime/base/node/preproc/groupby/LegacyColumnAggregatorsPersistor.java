@@ -47,16 +47,20 @@
 package org.knime.base.node.preproc.groupby;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.knime.base.data.aggregation.AggregationMethods;
 import org.knime.base.data.aggregation.ColumnAggregator;
 import org.knime.base.node.preproc.groupby.GroupByNodeParameters.AggMethod;
 import org.knime.base.node.preproc.groupby.GroupByNodeParameters.ColumnAggregatorElement;
 import org.knime.base.node.preproc.groupby.GroupByNodeParameters.LegacyAggregationOperatorParameters;
 import org.knime.base.node.preproc.groupby.GroupByNodeParameters.MissingValueOption;
+import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.util.MutableInteger;
@@ -69,37 +73,78 @@ import org.knime.node.parameters.persistence.NodeParametersPersistor;
  */
 final class LegacyColumnAggregatorsPersistor implements NodeParametersPersistor<ColumnAggregatorElement[]> {
 
-    // key from ColumnAggregator
-    private static final String CFG_OPERATOR_SETTINGS = "aggregationOperatorSettings";
+    // The implementation follows ColumnAggregator persistence closely
+
+    private static final String CNFG_AGGREGATION_OPERATOR_SETTINGS = "aggregationOperatorSettings";
+
+    private static final String CNFG_AGGR_COL_SECTION = "aggregationColumn";
+
+    private static final String CNFG_COL_NAMES = "columnNames";
+
+    private static final String CNFG_COL_TYPES = "columnTypes";
+
+    private static final String CNFG_AGGR_METHOD = "aggregationMethod";
+
+    private static final String CNFG_INCL_MISSING = "inclMissingVals";
 
     @Override
     public ColumnAggregatorElement[] load(final NodeSettingsRO settings) throws InvalidSettingsException {
         final var aggregators = ColumnAggregator.loadColumnAggregators(settings);
-        // like #loadColumnAggregators did it, but it does not expose the data to us,
-        // only to the custom operator dialogs
-        final var operatorSettings = settings.containsKey(CFG_OPERATOR_SETTINGS)
-            ? settings.getNodeSettings(CFG_OPERATOR_SETTINGS) : settings;
 
+        // the ColumnAggregator object does not make the operator-specific settings available
         final List<ColumnAggregatorElement> elements = new ArrayList<>();
         final var idMap = new HashMap<String, MutableInteger>();
         for (final var aggr : aggregators) {
             final var element = new ColumnAggregatorElement();
             element.m_column = aggr.getOriginalColName();
+            element.m_dataType = aggr.getOriginalDataType();
             element.m_aggregationMethod = new AggMethod(aggr.getId(), aggr.hasOptionalSettings());
             element.m_includeMissing =
                 aggr.inclMissingCells() ? MissingValueOption.INCLUDE : MissingValueOption.EXCLUDE;
             if (aggr.hasOptionalSettings()) {
-                final var settingsForOperator = operatorSettings.getNodeSettings(createSettingsKey(idMap, aggr));
-                element.m_parameters = new LegacyAggregationOperatorParameters(settingsForOperator);
+                final var operatorSettings =
+                    new NodeSettings(createSettingsKey(idMap, aggr.getId(), aggr.getOriginalColName()));
+                aggr.saveSettingsTo(operatorSettings);
+                element.m_parameters = new LegacyAggregationOperatorParameters(operatorSettings);
             }
             elements.add(element);
         }
         return elements.toArray(new ColumnAggregatorElement[0]);
     }
 
-    private static String createSettingsKey(final Map<String, MutableInteger> idMap, final ColumnAggregator aggr) {
+    @SuppressWarnings("restriction")
+    @Override
+    public void save(final ColumnAggregatorElement[] elems, final NodeSettingsWO settings) {
+        final var aggregators = Arrays.stream(elems).map(LegacyColumnAggregatorsPersistor::mapToAggregator).toList();
+        ColumnAggregator.saveColumnAggregators(settings, aggregators);
+        final var operatorSettings = settings.addNodeSettings(CNFG_AGGREGATION_OPERATOR_SETTINGS);
+        // we need to recreate the key for each operator's optional settings, because the fallback extraction
+        // names it "extracted model settings"
+        final var idMap = new HashMap<String, MutableInteger>();
+        for (final var elem : elems) {
+            if (elem.m_parameters instanceof LegacyAggregationOperatorParameters legacyParams) {
+                final var extractedSettings = legacyParams.getNodeSettings();
+                final var settingsToSaveInto =
+                    new NodeSettings(createSettingsKey(idMap, elem.m_aggregationMethod.m_id, elem.m_column));
+                extractedSettings.copyTo(settingsToSaveInto);
+                operatorSettings.addNodeSettings(settingsToSaveInto);
+            }
+        }
+    }
+
+    private static ColumnAggregator mapToAggregator(final ColumnAggregatorElement colAggElem) {
+        // we just need the objects to save to settings, not construct an executable aggregator
+        final var dcs = new DataColumnSpecCreator(colAggElem.m_column, colAggElem.m_dataType).createSpec();
+        final var method = AggregationMethods.getMethod4Id(colAggElem.m_aggregationMethod.m_id);
+        final var includeMissing = colAggElem.m_includeMissing == MissingValueOption.INCLUDE;
+        return new ColumnAggregator(dcs, method, includeMissing);
+    }
+
+
+    private static String createSettingsKey(final Map<String, MutableInteger> idMap, final String operatorID,
+        final String originalColName) {
         // see ColumnAggregator#createSettingsKey
-        final var id = String.join("_", aggr.getId(), aggr.getOriginalColName());
+        final var id = String.join("_", operatorID, originalColName);
         final var count = idMap.get(id); // NOSONAR compute does not work, because we need to distinguish null and 0 from previous call
         if (count == null) {
             idMap.put(id, new MutableInteger(0));
@@ -108,34 +153,10 @@ final class LegacyColumnAggregatorsPersistor implements NodeParametersPersistor<
         count.inc();
         return id + "_" + count.intValue();
     }
-
-    @Override
-    public void save(final ColumnAggregatorElement[] obj, final NodeSettingsWO settings) {
-
-//        ColumnAggregator.saveColumnAggregators(settings, aggregators);
-//        aggSettings.addInt("numAggregators", obj.length);
-//
-//        for (int i = 0; i < obj.length; i++) {
-//            final NodeSettingsWO aggrSetting = aggSettings.addNodeSettings("aggregator_" + i);
-//            try {
-//                final ColumnAggregator aggr = new ColumnAggregator(
-//                    obj[i].column,
-//                    obj[i].aggregationMethod,
-//                    obj[i].includeMissing);
-//                aggr.saveSettingsTo(aggrSetting);
-//            } catch (Exception ex) {
-//                // Skip invalid aggregators
-//            }
-//        }
-    }
-
     @Override
     public String[][] getConfigPaths() {
-        return new String[][] {
-            new String[] { "aggregationColumn", "columnNames" },
-            new String[] { "aggregationColumn", "columnTypes" },
-            new String[] { "aggregationColumn", "aggregationMethod" },
-            new String[] { "aggregationColumn", "inclMissingVals" }
-            };
+        return new String[][]{new String[]{CNFG_AGGR_COL_SECTION, CNFG_COL_NAMES},
+            new String[]{CNFG_AGGR_COL_SECTION, CNFG_COL_TYPES}, new String[]{CNFG_AGGR_COL_SECTION, CNFG_AGGR_METHOD},
+            new String[]{CNFG_AGGR_COL_SECTION, CNFG_INCL_MISSING}};
     }
 }

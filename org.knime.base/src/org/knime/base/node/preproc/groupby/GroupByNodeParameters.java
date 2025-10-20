@@ -192,7 +192,7 @@ class GroupByNodeParameters implements NodeParameters {
         // empty, no settings
     }
 
-    static final class AggregationoperatorParametersRef implements ParameterReference<AggregationOperatorParameters> {
+    static final class AggregationOperatorParametersRef implements ParameterReference<AggregationOperatorParameters> {
     }
 
     static final class AggregationOperatorParametersProvider
@@ -202,7 +202,7 @@ class GroupByNodeParameters implements NodeParameters {
 
         @Override
         public void init(final StateProviderInitializer initializer) {
-            m_currentValueSupplier = initializer.getValueSupplier(AggregationoperatorParametersRef.class);
+            m_currentValueSupplier = initializer.getValueSupplier(AggregationOperatorParametersRef.class);
             initializer.computeAfterOpenDialog();
         }
 
@@ -290,13 +290,42 @@ class GroupByNodeParameters implements NodeParameters {
         }
     }
 
+    static final class SelectedColumnRef implements ParameterReference<String> {
+    }
+
+    static final class SelectedColumnTypeProvider implements StateProvider<DataType> {
+
+        private Supplier<String> m_columnNameSupplier;
+
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            m_columnNameSupplier = initializer.computeFromValueSupplier(SelectedColumnRef.class);
+        }
+
+        @Override
+        public DataType computeState(final NodeParametersInput parametersInput)
+            throws StateComputationFailureException {
+            final var columnName = m_columnNameSupplier.get();
+            final var dataTableSpec = parametersInput.getInTableSpecs();
+            if (dataTableSpec.length <= 0) {
+                return null;
+            }
+            return dataTableSpec[0].getColumnSpec(columnName).getType();
+        }
+
+    }
+
     static class ColumnAggregatorElement implements NodeParameters {
         @Widget(title = "Column", description = "The column to aggregate")
         @ChoicesProvider(AggregationColumnsProvider.class)
+        @ValueReference(SelectedColumnRef.class)
         String m_column;
 
+        @ValueProvider(SelectedColumnTypeProvider.class)
+        DataType m_dataType;
+
         @Widget(title = "Aggregation", description = "The aggregation method to use")
-        @SubParameters(subLayoutRoot = AggregationoperatorParametersRef.class,
+        @SubParameters(subLayoutRoot = AggregationOperatorParametersRef.class,
             showSubParametersProvider = HasOperatorParameters.class)
         @ValueReference(AggregationMethodRef.class)
         // TODO fill choices via extension point (show labels instead of IDs)
@@ -310,8 +339,8 @@ class GroupByNodeParameters implements NodeParameters {
         @DynamicParameters(value = AggregationOperatorParametersProvider.class,
             widgetAppearingInNodeDescription = @Widget(title = "Operator settings", description = "...",
                 advanced = true))
-        @ValueReference(AggregationoperatorParametersRef.class)
-        @Layout(AggregationoperatorParametersRef.class)
+        @ValueReference(AggregationOperatorParametersRef.class)
+        @Layout(AggregationOperatorParametersRef.class)
         AggregationOperatorParameters m_parameters = new NoOperatorParameters();
     }
 
