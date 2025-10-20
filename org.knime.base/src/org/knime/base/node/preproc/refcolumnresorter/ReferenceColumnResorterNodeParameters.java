@@ -51,7 +51,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.StringValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
@@ -87,22 +86,29 @@ class ReferenceColumnResorterNodeParameters implements NodeParameters {
     }
 
     ReferenceColumnResorterNodeParameters(final NodeParametersInput context) {
-        final var firstCol = context.getInTableSpec(0).stream().flatMap(DataTableSpec::stream).findFirst();
+        final var firstCol = ColumnSelectionUtil.getFirstCompatibleColumn(context, 1, StringValue.class);
         if (firstCol.isPresent()) {
             m_orderColumn = firstCol.get().getName();
         }
     }
 
+    static final class StringColumnSecondPortProvider extends StringColumnsProvider {
+        @Override
+        public int getInputTableIndex() {
+            return 1;
+        }
+    }
+
     @Widget(title = "Order column",
-            description = "The column in the second input storing the ordered list of column names in the first input.")
-    @ChoicesProvider(StringColumnsProvider.class)
+        description = "The column in the second input storing the ordered list of column names in the first input.")
+    @ChoicesProvider(StringColumnSecondPortProvider.class)
     @ValueReference(OrderColumnRef.class)
     @ValueProvider(OrderColumnProvider.class)
     @Persist(configKey = ReferenceColumnResorterNodeModel.CFGKEY_ORDERCOL)
     String m_orderColumn;
 
     @Widget(title = "Strategy for unspecified columns",
-            description = "Strategy for handling columns whose positions are not specified by the second input:")
+        description = "Strategy for handling columns whose positions are not specified by the second input:")
     @ValueSwitchWidget
     @Persistor(UnspecifiedStrategyPersistor.class)
     UnspecifiedStrategy m_strategy = UnspecifiedStrategy.LAST;
@@ -118,7 +124,7 @@ class ReferenceColumnResorterNodeParameters implements NodeParameters {
 
         @Override
         protected Optional<DataColumnSpec> autoGuessColumn(final NodeParametersInput parametersInput) {
-            return ColumnSelectionUtil.getFirstCompatibleColumnOfFirstPort(parametersInput, StringValue.class);
+            return ColumnSelectionUtil.getFirstCompatibleColumn(parametersInput, 1, StringValue.class);
         }
 
     }
@@ -152,24 +158,26 @@ class ReferenceColumnResorterNodeParameters implements NodeParameters {
         }
 
         private String createInvalidSettingsExceptionMessage(final String name) {
-            var values = Arrays.stream(ReferenceColumnResorterNodeModel.AVAILABLE_STRATEGIES)
-                    .collect(Collectors.joining(", "));
+            var values =
+                Arrays.stream(ReferenceColumnResorterNodeModel.AVAILABLE_STRATEGIES).collect(Collectors.joining(", "));
             return String.format("Invalid value '%s'. Possible values: %s", name, values);
         }
 
     }
 
     enum UnspecifiedStrategy {
-        @Label(value = "Last", description = "Put columns whose positions are not specified by the second input in "
-            + "their original order at the last positions.")
-        LAST,
+            @Label(value = "Last", description = "Put columns whose positions are not specified by the second input in "
+                + "their original order at the last positions.")
+            LAST,
 
-        @Label(value = "First", description = "Put columns whose positions are not specified by the second input in "
-            + "their original order at the first positions.")
-        FIRST,
+            @Label(value = "First",
+                description = "Put columns whose positions are not specified by the second input in "
+                    + "their original order at the first positions.")
+            FIRST,
 
-        @Label(value = "Drop", description = "Drop the columns whose positions are not specified by the second input.")
-        DROP
+            @Label(value = "Drop",
+                description = "Drop the columns whose positions are not specified by the second input.")
+            DROP
     }
 
 }

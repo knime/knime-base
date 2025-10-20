@@ -1,7 +1,7 @@
 {
   "data" : {
     "model" : {
-      "orderColumn" : "Column1",
+      "orderColumn" : "Cluster Membership",
       "strategy" : "LAST"
     }
   },
@@ -15,7 +15,7 @@
             "type" : "string",
             "title" : "Order column",
             "description" : "The column in the second input storing the ordered list of column names in the first input.",
-            "default" : "Column1"
+            "default" : "Cluster Membership"
           },
           "strategy" : {
             "oneOf" : [ {
@@ -74,22 +74,8 @@
     "values" : [ {
       "indices" : [ ],
       "value" : [ {
-        "id" : "Column1",
-        "text" : "Column1",
-        "type" : {
-          "id" : "org.knime.core.data.StringValue",
-          "text" : "String"
-        }
-      }, {
-        "id" : "Column2",
-        "text" : "Column2",
-        "type" : {
-          "id" : "org.knime.core.data.StringValue",
-          "text" : "String"
-        }
-      }, {
-        "id" : "Column3",
-        "text" : "Column3",
+        "id" : "Cluster Membership",
+        "text" : "Cluster Membership",
         "type" : {
           "id" : "org.knime.core.data.StringValue",
           "text" : "String"
