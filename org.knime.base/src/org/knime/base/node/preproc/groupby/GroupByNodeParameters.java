@@ -50,6 +50,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
+import org.knime.base.data.aggregation.AggregationMethods;
 import org.knime.base.data.aggregation.GlobalSettings;
 import org.knime.base.node.preproc.groupby.GroupByNodeModel.TypeMatch;
 import org.knime.base.node.util.regex.PatternType;
@@ -73,7 +74,6 @@ import org.knime.node.parameters.array.ArrayWidget;
 import org.knime.node.parameters.layout.After;
 import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.layout.Section;
-import org.knime.node.parameters.layout.SubParameters;
 import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
 import org.knime.node.parameters.migration.Migration;
 import org.knime.node.parameters.persistence.Persist;
@@ -91,6 +91,8 @@ import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.DataTypeChoicesProvider;
 import org.knime.node.parameters.widget.choices.EnumChoicesProvider;
 import org.knime.node.parameters.widget.choices.Label;
+import org.knime.node.parameters.widget.choices.StringChoice;
+import org.knime.node.parameters.widget.choices.StringChoicesProvider;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 import org.knime.node.parameters.widget.choices.util.AllColumnsProvider;
 import org.knime.node.parameters.widget.number.NumberInputWidget;
@@ -251,7 +253,7 @@ class GroupByNodeParameters implements NodeParameters {
 
     }
 
-    static class AggregationMethodRef implements ParameterReference<AggMethod> {
+    static class AggregationMethodRef implements ParameterReference<String> {
     }
 
     static class AggregationColumnsProvider extends AllColumnsProvider {
@@ -259,35 +261,18 @@ class GroupByNodeParameters implements NodeParameters {
 
     static class HasOperatorParameters implements StateProvider<Boolean> {
 
-        private Supplier<AggMethod> m_aggMethod;
+        private Supplier<String> m_agg;
 
         @Override
         public void init(final StateProviderInitializer init) {
-            m_aggMethod = init.computeFromValueSupplier(AggregationMethodRef.class);
+            m_agg = init.computeFromValueSupplier(AggregationMethodRef.class);
         }
 
         @Override
         public Boolean computeState(final NodeParametersInput in) throws StateComputationFailureException {
-            return m_aggMethod.get().m_hasOptionalSettings;
+            return AggregationMethods.getMethod4Id(m_agg.get()).hasOptionalSettings();
         }
 
-    }
-
-    static final class AggMethod implements NodeParameters {
-
-        @Widget(title = "Aggregation", description = "...")
-        String m_id;
-
-        private boolean m_hasOptionalSettings;
-
-        AggMethod() {
-            // for serialization
-        }
-
-        AggMethod(final String id, final boolean hasOptionalSettings) {
-            m_id = id;
-            m_hasOptionalSettings = hasOptionalSettings;
-        }
     }
 
     static final class SelectedColumnRef implements ParameterReference<String> {
@@ -305,12 +290,40 @@ class GroupByNodeParameters implements NodeParameters {
         @Override
         public DataType computeState(final NodeParametersInput parametersInput)
             throws StateComputationFailureException {
-            final var columnName = m_columnNameSupplier.get();
             final var dataTableSpec = parametersInput.getInTableSpecs();
             if (dataTableSpec.length <= 0) {
                 return null;
             }
-            return dataTableSpec[0].getColumnSpec(columnName).getType();
+            final var dcs = dataTableSpec[0].getColumnSpec(m_columnNameSupplier.get());
+            if (dcs == null) {
+                return null;
+            }
+            return dcs.getType();
+        }
+
+    }
+
+    static class AggregationMethodChoices implements StringChoicesProvider {
+
+        private Supplier<String> m_column;
+
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            initializer.computeBeforeOpenDialog();
+            m_column = initializer.computeFromValueSupplier(SelectedColumnRef.class);
+        }
+
+        @Override
+        public List<StringChoice> computeState(final NodeParametersInput parametersInput) {
+            final var dts = parametersInput.getInTableSpec(0).orElseThrow();
+            final var column = dts.getColumnSpec(m_column.get());
+            if (column == null) {
+                return List.of();
+            }
+            final var type = column.getType();
+            return AggregationMethods.getCompatibleMethods(type, true).stream()
+                .map(agg -> new StringChoice(agg.getId(), agg.getLabel())
+                ).toList();
         }
 
     }
@@ -321,15 +334,16 @@ class GroupByNodeParameters implements NodeParameters {
         @ValueReference(SelectedColumnRef.class)
         String m_column;
 
+        // not exposed in UI, but we need this for saving aggregation operators to the settings in the legacy persistor
         @ValueProvider(SelectedColumnTypeProvider.class)
         DataType m_dataType;
 
         @Widget(title = "Aggregation", description = "The aggregation method to use")
-        @SubParameters(subLayoutRoot = AggregationOperatorParametersRef.class,
-            showSubParametersProvider = HasOperatorParameters.class)
+//        @SubParameters(subLayoutRoot = AggregationOperatorParametersRef.class,
+//            showSubParametersProvider = HasOperatorParameters.class)
         @ValueReference(AggregationMethodRef.class)
-        // TODO fill choices via extension point (show labels instead of IDs)
-        AggMethod m_aggregationMethod;
+        @ChoicesProvider(AggregationMethodChoices.class)
+        String m_aggregationMethod;
 
         @Widget(title = "Missing values", description = "")
         @ValueSwitchWidget
@@ -340,7 +354,7 @@ class GroupByNodeParameters implements NodeParameters {
             widgetAppearingInNodeDescription = @Widget(title = "Operator settings", description = "...",
                 advanced = true))
         @ValueReference(AggregationOperatorParametersRef.class)
-        @Layout(AggregationOperatorParametersRef.class)
+//        @Layout(AggregationOperatorParametersRef.class)
         AggregationOperatorParameters m_parameters = new NoOperatorParameters();
     }
 

@@ -54,7 +54,6 @@ import java.util.Map;
 
 import org.knime.base.data.aggregation.AggregationMethods;
 import org.knime.base.data.aggregation.ColumnAggregator;
-import org.knime.base.node.preproc.groupby.GroupByNodeParameters.AggMethod;
 import org.knime.base.node.preproc.groupby.GroupByNodeParameters.ColumnAggregatorElement;
 import org.knime.base.node.preproc.groupby.GroupByNodeParameters.LegacyAggregationOperatorParameters;
 import org.knime.base.node.preproc.groupby.GroupByNodeParameters.MissingValueOption;
@@ -98,7 +97,8 @@ final class LegacyColumnAggregatorsPersistor implements NodeParametersPersistor<
             final var element = new ColumnAggregatorElement();
             element.m_column = aggr.getOriginalColName();
             element.m_dataType = aggr.getOriginalDataType();
-            element.m_aggregationMethod = new AggMethod(aggr.getId(), aggr.hasOptionalSettings());
+            // TODO review last param
+            element.m_aggregationMethod = aggr.getId();
             element.m_includeMissing =
                 aggr.inclMissingCells() ? MissingValueOption.INCLUDE : MissingValueOption.EXCLUDE;
             if (aggr.hasOptionalSettings()) {
@@ -125,7 +125,7 @@ final class LegacyColumnAggregatorsPersistor implements NodeParametersPersistor<
             if (elem.m_parameters instanceof LegacyAggregationOperatorParameters legacyParams) {
                 final var extractedSettings = legacyParams.getNodeSettings();
                 final var settingsToSaveInto =
-                    new NodeSettings(createSettingsKey(idMap, elem.m_aggregationMethod.m_id, elem.m_column));
+                    new NodeSettings(createSettingsKey(idMap, elem.m_aggregationMethod, elem.m_column));
                 extractedSettings.copyTo(settingsToSaveInto);
                 operatorSettings.addNodeSettings(settingsToSaveInto);
             }
@@ -135,7 +135,7 @@ final class LegacyColumnAggregatorsPersistor implements NodeParametersPersistor<
     private static ColumnAggregator mapToAggregator(final ColumnAggregatorElement colAggElem) {
         // we just need the objects to save to settings, not construct an executable aggregator
         final var dcs = new DataColumnSpecCreator(colAggElem.m_column, colAggElem.m_dataType).createSpec();
-        final var method = AggregationMethods.getMethod4Id(colAggElem.m_aggregationMethod.m_id);
+        final var method = AggregationMethods.getMethod4Id(colAggElem.m_aggregationMethod);
         final var includeMissing = colAggElem.m_includeMissing == MissingValueOption.INCLUDE;
         return new ColumnAggregator(dcs, method, includeMissing);
     }
