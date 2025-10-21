@@ -48,33 +48,34 @@
  */
 package org.knime.base.node.io.filehandling.csv.reader2;
 
+import java.util.Optional;
+
 import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
 import org.knime.base.node.io.filehandling.csv.reader.api.EscapeUtils;
 import org.knime.base.node.io.filehandling.csv.reader.api.QuoteOption;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.DecimalSeparatorRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.LimitMemoryPerColumnRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.LimitScannedRowsRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.MaxDataRowsScannedRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.MaximumNumberOfColumnsRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.QuotedStringsOption;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.QuotedStringsOptionRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.ReplaceEmptyQuotedStringsByMissingValuesRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.ThousandsSeparatorRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.Charset.CustomEncodingRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.Charset.FileEncodingOption;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.Charset.FileEncodingRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.LimitRows.SkipFirstDataRowsRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.LimitRows.SkipFirstLinesRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.ColumnDelimiterRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.CommentStartRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.CustomRowDelimiterRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.FirstRowContainsColumnNamesRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.QuoteCharacterRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.QuoteEscapeCharacterRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.RowDelimiterOption;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.RowDelimiterOptionRef;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeParameters.ColumnDelimiterRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeParameters.CommentStartRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeParameters.CustomEncodingRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeParameters.CustomRowDelimiterRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeParameters.DecimalSeparatorRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeParameters.FileEncodingOption;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeParameters.FileEncodingRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeParameters.FirstRowContainsColumnNamesRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeParameters.LimitMemoryPerColumnRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeParameters.MaxDataRowsScannedRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeParameters.MaximumNumberOfColumnsRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeParameters.QuoteCharacterRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeParameters.QuoteEscapeCharacterRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeParameters.QuotedStringsOption;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeParameters.QuotedStringsOptionRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeParameters.ReplaceEmptyQuotedStringsByMissingValuesRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeParameters.RowDelimiterOption;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeParameters.RowDelimiterOptionRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeParameters.SkipFirstLinesRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeParameters.ThousandsSeparatorRef;
+import org.knime.base.node.io.filehandling.csv.reader2.common.CommonReaderTransformationParameters;
+import org.knime.base.node.io.filehandling.csv.reader2.common.CommonTableReaderNodeParameters.FirstColumnContainsRowIdsRef;
+import org.knime.base.node.io.filehandling.csv.reader2.common.CommonTableReaderNodeParameters.SkipFirstDataRowsRef;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.node.parameters.updates.ValueProvider;
@@ -83,21 +84,21 @@ import org.knime.node.parameters.updates.ValueProvider;
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
 @SuppressWarnings("restriction")
-@Modification(CSVTransformationSettingsStateProviders.TransformationSettingsWidgetModification.class)
-final class CSVTransformationSettings
-    extends CommonReaderTransformationSettings<CSVTransformationSettings.ConfigIdSettings, Class<?>> {
+@Modification(CSVTransformationParametersStateProviders.TransformationSettingsWidgetModification.class)
+final class CSVTransformationParameters
+    extends CommonReaderTransformationParameters<CSVTransformationParameters.ConfigIdSettings, Class<?>> {
 
-    CSVTransformationSettings() {
+    CSVTransformationParameters() {
         super(new ConfigIdSettings());
     }
 
     static final class ConfigIdSettings
-        extends CommonReaderTransformationSettings.ConfigIdSettings<CSVTableReaderConfig> {
+        extends CommonReaderTransformationParameters.ConfigIdSettings<CSVTableReaderConfig> {
 
         @ValueProvider(FirstRowContainsColumnNamesRef.class)
         boolean m_firstRowContainsColumnNames = true;
 
-        @ValueProvider(CommonReaderNodeSettings.SettingsWithRowId.FirstColumnContainsRowIdsRef.class)
+        @ValueProvider(FirstColumnContainsRowIdsRef.class)
         boolean m_firstColumnContainsRowIds;
 
         @ValueProvider(CommentStartRef.class)
@@ -124,11 +125,8 @@ final class CSVTransformationSettings
         @ValueProvider(ReplaceEmptyQuotedStringsByMissingValuesRef.class)
         boolean m_replaceEmptyQuotedStringsByMissingValues = true;
 
-        @ValueProvider(LimitScannedRowsRef.class)
-        boolean m_limitScannedRows = true;
-
         @ValueProvider(MaxDataRowsScannedRef.class)
-        long m_maxDataRowsScanned = 10000;
+        Optional<Long> m_maxDataRowsScanned = Optional.of(10000L);
 
         @ValueProvider(ThousandsSeparatorRef.class)
         String m_thousandsSeparator = "";
@@ -157,8 +155,8 @@ final class CSVTransformationSettings
         @Override
         protected void applyToConfig(final DefaultTableReadConfig<CSVTableReaderConfig> config) {
             config.setColumnHeaderIdx(0);
-            config.setLimitRowsForSpec(m_limitScannedRows);
-            config.setMaxRowsForSpec(m_maxDataRowsScanned);
+//            config.setLimitRowsForSpec(m_limitScannedRows);
+//            config.setMaxRowsForSpec(m_maxDataRowsScanned); TODO
             config.setSkipRows(m_skipFirstDataRows > 0);
             config.setNumRowsToSkip(m_skipFirstDataRows);
             config.setRowIDIdx(0);
@@ -166,8 +164,8 @@ final class CSVTransformationSettings
             config.setUseRowIDIdx(m_firstColumnContainsRowIds);
 
             final var csvConfig = config.getReaderSpecificConfig();
-            csvConfig.setCharSetName(
-                m_fileEncoding == FileEncodingOption.OTHER ? m_customEncoding : m_fileEncoding.m_persistId);
+//            csvConfig.setCharSetName(
+//                m_fileEncoding == FileEncodingOption.OTHER ? m_customEncoding : m_fileEncoding.m_persistId); TODO
             csvConfig.setComment(m_commentLineCharacter);
             csvConfig.setDecimalSeparator(m_decimalSeparator);
             csvConfig.setDelimiter(EscapeUtils.unescape(m_columnDelimiter));

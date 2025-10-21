@@ -53,22 +53,22 @@ import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
 import org.knime.base.node.io.filehandling.csv.reader.api.StringReadAdapterFactory;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVReaderSpecific.ConfigAndReader;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVReaderSpecific.ProductionPathProviderAndTypeHierarchy;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.ConfigIdSettings;
-import org.knime.base.node.io.filehandling.webui.reader.ClassNoopSerializer;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsPersistor;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationParameters.ConfigIdSettings;
+import org.knime.base.node.io.filehandling.csv.reader2.common.ClassNoopSerializer;
+import org.knime.base.node.io.filehandling.csv.reader2.common.CommonReaderTransformationParametersPersistor;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigIDLoader;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfigSerializer;
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-final class CSVTransformationSettingsPersistor extends CommonReaderTransformationSettingsPersistor<//
-        CSVTableReaderConfig, ConfigIdSettings, Class<?>, Class<?>, CSVTransformationSettings>
+final class CSVTransformationParametersPersistor extends CommonReaderTransformationParametersPersistor<//
+        CSVTableReaderConfig, ConfigIdSettings, Class<?>, Class<?>, CSVTransformationParameters>
     implements ProductionPathProviderAndTypeHierarchy, ClassNoopSerializer, ConfigAndReader {
 
     @Override
-    protected CSVTransformationSettings createDefaultTransformationSettings() {
-        return new CSVTransformationSettings();
+    protected CSVTransformationParameters createDefaultTransformationSettings() {
+        return new CSVTransformationParameters();
     }
 
     @Override

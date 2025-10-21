@@ -46,49 +46,25 @@
  * History
  *   Sep 20, 2024 (Paul Bärnreuther): created
  */
-package org.knime.base.node.io.filehandling.csv.reader2;
+package org.knime.base.node.io.filehandling.csv.reader2.common;
 
-import org.knime.base.node.io.filehandling.csv.reader.CSVMultiTableReadConfig;
-import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReader;
-import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
-import org.knime.base.node.io.filehandling.csv.reader.api.StringReadAdapterFactory;
-import org.knime.base.node.io.filehandling.csv.reader2.common.ReaderSpecific;
-import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
-import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
+import org.knime.base.node.io.filehandling.csv.reader2.common.ReaderSpecific.ExternalDataTypeSerializer;
 
-final class CSVReaderSpecific {
+/**
+ * A serializer for classes that does not change the class, since Class<?> is already serializable.
+ *
+ * @author Paul Bärnreuther
+ */
+public interface ClassNoopSerializer extends ExternalDataTypeSerializer<Class<?>, Class<?>> {
 
-    static final ProductionPathProvider<Class<?>> PRODUCTION_PATH_PROVIDER =
-        StringReadAdapterFactory.INSTANCE.createProductionPathProvider();
-
-    interface ProductionPathProviderAndTypeHierarchy
-        extends ReaderSpecific.ProductionPathProviderAndTypeHierarchy<Class<?>> {
-        @Override
-        default ProductionPathProvider<Class<?>> getProductionPathProvider() {
-            return PRODUCTION_PATH_PROVIDER;
-        }
-
-        @Override
-        default TypeHierarchy<Class<?>, Class<?>> getTypeHierarchy() {
-            return StringReadAdapterFactory.TYPE_HIERARCHY;
-        }
+    @Override
+    default Class<?> toSerializableType(final Class<?> externalType) {
+        return externalType;
     }
 
-    interface ConfigAndReader extends ReaderSpecific.ConfigAndReader<CSVTableReaderConfig, Class<?>> {
-
-        @Override
-        default CSVMultiTableReadConfig getMultiTableReadConfig() {
-            return new CSVMultiTableReadConfig();
-        }
-
-        @Override
-        default CSVTableReader getTableReader() {
-            return new CSVTableReader();
-        }
-
+    @Override
+    default Class<?> toExternalType(final Class<?> serializedType) {
+        return serializedType;
     }
 
-    private CSVReaderSpecific() {
-        // Utility class
-    }
 }

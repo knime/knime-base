@@ -53,23 +53,23 @@ import java.util.List;
 import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVReaderSpecific.ConfigAndReader;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVReaderSpecific.ProductionPathProviderAndTypeHierarchy;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.ConfigIdSettings;
-import org.knime.base.node.io.filehandling.webui.reader.ClassNoopSerializer;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationParameters.ConfigIdSettings;
+import org.knime.base.node.io.filehandling.csv.reader2.common.ClassNoopSerializer;
+import org.knime.base.node.io.filehandling.csv.reader2.common.CommonReaderTransformationParameters;
+import org.knime.base.node.io.filehandling.csv.reader2.common.CommonReaderTransformationParametersStateProviders;
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-final class CSVTransformationSettingsStateProviders {
+final class CSVTransformationParametersStateProviders {
 
     static final class TypedReaderTableSpecsProvider
-        extends CommonReaderTransformationSettingsStateProviders.TypedReaderTableSpecsProvider<//
+        extends CommonReaderTransformationParametersStateProviders.TypedReaderTableSpecsProvider<//
                 CSVTableReaderConfig, ConfigIdSettings, Class<?>>
         implements ConfigAndReader {
 
         interface Dependent
-            extends CommonReaderTransformationSettingsStateProviders.TypedReaderTableSpecsProvider.Dependent<Class<?>> {
+            extends CommonReaderTransformationParametersStateProviders.TypedReaderTableSpecsProvider.Dependent<Class<?>> {
             @Override
             default Class<TypedReaderTableSpecsProvider> getTypedReaderTableSpecsProvider() {
                 return TypedReaderTableSpecsProvider.class;
@@ -84,17 +84,17 @@ final class CSVTransformationSettingsStateProviders {
     }
 
     static final class TableSpecSettingsProvider
-        extends CommonReaderTransformationSettingsStateProviders.TableSpecSettingsProvider<Class<?>, Class<?>>
+        extends CommonReaderTransformationParametersStateProviders.TableSpecSettingsProvider<Class<?>, Class<?>>
         implements TypedReaderTableSpecsProvider.Dependent, ClassNoopSerializer {
     }
 
     static final class TransformationElementSettingsProvider extends
-        CommonReaderTransformationSettingsStateProviders.TransformationElementSettingsProvider<Class<?>, Class<?>>
+        CommonReaderTransformationParametersStateProviders.TransformationElementSettingsProvider<Class<?>, Class<?>>
         implements ProductionPathProviderAndTypeHierarchy, TypedReaderTableSpecsProvider.Dependent,
         ClassNoopSerializer {
 
         @Override
-        protected TypeReference<List<CommonReaderTransformationSettings.TableSpecSettings<Class<?>>>>
+        protected TypeReference<List<CommonReaderTransformationParameters.TableSpecSettings<Class<?>>>>
             getTableSpecSettingsTypeReference() {
             return new TypeReference<>() {
             };
@@ -107,12 +107,12 @@ final class CSVTransformationSettingsStateProviders {
     }
 
     static final class TypeChoicesProvider
-        extends CommonReaderTransformationSettingsStateProviders.TypeChoicesProvider<Class<?>>
+        extends CommonReaderTransformationParametersStateProviders.TypeChoicesProvider<Class<?>>
         implements ProductionPathProviderAndTypeHierarchy, TypedReaderTableSpecsProvider.Dependent {
     }
 
     static final class TransformationSettingsWidgetModification extends
-        CommonReaderTransformationSettingsStateProviders.TransformationSettingsWidgetModification<Class<?>, Class<?>> {
+        CommonReaderTransformationParametersStateProviders.TransformationSettingsWidgetModification<Class<?>, Class<?>> {
 
         @Override
         protected Class<TableSpecSettingsProvider> getSpecsValueProvider() {
@@ -136,7 +136,7 @@ final class CSVTransformationSettingsStateProviders {
 
     }
 
-    private CSVTransformationSettingsStateProviders() {
+    private CSVTransformationParametersStateProviders() {
         // Not intended to be initialized
     }
 

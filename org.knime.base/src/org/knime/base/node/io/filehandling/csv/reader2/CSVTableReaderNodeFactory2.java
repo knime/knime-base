@@ -121,7 +121,7 @@ public class CSVTableReaderNodeFactory2 extends
             "Reads CSV files", //
             FULL_DESCRIPTION, //
             List.of(), //
-            CSVTableReaderNodeSettings.class, //
+            CSVTableReaderNodeParameters.class, //
             null, //
             NodeType.Source, //
             List.of("Text", "Comma", "File", "Input", "Read"), //

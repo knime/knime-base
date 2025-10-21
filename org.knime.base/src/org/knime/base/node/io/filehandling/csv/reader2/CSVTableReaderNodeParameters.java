@@ -93,6 +93,7 @@ import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.updates.ButtonReference;
 import org.knime.node.parameters.updates.Effect;
 import org.knime.node.parameters.updates.Effect.EffectType;
@@ -282,8 +283,8 @@ public class CSVTableReaderNodeParameters implements NodeParameters {
         }
     }
 
-    //    static class CustomRowDelimiterRef extends ReferenceStateProvider<String> {
-    //    }
+    static class CustomRowDelimiterRef extends ReferenceStateProvider<String> {
+    }
 
     static final class CustomRowDelimiterPatternValidation extends PatternValidation {
         @Override
@@ -301,7 +302,7 @@ public class CSVTableReaderNodeParameters implements NodeParameters {
     @TextInputWidget(patternValidation = CustomRowDelimiterPatternValidation.class)
     @Layout(CustomRowDelimiter.class)
     @Effect(predicate = HasCustomRowDelimiter.class, type = EffectType.SHOW)
-    //    @ValueReference(CustomRowDelimiterRef.class)
+    @ValueReference(CustomRowDelimiterRef.class)
     @ValueProvider(CustomRowDelimiterProvider.class)
     String m_customRowDelimiter = "\n";
 
@@ -315,13 +316,13 @@ public class CSVTableReaderNodeParameters implements NodeParameters {
         }
     }
 
-    //    static class ColumnDelimiterRef extends ReferenceStateProvider<String> {
-    //    }
+    static class ColumnDelimiterRef extends ReferenceStateProvider<String> {
+    }
 
     @Widget(title = "Column delimiter", description = ColumnDelimiter.DESCRIPTION)
     @TextInputWidget(minLengthValidation = IsNotEmptyValidation.class)
     @Layout(ColumnDelimiter.class)
-    //    @ValueReference(ColumnDelimiterRef.class)
+    @ValueReference(ColumnDelimiterRef.class)
     @ValueProvider(ColumnDelimiterProvider.class)
     String m_columnDelimiter = ",";
 
@@ -337,13 +338,13 @@ public class CSVTableReaderNodeParameters implements NodeParameters {
         }
     }
 
-    //    static class QuoteCharacterRef extends ReferenceStateProvider<String> {
-    //    }
+    static class QuoteCharacterRef extends ReferenceStateProvider<String> {
+    }
 
     @Widget(title = "Quote character", description = QuoteCharacter.DESCRIPTION)
     @TextInputWidget(maxLengthValidation = HasAtMaxOneCharValidation.class)
     @Layout(QuoteCharacter.class)
-    //    @ValueReference(QuoteCharacterRef.class)
+    @ValueReference(QuoteCharacterRef.class)
     @ValueProvider(QuoteCharacterProvider.class)
     String m_quoteCharacter = "\"";
 
@@ -354,13 +355,13 @@ public class CSVTableReaderNodeParameters implements NodeParameters {
         }
     }
 
-    //    static class QuoteEscapeCharacterRef extends ReferenceStateProvider<String> {
-    //    }
+    static class QuoteEscapeCharacterRef extends ReferenceStateProvider<String> {
+    }
 
     @Widget(title = "Quote escape character", description = QuoteEscapeCharacter.DESCRIPTION)
     @TextInputWidget(maxLengthValidation = HasAtMaxOneCharValidation.class)
     @Layout(QuoteEscapeCharacter.class)
-    //    @ValueReference(QuoteEscapeCharacterRef.class)
+    @ValueReference(QuoteEscapeCharacterRef.class)
     @ValueProvider(QuoteEscapeCharacterProvider.class)
     String m_quoteEscapeCharacter = "\"";
 
@@ -381,11 +382,11 @@ public class CSVTableReaderNodeParameters implements NodeParameters {
     @Effect(predicate = FileSystemPortConnectionUtil.ConnectedWithoutFileSystemSpec.class, type = EffectType.DISABLE)
     Void m_autoDetectButton;
 
-    //    static class FirstRowContainsColumnNamesRef extends ReferenceStateProvider<Boolean> {
-    //    }
+    static class FirstRowContainsColumnNamesRef extends ReferenceStateProvider<Boolean> {
+    }
 
     @Widget(title = "First row contains column names", description = FirstRowContainsColumnNames.DESCRIPTION)
-    //    @ValueReference(FirstRowContainsColumnNamesRef.class)
+    @ValueReference(FirstRowContainsColumnNamesRef.class)
     @Layout(FirstRowContainsColumnNames.class)
     boolean m_firstRowContainsColumnNames = true;
 
@@ -401,30 +402,30 @@ public class CSVTableReaderNodeParameters implements NodeParameters {
     @Layout(IfRowHasLessColumns.class)
     IfRowHasLessColumnsOption m_ifRowHasLessColumnsOption = IfRowHasLessColumnsOption.FAIL;
 
-    //    static class DecimalSeparatorRef extends ReferenceStateProvider<String> {
-    //    }
+    static class DecimalSeparatorRef extends ReferenceStateProvider<String> {
+    }
 
     @Widget(title = "Decimal separator", description = DecimalSeparator.DESCRIPTION)
-    //    @ValueReference(DecimalSeparatorRef.class)
+    @ValueReference(DecimalSeparatorRef.class)
     @TextInputWidget(patternValidation = IsSingleCharacterValidation.class)
     @Layout(DecimalSeparator.class)
     String m_decimalSeparator = ".";
 
-    //    static class ThousandsSeparatorRef extends ReferenceStateProvider<String> {
-    //    }
+    static class ThousandsSeparatorRef extends ReferenceStateProvider<String> {
+    }
 
     @Widget(title = "Thousands separator", description = ThousandsSeparator.DESCRIPTION)
-    //    @ValueReference(ThousandsSeparatorRef.class)
+    @ValueReference(ThousandsSeparatorRef.class)
     @TextInputWidget(maxLengthValidation = HasAtMaxOneCharValidation.class)
     @Layout(ThousandsSeparator.class)
     String m_thousandsSeparator = "";
 
-    //    static class ReplaceEmptyQuotedStringsByMissingValuesRef extends ReferenceStateProvider<Boolean> {
-    //    }
+    static class ReplaceEmptyQuotedStringsByMissingValuesRef extends ReferenceStateProvider<Boolean> {
+    }
 
     @Widget(title = "Replace empty quoted string by missing values",
         description = ReplaceEmptyQuotedStringsByMissingValues.DESCRIPTION)
-    //    @ValueReference(ReplaceEmptyQuotedStringsByMissingValuesRef.class)
+    @ValueReference(ReplaceEmptyQuotedStringsByMissingValuesRef.class)
     @Layout(ReplaceEmptyQuotedStringsByMissingValues.class)
     boolean m_replaceEmptyQuotedStringsByMissingValues = true;
 
@@ -436,11 +437,11 @@ public class CSVTableReaderNodeParameters implements NodeParameters {
             KEEP_QUOTES; //
     }
 
-    //    static class QuotedStringsOptionRef extends ReferenceStateProvider<QuotedStringsOption> {
-    //    }
+    static class QuotedStringsOptionRef extends ReferenceStateProvider<QuotedStringsOption> {
+    }
 
     @Widget(title = "Quoted strings", description = QuotedStrings.DESCRIPTION, advanced = true)
-    //    @ValueReference(QuotedStringsOptionRef.class)
+    @ValueReference(QuotedStringsOptionRef.class)
     @RadioButtonsWidget
     @Layout(QuotedStrings.class)
     QuotedStringsOption m_quotedStringsOption = QuotedStringsOption.REMOVE_QUOTES_AND_TRIM;
@@ -452,30 +453,30 @@ public class CSVTableReaderNodeParameters implements NodeParameters {
         }
     }
 
-    //    static class MaxDataRowsScannedRef extends ReferenceStateProvider<Long> {
-    //    }
+    static class MaxDataRowsScannedRef extends ReferenceStateProvider<Optional<Long>> {
+    }
 
     @Widget(title = "Limit scanned rows", description = LimitScannedRows.DESCRIPTION)
-    //    @ValueReference(MaxDataRowsScannedRef.class)
+    @ValueReference(MaxDataRowsScannedRef.class)
     @NumberInputWidget(minValidation = IsNonNegativeValidation.class)
     @Layout(LimitScannedRows.class)
     @OptionalWidget(defaultProvider = MaxDataRowsScannedDefaultProvider.class)
     Optional<Long> m_maxDataRowsScanned = Optional.of(10000L);
 
-    //    static class MaximumNumberOfColumnsRef extends ReferenceStateProvider<Integer> {
-    //    }
+    static class MaximumNumberOfColumnsRef extends ReferenceStateProvider<Integer> {
+    }
 
     @Widget(title = "Maximum number of columns", description = MaximumNumberOfColumns.DESCRIPTION)
-    //    @ValueReference(MaximumNumberOfColumnsRef.class)
+    @ValueReference(MaximumNumberOfColumnsRef.class)
     @NumberInputWidget(minValidation = IsNonNegativeValidation.class)
     @Layout(MaximumNumberOfColumns.class)
     int m_maximumNumberOfColumns = 8192;
 
-    //    static class LimitMemoryPerColumnRef extends ReferenceStateProvider<Boolean> {
-    //    }
+    static class LimitMemoryPerColumnRef extends ReferenceStateProvider<Boolean> {
+    }
 
     @Widget(title = "Limit memory per column", description = LimitMemoryPerColumn.DESCRIPTION)
-    //    @ValueReference(LimitMemoryPerColumnRef.class)
+    @ValueReference(LimitMemoryPerColumnRef.class)
     @Layout(LimitMemoryPerColumn.class)
     boolean m_limitMemoryPerColumn = true;
 
@@ -483,6 +484,9 @@ public class CSVTableReaderNodeParameters implements NodeParameters {
     @Layout(PrependFileIndexToRowId.class)
     boolean m_prependFileIndexToRowId;
     // TODO NOSONAR this setting should be shown when reading multiple files; currently blocked by UIEXT-1805
+
+    @Persistor(CSVTransformationParametersPersistor.class) // TODO get rid of custom persistor
+    CSVTransformationParameters m_tableSpecConfig = new CSVTransformationParameters();
 
     void loadFromConfig(final CSVMultiTableReadConfig config) {
 
@@ -535,6 +539,8 @@ public class CSVTableReaderNodeParameters implements NodeParameters {
         m_limitMemoryPerColumn = csvConfig.isCharsPerColumnLimited();
 
         m_prependFileIndexToRowId = tableReadConfig.prependSourceIdxToRowID();
+
+        // TODO load table spec config via config.getTableSpecConfig()
     }
 
     static String fileEncodingToCharsetName(final FileEncodingOption encoding, final String customEncoding) {
@@ -590,5 +596,9 @@ public class CSVTableReaderNodeParameters implements NodeParameters {
         csvConfig.limitCharsPerColumn(m_limitMemoryPerColumn);
 
         tableReadConfig.setPrependSourceIdxToRowId(m_prependFileIndexToRowId);
+
+        // TODO set table spec config via config.setTableSpecConfig to a new DefaultTableSpecConfig
+        // using the config ID from config.getConfigID()
+        // and the rest of the code from CommonReaderTransformationParametersPersistor
     }
 }
