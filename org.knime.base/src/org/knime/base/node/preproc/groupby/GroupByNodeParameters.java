@@ -156,14 +156,13 @@ class GroupByNodeParameters implements NodeParameters {
     @Layout(Sections.TypeAndPatternAggregations.class)
     @Widget(title = "Pattern", description = "...")
     @ArrayWidget(addButtonText = "Add pattern")
-//    @Persistor(LegacyPatternAggregatorsPersistor.class)
     @PersistArray(LegacyPatternAggregatorsArrayPersistor.class)
     PatternAggregatorElement[] m_patternAggregators = new PatternAggregatorElement[0];
 
     @Layout(Sections.TypeAndPatternAggregations.class)
     @Widget(title = "Type", description = "...")
     @ArrayWidget(addButtonText = "Add type")
-    @Persistor(LegacyDataTypeAggregatorsPersistor.class)
+    @PersistArray(LegacyDataTypeAggregatorsArrayPersistor.class)
     @ValueReference(TypeAggregationsRef.class)
     DataTypeAggregatorElement[] m_dataTypeAggregators = new DataTypeAggregatorElement[0];
 

@@ -96,7 +96,7 @@ final class LegacyDataTypeAggregatorsPersistor implements NodeParametersPersisto
         DataTypeAggregator.saveAggregators(settings, GroupByNodeModel.CFG_DATA_TYPE_AGGREGATORS, aggregators);
     }
 
-    private static DataTypeAggregator mapToAggregator(final DataTypeAggregatorElement elem) {
+    static DataTypeAggregator mapToAggregator(final DataTypeAggregatorElement elem) {
         final var method = AggregationMethods.getMethod4Id(elem.m_aggregationMethod);
         final var type = elem.m_dataType;
         final var includeMissing = elem.m_includeMissing == MissingValueOption.INCLUDE;
