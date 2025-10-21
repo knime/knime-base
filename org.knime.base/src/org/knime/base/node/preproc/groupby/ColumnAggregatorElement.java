@@ -140,7 +140,7 @@ class ColumnAggregatorElement implements NodeParameters {
 
         @Override
         public void init(final StateProviderInitializer initializer) {
-            initializer.computeBeforeOpenDialog();
+            StringChoicesProvider.super.init(initializer);
             m_column = initializer.computeFromValueSupplier(SelectedColumnRef.class);
         }
 

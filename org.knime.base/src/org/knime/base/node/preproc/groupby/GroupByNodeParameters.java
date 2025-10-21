@@ -66,6 +66,7 @@ import org.knime.node.parameters.migration.Migration;
 import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.persistence.legacy.LegacyStringFilter;
+import org.knime.node.parameters.persistence.legacy.LegacyStringFilter.ColumnBasedExclListProvider;
 import org.knime.node.parameters.updates.Effect;
 import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.updates.EffectPredicate;
@@ -75,7 +76,9 @@ import org.knime.node.parameters.updates.StateProvider;
 import org.knime.node.parameters.updates.ValueProvider;
 import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.ChoicesStateProvider;
 import org.knime.node.parameters.widget.choices.EnumChoicesProvider;
+import org.knime.node.parameters.widget.choices.TypedStringChoice;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 import org.knime.node.parameters.widget.choices.util.AllColumnsProvider;
 import org.knime.node.parameters.widget.number.NumberInputWidget;
@@ -126,10 +129,19 @@ class GroupByNodeParameters implements NodeParameters {
     @Modification(GroupByColumnsModification.class)
     LegacyStringFilter m_groupByColumns = new LegacyStringFilter(new String[0], new String[0]);
 
+    static final class ExclListProvider extends ColumnBasedExclListProvider {
+
+        @Override
+        public Class<? extends ChoicesStateProvider<TypedStringChoice>> getChoicesProviderClass() {
+            return AllColumnsProvider.class;
+        }
+
+    }
+
     static final class GroupByColumnsModification extends LegacyStringFilter.LegacyStringFilterModification {
         GroupByColumnsModification() {
             super(false, "Group settings", "DESCRIPTION", "Available column(s)", "Group column(s)",
-                AllColumnsProvider.class);
+                AllColumnsProvider.class, ExclListProvider.class);
         }
     }
 
@@ -144,6 +156,7 @@ class GroupByNodeParameters implements NodeParameters {
     @Widget(title = "Pattern", description = "...")
     @ArrayWidget(addButtonText = "Add pattern")
     @Persistor(LegacyPatternAggregatorsPersistor.class)
+//    @ArrayPersist
     PatternAggregatorElement[] m_patternAggregators = new PatternAggregatorElement[0];
 
     @Layout(Sections.TypeAndPatternAggregations.class)

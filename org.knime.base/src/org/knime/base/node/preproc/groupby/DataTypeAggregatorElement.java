@@ -116,8 +116,8 @@ class DataTypeAggregatorElement implements NodeParameters {
 
         @Override
         public void init(final StateProviderInitializer initializer) {
+            StringChoicesProvider.super.init(initializer);
             m_type = initializer.computeFromValueSupplier(DataTypeSelectedRef.class);
-            initializer.computeAfterOpenDialog();
         }
 
         @Override

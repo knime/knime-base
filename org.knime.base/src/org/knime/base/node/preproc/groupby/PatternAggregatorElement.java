@@ -125,11 +125,6 @@ class PatternAggregatorElement implements NodeParameters {
     static final class PatternAggregationChoices implements StringChoicesProvider {
 
         @Override
-        public void init(final StateProviderInitializer initializer) {
-            initializer.computeAfterOpenDialog();
-        }
-
-        @Override
         public List<StringChoice> computeState(final NodeParametersInput parametersInput) {
             // TODO filter?
             return AggregationMethods.getAvailableMethods().stream()
