@@ -83,12 +83,13 @@ import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.Values.ReplaceEmptyQuotedStringsByMissingValues;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeLayout.Values.ThousandsSeparator;
 import org.knime.base.node.io.filehandling.csv.reader2.common.CommonTableReaderNodeParameters;
-import org.knime.base.node.io.filehandling.csv.reader2.common.TableReadParameters.UseExistingRowIdWidgetRef;
+import org.knime.base.node.io.filehandling.csv.reader2.common.CommonTableReaderNodeParameters.UseExistingRowIdWidgetRef;
 import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
 import org.knime.base.node.io.filehandling.webui.ReferenceStateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.Icon;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.SimpleButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
+import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.layout.Layout;
@@ -121,10 +122,8 @@ import org.knime.node.parameters.widget.text.TextInputWidgetValidation.PatternVa
  *
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-@Modification({CSVTableReaderNodeParameters.SetCSVExtensions.class,
-    CSVTableReaderNodeParameters.SetTitleAndDescriptionForUseExistingRowIds.class})
 @SuppressWarnings("restriction")
-public class CSVTableReaderNodeParameters extends CommonTableReaderNodeParameters {
+public class CSVTableReaderNodeParameters implements NodeParameters {
 
     static final class SetCSVExtensions extends CommonTableReaderNodeParameters.SetFileReaderWidgetExtensions {
         @Override
@@ -141,6 +140,10 @@ public class CSVTableReaderNodeParameters extends CommonTableReaderNodeParameter
                 .withProperty("description", FirstColumnContainsRowIds.DESCRIPTION).modify();
         }
     }
+
+    @Modification({CSVTableReaderNodeParameters.SetCSVExtensions.class,
+        CSVTableReaderNodeParameters.SetTitleAndDescriptionForUseExistingRowIds.class})
+    CommonTableReaderNodeParameters m_commonTableReaderNodeParameters = new CommonTableReaderNodeParameters();
 
     enum FileEncodingOption {
             @Label(value = "OS default", description = FileEncoding.DESCRIPTION_DEFAULT) //
@@ -398,30 +401,30 @@ public class CSVTableReaderNodeParameters extends CommonTableReaderNodeParameter
     @Layout(IfRowHasLessColumns.class)
     IfRowHasLessColumnsOption m_ifRowHasLessColumnsOption = IfRowHasLessColumnsOption.FAIL;
 
-//    static class DecimalSeparatorRef extends ReferenceStateProvider<String> {
-//    }
+    //    static class DecimalSeparatorRef extends ReferenceStateProvider<String> {
+    //    }
 
     @Widget(title = "Decimal separator", description = DecimalSeparator.DESCRIPTION)
-//    @ValueReference(DecimalSeparatorRef.class)
+    //    @ValueReference(DecimalSeparatorRef.class)
     @TextInputWidget(patternValidation = IsSingleCharacterValidation.class)
     @Layout(DecimalSeparator.class)
     String m_decimalSeparator = ".";
 
-//    static class ThousandsSeparatorRef extends ReferenceStateProvider<String> {
-//    }
+    //    static class ThousandsSeparatorRef extends ReferenceStateProvider<String> {
+    //    }
 
     @Widget(title = "Thousands separator", description = ThousandsSeparator.DESCRIPTION)
-//    @ValueReference(ThousandsSeparatorRef.class)
+    //    @ValueReference(ThousandsSeparatorRef.class)
     @TextInputWidget(maxLengthValidation = HasAtMaxOneCharValidation.class)
     @Layout(ThousandsSeparator.class)
     String m_thousandsSeparator = "";
 
-//    static class ReplaceEmptyQuotedStringsByMissingValuesRef extends ReferenceStateProvider<Boolean> {
-//    }
+    //    static class ReplaceEmptyQuotedStringsByMissingValuesRef extends ReferenceStateProvider<Boolean> {
+    //    }
 
     @Widget(title = "Replace empty quoted string by missing values",
         description = ReplaceEmptyQuotedStringsByMissingValues.DESCRIPTION)
-//    @ValueReference(ReplaceEmptyQuotedStringsByMissingValuesRef.class)
+    //    @ValueReference(ReplaceEmptyQuotedStringsByMissingValuesRef.class)
     @Layout(ReplaceEmptyQuotedStringsByMissingValues.class)
     boolean m_replaceEmptyQuotedStringsByMissingValues = true;
 
@@ -433,11 +436,11 @@ public class CSVTableReaderNodeParameters extends CommonTableReaderNodeParameter
             KEEP_QUOTES; //
     }
 
-//    static class QuotedStringsOptionRef extends ReferenceStateProvider<QuotedStringsOption> {
-//    }
+    //    static class QuotedStringsOptionRef extends ReferenceStateProvider<QuotedStringsOption> {
+    //    }
 
     @Widget(title = "Quoted strings", description = QuotedStrings.DESCRIPTION, advanced = true)
-//    @ValueReference(QuotedStringsOptionRef.class)
+    //    @ValueReference(QuotedStringsOptionRef.class)
     @RadioButtonsWidget
     @Layout(QuotedStrings.class)
     QuotedStringsOption m_quotedStringsOption = QuotedStringsOption.REMOVE_QUOTES_AND_TRIM;
@@ -449,30 +452,30 @@ public class CSVTableReaderNodeParameters extends CommonTableReaderNodeParameter
         }
     }
 
-//    static class MaxDataRowsScannedRef extends ReferenceStateProvider<Long> {
-//    }
+    //    static class MaxDataRowsScannedRef extends ReferenceStateProvider<Long> {
+    //    }
 
     @Widget(title = "Limit scanned rows", description = LimitScannedRows.DESCRIPTION)
-//    @ValueReference(MaxDataRowsScannedRef.class)
+    //    @ValueReference(MaxDataRowsScannedRef.class)
     @NumberInputWidget(minValidation = IsNonNegativeValidation.class)
     @Layout(LimitScannedRows.class)
     @OptionalWidget(defaultProvider = MaxDataRowsScannedDefaultProvider.class)
     Optional<Long> m_maxDataRowsScanned = Optional.of(10000L);
 
-//    static class MaximumNumberOfColumnsRef extends ReferenceStateProvider<Integer> {
-//    }
+    //    static class MaximumNumberOfColumnsRef extends ReferenceStateProvider<Integer> {
+    //    }
 
     @Widget(title = "Maximum number of columns", description = MaximumNumberOfColumns.DESCRIPTION)
-//    @ValueReference(MaximumNumberOfColumnsRef.class)
+    //    @ValueReference(MaximumNumberOfColumnsRef.class)
     @NumberInputWidget(minValidation = IsNonNegativeValidation.class)
     @Layout(MaximumNumberOfColumns.class)
     int m_maximumNumberOfColumns = 8192;
 
-//    static class LimitMemoryPerColumnRef extends ReferenceStateProvider<Boolean> {
-//    }
+    //    static class LimitMemoryPerColumnRef extends ReferenceStateProvider<Boolean> {
+    //    }
 
     @Widget(title = "Limit memory per column", description = LimitMemoryPerColumn.DESCRIPTION)
-//    @ValueReference(LimitMemoryPerColumnRef.class)
+    //    @ValueReference(LimitMemoryPerColumnRef.class)
     @Layout(LimitMemoryPerColumn.class)
     boolean m_limitMemoryPerColumn = true;
 
@@ -483,7 +486,7 @@ public class CSVTableReaderNodeParameters extends CommonTableReaderNodeParameter
 
     void loadFromConfig(final CSVMultiTableReadConfig config) {
 
-        super.loadFromConfig(config);
+        m_commonTableReaderNodeParameters.loadFromConfig(config);
 
         final var tableReadConfig = config.getTableReadConfig();
         final var csvConfig = tableReadConfig.getReaderSpecificConfig();
@@ -521,11 +524,11 @@ public class CSVTableReaderNodeParameters extends CommonTableReaderNodeParameter
 
         m_replaceEmptyQuotedStringsByMissingValues = csvConfig.replaceEmptyWithMissing();
 
-        m_quotedStringsOption = csvConfig.getQuoteOption() == QuoteOption.REMOVE_QUOTES_AND_TRIM ? QuotedStringsOption.REMOVE_QUOTES_AND_TRIM
-            : QuotedStringsOption.KEEP_QUOTES;
+        m_quotedStringsOption = csvConfig.getQuoteOption() == QuoteOption.REMOVE_QUOTES_AND_TRIM
+            ? QuotedStringsOption.REMOVE_QUOTES_AND_TRIM : QuotedStringsOption.KEEP_QUOTES;
 
-        m_maxDataRowsScanned = tableReadConfig.limitRowsForSpec() ? Optional.of(tableReadConfig.getMaxRowsForSpec())
-            : Optional.empty();
+        m_maxDataRowsScanned =
+            tableReadConfig.limitRowsForSpec() ? Optional.of(tableReadConfig.getMaxRowsForSpec()) : Optional.empty();
 
         m_maximumNumberOfColumns = csvConfig.getMaxColumns();
 
@@ -540,7 +543,7 @@ public class CSVTableReaderNodeParameters extends CommonTableReaderNodeParameter
 
     void saveToConfig(final CSVMultiTableReadConfig config) {
 
-        super.saveToConfig(config);
+        m_commonTableReaderNodeParameters.saveToConfig(config);
 
         final var tableReadConfig = config.getTableReadConfig();
         final var csvConfig = tableReadConfig.getReaderSpecificConfig();
