@@ -59,6 +59,7 @@ import org.knime.core.data.DataType;
 import org.knime.core.data.DataTypeRegistry;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.PersistArrayElement;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
@@ -76,6 +77,7 @@ class DataTypeAggregatorElement implements NodeParameters {
     @Widget(title = "Data Type", description = "The data type to aggregate")
     @ChoicesProvider(RegisteredTypesChoicesProvider.class)
     @ValueReference(DataTypeSelectedRef.class)
+    @PersistArrayElement(LegacyDataTypeAggregatorsArrayPersistor.DataTypePersistor.class)
     DataType m_dataType = StringCell.TYPE;
 
     @Widget(title = "Aggregation", description = "The aggregation method to use")
@@ -83,10 +85,12 @@ class DataTypeAggregatorElement implements NodeParameters {
         showSubParametersProvider = HasDataTypeOperatorParameters.class)
     @ValueReference(DataTypeAggregationRef.class)
     @ChoicesProvider(DataTypeAggregationChoices.class)
+    @PersistArrayElement(LegacyDataTypeAggregatorsArrayPersistor.AggregationMethodPersistor.class)
     String m_aggregationMethod = "First";
 
     @Widget(title = "Missing values", description = "")
     @ValueSwitchWidget
+    @PersistArrayElement(LegacyDataTypeAggregatorsArrayPersistor.MissingValueOptionPersistor.class)
     MissingValueOption m_includeMissing = MissingValueOption.EXCLUDE;
 
     // TODO show new parameters via extension point if defined
@@ -94,6 +98,7 @@ class DataTypeAggregatorElement implements NodeParameters {
         widgetAppearingInNodeDescription = @Widget(title = "Operator settings", description = "...", advanced = true))
     @ValueReference(DataTypeOperatorParametersRef.class)
     @Layout(DataTypeOperatorParametersRef.class)
+    @PersistArrayElement(LegacyDataTypeAggregatorsArrayPersistor.OperatorParametersPersistor.class)
     AggregationOperatorParameters m_parameters = new NoOperatorParameters();
 
     static final class RegisteredTypesChoicesProvider implements DataTypeChoicesProvider {
