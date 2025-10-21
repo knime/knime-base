@@ -52,6 +52,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 import org.knime.base.data.aggregation.AggregationMethods;
+import org.knime.base.node.preproc.groupby.AggregationOperatorParametersProvider.AggregationMethodRef;
 import org.knime.base.node.preproc.groupby.OptionalParameters.AggregationOperatorParameters;
 import org.knime.base.node.preproc.groupby.OptionalParameters.NoOperatorParameters;
 import org.knime.core.data.DataType;
@@ -72,6 +73,7 @@ import org.knime.node.parameters.widget.choices.StringChoicesProvider;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 import org.knime.node.parameters.widget.choices.util.AllColumnsProvider;
 
+@SuppressWarnings("restriction")
 class ColumnAggregatorElement implements NodeParameters {
     @Widget(title = "Column", description = "The column to aggregate")
     @ChoicesProvider(AggregationColumnsProvider.class)
@@ -85,7 +87,7 @@ class ColumnAggregatorElement implements NodeParameters {
     @Widget(title = "Aggregation", description = "The aggregation method to use")
     @SubParameters(subLayoutRoot = ColumnAggregationOperatorParametersRef.class,
         showSubParametersProvider = HasColumnOperatorParameters.class)
-    @ValueReference(AggregationMethodRef.class)
+    @ValueReference(ColumnAggregationMethodRef.class)
     @ChoicesProvider(AggregationMethodChoices.class)
     String m_aggregationMethod;
 
@@ -95,12 +97,12 @@ class ColumnAggregatorElement implements NodeParameters {
 
     // TODO show new parameters via extension point if defined
     @DynamicParameters(value = ColumnAggregationOperatorParametersProvider.class,
-        widgetAppearingInNodeDescription = @Widget(title = "Operator settings", description = "...", advanced = true))
+        widgetAppearingInNodeDescription = @Widget(title = "Operator settings", description = "..."))
     @ValueReference(ColumnAggregationOperatorParametersRef.class)
     @Layout(ColumnAggregationOperatorParametersRef.class)
     AggregationOperatorParameters m_parameters = new NoOperatorParameters();
 
-    static class AggregationMethodRef implements ParameterReference<String> {
+    static class ColumnAggregationMethodRef implements AggregationMethodRef {
     }
 
     static class AggregationColumnsProvider extends AllColumnsProvider {
@@ -160,8 +162,8 @@ class ColumnAggregatorElement implements NodeParameters {
 
     static final class HasColumnOperatorParameters extends HasOperatorParameters {
         @Override
-        Class<? extends ParameterReference<String>> getAggregationMethodRefClass() {
-            return AggregationMethodRef.class;
+        Class<? extends AggregationMethodRef> getAggregationMethodRefClass() {
+            return ColumnAggregationMethodRef.class;
         }
     }
 
@@ -173,6 +175,11 @@ class ColumnAggregatorElement implements NodeParameters {
         @Override
         Class<? extends ParameterReference<AggregationOperatorParameters>> getParameterRefClass() {
             return ColumnAggregationOperatorParametersRef.class;
+        }
+
+        @Override
+        Class<? extends AggregationMethodRef> getMethodParameterRefClass() {
+            return ColumnAggregationMethodRef.class;
         }
     }
 }

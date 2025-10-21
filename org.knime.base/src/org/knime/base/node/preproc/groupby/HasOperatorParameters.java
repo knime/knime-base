@@ -51,26 +51,30 @@ package org.knime.base.node.preproc.groupby;
 import java.util.function.Supplier;
 
 import org.knime.base.data.aggregation.AggregationMethods;
+import org.knime.base.node.preproc.groupby.AggregationOperatorParametersProvider.AggregationMethodRef;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.node.parameters.NodeParametersInput;
-import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.StateProvider;
 
 abstract class HasOperatorParameters implements StateProvider<Boolean> {
 
     private Supplier<String> m_agg;
 
-    abstract Class<? extends ParameterReference<String>> getAggregationMethodRefClass();
+    abstract Class<? extends AggregationMethodRef> getAggregationMethodRefClass();
 
     @Override
     public void init(final StateProviderInitializer init) {
-        init.computeAfterOpenDialog();
+        init.computeBeforeOpenDialog();
         m_agg = init.computeFromValueSupplier(getAggregationMethodRefClass());
     }
 
     @Override
     public Boolean computeState(final NodeParametersInput in) throws StateComputationFailureException {
-        return AggregationMethods.getMethod4Id(m_agg.get()).hasOptionalSettings();
+        final var id = m_agg.get();
+        if (id == null) {
+            return false;
+        }
+        return AggregationMethods.getMethod4Id(id).hasOptionalSettings();
     }
 
 }
