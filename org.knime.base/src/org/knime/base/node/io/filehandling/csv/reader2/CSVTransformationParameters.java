@@ -44,44 +44,24 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 28, 2024 (marcbux): created
+ *   May 8, 2024 (marcbux): created
  */
 package org.knime.base.node.io.filehandling.csv.reader2;
 
-import java.util.List;
-
-import org.junit.jupiter.api.Test;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsPersistorTest;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
+import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVReaderSpecific.ProductionPathProviderAndTypeHierarchy;
+import org.knime.base.node.io.filehandling.csv.reader2.common.ClassNoopSerializer;
+import org.knime.base.node.io.filehandling.csv.reader2.common.CommonReaderTransformationParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-class CSVTransformationSettingsPersistorTest
-    extends CommonReaderTransformationSettingsPersistorTest<CSVTransformationParameters> {
+@SuppressWarnings("restriction")
+@Modification(CSVTransformationParametersStateProviders.TransformationSettingsWidgetModification.class)
+final class CSVTransformationParameters
+    extends CommonReaderTransformationParameters<CSVTableReaderConfig, Class<?>>
+    implements ProductionPathProviderAndTypeHierarchy, ClassNoopSerializer {
 
-    CSVTransformationSettingsPersistorTest() {
-        super(new CSVTransformationParametersPersistor(), CSVTransformationParameters.class);
-    }
 
-    @Test
-    void testSaveLoad() throws InvalidSettingsException {
-        for (CSVTransformationParameters settings : testSettings()) {
-            testSaveLoad(settings);
-        }
-    }
-
-    private List<CSVTransformationParameters> testSettings() {
-        return List.of(//
-            createTransformationSettings(ColumnFilterMode.INTERSECTION), //
-            createTransformationSettings(ColumnFilterMode.UNION), //
-            createTransformationSettingsWithSpecs(Integer.class)//
-        );
-    }
-
-    @Override
-    protected CSVTransformationParameters constructSettings() {
-        return new CSVTransformationParameters();
-    }
 }

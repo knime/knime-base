@@ -54,13 +54,12 @@ import java.nio.charset.IllegalCharsetNameException;
 import java.nio.charset.UnsupportedCharsetException;
 import java.util.function.Supplier;
 
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeParameters.AutoDetectButtonRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeParameters.BufferSizeRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeParameters.CommentStartRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeParameters.CustomEncodingRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeParameters.FileEncodingOption;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeParameters.FileEncodingRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeParameters.SkipFirstLinesRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderSpecificNodeParameters.AutoDetectButtonRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderSpecificNodeParameters.BufferSizeRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderSpecificNodeParameters.CustomEncodingRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderSpecificNodeParameters.FileEncodingOption;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderSpecificNodeParameters.FileEncodingRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderSpecificNodeParameters.SkipFirstLinesRef;
 import org.knime.base.node.io.filehandling.csv.reader2.common.CommonTableReaderNodeParameters.FileSelectionRef;
 import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
 import org.knime.core.node.InvalidSettingsException;
@@ -127,7 +126,7 @@ public final class CSVFormatProvider extends CSVFormatAutoDetector implements St
     @Override
     protected Charset getSelectedCharset() throws InvalidSettingsException {
         try {
-            final var charsetName = CSVTableReaderNodeParameters.fileEncodingToCharsetName(m_fileEncodingSupplier.get(),
+            final var charsetName = CSVTableReaderSpecificNodeParameters.fileEncodingToCharsetName(m_fileEncodingSupplier.get(),
                 m_customEncodingSupplier.get());
             return charsetName == null ? Charset.defaultCharset() : Charset.forName(charsetName);
         } catch (IllegalCharsetNameException | UnsupportedCharsetException e) {
@@ -161,7 +160,7 @@ public final class CSVFormatProvider extends CSVFormatAutoDetector implements St
         m_fileEncodingSupplier = initializer.getValueSupplier(FileEncodingRef.class);
         m_customEncodingSupplier = initializer.getValueSupplier(CustomEncodingRef.class);
         m_bufferSizeSupplier = initializer.getValueSupplier(BufferSizeRef.class);
-        m_commentStartSupplier = initializer.getValueSupplier(CommentStartRef.class);
+//        m_commentStartSupplier = initializer.getValueSupplier(CommentStartRef.class);
     }
 
     @Override

@@ -2518,7 +2518,7 @@
      <extension
            point="org.knime.workbench.repository.registeredFileExtensions">
         <FileExtensionMapping
-              NodeFactory="org.knime.base.node.io.filehandling.csv.reader.CSVTableReaderNodeFactory">
+              NodeFactory="org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeFactory2">
            <FileExtension
                  extension=".csv">
            </FileExtension>

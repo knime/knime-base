@@ -44,44 +44,32 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 28, 2024 (marcbux): created
+ *   Sep 20, 2024 (Paul Bärnreuther): created
  */
-package org.knime.base.node.io.filehandling.csv.reader2;
+package org.knime.base.node.io.filehandling.csv.reader2.common;
 
-import java.util.List;
-
-import org.junit.jupiter.api.Test;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsPersistorTest;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
+import org.knime.base.node.io.filehandling.csv.reader2.common.ReaderSpecific.ExternalDataTypeParseException;
+import org.knime.base.node.io.filehandling.csv.reader2.common.ReaderSpecific.ExternalDataTypeSerializer;
 
 /**
- * @author Marc Bux, KNIME GmbH, Berlin, Germany
+ * A serializer for classes that does not change the class, since Class<?> is already serializable.
+ *
+ * @author Paul Bärnreuther
  */
-class CSVTransformationSettingsPersistorTest
-    extends CommonReaderTransformationSettingsPersistorTest<CSVTransformationParameters> {
+public interface ClassNoopSerializer extends ExternalDataTypeSerializer<Class<?>> {
 
-    CSVTransformationSettingsPersistorTest() {
-        super(new CSVTransformationParametersPersistor(), CSVTransformationParameters.class);
-    }
-
-    @Test
-    void testSaveLoad() throws InvalidSettingsException {
-        for (CSVTransformationParameters settings : testSettings()) {
-            testSaveLoad(settings);
-        }
-    }
-
-    private List<CSVTransformationParameters> testSettings() {
-        return List.of(//
-            createTransformationSettings(ColumnFilterMode.INTERSECTION), //
-            createTransformationSettings(ColumnFilterMode.UNION), //
-            createTransformationSettingsWithSpecs(Integer.class)//
-        );
+    @Override
+    default String toSerializableType(final Class<?> externalType) {
+        return externalType.getName();
     }
 
     @Override
-    protected CSVTransformationParameters constructSettings() {
-        return new CSVTransformationParameters();
+    default Class<?> toExternalType(final String serializedType) throws ExternalDataTypeParseException {
+        try {
+            return Class.forName(serializedType);
+        } catch (ClassNotFoundException e) {
+            throw new ExternalDataTypeParseException("Loading the type failed.", e);
+        }
     }
+
 }

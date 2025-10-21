@@ -68,11 +68,11 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.AdvancedSettings.QuotedStringsOption;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Encoding.Charset.FileEncodingOption;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeSettings.Settings.RowDelimiterOption;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.ConfigIdSettings;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettingsStateProviders.TypeChoicesProvider;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationParameters.ConfigIdSettings;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationParametersStateProviders.TypeChoicesProvider;
+import org.knime.base.node.io.filehandling.csv.reader2.common.CommonReaderTransformationParameters;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.AdvancedSettingsWithMultipleFileHandling;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.SettingsWithRowId;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviderTestUtils.CommonReaderTransformationSettingsUpdatesTestClassBased;
 import org.knime.core.data.DataType;
 import org.knime.core.data.def.LongCell;
@@ -272,7 +272,7 @@ final class CSVTransformationSettingsStateProvidersTest {
         }
 
         @Override
-        protected CommonReaderTransformationSettings<?, Class<?>>
+        protected CommonReaderTransformationParameters<?, Class<?>>
             getTransformationSettings(final CSVTableReaderNodeSettings settings) {
             return settings.m_tableSpecConfig;
         }

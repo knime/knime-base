@@ -48,6 +48,7 @@
  */
 package org.knime.base.node.io.filehandling.csv.reader2.common;
 
+import java.net.URL;
 import java.util.Optional;
 
 import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
@@ -59,6 +60,7 @@ import org.knime.base.node.io.filehandling.webui.reader.CommonReaderLayout.DataA
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
+import org.knime.filehandling.core.connections.FSLocationUtil;
 import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
 import org.knime.filehandling.core.node.table.reader.config.AbstractMultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
@@ -90,7 +92,16 @@ import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils;
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
 @SuppressWarnings({"javadoc", "restriction"})
-public final class CommonTableReaderNodeParameters implements NodeParameters {
+public final class CommonTableReaderNodeParameters
+    implements NodeParameters {
+
+    public CommonTableReaderNodeParameters(final URL url) {
+        m_source = new FileSelection(FSLocationUtil.createFromURL(url.toString()));
+    }
+
+    public CommonTableReaderNodeParameters() {
+        // default constructor
+    }
 
     public static final class FileSelectionRef extends ReferenceStateProvider<FileSelection>
         implements Modification.Reference {
@@ -148,11 +159,11 @@ public final class CommonTableReaderNodeParameters implements NodeParameters {
     @FileReaderWidget()
     FileSelection m_source = new FileSelection();
 
-    //  static class SkipFirstDataRowsRef extends ReferenceStateProvider<Long> {
-    //    }
+    public static class SkipFirstDataRowsRef extends ReferenceStateProvider<Long> {
+    }
 
     @Widget(title = "Skip first data rows", description = SkipFirstDataRows.DESCRIPTION)
-    //    @ValueReference(SkipFirstDataRowsRef.class)
+    @ValueReference(SkipFirstDataRowsRef.class)
     @NumberInputWidget(minValidation = IsNonNegativeValidation.class)
     @Layout(SkipFirstDataRows.class)
     long m_skipFirstDataRows;
@@ -204,7 +215,7 @@ public final class CommonTableReaderNodeParameters implements NodeParameters {
     static final class IfSchemaChangesOptionRef implements ParameterReference<IfSchemaChangesOption> {
     }
 
-    static final class UseNewSchema implements EffectPredicateProvider {
+    public static final class UseNewSchema implements EffectPredicateProvider {
         @Override
         public EffectPredicate init(final PredicateInitializer i) {
             return i.getEnum(IfSchemaChangesOptionRef.class).isOneOf(IfSchemaChangesOption.USE_NEW_SCHEMA);
@@ -242,13 +253,13 @@ public final class CommonTableReaderNodeParameters implements NodeParameters {
         }
     }
 
-    //static class HowToCombineColumnsOptionRef implements ParameterReference<HowToCombineColumnsOption> {
-    //}
+    static class HowToCombineColumnsOptionRef implements ParameterReference<HowToCombineColumnsOption> {
+    }
 
     @Widget(title = "How to combine columns",
         description = CommonReaderLayout.MultipleFileHandling.HowToCombineColumns.DESCRIPTION)
     @ValueSwitchWidget
-    //@ValueReference(HowToCombineColumnsOptionRef.class)
+    @ValueReference(HowToCombineColumnsOptionRef.class)
     @Layout(CommonReaderLayout.MultipleFileHandling.HowToCombineColumns.class)
     public HowToCombineColumnsOption m_howToCombineColumns = HowToCombineColumnsOption.FAIL;
     // TODO NOSONAR this setting should be shown when reading multiple files; currently blocked by UIEXT-1805
@@ -260,27 +271,26 @@ public final class CommonTableReaderNodeParameters implements NodeParameters {
         }
     }
 
-    //static class AppendPathColumnRef extends ReferenceStateProvider<Boolean> {
-    //}
-
     @Widget(title = "Append file path column",
         description = CommonReaderLayout.MultipleFileHandling.AppendFilePathColumn.DESCRIPTION)
-    //@ValueReference(AppendPathColumnRef.class)
     @Layout(CommonReaderLayout.MultipleFileHandling.AppendFilePathColumn.class)
     @OptionalWidget(defaultProvider = AppendPathColumnDefaultProvider.class)
     @TextInputWidget(patternValidation = ColumnNameValidationUtils.ColumnNameValidation.class)
     Optional<String> m_appendPathColumn = Optional.empty();
 
-    public void loadFromTableReaderPathSettings(final CommonTableReaderPath path) {
-        m_source = path.location;
+    public void loadFromConfig(final CommonTableReaderPath sourceSettings, final MultiTableReadConfig<?, ?> config) {
+
+        loadFromSource(sourceSettings);
+
+        loadFromConfig(config);
     }
 
-    public void saveToTableReaderPathSettings(final CommonTableReaderPath path) {
-        path.location = m_source;
-    }
 
+
+    /**
+     * @param config
+     */
     public void loadFromConfig(final MultiTableReadConfig<?, ?> config) {
-
         final var tableReadConfig = config.getTableReadConfig();
 
         m_skipFirstDataRows = tableReadConfig.skipRows() ? tableReadConfig.getNumRowsToSkip() : 0L;
@@ -301,8 +311,24 @@ public final class CommonTableReaderNodeParameters implements NodeParameters {
             config.appendItemIdentifierColumn() ? Optional.of(config.getItemIdentifierColumnName()) : Optional.empty();
     }
 
-    public void saveToConfig(final AbstractMultiTableReadConfig<?, ? extends DefaultTableReadConfig<?>, ?, ?> config) {
 
+
+    /**
+     * @param sourceSettings
+     */
+    public void loadFromSource(final CommonTableReaderPath sourceSettings) {
+        m_source = sourceSettings.location;
+    }
+
+
+
+
+
+
+    /**
+     * @param config
+     */
+    public void saveToConfig(final AbstractMultiTableReadConfig<?, ? extends DefaultTableReadConfig<?>, ?, ?> config) {
         final var tableReadConfig = config.getTableReadConfig();
 
         tableReadConfig.setSkipRows(m_skipFirstDataRows > 0);
@@ -323,6 +349,10 @@ public final class CommonTableReaderNodeParameters implements NodeParameters {
 
         config.setAppendItemIdentifierColumn(m_appendPathColumn.isPresent());
         config.setItemIdentifierColumnName(m_appendPathColumn.orElse(""));
+    }
+
+    public void saveToSource(final CommonTableReaderPath sourceSettings) {
+        sourceSettings.location = m_source;
     }
 
 }

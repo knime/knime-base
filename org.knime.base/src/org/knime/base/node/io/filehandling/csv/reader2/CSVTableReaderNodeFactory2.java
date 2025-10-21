@@ -67,7 +67,7 @@ import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.context.NodeCreationConfiguration;
-import org.knime.core.node.context.url.URLConfiguration;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.util.Version;
 import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.core.webui.node.dialog.NodeDialogFactory;
@@ -78,11 +78,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
 import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
 import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
-import org.knime.filehandling.core.connections.FSLocationUtil;
 import org.knime.filehandling.core.connections.FSPath;
-import org.knime.filehandling.core.defaultnodesettings.EnumConfig;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
-import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.core.node.table.reader.CommonTableReaderNodeFactory;
 import org.knime.filehandling.core.node.table.reader.GenericTableReader;
 import org.knime.filehandling.core.node.table.reader.ReadAdapterFactory;
@@ -121,7 +117,7 @@ public class CSVTableReaderNodeFactory2 extends
             "Reads CSV files", //
             FULL_DESCRIPTION, //
             List.of(), //
-            CSVTableReaderNodeSettings.class, //
+            CSVTableReaderNodeParameters.class, //
             null, //
             NodeType.Source, //
             List.of("Text", "Comma", "File", "Input", "Read"), //
@@ -145,28 +141,6 @@ public class CSVTableReaderNodeFactory2 extends
     }
 
     private static final String[] FILE_SUFFIXES = new String[]{".csv", ".tsv", ".txt", ".gz"};
-
-    @Override
-    protected CommonTableReaderPath createPathSettings(final NodeCreationConfiguration nodeCreationConfig) {
-        // mostly copied from CSVTableReaderNodeFactory
-        // TODO bind "file_selection" config key to params; also de-duplicate
-        final SettingsModelReaderFileChooser settingsModel = new SettingsModelReaderFileChooser("file_selection",
-            nodeCreationConfig.getPortConfig().orElseThrow(IllegalStateException::new), FS_CONNECT_GRP_ID,
-            EnumConfig.create(FilterMode.FILE, FilterMode.FILES_IN_FOLDERS), FILE_SUFFIXES);
-        final Optional<? extends URLConfiguration> urlConfig = nodeCreationConfig.getURLConfig();
-        if (urlConfig.isPresent()) {
-            settingsModel.setLocation(FSLocationUtil.createFromURL(urlConfig.get().getUrl().toString()));
-        }
-        //        return settingsModel;
-        return new CommonTableReaderPath();
-        // TODO how does the file selected in the params reach the model?
-    }
-
-    //    @Override
-    //    protected StorableMultiTableReadConfig<CSVTableReaderConfig, Class<?>>
-    //        createConfig(final NodeCreationConfiguration nodeCreationConfig) {
-
-    //    }
 
     @Override
     protected ReadAdapterFactory<Class<?>, String> getReadAdapterFactory() {
@@ -198,43 +172,48 @@ public class CSVTableReaderNodeFactory2 extends
         createSerializer() {
         return new ConfigAndSourceSerializer<FSPath, CommonTableReaderPath, CSVTableReaderConfig, Class<?>, CSVMultiTableReadConfig>() {
 
+            private CSVTableReaderNodeParameters m_params;
+
             @Override
-            public void validateSettings(final CommonTableReaderPath sourceSettings, final CSVMultiTableReadConfig config,
-                final NodeSettingsRO settings) throws InvalidSettingsException {
-                final var params = NodeParametersUtil.loadSettings(settings, CSVTableReaderNodeParameters.class);
-                params.validate();
+            public void validateSettings(final CommonTableReaderPath sourceSettings,
+                final CSVMultiTableReadConfig config, final NodeSettingsRO settings) throws InvalidSettingsException {
+                m_params = NodeParametersUtil.loadSettings(settings, CSVTableReaderNodeParameters.class);
+                m_params.validate();
                 // TODO move validation from CSVMultiTableReadConfigSerializer.validate and AbstractSettingsModelFileChooser.validateSettingsForModel to params
             }
 
             @Override
             public void saveSettingsTo(final CommonTableReaderPath sourceSettings, final CSVMultiTableReadConfig config,
                 final NodeSettingsWO settings) {
-                final var params = new CSVTableReaderNodeParameters();
-                params.m_commonTableReaderNodeParameters.loadFromTableReaderPathSettings(sourceSettings);
-                params.loadFromConfig(config);
-                NodeParametersUtil.saveSettings(CSVTableReaderNodeParameters.class, params, settings);
+                if (m_params == null) {
+                    m_params =
+                        NodeParametersUtil.createSettings(CSVTableReaderNodeParameters.class, new PortObjectSpec[0]);
+                }
+                NodeParametersUtil.saveSettings(CSVTableReaderNodeParameters.class, m_params, settings);
             }
 
             @Override
             public void loadValidatedSettingsFrom(final CommonTableReaderPath sourceSettings,
                 final CSVMultiTableReadConfig config, final NodeSettingsRO settings) throws InvalidSettingsException {
-                final var params = NodeParametersUtil.loadSettings(settings, CSVTableReaderNodeParameters.class);
-                params.m_commonTableReaderNodeParameters.saveToTableReaderPathSettings(sourceSettings);
-                params.saveToConfig(config);
+                m_params.saveToSource(sourceSettings);
+                m_params.saveToConfig(config);
             }
         };
     }
 
     @Override
+    protected CommonTableReaderPath createPathSettings(final NodeCreationConfiguration nodeCreationConfig) {
+        final var source = new CommonTableReaderPath();
+        final var defaultParams = new CSVTableReaderNodeParameters(nodeCreationConfig);
+        defaultParams.saveToSource(source);
+        return source;
+    }
+
+    @Override
     protected CSVMultiTableReadConfig createConfig(final NodeCreationConfiguration nodeCreationConfig) {
         final var cfg = new CSVMultiTableReadConfig();
-        final var defaultParams = new CSVTableReaderNodeParameters();
+        final var defaultParams = new CSVTableReaderNodeParameters(nodeCreationConfig);
         defaultParams.saveToConfig(cfg);
-        // below mostly copied from CSVTableReaderNodeFactory
-        final Optional<? extends URLConfiguration> urlConfig = nodeCreationConfig.getURLConfig();
-        if (urlConfig.isPresent() && urlConfig.get().getUrl().toString().endsWith(".tsv")) { //NOSONAR
-            cfg.getTableReadConfig().getReaderSpecificConfig().setDelimiter("\t");
-        }
         return cfg;
     }
 }

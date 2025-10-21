@@ -44,41 +44,18 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 15, 2024 (marcbux): created
+ *   Nov 5, 2025 (Marc Bux, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.base.node.io.filehandling.csv.reader2;
-
-import org.knime.base.node.io.filehandling.csv.reader.ClassTypeSerializer;
-import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
-import org.knime.base.node.io.filehandling.csv.reader.api.StringReadAdapterFactory;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVReaderSpecific.ConfigAndReader;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVReaderSpecific.ProductionPathProviderAndTypeHierarchy;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTransformationSettings.ConfigIdSettings;
-import org.knime.base.node.io.filehandling.webui.reader.ClassNoopSerializer;
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsPersistor;
-import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigIDLoader;
-import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfigSerializer;
+package org.knime.base.node.io.filehandling.csv.reader2.common;
 
 /**
+ *
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-final class CSVTransformationSettingsPersistor extends CommonReaderTransformationSettingsPersistor<//
-        CSVTableReaderConfig, ConfigIdSettings, Class<?>, Class<?>, CSVTransformationSettings>
-    implements ProductionPathProviderAndTypeHierarchy, ClassNoopSerializer, ConfigAndReader {
-
-    @Override
-    protected CSVTransformationSettings createDefaultTransformationSettings() {
-        return new CSVTransformationSettings();
-    }
-
-    @Override
-    protected TableSpecConfigSerializer<Class<?>> createTableSpecConfigSerializer(final ConfigIDLoader configIdLoader) {
-        return TableSpecConfigSerializer.createStartingV42(StringReadAdapterFactory.INSTANCE.getProducerRegistry(),
-            configIdLoader, ClassTypeSerializer.SERIALIZER, String.class);
-    }
-
-    @Override
-    protected String getConfigIdSettingsKey() {
-        return "multi_table_read";
-    }
-}
+//public interface ReaderConfigNodeParameters<C extends ReaderSpecificConfig<C>, TC extends TableReadConfig<C>, T, M extends AbstractMultiTableReadConfig<C, TC, T, M>> extends NodeParameters {
+//
+//    void loadFromConfig(final CommonTableReaderPath sourceSettings, final M config);
+//
+//    void saveToConfig(final CommonTableReaderPath sourceSettings, final M config);
+//
+//}
