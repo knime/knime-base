@@ -54,7 +54,6 @@ import java.util.function.Supplier;
 import org.knime.base.data.aggregation.AggregationMethods;
 import org.knime.base.node.preproc.groupby.OptionalParameters.AggregationOperatorParameters;
 import org.knime.base.node.preproc.groupby.OptionalParameters.LegacyAggregationOperatorParameters;
-import org.knime.base.node.preproc.groupby.OptionalParameters.NoOperatorParameters;
 import org.knime.base.node.preproc.groupby.OptionalParameters.ViaExtensionPointAggregationOperatorParameters;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
@@ -92,7 +91,7 @@ abstract class AggregationOperatorParametersProvider
     @Override
     public ClassIdStrategy<AggregationOperatorParameters> getClassIdStrategy() {
         // TODO from extension point
-        return new DefaultClassIdStrategy<>(List.of(NoOperatorParameters.class,
+        return new DefaultClassIdStrategy<>(List.of(
             LegacyAggregationOperatorParameters.class, ViaExtensionPointAggregationOperatorParameters.class));
     }
 
@@ -100,9 +99,13 @@ abstract class AggregationOperatorParametersProvider
     public AggregationOperatorParameters computeParameters(final NodeParametersInput parametersInput)
         throws StateComputationFailureException {
         final var currentMethod = m_aggregationMethodSupplier.get();
+        if (currentMethod == null) {
+            // no method selected yet, abort update
+            throw new StateComputationFailureException();
+        }
         final var method = AggregationMethods.getMethod4Id(currentMethod);
         if (!method.hasOptionalSettings()) {
-            return new NoOperatorParameters();
+            throw new StateComputationFailureException();
         }
         final var currentValue = m_optionalParametersSupplier.get();
         if (currentValue instanceof LegacyAggregationOperatorParameters legacy) {
@@ -115,9 +118,10 @@ abstract class AggregationOperatorParametersProvider
                 // fall-through: cannot re-use settings
             }
         } else if (currentValue instanceof ViaExtensionPointAggregationOperatorParameters) {
+            // TODO implement
             throw new UnsupportedOperationException("Optional parameters via extension point is not yet implemented");
         }
-        // not usable by current method (or NoOperatorParameters)
+        // not usable by current method (or no operator parameters)
         final var settings = new NodeSettings("extracted model settings");
         method.saveSettingsTo(settings);
         return new LegacyAggregationOperatorParameters(settings);

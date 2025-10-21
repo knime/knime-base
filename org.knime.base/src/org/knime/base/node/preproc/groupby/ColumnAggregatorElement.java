@@ -54,7 +54,6 @@ import java.util.function.Supplier;
 import org.knime.base.data.aggregation.AggregationMethods;
 import org.knime.base.node.preproc.groupby.AggregationOperatorParametersProvider.AggregationMethodRef;
 import org.knime.base.node.preproc.groupby.OptionalParameters.AggregationOperatorParameters;
-import org.knime.base.node.preproc.groupby.OptionalParameters.NoOperatorParameters;
 import org.knime.core.data.DataType;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
@@ -100,7 +99,7 @@ class ColumnAggregatorElement implements NodeParameters {
         widgetAppearingInNodeDescription = @Widget(title = "Operator settings", description = "..."))
     @ValueReference(ColumnAggregationOperatorParametersRef.class)
     @Layout(ColumnAggregationOperatorParametersRef.class)
-    AggregationOperatorParameters m_parameters = new NoOperatorParameters();
+    AggregationOperatorParameters m_parameters;
 
     static class ColumnAggregationMethodRef implements AggregationMethodRef {
     }

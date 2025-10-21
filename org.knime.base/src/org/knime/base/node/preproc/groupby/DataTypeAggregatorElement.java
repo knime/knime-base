@@ -55,7 +55,6 @@ import java.util.function.Supplier;
 import org.knime.base.data.aggregation.AggregationMethods;
 import org.knime.base.node.preproc.groupby.AggregationOperatorParametersProvider.AggregationMethodRef;
 import org.knime.base.node.preproc.groupby.OptionalParameters.AggregationOperatorParameters;
-import org.knime.base.node.preproc.groupby.OptionalParameters.NoOperatorParameters;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataTypeRegistry;
 import org.knime.core.data.def.StringCell;
@@ -74,6 +73,7 @@ import org.knime.node.parameters.widget.choices.StringChoice;
 import org.knime.node.parameters.widget.choices.StringChoicesProvider;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 
+@SuppressWarnings("restriction")
 class DataTypeAggregatorElement implements NodeParameters {
     @Widget(title = "Data Type", description = "The data type to aggregate")
     @ChoicesProvider(RegisteredTypesChoicesProvider.class)
@@ -100,7 +100,7 @@ class DataTypeAggregatorElement implements NodeParameters {
     @ValueReference(DataTypeOperatorParametersRef.class)
     @Layout(DataTypeOperatorParametersRef.class)
     @PersistArrayElement(LegacyDataTypeAggregatorsArrayPersistor.OperatorParametersPersistor.class)
-    AggregationOperatorParameters m_parameters = new NoOperatorParameters();
+    AggregationOperatorParameters m_parameters;
 
     static final class RegisteredTypesChoicesProvider implements DataTypeChoicesProvider {
         @Override

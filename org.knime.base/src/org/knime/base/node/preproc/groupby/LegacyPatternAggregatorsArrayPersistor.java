@@ -56,7 +56,6 @@ import org.knime.base.node.preproc.groupby.LegacyPatternAggregatorsArrayPersisto
 import org.knime.base.node.preproc.groupby.LegacyPatternAggregatorsArrayPersistor.PatternAggregatorElementDTO;
 import org.knime.base.node.preproc.groupby.OptionalParameters.AggregationOperatorParameters;
 import org.knime.base.node.preproc.groupby.OptionalParameters.LegacyAggregationOperatorParameters;
-import org.knime.base.node.preproc.groupby.OptionalParameters.NoOperatorParameters;
 import org.knime.base.node.util.regex.PatternType;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
@@ -173,7 +172,7 @@ final class LegacyPatternAggregatorsArrayPersistor
         public AggregationOperatorParameters load(final NodeSettingsRO nodeSettings, final IndexedElement loadContext)
             throws InvalidSettingsException {
             if (!loadContext.getAggregator().hasOptionalSettings()) {
-                return new NoOperatorParameters();
+                return null;
             }
             final var cfg = nodeSettings //
                 .getNodeSettings(GroupByNodeModel.CFG_PATTERN_AGGREGATORS) //
