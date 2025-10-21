@@ -148,11 +148,11 @@ public final class CommonTableReaderNodeParameters implements NodeParameters {
     @FileReaderWidget()
     FileSelection m_source = new FileSelection();
 
-    //  static class SkipFirstDataRowsRef extends ReferenceStateProvider<Long> {
-    //    }
+    public static class SkipFirstDataRowsRef extends ReferenceStateProvider<Long> {
+    }
 
     @Widget(title = "Skip first data rows", description = SkipFirstDataRows.DESCRIPTION)
-    //    @ValueReference(SkipFirstDataRowsRef.class)
+    @ValueReference(SkipFirstDataRowsRef.class)
     @NumberInputWidget(minValidation = IsNonNegativeValidation.class)
     @Layout(SkipFirstDataRows.class)
     long m_skipFirstDataRows;
@@ -204,7 +204,7 @@ public final class CommonTableReaderNodeParameters implements NodeParameters {
     static final class IfSchemaChangesOptionRef implements ParameterReference<IfSchemaChangesOption> {
     }
 
-    static final class UseNewSchema implements EffectPredicateProvider {
+    public static final class UseNewSchema implements EffectPredicateProvider {
         @Override
         public EffectPredicate init(final PredicateInitializer i) {
             return i.getEnum(IfSchemaChangesOptionRef.class).isOneOf(IfSchemaChangesOption.USE_NEW_SCHEMA);
@@ -242,13 +242,13 @@ public final class CommonTableReaderNodeParameters implements NodeParameters {
         }
     }
 
-    //static class HowToCombineColumnsOptionRef implements ParameterReference<HowToCombineColumnsOption> {
-    //}
+    static class HowToCombineColumnsOptionRef implements ParameterReference<HowToCombineColumnsOption> {
+    }
 
     @Widget(title = "How to combine columns",
         description = CommonReaderLayout.MultipleFileHandling.HowToCombineColumns.DESCRIPTION)
     @ValueSwitchWidget
-    //@ValueReference(HowToCombineColumnsOptionRef.class)
+    @ValueReference(HowToCombineColumnsOptionRef.class)
     @Layout(CommonReaderLayout.MultipleFileHandling.HowToCombineColumns.class)
     public HowToCombineColumnsOption m_howToCombineColumns = HowToCombineColumnsOption.FAIL;
     // TODO NOSONAR this setting should be shown when reading multiple files; currently blocked by UIEXT-1805
@@ -260,12 +260,12 @@ public final class CommonTableReaderNodeParameters implements NodeParameters {
         }
     }
 
-    //static class AppendPathColumnRef extends ReferenceStateProvider<Boolean> {
-    //}
+    static class AppendPathColumnRef extends ReferenceStateProvider<Optional<String>> {
+    }
 
     @Widget(title = "Append file path column",
         description = CommonReaderLayout.MultipleFileHandling.AppendFilePathColumn.DESCRIPTION)
-    //@ValueReference(AppendPathColumnRef.class)
+    @ValueReference(AppendPathColumnRef.class)
     @Layout(CommonReaderLayout.MultipleFileHandling.AppendFilePathColumn.class)
     @OptionalWidget(defaultProvider = AppendPathColumnDefaultProvider.class)
     @TextInputWidget(patternValidation = ColumnNameValidationUtils.ColumnNameValidation.class)

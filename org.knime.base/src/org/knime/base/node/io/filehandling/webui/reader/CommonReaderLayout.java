@@ -48,7 +48,7 @@
  */
 package org.knime.base.node.io.filehandling.webui.reader;
 
-import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.BaseAdvancedSettings.UseNewSchema;
+import org.knime.base.node.io.filehandling.csv.reader2.common.CommonTableReaderNodeParameters.UseNewSchema;
 import org.knime.node.parameters.Advanced;
 import org.knime.node.parameters.layout.After;
 import org.knime.node.parameters.layout.Section;
@@ -197,7 +197,7 @@ public interface CommonReaderLayout {
      */
     @Section(title = "Table Transformation", description = Transformation.DESCRIPTION)
     @Advanced
-    @Effect(predicate = UseNewSchema.class, type = EffectType.HIDE)
+    @Effect(predicate = UseNewSchema.class, type = EffectType.HIDE) // TODO revert to org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.BaseAdvancedSettings.UseNewSchema
     @After(MultipleFileHandling.class)
     interface Transformation {
         String DESCRIPTION =

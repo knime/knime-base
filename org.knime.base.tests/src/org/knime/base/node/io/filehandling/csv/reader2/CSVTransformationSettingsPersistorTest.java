@@ -59,20 +59,20 @@ import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
 class CSVTransformationSettingsPersistorTest
-    extends CommonReaderTransformationSettingsPersistorTest<CSVTransformationSettings> {
+    extends CommonReaderTransformationSettingsPersistorTest<CSVTransformationParameters> {
 
     CSVTransformationSettingsPersistorTest() {
-        super(new CSVTransformationSettingsPersistor(), CSVTransformationSettings.class);
+        super(new CSVTransformationParametersPersistor(), CSVTransformationParameters.class);
     }
 
     @Test
     void testSaveLoad() throws InvalidSettingsException {
-        for (CSVTransformationSettings settings : testSettings()) {
+        for (CSVTransformationParameters settings : testSettings()) {
             testSaveLoad(settings);
         }
     }
 
-    private List<CSVTransformationSettings> testSettings() {
+    private List<CSVTransformationParameters> testSettings() {
         return List.of(//
             createTransformationSettings(ColumnFilterMode.INTERSECTION), //
             createTransformationSettings(ColumnFilterMode.UNION), //
@@ -81,7 +81,7 @@ class CSVTransformationSettingsPersistorTest
     }
 
     @Override
-    protected CSVTransformationSettings constructSettings() {
-        return new CSVTransformationSettings();
+    protected CSVTransformationParameters constructSettings() {
+        return new CSVTransformationParameters();
     }
 }
