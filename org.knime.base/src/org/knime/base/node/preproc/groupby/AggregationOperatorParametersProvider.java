@@ -51,14 +51,15 @@ package org.knime.base.node.preproc.groupby;
 import java.util.List;
 import java.util.function.Supplier;
 
+import org.knime.base.data.aggregation.AggregationMethods;
 import org.knime.base.node.preproc.groupby.OptionalParameters.AggregationOperatorParameters;
 import org.knime.base.node.preproc.groupby.OptionalParameters.LegacyAggregationOperatorParameters;
 import org.knime.base.node.preproc.groupby.OptionalParameters.NoOperatorParameters;
 import org.knime.base.node.preproc.groupby.OptionalParameters.ViaExtensionPointAggregationOperatorParameters;
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.webui.node.dialog.FallbackDialogNodeParameters;
-import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.ClassIdStrategy;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DefaultClassIdStrategy;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
@@ -66,21 +67,30 @@ import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputat
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.updates.ParameterReference;
 
+@SuppressWarnings("restriction")
 abstract class AggregationOperatorParametersProvider
     implements DynamicParameters.DynamicParametersWithFallbackProvider<AggregationOperatorParameters> {
 
-    private Supplier<AggregationOperatorParameters> m_currentValueSupplier;
+    private Supplier<AggregationOperatorParameters> m_optionalParametersSupplier;
+
+    private Supplier<String> m_aggregationMethodSupplier;
 
     abstract Class<? extends ParameterReference<AggregationOperatorParameters>> getParameterRefClass();
 
-    @Override
-    public void init(final StateProviderInitializer initializer) {
-        m_currentValueSupplier = initializer.getValueSupplier(getParameterRefClass());
-        initializer.computeAfterOpenDialog();
+    abstract Class<? extends AggregationMethodRef> getMethodParameterRefClass();
+
+    interface AggregationMethodRef extends ParameterReference<String> {
     }
 
     @Override
-    public ClassIdStrategy getClassIdStrategy() {
+    public void init(final StateProviderInitializer initializer) {
+        initializer.computeBeforeOpenDialog();
+        m_optionalParametersSupplier = initializer.getValueSupplier(getParameterRefClass());
+        m_aggregationMethodSupplier = initializer.computeFromValueSupplier(getMethodParameterRefClass());
+    }
+
+    @Override
+    public ClassIdStrategy<AggregationOperatorParameters> getClassIdStrategy() {
         // TODO from extension point
         return new DefaultClassIdStrategy<>(List.of(NoOperatorParameters.class,
             LegacyAggregationOperatorParameters.class, ViaExtensionPointAggregationOperatorParameters.class));
@@ -89,32 +99,39 @@ abstract class AggregationOperatorParametersProvider
     @Override
     public AggregationOperatorParameters computeParameters(final NodeParametersInput parametersInput)
         throws StateComputationFailureException {
-        final var currentValue = m_currentValueSupplier.get();
-        if (currentValue instanceof LegacyAggregationOperatorParameters fallbackParams) {
-            //                final var nodeSettings = fallbackParams.getNodeSettings();
-            //                try {
-            //                    return NodeParametersUtil.loadSettings(nodeSettings, LegacyAggregationOperatorParameters.class);
-            //                } catch (InvalidSettingsException ex) {
-            //                    return new MyDynamicParametersNodeParameters();
-            //                }
-            GroupByNodeParameters.LOGGER.debug("instanceof fallback params");
-        } else if (currentValue != null) {
-            return currentValue;
+        final var currentMethod = m_aggregationMethodSupplier.get();
+        final var method = AggregationMethods.getMethod4Id(currentMethod);
+        if (!method.hasOptionalSettings()) {
+            return new NoOperatorParameters();
         }
-        return new ViaExtensionPointAggregationOperatorParameters();
+        final var currentValue = m_optionalParametersSupplier.get();
+        if (currentValue instanceof LegacyAggregationOperatorParameters legacy) {
+            final var paramSettings = legacy.getNodeSettings();
+            try {
+                method.validateSettings(paramSettings);
+                method.loadValidatedSettings(paramSettings);
+                return new LegacyAggregationOperatorParameters(paramSettings);
+            } catch (final InvalidSettingsException e) { // NOSONAR best-effort
+                // fall-through: cannot re-use settings
+            }
+        } else if (currentValue instanceof ViaExtensionPointAggregationOperatorParameters) {
+            throw new UnsupportedOperationException("Optional parameters via extension point is not yet implemented");
+        }
+        // not usable by current method (or NoOperatorParameters)
+        final var settings = new NodeSettings("extracted model settings");
+        method.saveSettingsTo(settings);
+        return new LegacyAggregationOperatorParameters(settings);
     }
 
     @Override
     public NodeSettings computeFallbackSettings(final NodeParametersInput parametersInput)
         throws StateComputationFailureException {
-        // TODO only if no new params defined in ext point (then return null)
-        final var currentValue = m_currentValueSupplier.get();
-        if (currentValue instanceof LegacyAggregationOperatorParameters legacy) {
+        final var params = computeParameters(parametersInput);
+        if (params instanceof LegacyAggregationOperatorParameters legacy) {
             return legacy.getNodeSettings();
         }
-        final var settings = new NodeSettings("settings");
-        NodeParametersUtil.saveSettings(currentValue.getClass(), currentValue, settings);
-        return settings;
+        // no fallback "dialog" needed (no operator parameters or new ext point-based)
+        return null;
     }
 
     @Override

@@ -93,6 +93,9 @@ final class OptionalParameters {
     }
 
     static final class NoOperatorParameters implements AggregationOperatorParameters {
+
         // empty, no settings
+        @Widget(title = "Placeholder", description = "Placeholder to avoid empty class.")
+        String m_placeholder = "<to identify the NoOperatorParameters' JSON representation>";
     }
 }

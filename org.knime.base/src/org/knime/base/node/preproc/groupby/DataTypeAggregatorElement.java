@@ -53,6 +53,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 import org.knime.base.data.aggregation.AggregationMethods;
+import org.knime.base.node.preproc.groupby.AggregationOperatorParametersProvider.AggregationMethodRef;
 import org.knime.base.node.preproc.groupby.OptionalParameters.AggregationOperatorParameters;
 import org.knime.base.node.preproc.groupby.OptionalParameters.NoOperatorParameters;
 import org.knime.core.data.DataType;
@@ -112,7 +113,7 @@ class DataTypeAggregatorElement implements NodeParameters {
     static final class DataTypeSelectedRef implements ParameterReference<DataType> {
     }
 
-    static final class DataTypeAggregationRef implements ParameterReference<String> {
+    static final class DataTypeAggregationRef implements AggregationMethodRef {
     }
 
     static final class DataTypeAggregationChoices implements StringChoicesProvider {
@@ -136,7 +137,7 @@ class DataTypeAggregatorElement implements NodeParameters {
     static final class HasDataTypeOperatorParameters extends HasOperatorParameters {
 
         @Override
-        Class<? extends ParameterReference<String>> getAggregationMethodRefClass() {
+        Class<? extends AggregationMethodRef> getAggregationMethodRefClass() {
             return DataTypeAggregationRef.class;
         }
 
@@ -149,6 +150,11 @@ class DataTypeAggregatorElement implements NodeParameters {
         @Override
         Class<? extends ParameterReference<AggregationOperatorParameters>> getParameterRefClass() {
             return DataTypeOperatorParametersRef.class;
+        }
+
+        @Override
+        Class<? extends AggregationMethodRef> getMethodParameterRefClass() {
+            return DataTypeAggregationRef.class;
         }
     }
 }

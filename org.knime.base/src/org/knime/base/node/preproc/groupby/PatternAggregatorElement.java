@@ -51,6 +51,7 @@ package org.knime.base.node.preproc.groupby;
 import java.util.List;
 
 import org.knime.base.data.aggregation.AggregationMethods;
+import org.knime.base.node.preproc.groupby.AggregationOperatorParametersProvider.AggregationMethodRef;
 import org.knime.base.node.preproc.groupby.OptionalParameters.AggregationOperatorParameters;
 import org.knime.base.node.preproc.groupby.OptionalParameters.NoOperatorParameters;
 import org.knime.base.node.util.regex.PatternType;
@@ -109,15 +110,16 @@ class PatternAggregatorElement implements NodeParameters {
     @PersistArrayElement(LegacyPatternAggregatorsArrayPersistor.OperatorParametersPersistor.class)
     AggregationOperatorParameters m_parameters = new NoOperatorParameters();
 
-    static final class PatternAggregationRef implements ParameterReference<String> {
+    static final class PatternAggregationRef implements AggregationMethodRef {
     }
 
     static final class PatternOperatorParametersRef implements ParameterReference<AggregationOperatorParameters> {
     }
 
     static final class HasPatternOperatorParameters extends HasOperatorParameters {
+
         @Override
-        Class<? extends ParameterReference<String>> getAggregationMethodRefClass() {
+        Class<? extends AggregationMethodRef> getAggregationMethodRefClass() {
             return PatternAggregationRef.class;
         }
     }
@@ -126,6 +128,11 @@ class PatternAggregatorElement implements NodeParameters {
         @Override
         Class<? extends ParameterReference<AggregationOperatorParameters>> getParameterRefClass() {
             return PatternOperatorParametersRef.class;
+        }
+
+        @Override
+        Class<? extends AggregationMethodRef> getMethodParameterRefClass() {
+            return PatternAggregationRef.class;
         }
     }
 
