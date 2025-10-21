@@ -53,7 +53,6 @@ import java.util.List;
 import org.knime.base.data.aggregation.AggregationMethods;
 import org.knime.base.node.preproc.groupby.AggregationOperatorParametersProvider.AggregationMethodRef;
 import org.knime.base.node.preproc.groupby.OptionalParameters.AggregationOperatorParameters;
-import org.knime.base.node.preproc.groupby.OptionalParameters.NoOperatorParameters;
 import org.knime.base.node.util.regex.PatternType;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.PersistArrayElement;
@@ -108,7 +107,7 @@ class PatternAggregatorElement implements NodeParameters {
     @ValueReference(PatternOperatorParametersRef.class)
     @Layout(PatternOperatorParametersRef.class)
     @PersistArrayElement(LegacyPatternAggregatorsArrayPersistor.OperatorParametersPersistor.class)
-    AggregationOperatorParameters m_parameters = new NoOperatorParameters();
+    AggregationOperatorParameters m_parameters;
 
     static final class PatternAggregationRef implements AggregationMethodRef {
     }
