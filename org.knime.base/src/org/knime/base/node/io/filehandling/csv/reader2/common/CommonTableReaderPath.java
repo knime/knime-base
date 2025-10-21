@@ -59,7 +59,7 @@ import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPa
 import org.knime.filehandling.core.defaultnodesettings.status.StatusMessage;
 import org.knime.filehandling.core.node.table.reader.paths.Path;
 
-public final class TableReaderPath implements Path {
+public final class CommonTableReaderPath implements Path {
 
     FileSelection location = new FileSelection();
 
