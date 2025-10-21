@@ -72,7 +72,7 @@ import org.knime.node.parameters.updates.legacy.AutoGuessValueProvider;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.FlowVariableChoicesProvider;
 import org.knime.node.parameters.widget.text.TextInputWidget;
-import org.knime.node.parameters.widget.text.TextInputWidgetValidation.PatternValidation.IsNotEmptyValidation;
+import org.knime.node.parameters.widget.text.TextInputWidgetValidation.PatternValidation.IsNotBlankValidation;
 
 /**
  * Node parameters for Variable to Credentials.
@@ -93,7 +93,7 @@ class VariableToCredentialsNodeParameters implements NodeParameters {
             return flowVariableStream(context).toList();
         }
 
-        static final Stream<FlowVariable> flowVariableStream(final NodeParametersInput context) {
+        static Stream<FlowVariable> flowVariableStream(final NodeParametersInput context) {
             return ((NodeParametersInputImpl)context).getAvailableInputFlowVariables(VariableType.StringType.INSTANCE)
                 .values().stream().filter(v -> !v.getName().equals("knime.workspace"))
                 .sorted((v1, v2) -> v1.getName().compareTo(v2.getName()));
@@ -101,25 +101,25 @@ class VariableToCredentialsNodeParameters implements NodeParameters {
     }
 
     @Widget(title = "Credentials name", description = "The name of the new credentials variable.")
-    @TextInputWidget(minLengthValidation = IsNotEmptyValidation.class)
+    @TextInputWidget(patternValidation = IsNotBlankValidation.class)
     @Persist(configKey = "credentialsName")
     String m_credentialsName = "";
 
     @Widget(title = "Username variable",
-        description = "The string flow variable that contains the username of the new credentials variable.")
+        description = "The string flow variable that contains the username of the new credentials variable."
+            + "Select 'None' to leave the username empty.")
     @ChoicesProvider(StringFlowVariablesProvider.class)
-    @Persist(configKey = "usernameVarName")
+    @Persistor(UsernameVariablePersistor.class)
     @ValueReference(UsernameVariableReference.class)
-    @ValueProvider(GuessUsername.class)
-    String m_usernameVariable = "";
+    StringOrEnum<NoneChoice> m_usernameVariable = new StringOrEnum<>(NoneChoice.NONE);
 
-    interface UsernameVariableReference extends ParameterReference<String> {
+    static final class UsernameVariablePersistor extends NoneAsStringPersistor {
+        UsernameVariablePersistor() {
+            super("usernameVarName");
+        }
     }
 
-    static final class GuessUsername extends AbstractGuessFirstStringFlowVariableValueProvider {
-        GuessUsername() {
-            super(UsernameVariableReference.class);
-        }
+    interface UsernameVariableReference extends ParameterReference<StringOrEnum<NoneChoice>> {
     }
 
     @Widget(title = "Password variable",
@@ -157,7 +157,7 @@ class VariableToCredentialsNodeParameters implements NodeParameters {
      * Custom persistor for the second factor variable that handles migration from legacy string format. Converts the
      * legacy "<none>" string to NoneChoice.NONE enum and other values to string choices.
      */
-    static abstract class NoneAsStringPersistor implements NodeParametersPersistor<StringOrEnum<NoneChoice>> {
+    abstract static class NoneAsStringPersistor implements NodeParametersPersistor<StringOrEnum<NoneChoice>> {
 
         String m_configKey;
 
@@ -193,7 +193,7 @@ class VariableToCredentialsNodeParameters implements NodeParameters {
     /*
      * Set first (with respect to sorting by name) string flow variable as guessed value
      */
-    static abstract class AbstractGuessFirstStringFlowVariableValueProvider extends AutoGuessValueProvider<String> {
+    abstract static class AbstractGuessFirstStringFlowVariableValueProvider extends AutoGuessValueProvider<String> {
 
         protected AbstractGuessFirstStringFlowVariableValueProvider(
             final Class<? extends ParameterReference<String>> selfReference) {

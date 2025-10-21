@@ -72,6 +72,7 @@ import org.knime.core.node.workflow.WorkflowLoadHelper;
 
 /**
  * Node model implementation.
+ *
  * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
  */
 final class VariableToCredentialsNodeModel extends NodeModel implements CredentialsNode {
@@ -79,14 +80,27 @@ final class VariableToCredentialsNodeModel extends NodeModel implements Credenti
     private static final NodeLogger LOGGER = NodeLogger.getLogger(VariableToCredentialsNodeModel.class);
 
     private static final String CREDENTIAL_ID_LABEL = "credentials identifier";
+
     private static final String USERNAME_LABEL = "username";
+
     private static final String PASSWORD_LABEL = "password";
+
     private static final String SECOND_FACTOR_LABEL = "second factor";
+
     private final SettingsModelString m_credentialsNameModel = createCredentialsNameModel();
+
     private final SettingsModelString m_usernameModel = createUserModel();
+
     private final SettingsModelString m_passwordModel = createPwdModel();
+
     private final SettingsModelString m_secondFactorModel = createSecondFactorModel();
+
+    /**
+     * Left here for backwards-compatibility but this was just used for the legacy NodeDialogPane as default value when
+     * no variables are available. We just leave "" as default password value now.
+     */
     static final String EMPTY_ELEMENT = "<none available>";
+
     static final String NONE_ELEMENT = "<none>";
 
     /**
@@ -114,7 +128,7 @@ final class VariableToCredentialsNodeModel extends NodeModel implements Credenti
      * @return the user model.
      */
     static SettingsModelString createUserModel() {
-        return new SettingsModelString("usernameVarName", ""); // NOSONAR
+        return new SettingsModelString("usernameVarName", NONE_ELEMENT); // NOSONAR
     }
 
     VariableToCredentialsNodeModel() {
@@ -133,7 +147,6 @@ final class VariableToCredentialsNodeModel extends NodeModel implements Credenti
         return new PortObject[]{FlowVariablePortObject.INSTANCE};
     }
 
-
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
         m_credentialsNameModel.saveSettingsTo(settings);
@@ -145,6 +158,7 @@ final class VariableToCredentialsNodeModel extends NodeModel implements Credenti
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         checkNotEmpty(m_credentialsNameModel, settings, CREDENTIAL_ID_LABEL);
+        checkNotBlank(m_credentialsNameModel, settings, CREDENTIAL_ID_LABEL);
         checkNotEmpty(m_usernameModel, settings, USERNAME_LABEL);
         checkNotEmpty(m_passwordModel, settings, PASSWORD_LABEL);
         if (settings.containsKey(m_secondFactorModel.getKey())) {
@@ -153,11 +167,19 @@ final class VariableToCredentialsNodeModel extends NodeModel implements Credenti
         }
     }
 
-    private static void checkNotEmpty(final SettingsModelString model, final NodeSettingsRO settings,
-        final String name) throws InvalidSettingsException {
-        final String val = model.<SettingsModelString>createCloneWithValidatedValue(settings).getStringValue();
+    private static void checkNotEmpty(final SettingsModelString model, final NodeSettingsRO settings, final String name)
+        throws InvalidSettingsException {
+        final String val = model.<SettingsModelString> createCloneWithValidatedValue(settings).getStringValue();
         if (StringUtils.isEmpty(val) || EMPTY_ELEMENT.equals(val)) {
             throw new InvalidSettingsException("Please provide the " + name);
+        }
+    }
+
+    private static void checkNotBlank(final SettingsModelString model, final NodeSettingsRO settings, final String name)
+        throws InvalidSettingsException {
+        final String val = model.<SettingsModelString> createCloneWithValidatedValue(settings).getStringValue();
+        if (StringUtils.isBlank(val)) {
+            throw new InvalidSettingsException(String.format("The %s cannot be blank" + name));
         }
     }
 
@@ -179,14 +201,13 @@ final class VariableToCredentialsNodeModel extends NodeModel implements Credenti
         final String credentialsName = m_credentialsNameModel.getStringValue();
         final String userVar = getValueOrThrow(USERNAME_LABEL, m_usernameModel.getStringValue(), variables);
         final String passwordVar = getValueOrThrow(PASSWORD_LABEL, m_passwordModel.getStringValue(), variables);
-        final String secondFactorVar = getValueOrThrow(SECOND_FACTOR_LABEL, m_secondFactorModel.getStringValue(),
-            variables);
-        pushCredentialsFlowVariable(credentialsName, userVar, passwordVar, secondFactorVar);
+        final String secondFactorVar =
+            getValueOrThrow(SECOND_FACTOR_LABEL, m_secondFactorModel.getStringValue(), variables);
+        pushCredentialsFlowVariable(credentialsName, userVar == null ? "" : userVar, passwordVar, secondFactorVar);
     }
 
     private static String getValueOrThrow(final String name, final String val,
-        final Map<String, FlowVariable> variables)
-        throws InvalidSettingsException {
+        final Map<String, FlowVariable> variables) throws InvalidSettingsException {
         if (StringUtils.isEmpty(val)) {
             throw new InvalidSettingsException("Please select the " + name + " variable");
         }
