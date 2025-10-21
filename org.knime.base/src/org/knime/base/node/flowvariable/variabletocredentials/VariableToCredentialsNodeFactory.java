@@ -45,15 +45,36 @@
  */
 package org.knime.base.node.flowvariable.variabletocredentials;
 
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
 
 /**
  * Node factory implementation.
+ *
  * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
+ * @author Paul Baernreuther, KNIME GmbH, Germany
+ * @author AI Migration Pipeline v1.2
  */
-public class VariableToCredentialsNodeFactory extends NodeFactory<VariableToCredentialsNodeModel> {
+@SuppressWarnings("restriction")
+public class VariableToCredentialsNodeFactory extends NodeFactory<VariableToCredentialsNodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     @Override
     public VariableToCredentialsNodeModel createNodeModel() {
@@ -66,7 +87,8 @@ public class VariableToCredentialsNodeFactory extends NodeFactory<VariableToCred
     }
 
     @Override
-    public NodeView<VariableToCredentialsNodeModel> createNodeView(final int viewIndex, final VariableToCredentialsNodeModel nodeModel) {
+    public NodeView<VariableToCredentialsNodeModel> createNodeView(final int viewIndex,
+        final VariableToCredentialsNodeModel nodeModel) {
         return null;
     }
 
@@ -75,9 +97,47 @@ public class VariableToCredentialsNodeFactory extends NodeFactory<VariableToCred
         return true;
     }
 
+    private static final String NODE_NAME = "Variable to Credentials";
+
+    private static final String NODE_ICON = "variable_credentials.png";
+
+    private static final String SHORT_DESCRIPTION = """
+            Converts flow variables into a credentials variable.
+            """;
+
+    private static final String FULL_DESCRIPTION = """
+            Converts string flow variables into a credentials variable. If the variable already exists it will be
+                overridden.
+            """;
+
+    private static final List<PortDescription> INPUT_PORTS = List.of(fixedPort("Variables input", """
+            Variables Connection.
+            """));
+
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(fixedPort("Variables output", """
+            Variables Connection with the newly created credentials.
+            """));
+
     @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new VariableToCredentialsNodeDialog();
+    public NodeDialogPane createNodeDialogPane() {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, VariableToCredentialsNodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription(NODE_NAME, NODE_ICON, INPUT_PORTS, OUTPUT_PORTS,
+            SHORT_DESCRIPTION, FULL_DESCRIPTION, List.of(), VariableToCredentialsNodeParameters.class, null,
+            NodeType.Other, List.of(), null);
+    }
+
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, VariableToCredentialsNodeParameters.class));
     }
 
 }
