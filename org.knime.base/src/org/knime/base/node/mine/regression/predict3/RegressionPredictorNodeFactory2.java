@@ -145,18 +145,13 @@ public final class RegressionPredictorNodeFactory2
     }
 
     /**
-     * {@inheritDoc}
-     * @since 5.8
+     * @since 5.9
      */
     @Override
     public NodeDialog createNodeDialog() {
         return new DefaultNodeDialog(SettingsType.MODEL, RegressionPredictorNodeParameters.class);
     }
 
-    /**
-     * {@inheritDoc}
-     * @since 5.8
-     */
     @Override
     public NodeDescription createNodeDescription() {
         return DefaultNodeDescriptionUtil.createNodeDescription(
@@ -176,8 +171,7 @@ public final class RegressionPredictorNodeFactory2
     }
 
     /**
-     * {@inheritDoc}
-     * @since 5.8
+     * @since 5.9
      */
     @Override
     public KaiNodeInterface createKaiNodeInterface() {

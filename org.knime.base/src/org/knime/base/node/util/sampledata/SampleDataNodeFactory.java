@@ -79,7 +79,7 @@ public class SampleDataNodeFactory extends NodeFactory<SampleDataNodeModel>
     /**
      * {@inheritDoc}
      *
-     * @since 5.8
+     * @since 5.9
      */
     @Override
     public SampleDataNodeModel createNodeModel() {
@@ -101,7 +101,7 @@ public class SampleDataNodeFactory extends NodeFactory<SampleDataNodeModel>
      *
      * @see NodeFactory#createNodeView(int, NodeModel)
      * @deprecated
-     * @since 5.8
+     * @since 5.9
      */
     @Deprecated
     @Override
@@ -151,7 +151,7 @@ public class SampleDataNodeFactory extends NodeFactory<SampleDataNodeModel>
     }
 
     /**
-     * @since 5.8
+     * @since 5.9
      */
     @Override
     public NodeDialog createNodeDialog() {
@@ -166,7 +166,7 @@ public class SampleDataNodeFactory extends NodeFactory<SampleDataNodeModel>
     }
 
     /**
-     * @since 5.8
+     * @since 5.9
      */
     @Override
     public KaiNodeInterface createKaiNodeInterface() {

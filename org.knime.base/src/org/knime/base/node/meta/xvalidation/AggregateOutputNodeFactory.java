@@ -124,7 +124,7 @@ public class AggregateOutputNodeFactory extends
     );
 
     /**
-     * @since 5.8
+     * @since 5.9
      */
     @Override
     public NodeDialogPane createNodeDialogPane() {
@@ -132,7 +132,7 @@ public class AggregateOutputNodeFactory extends
     }
 
     /**
-     * @since 5.8
+     * @since 5.9
      */
     @Override
     public NodeDialog createNodeDialog() {
@@ -158,7 +158,7 @@ public class AggregateOutputNodeFactory extends
     }
 
     /**
-     * @since 5.8
+     * @since 5.9
      */
     @Override
     public KaiNodeInterface createKaiNodeInterface() {

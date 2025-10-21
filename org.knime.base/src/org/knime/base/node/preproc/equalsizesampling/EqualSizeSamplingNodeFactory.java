@@ -122,7 +122,7 @@ public final class EqualSizeSamplingNodeFactory extends
     );
 
     /**
-     * @since 5.8
+     * @since 5.9
      */
     @Override
     public NodeDialogPane createNodeDialogPane() {
@@ -130,7 +130,7 @@ public final class EqualSizeSamplingNodeFactory extends
     }
 
     /**
-     * @since 5.8
+     * @since 5.9
      */
     @Override
     public NodeDialog createNodeDialog() {
@@ -156,7 +156,7 @@ public final class EqualSizeSamplingNodeFactory extends
     }
 
     /**
-     * @since 5.8
+     * @since 5.9
      */
     @Override
     public KaiNodeInterface createKaiNodeInterface() {

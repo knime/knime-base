@@ -146,9 +146,7 @@ public class AddEmptyRowsNodeFactory
     }
 
     /**
-     * {@inheritDoc}
-     *
-     * @since 5.8
+     * @since 5.9
      */
     @Override
     public NodeDialog createNodeDialog() {
@@ -174,9 +172,7 @@ public class AddEmptyRowsNodeFactory
     }
 
     /**
-     * {@inheritDoc}
-     *
-     * @since 5.8
+     * @since 5.9
      */
     @Override
     public KaiNodeInterface createKaiNodeInterface() {
