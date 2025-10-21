@@ -55,6 +55,7 @@ import org.knime.base.node.preproc.groupby.OptionalParameters.AggregationOperato
 import org.knime.base.node.preproc.groupby.OptionalParameters.NoOperatorParameters;
 import org.knime.base.node.util.regex.PatternType;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.PersistArrayElement;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
@@ -68,8 +69,10 @@ import org.knime.node.parameters.widget.choices.StringChoice;
 import org.knime.node.parameters.widget.choices.StringChoicesProvider;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 
+@SuppressWarnings("restriction")
 class PatternAggregatorElement implements NodeParameters {
     @Widget(title = "Search pattern", description = "The search pattern to match column names")
+    @PersistArrayElement(LegacyPatternAggregatorsArrayPersistor.PatternPersistor.class)
     String m_pattern = "";
 
     static final class PatternTypeChoices implements EnumChoicesProvider<PatternType> {
@@ -82,6 +85,7 @@ class PatternAggregatorElement implements NodeParameters {
     @Widget(title = "Pattern type", description = "...")
     @ValueSwitchWidget
     @ChoicesProvider(PatternTypeChoices.class)
+    @PersistArrayElement(LegacyPatternAggregatorsArrayPersistor.PatternTypePersistor.class)
     PatternType m_isRegex = PatternType.WILDCARD;
 
     @Widget(title = "Aggregation", description = "The aggregation method to use")
@@ -89,10 +93,12 @@ class PatternAggregatorElement implements NodeParameters {
         showSubParametersProvider = HasPatternOperatorParameters.class)
     @ValueReference(PatternAggregationRef.class)
     @ChoicesProvider(PatternAggregationChoices.class)
+    @PersistArrayElement(LegacyPatternAggregatorsArrayPersistor.AggregationMethodPersistor.class)
     String m_aggregationMethod = "First";
 
     @Widget(title = "Missing values", description = "")
     @ValueSwitchWidget
+    @PersistArrayElement(LegacyPatternAggregatorsArrayPersistor.MissingValueOptionPersistor.class)
     MissingValueOption m_includeMissing = MissingValueOption.EXCLUDE;
 
     // TODO show new parameters via extension point if defined
@@ -100,6 +106,7 @@ class PatternAggregatorElement implements NodeParameters {
         widgetAppearingInNodeDescription = @Widget(title = "Operator settings", description = "...", advanced = true))
     @ValueReference(PatternOperatorParametersRef.class)
     @Layout(PatternOperatorParametersRef.class)
+    @PersistArrayElement(LegacyPatternAggregatorsArrayPersistor.OperatorParametersPersistor.class)
     AggregationOperatorParameters m_parameters = new NoOperatorParameters();
 
     static final class PatternAggregationRef implements ParameterReference<String> {
