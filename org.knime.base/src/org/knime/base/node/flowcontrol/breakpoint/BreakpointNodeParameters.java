@@ -93,7 +93,7 @@ import org.knime.node.parameters.widget.text.TextInputWidget;
 class BreakpointNodeParameters implements NodeParameters {
 
     @Persist(configKey = BreakpointNodeDialog.CFG_KEY_ENABLED)
-    @Widget(title = "Breakpoint Enabled", description = """
+    @Widget(title = "Breakpoint enabled", description = """
             Determines whether the breakpoint node should halt on a certain condition or just pass on the data.
             """)
     @ValueReference(EnabledRef.class)
@@ -108,7 +108,7 @@ class BreakpointNodeParameters implements NodeParameters {
     BreakpointCondition m_breakpointCondition = BreakpointCondition.EMPTYTABLE;
 
     @Persist(configKey = BreakpointNodeDialog.CFG_KEY_VARIABLE_NAME)
-    @Widget(title = "Select Variable", description = """
+    @Widget(title = "Select variable", description = """
             Choose the flow variable that should be matched from a list of available variables.
             """)
     @ChoicesProvider(FlowVariableNameChoicesProvider.class)
@@ -118,7 +118,7 @@ class BreakpointNodeParameters implements NodeParameters {
     String m_variableName;
 
     @Persist(configKey = BreakpointNodeDialog.CFG_KEY_VARIABLE_VALUE)
-    @Widget(title = "Enter Variable Value", description = """
+    @Widget(title = "Enter variable value", description = """
             The value to match the specified flow variable against. Can be e.g. "true", "42", or "test".
             """)
     @TextInputWidget

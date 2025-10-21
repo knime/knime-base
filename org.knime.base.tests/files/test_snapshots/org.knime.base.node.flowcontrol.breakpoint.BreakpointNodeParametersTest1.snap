@@ -43,18 +43,18 @@
           },
           "enabled" : {
             "type" : "boolean",
-            "title" : "Breakpoint Enabled",
+            "title" : "Breakpoint enabled",
             "description" : "Determines whether the breakpoint node should halt on a certain condition or just pass on the data.\n",
             "default" : false
           },
           "variableName" : {
             "type" : "string",
-            "title" : "Select Variable",
+            "title" : "Select variable",
             "description" : "Choose the flow variable that should be matched from a list of available variables.\n"
           },
           "variableValue" : {
             "type" : "string",
-            "title" : "Enter Variable Value",
+            "title" : "Enter variable value",
             "description" : "The value to match the specified flow variable against. Can be e.g. \"true\", \"42\", or \"test\".\n",
             "default" : "0"
           }
