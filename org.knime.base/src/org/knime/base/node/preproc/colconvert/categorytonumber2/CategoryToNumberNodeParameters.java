@@ -47,6 +47,7 @@
 
 package org.knime.base.node.preproc.colconvert.categorytonumber2;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.knime.core.data.DataType;
@@ -60,7 +61,10 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.TypedStrin
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.migration.ConfigMigration;
 import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
+import org.knime.node.parameters.migration.Migration;
+import org.knime.node.parameters.migration.NodeParametersMigration;
 import org.knime.node.parameters.persistence.NodeParametersPersistor;
 import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistor;
@@ -110,8 +114,8 @@ final class CategoryToNumberNodeParameters implements NodeParameters {
     @Persistor(CategoryToNumberNodeParameters.ColumnFilterLegacyPersistor.class)
     @ColumnFilterWidget(choicesProvider = NominalColumnsProvider.class)
     @Widget(title = "Columns to transform", description = """
-            Select the columns to be converted from nominal (category) values to numbers. Only columns with nominal
-            data are available. Use the include/exclude lists to specify which columns should be processed.
+            Select the columns to be converted from nominal (category) values to numbers. Only columns with nominal \
+            data are available. Use the include/exclude lists to specify which columns should be processed. \
             """)
     @TypedStringFilterWidgetInternal(hideTypeFilter = true)
     ColumnFilter m_columns = new ColumnFilter();
@@ -132,8 +136,8 @@ final class CategoryToNumberNodeParameters implements NodeParameters {
     }
 
     @Widget(title = "Append suffix to column name", description = """
-            If checked, append the given suffix to the names of the computed columns.
-            Otherwise the computed columns replace the columns in the include list.
+            If checked, append the given suffix to the names of the computed columns. \
+            Otherwise the computed columns replace the columns in the include list.\
             """)
     @OptionalWidget(defaultProvider = DefaultColumnSuffixProvider.class)
     @TextInputWidget
@@ -141,53 +145,91 @@ final class CategoryToNumberNodeParameters implements NodeParameters {
     Optional<String> m_columnSuffix = Optional.of(" (to number)");
 
     @Widget(title = "Start value", description = """
-            The category in the first row will be mapped to this value.
+            The category in the first row will be mapped to this value. \
             """)
-    @NumberInputWidget
     @Persist(configKey = "start_index")
     int m_startIndex;
 
     @Widget(title = "Increment", description = """
-            The i-th category is mapped to the value i * Increment + Start value.
+            The i-th category is mapped to the value i * Increment + Start value.\
             """)
     @NumberInputWidget(minValidation = NumberInputWidgetValidation.MinValidation.IsPositiveIntegerValidation.class)
     @Persist(configKey = "increment")
     int m_increment = 1;
 
     @Widget(title = "Maximum number of categories", description = """
-            Processing is interrupted for inputs with more categories.
+            Processing is interrupted for inputs with more categories.\
             """)
     @NumberInputWidget(minValidation = NumberInputWidgetValidation.MinValidation.IsPositiveIntegerValidation.class)
     @Persist(configKey = "max_categories")
     int m_maxCategories = 100;
 
-    private static final class DefaultValuePersistor extends DataCellOptionalIntPersistor {
+    private static final String DEFAULT_VALUE_CFG_KEY = "default_value";
+
+    static final class DefaultValuePersistor extends DataCellOptionalIntPersistor {
         DefaultValuePersistor() {
-            super("default_value");
+            super(DEFAULT_VALUE_CFG_KEY);
         }
+    }
+
+    static final class DefaultValueMigration extends DataCellOptionalIntMigration {
+
+        DefaultValueMigration() {
+            super(DEFAULT_VALUE_CFG_KEY);
+        }
+
     }
 
     @Widget(title = "Use default value in PMML", description = """
-            This value is used when the PMML model is applied. It defines the value used when the input is not
-            found in the mapping. Leave it empty to assign a missing cell in this case.
+            This value is used when the PMML model is applied. It defines the value used when the input is not \
+            found in the mapping. If disabled, a missing cell is assigned in this case. \
             """)
-    @NumberInputWidget
     @Persistor(DefaultValuePersistor.class)
+    @Migration(DefaultValueMigration.class)
     Optional<Integer> m_defaultValue = Optional.empty();
 
-    private static final class MapMissingToPersistor extends DataCellOptionalIntPersistor {
+    private static final String MAP_MISSING_TO_CONFIG_KEY = "map_missing_to";
+
+    static final class MapMissingToPersistor extends DataCellOptionalIntPersistor {
         MapMissingToPersistor() {
-            super("map_missing_to");
+            super(MAP_MISSING_TO_CONFIG_KEY);
         }
     }
 
+    static final class MapMissingToMigration extends DataCellOptionalIntMigration {
+
+        MapMissingToMigration() {
+            super(MAP_MISSING_TO_CONFIG_KEY);
+        }
+
+    }
+
     @Widget(title = "Map missing cells to number", description = """
-            Missing cells are mapped to this value. You can enter any integer. If disabled,
-            missing cells will be mapped to missing cells.
+            Missing cells are mapped to this value. If disabled, \
+            missing cells will be mapped to missing cells. \
             """)
-    @NumberInputWidget
     @Persistor(MapMissingToPersistor.class)
+    @Migration(MapMissingToMigration.class)
     Optional<Integer> m_mapMissingTo = Optional.empty();
+
+    /**
+     * Custom migration whose whole purpose is to enable still showing legacy flow variables since we do not allow
+     * setting flow variables anymore for DataCells in the modern dialog.
+     */
+    private abstract static class DataCellOptionalIntMigration implements NodeParametersMigration<Optional<Integer>> {
+
+        private final String m_configKey;
+
+        DataCellOptionalIntMigration(final String configKey) {
+            m_configKey = configKey;
+        }
+
+        @Override
+        public List<ConfigMigration<Optional<Integer>>> getConfigMigrations() {
+            return List.of(ConfigMigration.builder(settings -> (Optional<Integer>)null).withMatcher(settings -> false)
+                .withDeprecatedConfigPath(m_configKey).build());
+        }
+    }
 
     /**
      * Custom persistor to handle DataCell <-> Optional<Integer> conversion for legacy compatibility.
@@ -197,7 +239,7 @@ final class CategoryToNumberNodeParameters implements NodeParameters {
         private final String m_configKey;
 
         DataCellOptionalIntPersistor(final String configKey) {
-            this.m_configKey = configKey;
+            m_configKey = configKey;
         }
 
         @Override
@@ -224,7 +266,7 @@ final class CategoryToNumberNodeParameters implements NodeParameters {
 
         @Override
         public String[][] getConfigPaths() {
-            return new String[][]{{m_configKey}};
+            return new String[0][]; // We cannot set the flow variables for DataCells
         }
     }
 }

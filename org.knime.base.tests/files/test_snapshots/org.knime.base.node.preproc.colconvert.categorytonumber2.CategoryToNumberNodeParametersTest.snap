@@ -35,7 +35,7 @@
           "columnSuffix" : {
             "type" : [ "string", "null" ],
             "title" : "Append suffix to column name",
-            "description" : "If checked, append the given suffix to the names of the computed columns.\nOtherwise the computed columns replace the columns in the include list.\n",
+            "description" : "If checked, append the given suffix to the names of the computed columns. Otherwise the computed columns replace the columns in the include list.",
             "default" : " (to number)"
           },
           "columns" : {
@@ -129,7 +129,7 @@
               }
             },
             "title" : "Columns to transform",
-            "description" : "Select the columns to be converted from nominal (category) values to numbers. Only columns with nominal\ndata are available. Use the include/exclude lists to specify which columns should be processed.\n",
+            "description" : "Select the columns to be converted from nominal (category) values to numbers. Only columns with nominal data are available. Use the include/exclude lists to specify which columns should be processed. ",
             "default" : {
               "mode" : "MANUAL",
               "patternFilter" : {
@@ -152,35 +152,35 @@
             "type" : [ "integer", "null" ],
             "format" : "int32",
             "title" : "Use default value in PMML",
-            "description" : "This value is used when the PMML model is applied. It defines the value used when the input is not\nfound in the mapping. Leave it empty to assign a missing cell in this case.\n",
+            "description" : "This value is used when the PMML model is applied. It defines the value used when the input is not found in the mapping. If disabled, a missing cell is assigned in this case. ",
             "default" : null
           },
           "increment" : {
             "type" : "integer",
             "format" : "int32",
             "title" : "Increment",
-            "description" : "The i-th category is mapped to the value i * Increment + Start value.\n",
+            "description" : "The i-th category is mapped to the value i * Increment + Start value.",
             "default" : 1
           },
           "mapMissingTo" : {
             "type" : [ "integer", "null" ],
             "format" : "int32",
             "title" : "Map missing cells to number",
-            "description" : "Missing cells are mapped to this value. You can enter any integer. If disabled,\nmissing cells will be mapped to missing cells.\n",
+            "description" : "Missing cells are mapped to this value. If disabled, missing cells will be mapped to missing cells. ",
             "default" : null
           },
           "maxCategories" : {
             "type" : "integer",
             "format" : "int32",
             "title" : "Maximum number of categories",
-            "description" : "Processing is interrupted for inputs with more categories.\n",
+            "description" : "Processing is interrupted for inputs with more categories.",
             "default" : 100
           },
           "startIndex" : {
             "type" : "integer",
             "format" : "int32",
             "title" : "Start value",
-            "description" : "The category in the first row will be mapped to this value.\n",
+            "description" : "The category in the first row will be mapped to this value. ",
             "default" : 0
           }
         }
@@ -338,10 +338,16 @@
             "configKey" : "max_categories"
           },
           "defaultValue" : {
-            "configPaths" : [ [ "default_value" ] ]
+            "configPaths" : [ ],
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "default_value" ] ]
+            } ]
           },
           "mapMissingTo" : {
-            "configPaths" : [ [ "map_missing_to" ] ]
+            "configPaths" : [ ],
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "map_missing_to" ] ]
+            } ]
           }
         }
       }
@@ -366,6 +372,12 @@
           "id" : "org.knime.core.data.StringValue",
           "text" : "String"
         }
+      } ]
+    } ]
+  } ]
+}   } ]
+  } ]
+}}
       } ]
     } ]
   } ]
