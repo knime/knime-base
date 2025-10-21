@@ -95,7 +95,7 @@ final class LegacyPatternAggregatorsPersistor implements NodeParametersPersistor
         PatternAggregator.saveAggregators(settings, GroupByNodeModel.CFG_PATTERN_AGGREGATORS, aggregators);
     }
 
-    private static PatternAggregator mapToAggregator(final PatternAggregatorElement elem) {
+    static PatternAggregator mapToAggregator(final PatternAggregatorElement elem) {
         final var method = AggregationMethods.getMethod4Id(elem.m_aggregationMethod);
         final var includeMissing = elem.m_includeMissing == MissingValueOption.INCLUDE;
         final var agg =

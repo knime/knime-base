@@ -52,6 +52,7 @@ import java.util.function.Supplier;
 import org.knime.base.data.aggregation.GlobalSettings;
 import org.knime.base.node.preproc.groupby.GroupByNodeModel.TypeMatch;
 import org.knime.core.node.NodeLogger;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.PersistArray;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.node.parameters.Advanced;
 import org.knime.node.parameters.NodeParameters;
@@ -155,8 +156,8 @@ class GroupByNodeParameters implements NodeParameters {
     @Layout(Sections.TypeAndPatternAggregations.class)
     @Widget(title = "Pattern", description = "...")
     @ArrayWidget(addButtonText = "Add pattern")
-    @Persistor(LegacyPatternAggregatorsPersistor.class)
-//    @ArrayPersist
+//    @Persistor(LegacyPatternAggregatorsPersistor.class)
+    @PersistArray(LegacyPatternAggregatorsArrayPersistor.class)
     PatternAggregatorElement[] m_patternAggregators = new PatternAggregatorElement[0];
 
     @Layout(Sections.TypeAndPatternAggregations.class)
