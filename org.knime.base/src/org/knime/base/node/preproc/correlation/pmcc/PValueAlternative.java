@@ -50,6 +50,8 @@ package org.knime.base.node.preproc.correlation.pmcc;
 
 import java.util.Arrays;
 
+import org.knime.node.parameters.widget.choices.Label;
+
 /**
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  * @since 4.1
@@ -57,12 +59,15 @@ import java.util.Arrays;
 public enum PValueAlternative {
 
         /** two sided p-value */
+        @Label(value = "two-sided")
         TWO_SIDED("two-sided"),
 
         /** Positive association: One-sided (right) */
+        @Label(value = "one-sided (right)")
         GREATER("one-sided (right)"),
 
         /** Negative association: One-sided (left) */
+        @Label(value = "one-sided (left)")
         LESS("one-sided (left)");
 
     private final String m_desc;
@@ -89,4 +94,5 @@ public enum PValueAlternative {
     public static String[] descriptions() {
         return Arrays.stream(PValueAlternative.values()).map(PValueAlternative::toString).toArray(String[]::new);
     }
+
 }
