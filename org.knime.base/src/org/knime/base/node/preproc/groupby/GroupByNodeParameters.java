@@ -49,9 +49,13 @@ package org.knime.base.node.preproc.groupby;
 import java.util.List;
 import java.util.function.Supplier;
 
+import org.apache.commons.lang.StringEscapeUtils;
 import org.knime.base.data.aggregation.GlobalSettings;
 import org.knime.base.node.preproc.groupby.GroupByNodeModel.TypeMatch;
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.PersistArray;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.node.parameters.Advanced;
@@ -64,6 +68,7 @@ import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.layout.Section;
 import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
 import org.knime.node.parameters.migration.Migration;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
 import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.persistence.legacy.LegacyStringFilter;
@@ -271,12 +276,71 @@ class GroupByNodeParameters implements NodeParameters {
     @Persist(configKey = GroupByNodeModel.CFG_MAX_UNIQUE_VALUES)
     int m_maxUniqueValues = 100000;
 
+    static final class Delimiter implements NodeParameters {
+
+        @Widget(title = "Value delimiter",
+            description = "The value delimiter used by aggregation methods such as concatenate.")
+        @TextInputWidget
+        String m_delimiter;
+
+        // This is the current version of the GroupBy node to which we are fully compatible,
+        // hence we need to keep the same version number.
+        // Version 0 did not have this field, so we must persist it in order to identify
+        // ourselves as version 1.
+        // The field was introduced to change the escaping of the delimiter
+        // (version 1 supports control characters (Bug 4865 -- no Jira))
+        int m_version = GroupByNodeModel.createVersionModel().getIntValue();
+
+        Delimiter() {
+            // for framework
+        }
+
+        // for default value
+        Delimiter(final String delimiter) {
+            m_delimiter = delimiter;
+        }
+
+        // for persistor
+        Delimiter(final int version, final String delimiter) {
+            m_version = version;
+            m_delimiter = delimiter;
+        }
+
+
+    }
+    static final class DelimiterPersistor implements NodeParametersPersistor<Delimiter> {
+
+        private static final String CFG_VERSION = GroupByNodeModel.createVersionModel().getKey();
+
+        // workaround for UIEXT-3012 and handling of GroupBy node version specific persistence...
+        @Override
+        public Delimiter load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            // version 0 did not have this field
+            final var version = settings.getInt(CFG_VERSION, 0);
+            final var delim =
+                settings.getString(GroupByNodeModel.CFG_VALUE_DELIMITER, GlobalSettings.STANDARD_DELIMITER);
+            // we need to escape, otherwise the Frontend will display the invisible control characters as-is
+            return new Delimiter(version, version == 0 ? delim : StringEscapeUtils.escapeJava(delim));
+        }
+        @Override
+        public void save(final Delimiter param, final NodeSettingsWO settings) {
+            // the frontend sends us escaped control characters
+            final var version = param.m_version;
+            final var delim = param.m_delimiter;
+
+            final var toSave = version == 0 ? delim : StringEscapeUtils.unescapeJava(delim);
+            settings.addString(GroupByNodeModel.CFG_VALUE_DELIMITER, toSave);
+            settings.addInt(CFG_VERSION, version);
+        }
+        @Override
+        public String[][] getConfigPaths() {
+            return new String[][] { { GroupByNodeModel.CFG_VALUE_DELIMITER } };
+        }
+
+    }
+    @Persistor(DelimiterPersistor.class)
     @Layout(Sections.Output.class)
-    @Widget(title = "Value delimiter",
-        description = "The value delimiter used by aggregation methods such as concatenate.")
-    @TextInputWidget
-    @Persist(configKey = GroupByNodeModel.CFG_VALUE_DELIMITER)
-    String m_valueDelimiter = GlobalSettings.STANDARD_DELIMITER;
+    Delimiter m_valueDelimiter = new Delimiter(GlobalSettings.STANDARD_DELIMITER);
 
     @Layout(Sections.Performance.class)
     @Widget(title = "Enable hiliting", description = """
@@ -315,13 +379,6 @@ class GroupByNodeParameters implements NodeParameters {
     @ValueReference(RetainOrderRef.class)
     @Persist(configKey = GroupByNodeModel.CFG_RETAIN_ORDER)
     boolean m_retainOrder;
-
-    // This is the current version of the GroupBy node to which we are fully compatible,
-    // hence we need to keep the same version number.
-    // Version 0 did not have this field, so we must persist it in order to identify
-    // ourselves as version 1.
-    @Persist(configKey = "version")
-    int m_version = 1;
 
     static final class RetainOrderRef implements ParameterReference<Boolean> {
     }
