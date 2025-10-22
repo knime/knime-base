@@ -44,91 +44,57 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   20 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   22 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.base.node.preproc.groupby;
 
 import java.util.function.Supplier;
 
 import org.knime.base.data.aggregation.AggregationMethods;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.ArrayPersistor;
+import org.knime.core.data.DataType;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.node.parameters.NodeParametersInput;
-import org.knime.node.parameters.updates.EffectPredicate;
-import org.knime.node.parameters.updates.EffectPredicateProvider;
 import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.StateProvider;
-import org.knime.node.parameters.widget.choices.Label;
 
 /**
- * Options for missing value handling in aggregation operators.
+ * Selects the default aggregation method based on the type, if a method is not already provided.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-enum MissingValueOption {
-        @Label("Exclude")
-        EXCLUDE, //
-        @Label("Include")
-        INCLUDE;
+abstract class DefaultAggregationMethodProvider implements StateProvider<String> {
 
-    abstract static class SupportsMissingValueOptions implements StateProvider<Boolean>, ParameterReference<Boolean> {
+    /** The currently selected method to avoid updating it if it is already set. */
+    private Supplier<String> m_methodSelf;
 
-        private Supplier<String> m_methodSupplier;
-
-        abstract Class<? extends ParameterReference<String>> getMethodReference();
-
-        @Override
-        public void init(final StateProviderInitializer initializer) {
-            initializer.computeAfterOpenDialog();
-            m_methodSupplier = initializer.computeFromValueSupplier(getMethodReference());
-        }
-
-        @Override
-        public Boolean computeState(final NodeParametersInput ignored) {
-            final var id = m_methodSupplier.get();
-            if (id == null) {
-                return false;
-            }
-            final var method = AggregationMethods.getMethod4Id(id);
-            return method.supportsMissingValueOption();
-        }
-
-    }
+    private Supplier<DataType> m_typeSupplier;
 
     /**
-     * Abstract class for effect provider to show the missing value option only if the selected aggregation method
-     * supports it. Annotate the {@link MissingValueOption} parameter with your derivation:
-     *
-     * <pre>
-     * <code>
-     *   &#64;Effect(type = EffectType.SHOW, predicate = MyShowMissingValueOption.class)
-     * </code>
-     * </pre>
-     *
-     * Then introduce a transient boolean parameter, annotated with your derivation of
-     * {@link SupportsMissingValueOptions}, which is referenced by the effect predicate:
-     *
-     * <pre>
-     * <code>
-     * &#64;ValueProvider(MySupportsMissingValueOptions.class)
-     * &#64;ValueReference(MySupportsMissingValueOptions.class)
-     * &#64;PersistArrayElement(MyNoPersistenceElementFieldPersistor.class) // if inside ArrayPersistor
-     * // helper flag to show/hide missing value option
-     * boolean m_supportsMissingValueOption;
-     * </code>
-     * </pre>
-     *
-     * If inside an {@link ArrayPersistor}, you need to derive a {@link NoPersistenceElementFieldPersistor} to make the
-     * boolean field "transient".
+     * @return type provider class to obtain method for
      */
-    @SuppressWarnings("restriction")
-    abstract static class ShowMissingValueOption implements EffectPredicateProvider {
+    abstract Class<? extends ParameterReference<DataType>> getTypeProvider();
 
-        abstract Class<? extends SupportsMissingValueOptions> getMissingValueOptionSupportedReference();
+    /**
+     * @return self reference for the method to not override if already set
+     */
+    abstract Class<? extends ParameterReference<String>> getMethodSelfProvider();
 
-        @Override
-        public EffectPredicate init(final PredicateInitializer i) {
-            return i.getBoolean(getMissingValueOptionSupportedReference()).isTrue();
-        }
-
+    @Override
+    public final void init(final StateProviderInitializer initializer) {
+        m_methodSelf = initializer.getValueSupplier(getMethodSelfProvider());
+        m_typeSupplier = initializer.computeFromValueSupplier(getTypeProvider());
     }
+
+    @SuppressWarnings("restriction")
+    @Override
+    public final String computeState(final NodeParametersInput parametersInput)
+        throws StateComputationFailureException {
+        if (m_methodSelf.get() != null) {
+            throw new StateComputationFailureException();
+        }
+        final var type = m_typeSupplier.get();
+        // there always is a default, even if it is just "First"
+        return AggregationMethods.getInstance().getDefaultFunction(type).getId();
+    }
+
 }

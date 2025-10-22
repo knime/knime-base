@@ -112,7 +112,9 @@ final class LegacyColumnAggregatorsPersistor implements NodeParametersPersistor<
     @SuppressWarnings("restriction")
     @Override
     public void save(final ColumnAggregatorElement[] elems, final NodeSettingsWO settings) {
-        final var aggregators = Arrays.stream(elems).map(LegacyColumnAggregatorsPersistor::mapToAggregator).toList();
+        final var aggregators = Arrays.stream(elems) //
+                .filter(agg -> agg.m_column != null && agg.m_dataType != null) // TODO remove this workaround if we can disable the Add button
+                .map(LegacyColumnAggregatorsPersistor::mapToAggregator).toList();
         ColumnAggregator.saveColumnAggregators(settings, aggregators);
         final var operatorSettings = settings.addNodeSettings(CNFG_AGGREGATION_OPERATOR_SETTINGS);
         // we need to recreate the key for each operator's optional settings, because the fallback extraction

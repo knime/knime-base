@@ -54,6 +54,8 @@ import java.util.function.Supplier;
 import org.knime.base.data.aggregation.AggregationMethods;
 import org.knime.base.node.preproc.groupby.AggregationOperatorParametersProvider.AggregationMethodRef;
 import org.knime.base.node.preproc.groupby.OptionalParameters.AggregationOperatorParameters;
+import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
@@ -62,6 +64,8 @@ import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.layout.SubParameters;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.StateProvider;
 import org.knime.node.parameters.updates.ValueProvider;
@@ -72,23 +76,56 @@ import org.knime.node.parameters.widget.choices.StringChoicesProvider;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 import org.knime.node.parameters.widget.choices.util.AllColumnsProvider;
 
+/**
+ * Manual per-column aggregation parameters.
+ *
+ * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ */
 @SuppressWarnings("restriction")
 class ColumnAggregatorElement implements NodeParameters {
+
+    static class AggregationColumnsProvider extends AllColumnsProvider { } //
+    static final class SelectedColumnRef implements ParameterReference<String> { } //
     @Widget(title = "Column", description = "The column to aggregate")
     @ChoicesProvider(AggregationColumnsProvider.class)
     @ValueReference(SelectedColumnRef.class)
     String m_column;
 
+
+    static final class SelectedColumnTypeRef implements ParameterReference<DataType> { } //
     // not exposed in UI, but we need this for saving aggregation operators to the settings in the legacy persistor
     @ValueProvider(SelectedColumnTypeProvider.class)
+    @ValueReference(SelectedColumnTypeRef.class)
     DataType m_dataType;
 
+
+    static class ColumnAggregationMethodRef implements AggregationMethodRef { } //
     @Widget(title = "Aggregation", description = "The aggregation method to use")
     @SubParameters(subLayoutRoot = ColumnAggregationOperatorParametersRef.class,
         showSubParametersProvider = HasColumnOperatorParameters.class)
     @ValueReference(ColumnAggregationMethodRef.class)
     @ChoicesProvider(AggregationMethodChoices.class)
+    @ValueProvider(DefaultMethodProvider.class)
     String m_aggregationMethod;
+
+
+    static final class SupportsMissingValueOptions extends MissingValueOption.SupportsMissingValueOptions {
+        @Override
+        Class<? extends ParameterReference<String>> getMethodReference() {
+            return ColumnAggregationMethodRef.class;
+        }
+    }
+    static final class ShowMissingValueOption extends MissingValueOption.ShowMissingValueOption {
+        @Override
+        Class<? extends MissingValueOption.SupportsMissingValueOptions> getMissingValueOptionSupportedReference() {
+            return SupportsMissingValueOptions.class;
+        }
+    }
+
+    @ValueProvider(SupportsMissingValueOptions.class)
+    @ValueReference(SupportsMissingValueOptions.class)
+    // transient helper flag to show/hide missing value option
+    boolean m_supportsMissingValueOption;
 
     @Widget(title = "Missing values", description = """
             Missing values are considered during aggregation if the missing
@@ -96,10 +133,13 @@ class ColumnAggregatorElement implements NodeParameters {
             Some aggregation methods do not support the changing of the missing
             option such as "Mean".
             """)
-    // TODO hide/show depending on whether the method supports it or not
     @ValueSwitchWidget
+    @Effect(type = EffectType.SHOW, predicate = ShowMissingValueOption.class)
     MissingValueOption m_includeMissing = MissingValueOption.EXCLUDE;
 
+
+    static final class ColumnAggregationOperatorParametersRef //
+        implements ParameterReference<AggregationOperatorParameters> { } //
     // TODO show new parameters via extension point if defined
     @DynamicParameters(value = ColumnAggregationOperatorParametersProvider.class,
         widgetAppearingInNodeDescription = @Widget(title = "Operator settings", description = """
@@ -110,15 +150,24 @@ class ColumnAggregatorElement implements NodeParameters {
     @Layout(ColumnAggregationOperatorParametersRef.class)
     AggregationOperatorParameters m_parameters;
 
-    static class ColumnAggregationMethodRef implements AggregationMethodRef {
+    ColumnAggregatorElement() {
+        // needed by framework
     }
 
-    static class AggregationColumnsProvider extends AllColumnsProvider {
+    ColumnAggregatorElement(final NodeParametersInput input) {
+        // auto-select first column if available (non-empty table connected)
+        input.getInTableSpec(0).stream() //
+            .flatMap(DataTableSpec::stream) //
+            .findFirst()
+            .map(DataColumnSpec::getName)
+            .ifPresent(col -> m_column = col);
     }
 
-    static final class SelectedColumnRef implements ParameterReference<String> {
-    }
+    /* ===== Providers ===== */
 
+    /**
+     * Obtains the data type of the selected column.
+     */
     static final class SelectedColumnTypeProvider implements StateProvider<DataType> {
 
         private Supplier<String> m_columnNameSupplier;
@@ -129,41 +178,53 @@ class ColumnAggregatorElement implements NodeParameters {
         }
 
         @Override
-        public DataType computeState(final NodeParametersInput parametersInput)
+        public DataType computeState(final NodeParametersInput input)
             throws StateComputationFailureException {
-            final var dataTableSpec = parametersInput.getInTableSpecs();
-            if (dataTableSpec.length <= 0) {
-                return null;
-            }
-            final var dcs = dataTableSpec[0].getColumnSpec(m_columnNameSupplier.get());
-            if (dcs == null) {
-                return null;
-            }
-            return dcs.getType();
+            final var selectedName = m_columnNameSupplier.get();
+            return input.getInTableSpec(0) //
+                .map(dts -> dts.getColumnSpec(selectedName)) // handles `null` selectedName
+                .map(DataColumnSpec::getType) //
+                .orElseThrow(StateComputationFailureException::new);
         }
 
     }
 
+    /**
+     * Obtains the list of aggregation methods compatible with the selected column's data type.
+     */
     static class AggregationMethodChoices implements StringChoicesProvider {
 
-        private Supplier<String> m_column;
+        private Supplier<DataType> m_type;
 
         @Override
         public void init(final StateProviderInitializer initializer) {
             StringChoicesProvider.super.init(initializer);
-            m_column = initializer.computeFromValueSupplier(SelectedColumnRef.class);
+            m_type = initializer.computeFromProvidedState(SelectedColumnTypeProvider.class);
         }
 
         @Override
         public List<StringChoice> computeState(final NodeParametersInput parametersInput) {
-            final var dts = parametersInput.getInTableSpec(0).orElseThrow();
-            final var column = dts.getColumnSpec(m_column.get());
-            if (column == null) {
-                return List.of();
-            }
-            final var type = column.getType();
-            return AggregationMethods.getCompatibleMethods(type, true).stream()
-                .map(agg -> new StringChoice(agg.getId(), agg.getLabel())).toList();
+            final var type = m_type.get();
+            return AggregationMethods.getCompatibleMethods(type, true).stream() //
+                .map(agg -> new StringChoice(agg.getId(), agg.getLabel())) //
+                .toList();
+        }
+
+    }
+
+    /**
+     * Default provider if no method already set.
+     */
+    static final class DefaultMethodProvider extends DefaultAggregationMethodProvider {
+
+        @Override
+        Class<? extends ParameterReference<DataType>> getTypeProvider() {
+            return SelectedColumnTypeRef.class;
+        }
+
+        @Override
+        Class<? extends ParameterReference<String>> getMethodSelfProvider() {
+            return ColumnAggregationMethodRef.class;
         }
 
     }
@@ -175,10 +236,9 @@ class ColumnAggregatorElement implements NodeParameters {
         }
     }
 
-    static final class ColumnAggregationOperatorParametersRef
-        implements ParameterReference<AggregationOperatorParameters> {
-    }
-
+    /**
+     * Provider that ties the aggregation method and the optional parameters field together.
+     */
     static final class ColumnAggregationOperatorParametersProvider extends AggregationOperatorParametersProvider {
         @Override
         Class<? extends ParameterReference<AggregationOperatorParameters>> getParameterRefClass() {

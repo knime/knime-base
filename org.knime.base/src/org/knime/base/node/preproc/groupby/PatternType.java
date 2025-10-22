@@ -44,43 +44,21 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   20 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   22 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.base.node.preproc.groupby;
 
-import java.util.function.Supplier;
-
-import org.knime.base.data.aggregation.AggregationMethods;
-import org.knime.base.node.preproc.groupby.AggregationOperatorParametersProvider.AggregationMethodRef;
-import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
-import org.knime.node.parameters.NodeParametersInput;
-import org.knime.node.parameters.updates.StateProvider;
+import org.knime.node.parameters.widget.choices.Label;
 
 /**
- * Indicator that the selected aggregation method has optional settings.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-@SuppressWarnings("restriction")
-abstract class HasOperatorParameters implements StateProvider<Boolean> {
+enum PatternType {
 
-    private Supplier<String> m_agg;
-
-    abstract Class<? extends AggregationMethodRef> getAggregationMethodRefClass();
-
-    @Override
-    public final void init(final StateProviderInitializer init) {
-        init.computeBeforeOpenDialog();
-        m_agg = init.computeFromValueSupplier(getAggregationMethodRefClass());
-    }
-
-    @Override
-    public final Boolean computeState(final NodeParametersInput in) throws StateComputationFailureException {
-        final var id = m_agg.get();
-        if (id == null) {
-            throw new StateComputationFailureException();
-        }
-        return AggregationMethods.getMethod4Id(id).hasOptionalSettings();
-    }
+    @Label("Wildcard")
+    WILDCARD,
+    @Label("Regular Expression")
+    REGEX
 
 }
