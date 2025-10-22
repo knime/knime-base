@@ -54,6 +54,8 @@ import java.util.function.Supplier;
 
 import org.knime.base.data.aggregation.AggregationMethods;
 import org.knime.base.node.preproc.groupby.AggregationOperatorParametersProvider.AggregationMethodRef;
+import org.knime.base.node.preproc.groupby.LegacyDataTypeAggregatorsArrayPersistor.DataTypeAggregatorElementDTO;
+import org.knime.base.node.preproc.groupby.LegacyDataTypeAggregatorsArrayPersistor.IndexedElement;
 import org.knime.base.node.preproc.groupby.OptionalParameters.AggregationOperatorParameters;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataTypeRegistry;
@@ -65,7 +67,10 @@ import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.layout.SubParameters;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.ValueProvider;
 import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.DataTypeChoicesProvider;
@@ -73,8 +78,16 @@ import org.knime.node.parameters.widget.choices.StringChoice;
 import org.knime.node.parameters.widget.choices.StringChoicesProvider;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 
+/**
+ * Aggregation operators based on data types.
+ *
+ * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ */
 @SuppressWarnings("restriction")
 class DataTypeAggregatorElement implements NodeParameters {
+
+
+    static final class DataTypeSelectedRef implements ParameterReference<DataType> { } //
     @Widget(title = "Data Type", description = """
             Select the data type to apply the aggregation on.
             You can add the same data type multiple times.
@@ -88,13 +101,42 @@ class DataTypeAggregatorElement implements NodeParameters {
     @PersistArrayElement(LegacyDataTypeAggregatorsArrayPersistor.DataTypePersistor.class)
     DataType m_dataType = StringCell.TYPE;
 
+
+    static final class DataTypeAggregationRef implements AggregationMethodRef { } //
     @Widget(title = "Aggregation", description = "The aggregation method to use")
     @SubParameters(subLayoutRoot = DataTypeOperatorParametersRef.class,
         showSubParametersProvider = HasDataTypeOperatorParameters.class)
     @ValueReference(DataTypeAggregationRef.class)
     @ChoicesProvider(DataTypeAggregationChoices.class)
+    @ValueProvider(DefaultMethodProvider.class)
     @PersistArrayElement(LegacyDataTypeAggregatorsArrayPersistor.AggregationMethodPersistor.class)
     String m_aggregationMethod = "First";
+
+
+    static final class NoPersistence
+        extends NoPersistenceElementFieldPersistor<Boolean, IndexedElement, DataTypeAggregatorElementDTO> {
+        @Override
+        Boolean getLoadDefault() {
+            return false;
+        }
+    }
+    static final class SupportsMissingValueOptions extends MissingValueOption.SupportsMissingValueOptions {
+        @Override
+        Class<? extends ParameterReference<String>> getMethodReference() {
+            return DataTypeAggregationRef.class;
+        }
+    }
+    static final class ShowMissingValueOption extends MissingValueOption.ShowMissingValueOption {
+        @Override
+        Class<? extends MissingValueOption.SupportsMissingValueOptions> getMissingValueOptionSupportedReference() {
+            return SupportsMissingValueOptions.class;
+        }
+    }
+    @ValueProvider(SupportsMissingValueOptions.class)
+    @ValueReference(SupportsMissingValueOptions.class)
+    @PersistArrayElement(NoPersistence.class)
+    // transient helper flag to show/hide missing value option
+    boolean m_supportsMissingValueOption;
 
     @Widget(title = "Missing values", description = """
             Missing values are considered during aggregation if the missing
@@ -104,10 +146,12 @@ class DataTypeAggregatorElement implements NodeParameters {
             """)
     @ValueSwitchWidget
     @PersistArrayElement(LegacyDataTypeAggregatorsArrayPersistor.MissingValueOptionPersistor.class)
-    // TODO hide/show based on aggregation method capabilities
+    @Effect(type = EffectType.SHOW, predicate = ShowMissingValueOption.class)
     MissingValueOption m_includeMissing = MissingValueOption.EXCLUDE;
 
+
     // TODO show new parameters via extension point if defined
+    static final class DataTypeOperatorParametersRef implements ParameterReference<AggregationOperatorParameters> { } //
     @DynamicParameters(value = DataTypeAggregationOperatorParametersProvider.class,
         widgetAppearingInNodeDescription = @Widget(title = "Operator settings", description = """
                 Additional parameters for the selected aggregation method.
@@ -118,18 +162,15 @@ class DataTypeAggregatorElement implements NodeParameters {
     @PersistArrayElement(LegacyDataTypeAggregatorsArrayPersistor.OperatorParametersPersistor.class)
     AggregationOperatorParameters m_parameters;
 
+
+    /* ===== Providers ===== */
+
     static final class RegisteredTypesChoicesProvider implements DataTypeChoicesProvider {
         @Override
         public List<DataType> choices(final NodeParametersInput context) {
             final var registered = DataTypeRegistry.getInstance().availableDataTypes();
             return registered instanceof List<DataType> list ? list : new ArrayList<>(registered);
         }
-    }
-
-    static final class DataTypeSelectedRef implements ParameterReference<DataType> {
-    }
-
-    static final class DataTypeAggregationRef implements AggregationMethodRef {
     }
 
     static final class DataTypeAggregationChoices implements StringChoicesProvider {
@@ -150,6 +191,17 @@ class DataTypeAggregatorElement implements NodeParameters {
 
     }
 
+    static final class DefaultMethodProvider extends DefaultAggregationMethodProvider {
+        @Override
+        Class<? extends ParameterReference<DataType>> getTypeProvider() {
+            return DataTypeSelectedRef.class;
+        }
+        @Override
+        Class<? extends ParameterReference<String>> getMethodSelfProvider() {
+            return DataTypeAggregationRef.class;
+        }
+    }
+
     static final class HasDataTypeOperatorParameters extends HasOperatorParameters {
 
         @Override
@@ -157,9 +209,6 @@ class DataTypeAggregatorElement implements NodeParameters {
             return DataTypeAggregationRef.class;
         }
 
-    }
-
-    static final class DataTypeOperatorParametersRef implements ParameterReference<AggregationOperatorParameters> {
     }
 
     static final class DataTypeAggregationOperatorParametersProvider extends AggregationOperatorParametersProvider {

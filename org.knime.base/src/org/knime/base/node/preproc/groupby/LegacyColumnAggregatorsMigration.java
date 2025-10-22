@@ -57,6 +57,9 @@ import org.knime.node.parameters.migration.NodeParametersMigration;
 import org.knime.node.parameters.migration.ParametersLoader;
 
 /**
+ * Workaround to deprecate the optional settings' flow variables for manual column aggregations.
+ * This currently does not work in conjunction with ArrayPersistor, hence we use it only for manual aggregations,
+ * where we don't need to use ArrayPersistor.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
@@ -68,7 +71,7 @@ class LegacyColumnAggregatorsMigration implements NodeParametersMigration<Column
 
             @Override
             public ColumnAggregatorElement[] load(final NodeSettingsRO settings) throws InvalidSettingsException {
-                return null;
+                return null; // NOSONAR expected
             }
 
         }).withMatcher(s -> false).withDeprecatedConfigPath("aggregationOperatorSettings").build());

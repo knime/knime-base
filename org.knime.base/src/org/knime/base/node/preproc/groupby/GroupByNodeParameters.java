@@ -161,8 +161,8 @@ class GroupByNodeParameters implements NodeParameters {
             column select all columns to change, open the context menu with a
             right mouse click and select the aggregation method to use.
             """)
-    @ArrayWidget(addButtonText = "Add manual")
-    @Persistor(LegacyColumnAggregatorsPersistor.class)
+    @ArrayWidget(addButtonText = "Add manual") // TODO disable "add" button based on input (e.g. no table connected)
+    @Persistor(LegacyColumnAggregatorsPersistor.class) // TODO No array persistor, because we cannot deprecated keys then
     @Migration(LegacyColumnAggregatorsMigration.class)
     ColumnAggregatorElement[] m_columnAggregators = new ColumnAggregatorElement[0];
 
@@ -315,6 +315,13 @@ class GroupByNodeParameters implements NodeParameters {
     @ValueReference(RetainOrderRef.class)
     @Persist(configKey = GroupByNodeModel.CFG_RETAIN_ORDER)
     boolean m_retainOrder;
+
+    // This is the current version of the GroupBy node to which we are fully compatible,
+    // hence we need to keep the same version number.
+    // Version 0 did not have this field, so we must persist it in order to identify
+    // ourselves as version 1.
+    @Persist(configKey = "version")
+    int m_version = 1;
 
     static final class RetainOrderRef implements ParameterReference<Boolean> {
     }

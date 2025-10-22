@@ -51,6 +51,7 @@ package org.knime.base.node.preproc.groupby;
 import java.util.Comparator;
 import java.util.List;
 
+import org.knime.base.data.aggregation.AggregationMethods;
 import org.knime.base.data.aggregation.dialogutil.type.DataTypeAggregator;
 import org.knime.base.node.preproc.groupby.LegacyDataTypeAggregatorsArrayPersistor.DataTypeAggregatorElementDTO;
 import org.knime.base.node.preproc.groupby.LegacyDataTypeAggregatorsArrayPersistor.IndexedElement;
@@ -137,7 +138,7 @@ final class LegacyDataTypeAggregatorsArrayPersistor
         @Override
         public String[][] getConfigPaths() {
             return new String[][]{
-                new String[]{GroupByNodeModel.CFG_DATA_TYPE_AGGREGATORS, F_ARRAY_INDEX, "inclMissingValues"}};
+                new String[]{GroupByNodeModel.CFG_DATA_TYPE_AGGREGATORS, F_ARRAY_INDEX, "inclMissingVals"}};
         }
     }
 
@@ -227,8 +228,23 @@ final class LegacyDataTypeAggregatorsArrayPersistor
         final var aggs = savedElements.stream() //
             .sorted(Comparator.comparingInt(ie -> ie.m_index)) //
             .map(DataTypeAggregatorElementDTO::getElement) //
-            .map(LegacyDataTypeAggregatorsPersistor::mapToAggregator) //
+            .map(LegacyDataTypeAggregatorsArrayPersistor::mapToAggregator) //
             .toList();
         DataTypeAggregator.saveAggregators(nodeSettings, GroupByNodeModel.CFG_DATA_TYPE_AGGREGATORS, aggs);
+    }
+
+    static DataTypeAggregator mapToAggregator(final DataTypeAggregatorElement elem) {
+        final var method = AggregationMethods.getMethod4Id(elem.m_aggregationMethod);
+        final var type = elem.m_dataType;
+        final var includeMissing = elem.m_includeMissing == MissingValueOption.INCLUDE;
+        final var agg = new DataTypeAggregator(type, method, includeMissing);
+        if (elem.m_parameters instanceof LegacyAggregationOperatorParameters legacyParams) {
+            try {
+                agg.loadValidatedSettings(legacyParams.getNodeSettings());
+            } catch (InvalidSettingsException e) {
+                throw new IllegalStateException("Failed to map optional settings", e);
+            }
+        }
+        return agg;
     }
 }

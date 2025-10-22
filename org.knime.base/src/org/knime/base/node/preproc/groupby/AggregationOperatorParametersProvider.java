@@ -66,6 +66,14 @@ import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputat
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.updates.ParameterReference;
 
+/**
+ * Provider for aggregation operator parameters (aka optional parameters), which depend on the selected aggregation
+ * method and currently present operator parameters.
+ *
+ * In case no default dialog is registered via the extension point, the fallback dialog is shown.
+ *
+ * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ */
 @SuppressWarnings("restriction")
 abstract class AggregationOperatorParametersProvider
     implements DynamicParameters.DynamicParametersWithFallbackProvider<AggregationOperatorParameters> {
@@ -78,25 +86,24 @@ abstract class AggregationOperatorParametersProvider
 
     abstract Class<? extends AggregationMethodRef> getMethodParameterRefClass();
 
-    interface AggregationMethodRef extends ParameterReference<String> {
-    }
+    interface AggregationMethodRef extends ParameterReference<String> { } //
 
     @Override
-    public void init(final StateProviderInitializer initializer) {
+    public final void init(final StateProviderInitializer initializer) {
         initializer.computeBeforeOpenDialog();
         m_optionalParametersSupplier = initializer.getValueSupplier(getParameterRefClass());
         m_aggregationMethodSupplier = initializer.computeFromValueSupplier(getMethodParameterRefClass());
     }
 
     @Override
-    public ClassIdStrategy<AggregationOperatorParameters> getClassIdStrategy() {
+    public final ClassIdStrategy<AggregationOperatorParameters> getClassIdStrategy() {
         // TODO from extension point
         return new DefaultClassIdStrategy<>(List.of(
             LegacyAggregationOperatorParameters.class, ViaExtensionPointAggregationOperatorParameters.class));
     }
 
     @Override
-    public AggregationOperatorParameters computeParameters(final NodeParametersInput parametersInput)
+    public final AggregationOperatorParameters computeParameters(final NodeParametersInput parametersInput)
         throws StateComputationFailureException {
         final var currentMethod = m_aggregationMethodSupplier.get();
         if (currentMethod == null) {
@@ -128,7 +135,7 @@ abstract class AggregationOperatorParametersProvider
     }
 
     @Override
-    public NodeSettings computeFallbackSettings(final NodeParametersInput parametersInput)
+    public final NodeSettings computeFallbackSettings(final NodeParametersInput parametersInput)
         throws StateComputationFailureException {
         final var params = computeParameters(parametersInput);
         if (params instanceof LegacyAggregationOperatorParameters legacy) {
@@ -139,7 +146,7 @@ abstract class AggregationOperatorParametersProvider
     }
 
     @Override
-    public FallbackDialogNodeParameters getParametersFromFallback(final NodeSettingsRO fallbackSettings) {
+    public final FallbackDialogNodeParameters getParametersFromFallback(final NodeSettingsRO fallbackSettings) {
         return new LegacyAggregationOperatorParameters(fallbackSettings);
     }
 }
