@@ -44,20 +44,44 @@
  */
 package org.knime.base.node.preproc.groupby;
 
+import java.util.Map;
+
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeView;
 import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
 import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
 
 /**
  * Factory class of the group by node.
  *
  * @author Tobias Koetter, University of Konstanz
  */
-public class GroupByNodeFactory extends NodeFactory<GroupByNodeModel> implements NodeDialogFactory {
+@SuppressWarnings("restriction")
+public class GroupByNodeFactory extends NodeFactory<GroupByNodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
+
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(GroupByNodeFactory.class);
+
+    private static final String WEBUI_DIALOG_DISABLED_PROPERTY = "org.knime.base.node.preproc.groupby.webui.disabled";
+
+    private static final boolean WEBUI_DIALOG_DISABLED = Boolean.getBoolean(WEBUI_DIALOG_DISABLED_PROPERTY);
+
+    static {
+        if (WEBUI_DIALOG_DISABLED) {
+            LOGGER.infoWithFormat("""
+                    Modern dialog for GroupBy node is disabled via system property "%s".
+                    Note: This property will be removed in a future version.
+                    """, WEBUI_DIALOG_DISABLED_PROPERTY);
+        }
+    }
 
     /**
      * {@inheritDoc}
@@ -69,10 +93,12 @@ public class GroupByNodeFactory extends NodeFactory<GroupByNodeModel> implements
 
     /**
      * {@inheritDoc}
+     *
+     * @deprecated
      */
     @Override
-    public NodeView<GroupByNodeModel> createNodeView(final int viewIndex,
-            final GroupByNodeModel nodeModel) {
+    @Deprecated(since = "5.6", forRemoval = true)
+    public NodeView<GroupByNodeModel> createNodeView(final int viewIndex, final GroupByNodeModel nodeModel) {
         return null;
     }
 
@@ -86,26 +112,62 @@ public class GroupByNodeFactory extends NodeFactory<GroupByNodeModel> implements
 
     /**
      * {@inheritDoc}
+     *
+     * @deprecated
      */
     @Override
+    @Deprecated(since = "5.6", forRemoval = true)
     protected boolean hasDialog() {
         return true;
     }
 
     /**
      * {@inheritDoc}
+     *
+     * @deprecated
      */
     @Override
+    @Deprecated(since = "5.6", forRemoval = true)
     protected NodeDialogPane createNodeDialogPane() {
+        if (!WEBUI_DIALOG_DISABLED) {
+            return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+        }
         return new GroupByNodeDialog();
     }
 
     /**
      * {@inheritDoc}
-     * @since 5.8
+     *
+     * @since 5.9
+     */
+    @Override
+    public boolean hasNodeDialog() {
+        // indicates that a webui dialog is available
+        return !WEBUI_DIALOG_DISABLED;
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @since 5.9
      */
     @Override
     public NodeDialog createNodeDialog() {
         return new DefaultNodeDialog(SettingsType.MODEL, GroupByNodeParameters.class);
     }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @since 5.9
+     */
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        if (!WEBUI_DIALOG_DISABLED) {
+            return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, GroupByNodeParameters.class));
+        }
+        throw new UnsupportedOperationException("KAI interface not available when WebUI dialog is disabled");
+
+    }
+
 }
