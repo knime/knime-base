@@ -90,13 +90,22 @@ class ColumnAggregatorElement implements NodeParameters {
     @ChoicesProvider(AggregationMethodChoices.class)
     String m_aggregationMethod;
 
-    @Widget(title = "Missing values", description = "")
+    @Widget(title = "Missing values", description = """
+            Missing values are considered during aggregation if the missing
+            option set to "Included".
+            Some aggregation methods do not support the changing of the missing
+            option such as "Mean".
+            """)
+    // TODO hide/show depending on whether the method supports it or not
     @ValueSwitchWidget
     MissingValueOption m_includeMissing = MissingValueOption.EXCLUDE;
 
     // TODO show new parameters via extension point if defined
     @DynamicParameters(value = ColumnAggregationOperatorParametersProvider.class,
-        widgetAppearingInNodeDescription = @Widget(title = "Operator settings", description = "..."))
+        widgetAppearingInNodeDescription = @Widget(title = "Operator settings", description = """
+                Additional parameters for the selected aggregation method.
+                Most aggregation methods do not have additional parameters.
+                """))
     @ValueReference(ColumnAggregationOperatorParametersRef.class)
     @Layout(ColumnAggregationOperatorParametersRef.class)
     AggregationOperatorParameters m_parameters;

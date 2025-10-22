@@ -75,7 +75,14 @@ import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 
 @SuppressWarnings("restriction")
 class DataTypeAggregatorElement implements NodeParameters {
-    @Widget(title = "Data Type", description = "The data type to aggregate")
+    @Widget(title = "Data Type", description = """
+            Select the data type to apply the aggregation on.
+            You can add the same data type multiple times.
+            The list contains all registered data types the system knows about.
+            """)
+    // Note: the old dialog listed only "standard types" and all types of input table, but this behavior could be
+    // annoying if the input table is temporarily missing some columns. The search makes it easy to find the desired
+    // type even if the list is large.
     @ChoicesProvider(RegisteredTypesChoicesProvider.class)
     @ValueReference(DataTypeSelectedRef.class)
     @PersistArrayElement(LegacyDataTypeAggregatorsArrayPersistor.DataTypePersistor.class)
@@ -89,14 +96,23 @@ class DataTypeAggregatorElement implements NodeParameters {
     @PersistArrayElement(LegacyDataTypeAggregatorsArrayPersistor.AggregationMethodPersistor.class)
     String m_aggregationMethod = "First";
 
-    @Widget(title = "Missing values", description = "")
+    @Widget(title = "Missing values", description = """
+            Missing values are considered during aggregation if the missing
+            option set to "Included".
+            Some aggregation methods do not support the changing of the missing
+            option such as "Mean".
+            """)
     @ValueSwitchWidget
     @PersistArrayElement(LegacyDataTypeAggregatorsArrayPersistor.MissingValueOptionPersistor.class)
+    // TODO hide/show based on aggregation method capabilities
     MissingValueOption m_includeMissing = MissingValueOption.EXCLUDE;
 
     // TODO show new parameters via extension point if defined
     @DynamicParameters(value = DataTypeAggregationOperatorParametersProvider.class,
-        widgetAppearingInNodeDescription = @Widget(title = "Operator settings", description = "...", advanced = true))
+        widgetAppearingInNodeDescription = @Widget(title = "Operator settings", description = """
+                Additional parameters for the selected aggregation method.
+                Most aggregation methods do not have additional parameters.
+                """))
     @ValueReference(DataTypeOperatorParametersRef.class)
     @Layout(DataTypeOperatorParametersRef.class)
     @PersistArrayElement(LegacyDataTypeAggregatorsArrayPersistor.OperatorParametersPersistor.class)
