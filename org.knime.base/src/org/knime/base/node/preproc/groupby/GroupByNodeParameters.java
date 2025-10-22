@@ -97,28 +97,31 @@ class GroupByNodeParameters implements NodeParameters {
     static final NodeLogger LOGGER = NodeLogger.getLogger(GroupByNodeParameters.class);
 
     private interface Sections {
-        @Section(title = "Group", description = "...")
+        @Section(title = "Group")
         interface Group {
         }
 
-        @Section(title = "Aggregation", description = "...")
+        @Section(title = "Aggregation")
         @After(Group.class)
         interface Aggregation {
         }
 
-        @Section(title = "Type- and pattern-based aggregation", description = "...", sideDrawer = true,
-                sideDrawerSetText = "Type- and pattern-based aggregations")
+        @Section(title = "Type- and pattern-based aggregation", sideDrawer = true,
+                sideDrawerSetText = "Configure")
         @After(Aggregation.class)
-        @Advanced // TODO if no manual aggregations, the dialog looks confusing, especially if in a side drawer
+        // not @Advanced on purpose, otherwise it is easy to overlook
         interface TypeAndPatternAggregations {
         }
 
-        @Section(title = "Output", description = "...")
+        @Section(title = "Output")
         @After(TypeAndPatternAggregations.class)
         interface Output {
         }
 
-        @Section(title = "Performance", description = "...")
+        @Section(title = "Performance", description = """
+                The performance settings allow to optimize memory consumption and configure settings that may
+                negatively affect performance and are therefore disabled by default.
+                """)
         @After(Output.class)
         @Advanced
         interface Performance {
@@ -141,26 +144,47 @@ class GroupByNodeParameters implements NodeParameters {
 
     static final class GroupByColumnsModification extends LegacyStringFilter.LegacyStringFilterModification {
         GroupByColumnsModification() {
-            super(false, "Group settings", "DESCRIPTION", "Available column(s)", "Group column(s)",
+            super(false, "Group settings", """
+                    Select one or more column(s) according to which the group(s)
+                    is/are created.
+                    """, "Available column(s)", "Group column(s)",
                 AllColumnsProvider.class, ExclListProvider.class);
         }
     }
 
     @Layout(Sections.Aggregation.class)
-    @Widget(title = "Manual", description = "...")
+    @Widget(title = "Manual", description = """
+            Select one or more column(s) for aggregation from the available
+            columns list. Change the aggregation method in the Aggregation
+            column of the table. You can add the same column multiple
+            times. In order to change the aggregation method of more than one
+            column select all columns to change, open the context menu with a
+            right mouse click and select the aggregation method to use.
+            """)
     @ArrayWidget(addButtonText = "Add manual")
     @Persistor(LegacyColumnAggregatorsPersistor.class)
     @Migration(LegacyColumnAggregatorsMigration.class)
     ColumnAggregatorElement[] m_columnAggregators = new ColumnAggregatorElement[0];
 
     @Layout(Sections.TypeAndPatternAggregations.class)
-    @Widget(title = "Pattern", description = "...")
+    @Widget(title = "Pattern", description = """
+            <p>The search pattern can either be a string with wildcards or a
+            <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Pattern.html#sum">
+            regular expression</a>.</p>
+
+            Supported wildcards are <code>*</code> (matches any number of characters) and <code>?</code>
+            (matches one character) e.g. <code>KNI*</code>
+            would match all strings that start with "KNI" such as "KNIME" whereas <code>KNI?</code> would match only
+            strings that start with "KNI" followed by a fourth character.
+            """)
     @ArrayWidget(addButtonText = "Add pattern")
     @PersistArray(LegacyPatternAggregatorsArrayPersistor.class)
     PatternAggregatorElement[] m_patternAggregators = new PatternAggregatorElement[0];
 
     @Layout(Sections.TypeAndPatternAggregations.class)
-    @Widget(title = "Type", description = "...")
+    @Widget(title = "Type", description = """
+            Aggregations are applied to all columns of the selected type.
+            """)
     @ArrayWidget(addButtonText = "Add type")
     @PersistArray(LegacyDataTypeAggregatorsArrayPersistor.class)
     @ValueReference(TypeAggregationsRef.class)
@@ -171,7 +195,16 @@ class GroupByNodeParameters implements NodeParameters {
 
     @Layout(Sections.TypeAndPatternAggregations.class)
     @Effect(predicate = HasTypeAggregations.class, type = EffectType.SHOW)
-    @Widget(title = "Type matching", description = "...", advanced = true)
+    @Widget(title = "Type matching", description = """
+            <ul>
+                <li><b>Strict:</b> the type based aggregation method is only applied to columns of the
+                    selected type.
+                </li>
+                <li><b>Include sub-types:</b> the type based aggregation method is also applied to columns containing
+                    sub-types of the selected type. For example <i>Boolean</i> is a sub-type of <i>Integer</i>,
+                <i>Integer</i> of <i>Long</i>, and <i>Long</i> of <i>Double</i>.</li>
+            </ul>
+            """, advanced = true)
     @ChoicesProvider(TypeMatchChoicesProvider.class)
     @ValueSwitchWidget
     @Persistor(LegacyTypeMatchPersistor.class)
@@ -193,7 +226,29 @@ class GroupByNodeParameters implements NodeParameters {
     }
 
     @Layout(Sections.Output.class)
-    @Widget(title = "Column naming", description = "...")
+    @Widget(title = "Column naming", description = """
+            The name of the resulting aggregation column(s) depends on the
+            selected naming schema.
+            <ul>
+                <li>Keep original name(s):
+                Keeps the original column names.
+                Note that you can use all aggregation columns only once with
+                this column naming option to prevent duplicate column names.
+                </li>
+                <li>Aggregation method (column name):
+                Uses the aggregation method first and appends the column name
+                in brackets
+                </li>
+                <li>Column name (aggregation method):
+                Uses the column name first and appends the aggregation method
+                in brackets
+                </li>
+            </ul>
+            All aggregation methods get a * appended if the missing value option
+            is not ticked in the aggregation settings in order to distinguish
+            between columns that considered missing values in the aggregation
+            process and columns that do not.
+            """)
     @ChoicesProvider(ColumnNamePolicyChoicesProvider.class)
     @Persistor(LegacyColumnNamePolicyPersistor.class)
     ColumnNamePolicy m_columnNamePolicy = ColumnNamePolicy.getDefault();
@@ -206,7 +261,12 @@ class GroupByNodeParameters implements NodeParameters {
     }
 
     @Layout(Sections.Output.class)
-    @Widget(title = "Maximum unique values per group", description = "...")
+    @Widget(title = "Maximum unique values per group", description = """
+            Defines the maximum number of unique values per group to avoid
+            problems with memory overloading. All groups with more unique
+            values are skipped during the calculation and a missing value is set
+            in the corresponding column, and a warning is displayed.
+            """)
     @NumberInputWidget()
     @Persist(configKey = GroupByNodeModel.CFG_MAX_UNIQUE_VALUES)
     int m_maxUniqueValues = 100000;
@@ -219,12 +279,22 @@ class GroupByNodeParameters implements NodeParameters {
     String m_valueDelimiter = GlobalSettings.STANDARD_DELIMITER;
 
     @Layout(Sections.Performance.class)
-    @Widget(title = "Enable hiliting", description = "...")
+    @Widget(title = "Enable hiliting", description = """
+            If enabled, the hiliting of a group row will hilite all rows of this
+            group in other views. Depending on the number of rows, enabling this
+            feature might consume a lot of memory.
+            """)
     @Persist(configKey = GroupByNodeModel.CFG_ENABLE_HILITE)
     boolean m_enableHiliting;
 
     @Layout(Sections.Performance.class)
-    @Widget(title = "Process in memory", description = "...")
+    @Widget(title = "Process in memory", description = """
+            Process the table in the memory. Requires more memory but is faster
+            since the table needs not to be sorted prior aggregation.
+            The memory consumption depends on the number of unique groups and
+            the chosen aggregation method. The row order of the input table is
+            automatically retained.
+            """)
     @ValueReference(ProcessInMemoryRef.class)
     @Persist(configKey = GroupByNodeModel.CFG_IN_MEMORY)
     boolean m_processInMemory;
@@ -234,7 +304,12 @@ class GroupByNodeParameters implements NodeParameters {
     }
 
     @Layout(Sections.Performance.class)
-    @Widget(title = "Retain row order", description = "...")
+    @Widget(title = "Retain row order", description = """
+            Retains the original row order of the input table.
+            Could result in longer execution time.
+            The row order is automatically retained if the process in memory
+            option is selected.
+            """)
     @Effect(predicate = ProcessInMemoryEffect.class, type = Effect.EffectType.DISABLE)
     @ValueProvider(ProcessInMemoryEffect.class)
     @ValueReference(RetainOrderRef.class)

@@ -44,8 +44,12 @@
  */
 package org.knime.base.node.preproc.groupby;
 
+import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
+import org.apache.xmlbeans.XmlException;
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeLogger;
@@ -58,6 +62,10 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
 import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
 import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.ExternalResource;
+import org.knime.node.impl.description.PortDescription;
+import org.xml.sax.SAXException;
 
 /**
  * Factory class of the group by node.
@@ -73,6 +81,54 @@ public class GroupByNodeFactory extends NodeFactory<GroupByNodeModel>
     private static final String WEBUI_DIALOG_DISABLED_PROPERTY = "org.knime.base.node.preproc.groupby.webui.disabled";
 
     private static final boolean WEBUI_DIALOG_DISABLED = Boolean.getBoolean(WEBUI_DIALOG_DISABLED_PROPERTY);
+
+    private static final String SHORT_DESCRIPTION = """
+            Groups the table by the selected column(s) and aggregates the remaining
+            columns using the selected aggregation method.
+            """;
+
+    private static final String FULL_DESCRIPTION = """
+           <p>
+            Groups the rows of a table by the unique values in the selected group columns.
+            A row is created for each unique set of values of the selected group column.
+            The remaining columns are aggregated based on the specified aggregation settings.
+            The output table contains one row for each unique value combination of the selected
+            group columns.
+           </p>
+           <p>
+           The columns to aggregate can be either defined by selecting the columns directly,
+           by name based on a search pattern or based on the data type. Input columns are handled in
+           this order and only considered once e.g. columns that are added directly on the
+           "Manual Aggregation" tab are ignored even if their name matches a search pattern on the
+           "Pattern Based Aggregation" tab or their type matches a defined type on the
+           "Type Based Aggregation" tab. The same holds for columns that are added based on a search pattern.
+           They are ignored even if they match a criterion that has been defined in the "Type Based Aggregation" tab.
+           </p>
+           <p>
+            The "Manual Aggregation" tab allows you to change the aggregation method of more than one
+            column. In order to do so select the columns to change, open the context menu with a right mouse click
+            and select the aggregation method to use.
+           </p>
+           <p>
+            In the "Pattern Based Aggregation" tab you can assign aggregation methods to columns based on a
+            search pattern. The pattern can be either a string with wildcards or a
+            <a href="http://www.java.sun.com/javase/6/docs/api/java/util/regex/Pattern.html#sum">regular expression</a>.
+            Columns where the name matches the pattern but where the data type is not compatible with the
+            selected aggregation method are ignored. Only columns that have not been selected as group column or
+            that have not been selected as aggregation column on the "Manual Aggregation" tab are considered.
+           </p>
+           <p>
+            The "Type Based Aggregation" tab allows to select an aggregation method for all columns of a certain
+            data type e.g. to compute the mean for all decimal columns (DoubleCell). Only columns that have not
+            been handled by the other tabs e.g. group, column based and pattern based are considered.
+            The data type list to choose from contains basic types e.g String, Double, etc. and all data types
+            the current input table contains.
+           </p>
+           <p>
+            A detailed description of the available aggregation methods can be
+            found on the 'Description' tab in the node dialog.
+           </p>
+            """;
 
     static {
         if (WEBUI_DIALOG_DISABLED) {
@@ -119,6 +175,28 @@ public class GroupByNodeFactory extends NodeFactory<GroupByNodeModel>
     @Deprecated(since = "5.6", forRemoval = true)
     protected boolean hasDialog() {
         return true;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected NodeDescription createNodeDescription() throws SAXException, IOException, XmlException {
+        if (WEBUI_DIALOG_DISABLED) {
+            return super.createNodeDescription();
+        }
+        return DefaultNodeDescriptionUtil.createNodeDescription("GroupBy", "groupBy.png",
+            List.of(PortDescription.fixedPort("Data table", "The input table to group")),
+            List.of(PortDescription.fixedPort("Group table",
+                "Result table with one row for each existing value combination of the selected data")),
+            SHORT_DESCRIPTION, FULL_DESCRIPTION,
+            List.of(new ExternalResource(
+                "https://www.knime.com/knime-introductory-course/chapter3/section2/classic-aggregations-with-groupby-node", // NOSONAR href
+                "KNIME E-Learning Course: Classic Aggregations with GroupBy node")),
+            GroupByNodeParameters.class, List.of(), NodeType.Manipulator,
+            List.of("Summarize", "Aggregate", "group by", "maximum", "correlation", "count", "deviation", "mean",
+                "median", "minimum", "quantile", "range", "set", "sum", "variance"),
+            null);
     }
 
     /**

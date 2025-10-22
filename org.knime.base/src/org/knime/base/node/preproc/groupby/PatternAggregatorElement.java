@@ -71,7 +71,8 @@ import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 
 @SuppressWarnings("restriction")
 class PatternAggregatorElement implements NodeParameters {
-    @Widget(title = "Search pattern", description = "The search pattern to match column names")
+    @Widget(title = "Search pattern", description = "Wildcard or regular expression pattern")
+    // TODO how to do wildcard/regex pattern validation?
     @PersistArrayElement(LegacyPatternAggregatorsArrayPersistor.PatternPersistor.class)
     String m_pattern = "";
 
@@ -82,7 +83,11 @@ class PatternAggregatorElement implements NodeParameters {
         }
     }
 
-    @Widget(title = "Pattern type", description = "...")
+    @Widget(title = "Pattern type",
+        description = """
+                    Specifies whether the search pattern is a regular expression or a string with wildcards
+                    (<code>*</code> and <code>?</code>).
+                    """)
     @ValueSwitchWidget
     @ChoicesProvider(PatternTypeChoices.class)
     @PersistArrayElement(LegacyPatternAggregatorsArrayPersistor.PatternTypePersistor.class)
@@ -96,14 +101,23 @@ class PatternAggregatorElement implements NodeParameters {
     @PersistArrayElement(LegacyPatternAggregatorsArrayPersistor.AggregationMethodPersistor.class)
     String m_aggregationMethod = "First";
 
-    @Widget(title = "Missing values", description = "")
+    @Widget(title = "Missing values", description = """
+            Missing values are considered during aggregation if the missing
+            option set to "Included".
+            Some aggregation methods do not support the changing of the missing
+            option such as "Mean".
+            """)
     @ValueSwitchWidget
     @PersistArrayElement(LegacyPatternAggregatorsArrayPersistor.MissingValueOptionPersistor.class)
+    // TODO hide/show depending on whether the method supports it or not
     MissingValueOption m_includeMissing = MissingValueOption.EXCLUDE;
 
     // TODO show new parameters via extension point if defined
     @DynamicParameters(value = PatternAggregationOperatorParametersProvider.class,
-        widgetAppearingInNodeDescription = @Widget(title = "Operator settings", description = "...", advanced = true))
+            widgetAppearingInNodeDescription = @Widget(title = "Operator settings", description = """
+            Additional parameters for the selected aggregation method.
+            Most aggregation methods do not have additional parameters.
+            """))
     @ValueReference(PatternOperatorParametersRef.class)
     @Layout(PatternOperatorParametersRef.class)
     @PersistArrayElement(LegacyPatternAggregatorsArrayPersistor.OperatorParametersPersistor.class)
