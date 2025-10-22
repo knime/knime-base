@@ -48,6 +48,15 @@
  */
 package org.knime.base.node.preproc.groupby;
 
+import java.util.function.Supplier;
+
+import org.knime.base.data.aggregation.AggregationMethods;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.ArrayPersistor;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.updates.EffectPredicate;
+import org.knime.node.parameters.updates.EffectPredicateProvider;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.StateProvider;
 import org.knime.node.parameters.widget.choices.Label;
 
 /**
@@ -59,5 +68,64 @@ enum MissingValueOption {
         @Label("Exclude")
         EXCLUDE, //
         @Label("Include")
-        INCLUDE
+        INCLUDE;
+
+    abstract static class SupportsMissingValueOptions implements StateProvider<Boolean>, ParameterReference<Boolean> {
+
+        private Supplier<String> m_methodSupplier;
+
+        abstract Class<? extends ParameterReference<String>> getMethodReference();
+
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            initializer.computeAfterOpenDialog();
+            m_methodSupplier = initializer.computeFromValueSupplier(getMethodReference());
+        }
+
+        @Override
+        public Boolean computeState(final NodeParametersInput ignored) {
+            final var id = m_methodSupplier.get();
+            if (id == null) {
+                return false;
+            }
+            final var method = AggregationMethods.getMethod4Id(id);
+            return method.supportsMissingValueOption();
+        }
+
+    }
+
+    /**
+     * Effect provider to show the missing value option only if the selected aggregation method supports it. Annotate
+     * the {@link MissingValueOption} parameter with
+     *
+     * <pre>
+     * <code>
+     *   &#64;Effect(type = EffectType.SHOW, predicate = ShowMissingValueOption.class)
+     * </code>
+     * </pre>
+     *
+     * Then introduce a transient boolean parameter:
+     *
+     * <pre>
+     * <code>
+     * &#64;ValueProvider(MySupportsMissingValueOptions.class)
+     * &#64;ValueReference(MySupportsMissingValueOptions.class)
+     * &#64;PersistArrayElement(MyNoPersistenceElementFieldPersistor.class) // if inside ArrayPersistor
+     * // helper flag to show/hide missing value option
+     * boolean m_supportsMissingValueOption;
+     * </code>
+     * </pre>
+     *
+     * Finally, derive your own class from {@link SupportsMissingValueOptions} and optionally a
+     * {@link NoPersistenceElementFieldPersistor} if inside an {@link ArrayPersistor}.
+     */
+    @SuppressWarnings("restriction")
+    static final class ShowMissingValueOption implements EffectPredicateProvider {
+
+        @Override
+        public EffectPredicate init(final PredicateInitializer i) {
+            return i.getBoolean(SupportsMissingValueOptions.class).isTrue();
+        }
+
+    }
 }
