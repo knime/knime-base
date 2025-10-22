@@ -52,6 +52,9 @@ import java.util.List;
 
 import org.knime.base.data.aggregation.AggregationMethods;
 import org.knime.base.node.preproc.groupby.AggregationOperatorParametersProvider.AggregationMethodRef;
+import org.knime.base.node.preproc.groupby.LegacyPatternAggregatorsArrayPersistor.IndexedElement;
+import org.knime.base.node.preproc.groupby.LegacyPatternAggregatorsArrayPersistor.PatternAggregatorElementDTO;
+import org.knime.base.node.preproc.groupby.MissingValueOption.ShowMissingValueOption;
 import org.knime.base.node.preproc.groupby.OptionalParameters.AggregationOperatorParameters;
 import org.knime.base.node.util.regex.PatternType;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
@@ -61,7 +64,10 @@ import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.layout.SubParameters;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.ValueProvider;
 import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.EnumChoicesProvider;
@@ -83,13 +89,14 @@ class PatternAggregatorElement implements NodeParameters {
         }
     }
 
-    @Widget(title = "Pattern type",
-        description = """
-                    Specifies whether the search pattern is a regular expression or a string with wildcards
-                    (<code>*</code> and <code>?</code>).
-                    """)
+    @Widget(title = "Pattern type", description = """
+            Specifies whether the search pattern is a regular expression or a string with wildcards
+            (<code>*</code> and <code>?</code>).
+            """)
     @ValueSwitchWidget
     @ChoicesProvider(PatternTypeChoices.class)
+    // TODO choicesprovider and valueswitchwidget don't work together, since there's no "missing" state for value switch
+    // choices so we just introduce an adapter enum that only contains Pattern and Regex
     @PersistArrayElement(LegacyPatternAggregatorsArrayPersistor.PatternTypePersistor.class)
     PatternType m_isRegex = PatternType.WILDCARD;
 
@@ -101,6 +108,27 @@ class PatternAggregatorElement implements NodeParameters {
     @PersistArrayElement(LegacyPatternAggregatorsArrayPersistor.AggregationMethodPersistor.class)
     String m_aggregationMethod = "First";
 
+
+    static final class NoPersistence
+        extends NoPersistenceElementFieldPersistor<Boolean, IndexedElement, PatternAggregatorElementDTO> {
+        @Override
+        Boolean getLoadDefault() {
+            return false;
+        }
+    }
+    static final class SupportsMissingValueOptions extends MissingValueOption.SupportsMissingValueOptions {
+        @Override
+        Class<? extends ParameterReference<String>> getMethodReference() {
+            return PatternAggregationRef.class;
+        }
+    }
+
+    @ValueProvider(SupportsMissingValueOptions.class)
+    @ValueReference(SupportsMissingValueOptions.class)
+    @PersistArrayElement(NoPersistence.class)
+    // helper flag to show/hide missing value option
+    boolean m_supportsMissingValueOption;
+
     @Widget(title = "Missing values", description = """
             Missing values are considered during aggregation if the missing
             option set to "Included".
@@ -109,15 +137,15 @@ class PatternAggregatorElement implements NodeParameters {
             """)
     @ValueSwitchWidget
     @PersistArrayElement(LegacyPatternAggregatorsArrayPersistor.MissingValueOptionPersistor.class)
-    // TODO hide/show depending on whether the method supports it or not
+    @Effect(type = EffectType.SHOW, predicate = ShowMissingValueOption.class)
     MissingValueOption m_includeMissing = MissingValueOption.EXCLUDE;
 
     // TODO show new parameters via extension point if defined
     @DynamicParameters(value = PatternAggregationOperatorParametersProvider.class,
-            widgetAppearingInNodeDescription = @Widget(title = "Operator settings", description = """
-            Additional parameters for the selected aggregation method.
-            Most aggregation methods do not have additional parameters.
-            """))
+        widgetAppearingInNodeDescription = @Widget(title = "Operator settings", description = """
+                Additional parameters for the selected aggregation method.
+                Most aggregation methods do not have additional parameters.
+                """))
     @ValueReference(PatternOperatorParametersRef.class)
     @Layout(PatternOperatorParametersRef.class)
     @PersistArrayElement(LegacyPatternAggregatorsArrayPersistor.OperatorParametersPersistor.class)
