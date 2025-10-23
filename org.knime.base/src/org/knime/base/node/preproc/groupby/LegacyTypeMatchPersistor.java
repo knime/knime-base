@@ -61,12 +61,16 @@ final class LegacyTypeMatchPersistor implements NodeParametersPersistor<TypeMatc
 
     @Override
     public TypeMatch load(final NodeSettingsRO settings) throws InvalidSettingsException {
+        // Same as GroupByNodeModel validation code for AP-7020
+        // (backwards-compatibility with KNIME before TypeMatch was introduced)
         return TypeMatch.loadSettingsFrom(settings);
     }
 
     @Override
     public void save(final TypeMatch obj, final NodeSettingsWO settings) {
-        obj.saveSettingsTo(settings);
+        if (obj != null) {
+            obj.saveSettingsTo(settings);
+        }
     }
 
     @Override
