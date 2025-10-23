@@ -213,7 +213,8 @@ class GroupByNodeParameters implements NodeParameters {
     @ChoicesProvider(TypeMatchChoicesProvider.class)
     @ValueSwitchWidget
     @Persistor(LegacyTypeMatchPersistor.class)
-    TypeMatch m_typeMatch = TypeMatch.STRICT;
+    // Note: no initialization here, which ensures backwards compatibility (through the LegacyTypeMatchPersistor)
+    TypeMatch m_typeMatch;
 
     static final class TypeMatchChoicesProvider implements EnumChoicesProvider<TypeMatch> {
         @Override
