@@ -189,7 +189,7 @@ final class LegacyDataTypeAggregatorsArrayPersistor
 
     }
 
-    static class DataTypeAggregatorElementDTO {
+    static final class DataTypeAggregatorElementDTO {
 
         private final int m_index;
 

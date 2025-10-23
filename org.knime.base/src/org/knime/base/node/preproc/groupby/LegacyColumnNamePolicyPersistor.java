@@ -60,9 +60,8 @@ final class LegacyColumnNamePolicyPersistor implements NodeParametersPersistor<C
 
     @Override
     public ColumnNamePolicy load(final NodeSettingsRO settings) throws InvalidSettingsException {
-        final String policyLabel =
-            settings.getString(GroupByNodeModel.CFG_COLUMN_NAME_POLICY, ColumnNamePolicy.getDefault().getLabel());
-        return ColumnNamePolicy.getPolicy4Label(policyLabel);
+        return ColumnNamePolicy.getPolicy4Label(
+            settings.getString(GroupByNodeModel.CFG_COLUMN_NAME_POLICY, ColumnNamePolicy.getDefault().getLabel()));
     }
 
     @Override

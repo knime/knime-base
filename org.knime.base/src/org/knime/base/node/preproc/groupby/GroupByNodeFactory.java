@@ -46,7 +46,6 @@ package org.knime.base.node.preproc.groupby;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.xmlbeans.XmlException;
 import org.knime.core.node.NodeDescription;
@@ -58,10 +57,7 @@ import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.core.webui.node.dialog.NodeDialogFactory;
 import org.knime.core.webui.node.dialog.NodeDialogManager;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
-import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
-import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
 import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
 import org.knime.node.impl.description.ExternalResource;
 import org.knime.node.impl.description.PortDescription;
@@ -73,8 +69,7 @@ import org.xml.sax.SAXException;
  * @author Tobias Koetter, University of Konstanz
  */
 @SuppressWarnings("restriction")
-public class GroupByNodeFactory extends NodeFactory<GroupByNodeModel>
-    implements NodeDialogFactory, KaiNodeInterfaceFactory {
+public class GroupByNodeFactory extends NodeFactory<GroupByNodeModel> implements NodeDialogFactory {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(GroupByNodeFactory.class);
 
@@ -139,9 +134,6 @@ public class GroupByNodeFactory extends NodeFactory<GroupByNodeModel>
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public GroupByNodeModel createNodeModel() {
         return new GroupByNodeModel();
@@ -158,9 +150,6 @@ public class GroupByNodeFactory extends NodeFactory<GroupByNodeModel>
         return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected int getNrNodeViews() {
         return 0;
@@ -177,9 +166,6 @@ public class GroupByNodeFactory extends NodeFactory<GroupByNodeModel>
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected NodeDescription createNodeDescription() throws SAXException, IOException, XmlException {
         if (WEBUI_DIALOG_DISABLED) {
@@ -233,19 +219,4 @@ public class GroupByNodeFactory extends NodeFactory<GroupByNodeModel>
     public NodeDialog createNodeDialog() {
         return new DefaultNodeDialog(SettingsType.MODEL, GroupByNodeParameters.class);
     }
-
-    /**
-     * {@inheritDoc}
-     *
-     * @since 5.9
-     */
-    @Override
-    public KaiNodeInterface createKaiNodeInterface() {
-        if (!WEBUI_DIALOG_DISABLED) {
-            return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, GroupByNodeParameters.class));
-        }
-        throw new UnsupportedOperationException("KAI interface not available when WebUI dialog is disabled");
-
-    }
-
 }

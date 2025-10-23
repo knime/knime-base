@@ -82,7 +82,7 @@ import org.knime.node.parameters.widget.choices.util.AllColumnsProvider;
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-class ColumnAggregatorElement implements NodeParameters {
+final class ColumnAggregatorElement implements NodeParameters {
 
     static class AggregationColumnsProvider extends AllColumnsProvider { } //
     static final class SelectedColumnRef implements ParameterReference<String> { } //

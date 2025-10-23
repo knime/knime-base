@@ -88,7 +88,7 @@ import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-class DataTypeAggregatorElement implements NodeParameters {
+final class DataTypeAggregatorElement implements NodeParameters {
 
 
     static final class DataTypeSelectedRef implements ParameterReference<DataType> { } //

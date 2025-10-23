@@ -193,7 +193,7 @@ final class LegacyPatternAggregatorsArrayPersistor
         }
     }
 
-    static class IndexedElement {
+    static final class IndexedElement {
 
         private final PatternAggregator[] m_aggregators;
 
@@ -212,7 +212,7 @@ final class LegacyPatternAggregatorsArrayPersistor
 
     }
 
-    static class PatternAggregatorElementDTO {
+    static final class PatternAggregatorElementDTO {
 
         private final int m_index;
 

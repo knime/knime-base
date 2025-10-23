@@ -51,13 +51,14 @@ package org.knime.base.node.preproc.groupby;
 import org.knime.node.parameters.widget.choices.Label;
 
 /**
+ * Pattern type for pattern-based aggregations.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
 enum PatternType {
 
     @Label("Wildcard")
-    WILDCARD,
+    WILDCARD, //
     @Label("Regular Expression")
     REGEX
 
