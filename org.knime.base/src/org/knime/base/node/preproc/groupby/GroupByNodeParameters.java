@@ -97,7 +97,7 @@ import org.knime.node.parameters.widget.text.TextInputWidget;
  */
 @LoadDefaultsForAbsentFields
 @SuppressWarnings("restriction") // internal API use
-class GroupByNodeParameters implements NodeParameters {
+final class GroupByNodeParameters implements NodeParameters {
 
     static final NodeLogger LOGGER = NodeLogger.getLogger(GroupByNodeParameters.class);
 
@@ -167,8 +167,8 @@ class GroupByNodeParameters implements NodeParameters {
             right mouse click and select the aggregation method to use.
             """)
     @ArrayWidget(addButtonText = "Add manual") // TODO disable "add" button based on input (e.g. no table connected)
-    @Persistor(LegacyColumnAggregatorsPersistor.class) // TODO No array persistor, because we cannot deprecated keys then
-    @Migration(LegacyColumnAggregatorsMigration.class)
+    @Persistor(LegacyColumnAggregatorsPersistor.class) // No array persistor...
+    @Migration(LegacyColumnAggregatorsMigration.class) // ...because then we could not deprecate keys here
     ColumnAggregatorElement[] m_columnAggregators = new ColumnAggregatorElement[0];
 
     @Layout(Sections.TypeAndPatternAggregations.class)

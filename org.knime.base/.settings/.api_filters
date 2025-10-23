@@ -1,12 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <component id="org.knime.base" version="2">
     <resource path="src/org/knime/base/node/preproc/groupby/GroupByNodeFactory.java" type="org.knime.base.node.preproc.groupby.GroupByNodeFactory">
-        <filter comment="KAI" id="576725006">
-            <message_arguments>
-                <message_argument value="KaiNodeInterfaceFactory"/>
-                <message_argument value="GroupByNodeFactory"/>
-            </message_arguments>
-        </filter>
         <filter comment="WebUI" id="576725006">
             <message_arguments>
                 <message_argument value="NodeDialogFactory"/>

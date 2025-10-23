@@ -77,13 +77,13 @@ enum MissingValueOption {
         abstract Class<? extends ParameterReference<String>> getMethodReference();
 
         @Override
-        public void init(final StateProviderInitializer initializer) {
+        public final void init(final StateProviderInitializer initializer) {
             initializer.computeAfterOpenDialog();
             m_methodSupplier = initializer.computeFromValueSupplier(getMethodReference());
         }
 
         @Override
-        public Boolean computeState(final NodeParametersInput ignored) {
+        public final Boolean computeState(final NodeParametersInput ignored) {
             final var id = m_methodSupplier.get();
             if (id == null) {
                 return false;
@@ -126,7 +126,7 @@ enum MissingValueOption {
         abstract Class<? extends SupportsMissingValueOptions> getMissingValueOptionSupportedReference();
 
         @Override
-        public EffectPredicate init(final PredicateInitializer i) {
+        public final EffectPredicate init(final PredicateInitializer i) {
             return i.getBoolean(getMissingValueOptionSupportedReference()).isTrue();
         }
 
