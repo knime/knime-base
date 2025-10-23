@@ -48,15 +48,19 @@
  */
 package org.knime.base.node.preproc.groupby;
 
-import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import org.knime.base.data.aggregation.AggregationMethods;
 import org.knime.base.node.preproc.groupby.AggregationOperatorParametersProvider.AggregationMethodRef;
 import org.knime.base.node.preproc.groupby.LegacyDataTypeAggregatorsArrayPersistor.DataTypeAggregatorElementDTO;
 import org.knime.base.node.preproc.groupby.LegacyDataTypeAggregatorsArrayPersistor.IndexedElement;
 import org.knime.base.node.preproc.groupby.OptionalParameters.AggregationOperatorParameters;
+import org.knime.core.data.DataCell;
+import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataTypeRegistry;
 import org.knime.core.data.def.StringCell;
@@ -168,8 +172,21 @@ class DataTypeAggregatorElement implements NodeParameters {
     static final class RegisteredTypesChoicesProvider implements DataTypeChoicesProvider {
         @Override
         public List<DataType> choices(final NodeParametersInput context) {
-            final var registered = DataTypeRegistry.getInstance().availableDataTypes();
-            return registered instanceof List<DataType> list ? list : new ArrayList<>(registered);
+            final var registered = new HashSet<>(DataTypeRegistry.getInstance().availableDataTypes());
+            registered.add(DataType.getType(DataCell.class)); // plain DataCell for backwards-compatibility
+            final var fromInput = context.getInTableSpec(0).stream() //
+                .flatMap(dts -> dts.stream()).map(DataColumnSpec::getType) //
+                .distinct() //
+                .map(t -> {
+                    registered.remove(t);
+                    return t;
+                }).toList();
+            return Stream.concat(
+                // first distinct types from input table (this also includes Collection types of present columns)
+                fromInput.stream(),
+                // fill up with all remaining registered types
+                registered.stream().sorted(Comparator.comparing(DataType::getName))) //
+                    .toList();
         }
     }
 
