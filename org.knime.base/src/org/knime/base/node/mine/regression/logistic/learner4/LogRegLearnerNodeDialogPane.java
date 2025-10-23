@@ -106,6 +106,8 @@ public final class LogRegLearnerNodeDialogPane extends NodeDialogPane {
 
     private static int NUMBER_INPUT_FIELD_COLS = 10;
 
+    static final Long DEFAULT_RANDOM_SEED = System.currentTimeMillis();
+
     private DataColumnSpecFilterPanel m_filterPanel;
 
     private JComboBox<DataCell> m_targetReferenceCategory;
@@ -649,7 +651,7 @@ public final class LogRegLearnerNodeDialogPane extends NodeDialogPane {
         m_inMemoryCheckBox.setSelected(settings.isInMemory());
         Long seed = settings.getSeed();
         toggleSeedComponents();
-        m_seedField.setText(Long.toString(seed != null ? seed : System.currentTimeMillis()));
+        m_seedField.setText(Long.toString(seed != null ? seed : DEFAULT_RANDOM_SEED));
         m_chunkSizeSpinner.setValue(settings.getChunkSize());
         m_chunkSizeSpinner.setEnabled(!settings.isInMemory());
     }

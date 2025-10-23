@@ -1,0 +1,761 @@
+{
+  "data" : {
+    "model" : {
+      "targetColumn" : "Cluster Membership",
+      "targetReferenceCategory" : "Cluster_3",
+      "useTargetDomainOrder" : false,
+      "solver" : "SAG",
+      "includedColumns" : {
+        "mode" : "MANUAL",
+        "patternFilter" : {
+          "pattern" : "",
+          "isCaseSensitive" : true,
+          "isInverted" : false
+        },
+        "manualFilter" : {
+          "manuallySelected" : [ "Universe_0_0", "Universe_0_1", "Universe_1_0", "Universe_1_1" ],
+          "manuallyDeselected" : [ ],
+          "includeUnknownColumns" : true
+        },
+        "typeFilter" : {
+          "selectedTypes" : [ ],
+          "typeDisplays" : [ ]
+        }
+      },
+      "useFeatureDomainOrder" : false,
+      "performLazy" : true,
+      "calcCovMatrix" : true,
+      "maxEpoch" : 100,
+      "epsilon" : 1.0E-5,
+      "learningRateStrategy" : "Fixed",
+      "initialLearningRate" : 0.1,
+      "prior" : "Uniform",
+      "priorVariance" : 0.1,
+      "inMemory" : true,
+      "chunkSize" : 10000,
+      "seedParameters" : {
+        "useRandomSeed" : false
+      }
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "calcCovMatrix" : {
+            "type" : "boolean",
+            "title" : "Calculate statistics for coefficients",
+            "description" : "If selected, the node calculates the standard errors, z-score and P>|z| values for the\ncoefficients. Note that those are affected by regularization in case of the Gauss prior.\nCalculating those statistics is expensive if the model is learned on many features and can be\nresponsible for a significant part of the node runtime.\n",
+            "default" : true
+          },
+          "chunkSize" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Chunk size",
+            "description" : "If the data is not held completely in memory, the node reads chunks of data into memory to\nemulate random access for the SAG solver. This parameter specifies how large those chunks should\nbe. The chunk size directly affects the convergence rate of the SAG solver, as those work best\nwith complete random access and a larger chunk size will better approximate that. This especially\nmeans that the solver may need many epochs to converge if the chunk size is chosen too small.\n",
+            "default" : 10000
+          },
+          "epsilon" : {
+            "type" : "number",
+            "format" : "double",
+            "title" : "Epsilon",
+            "description" : "This value is used to determine whether the model converged. If the relative change of all\ncoefficients is smaller than epsilon, the training is stopped.\n",
+            "default" : 1.0E-5
+          },
+          "inMemory" : {
+            "type" : "boolean",
+            "title" : "Hold data in memory",
+            "description" : "If selected, the data is read into an internal data structure which results into a tremendous\nspeed up. It is highly recommended to use this option if you have enough main memory available\nespecially if you use the SAG solver as their convergence rate highly depends on random access to\nindividual samples.\n",
+            "default" : true
+          },
+          "includedColumns" : {
+            "type" : "object",
+            "properties" : {
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "includeUnknownColumns" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "manuallyDeselected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "manuallySelected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "manuallySelected" : [ ],
+                  "manuallyDeselected" : [ ],
+                  "includeUnknownColumns" : false
+                }
+              },
+              "mode" : {
+                "oneOf" : [ {
+                  "const" : "MANUAL",
+                  "title" : "Manual"
+                }, {
+                  "const" : "REGEX",
+                  "title" : "Regex"
+                }, {
+                  "const" : "WILDCARD",
+                  "title" : "Wildcard"
+                }, {
+                  "const" : "TYPE",
+                  "title" : "Type"
+                } ],
+                "default" : "MANUAL"
+              },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "isCaseSensitive" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "isInverted" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "pattern" : {
+                    "type" : "string",
+                    "default" : ""
+                  }
+                },
+                "default" : {
+                  "pattern" : "",
+                  "isCaseSensitive" : false,
+                  "isInverted" : false
+                }
+              },
+              "selected" : {
+                "type" : "array",
+                "items" : {
+                  "type" : "string"
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "selectedTypes" : [ ],
+                  "typeDisplays" : [ ]
+                }
+              }
+            },
+            "title" : "Feature selection",
+            "description" : "Specify the independent columns that should be included in the regression model. Numeric and\nnominal data can be included.\n",
+            "default" : {
+              "mode" : "MANUAL",
+              "patternFilter" : {
+                "pattern" : "",
+                "isCaseSensitive" : false,
+                "isInverted" : false
+              },
+              "manualFilter" : {
+                "manuallySelected" : [ ],
+                "manuallyDeselected" : [ ],
+                "includeUnknownColumns" : true
+              },
+              "typeFilter" : {
+                "selectedTypes" : [ ],
+                "typeDisplays" : [ ]
+              }
+            }
+          },
+          "initialLearningRate" : {
+            "type" : "number",
+            "format" : "double",
+            "title" : "Step size",
+            "description" : "The step size (learning rate) to use in case of the fixed learning rate strategy.\n",
+            "default" : 0.1
+          },
+          "learningRateStrategy" : {
+            "oneOf" : [ {
+              "const" : "Fixed",
+              "title" : "Fixed"
+            }, {
+              "const" : "LineSearch",
+              "title" : "Linesearch"
+            } ],
+            "title" : "Learning rate strategy",
+            "description" : "The strategy provides the learning rates for the optimization process. Only important for the SAG\nsolver. For more information see the paragraph on learning rate strategies above.\n",
+            "default" : "Fixed"
+          },
+          "maxEpoch" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Maximal number of epochs",
+            "description" : "Here you can specify the maximal number of learning epochs you want to perform. That is the\nnumber of times you want to iterate over the full table. This value determines to a large extend\nhow long learning will take. The solver will stop early if it reaches convergence therefore it is\nrecommended to set a relatively high value for this parameter in order to give the solver enough\ntime to find a good solution.\n",
+            "default" : 100
+          },
+          "performLazy" : {
+            "type" : "boolean",
+            "title" : "Perform calculations lazily",
+            "description" : "If selected, the optimization is performed lazily i.e. the coefficients are only updated if their\ncorresponding feature is actually present in the current sample. Usually faster than the normal\nversion especially for sparse data (that is data where for the most rows the most values are\nzero). Currently only supported by the SAG solver.\n",
+            "default" : true
+          },
+          "prior" : {
+            "oneOf" : [ {
+              "const" : "Uniform",
+              "title" : "Uniform"
+            }, {
+              "const" : "Gauss",
+              "title" : "Gauss"
+            }, {
+              "const" : "Laplace",
+              "title" : "Laplace"
+            } ],
+            "title" : "Prior",
+            "description" : "The prior distribution for the coefficients. See the paragraph on regularization above for more details.\n",
+            "default" : "Uniform"
+          },
+          "priorVariance" : {
+            "type" : "number",
+            "format" : "double",
+            "title" : "Variance",
+            "description" : "The variance of the prior distribution. A larger variance corresponds to less regularization.\n",
+            "default" : 0.1
+          },
+          "seedParameters" : {
+            "type" : "object",
+            "properties" : {
+              "newSeed" : {
+                "type" : "object",
+                "title" : "New",
+                "description" : "Generate a random seed and set it in the Random seed input above for reproducible runs."
+              },
+              "randomSeed" : {
+                "type" : "string",
+                "title" : "Random seed",
+                "description" : "The seed value for the random number generator.\n"
+              },
+              "useRandomSeed" : {
+                "type" : "boolean",
+                "title" : "Use seed",
+                "description" : "Check if you want to use a static seed. Recommended for reproducible results if you use the SAG solver.\n",
+                "default" : false
+              }
+            },
+            "default" : {
+              "useRandomSeed" : false
+            }
+          },
+          "solver" : {
+            "oneOf" : [ {
+              "const" : "IRLS",
+              "title" : "Iteratively reweighted least squares"
+            }, {
+              "const" : "SAG",
+              "title" : "Stochastic average gradient"
+            } ],
+            "title" : "Solver",
+            "description" : "Select the solver to use. Either Iteratively reweighted least squares or Stochastic average\ngradient.\n",
+            "default" : "SAG"
+          },
+          "targetColumn" : {
+            "type" : "string",
+            "title" : "Target column",
+            "description" : "Select the target column. Only columns with nominal data are allowed. The reference category is\nempty if the domain of the target column is not available. In this case the node determines the\ndomain values right before computing the logistic regression model and chooses the last domain\nvalue as the targets reference category.\n"
+          },
+          "targetReferenceCategory" : {
+            "type" : "string",
+            "title" : "Reference category",
+            "description" : "The reference category is the category for which the probability is obtained as 1 minus the sum\nof all other probabilities. In a two class scenario this is usually the class for which you don't\nexplicitly want to model the probability.\n"
+          },
+          "useFeatureDomainOrder" : {
+            "type" : "boolean",
+            "title" : "Use order from column domain",
+            "description" : "By default the domain values (categories) of nominal valued columns are sorted lexicographically,\nbut you can check that the order from the column domain is used. Please note that the first\ncategory is used as a reference when creating the dummy variables.\n",
+            "default" : false
+          },
+          "useTargetDomainOrder" : {
+            "type" : "boolean",
+            "title" : "Use order from target column domain",
+            "description" : "By default the target domain values are sorted lexicographically in the output, but you can\nenforce the order of the target column domain to be preserved by checking the box. Note, if a\ntarget reference column is selected in the dropdown, the checkbox will have no influence on the\ncoefficients of the model except that the output representation (e.g. order of rows in the\ncoefficient table) may vary.\n",
+            "default" : false
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/targetColumn",
+      "options" : {
+        "format" : "dropDown"
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/targetReferenceCategory",
+      "options" : {
+        "format" : "dropDown"
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/useTargetDomainOrder",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/solver"
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/includedColumns",
+      "options" : {
+        "format" : "typedStringFilter",
+        "unknownValuesText" : "Any unknown column",
+        "emptyStateLabel" : "No columns in this list."
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/useFeatureDomainOrder",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "label" : "Solver Options",
+      "type" : "Section",
+      "options" : {
+        "isAdvanced" : true
+      },
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/performLazy",
+        "options" : {
+          "format" : "checkbox"
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/solver",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "SAG"
+              } ]
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/calcCovMatrix",
+        "options" : {
+          "format" : "checkbox"
+        }
+      } ]
+    }, {
+      "label" : "Termination Conditions",
+      "type" : "Section",
+      "options" : {
+        "isAdvanced" : true
+      },
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/maxEpoch",
+        "options" : {
+          "validation" : {
+            "max" : {
+              "errorMessage" : "The value must not exceed 2147483647.",
+              "parameters" : {
+                "isExclusive" : false,
+                "max" : 2.147483647E9
+              }
+            },
+            "min" : {
+              "errorMessage" : "The value must be at least 1.",
+              "parameters" : {
+                "isExclusive" : false,
+                "min" : 1.0
+              }
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/epsilon",
+        "options" : {
+          "validation" : {
+            "min" : {
+              "errorMessage" : "The value must be greater than 0.",
+              "parameters" : {
+                "isExclusive" : true,
+                "min" : 0.0
+              }
+            }
+          }
+        }
+      } ]
+    }, {
+      "label" : "Learning Rate / Step Size",
+      "type" : "Section",
+      "options" : {
+        "isAdvanced" : true
+      },
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/learningRateStrategy",
+        "options" : {
+          "format" : "valueSwitch"
+        },
+        "rule" : {
+          "effect" : "ENABLE",
+          "condition" : {
+            "scope" : "#/properties/model/properties/solver",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "SAG"
+              } ]
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/initialLearningRate",
+        "options" : {
+          "validation" : {
+            "min" : {
+              "errorMessage" : "The value must be greater than 0.",
+              "parameters" : {
+                "isExclusive" : true,
+                "min" : 0.0
+              }
+            }
+          }
+        },
+        "rule" : {
+          "effect" : "ENABLE",
+          "condition" : {
+            "scope" : "#/properties/model/properties/learningRateStrategy",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "Fixed"
+              } ]
+            }
+          }
+        }
+      } ]
+    }, {
+      "label" : "Regularization",
+      "type" : "Section",
+      "options" : {
+        "isAdvanced" : true
+      },
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/prior",
+        "options" : {
+          "format" : "valueSwitch"
+        },
+        "rule" : {
+          "effect" : "ENABLE",
+          "condition" : {
+            "scope" : "#/properties/model/properties/solver",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "SAG"
+              } ]
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/priorVariance",
+        "options" : {
+          "validation" : {
+            "min" : {
+              "errorMessage" : "The value must be greater than 0.",
+              "parameters" : {
+                "isExclusive" : true,
+                "min" : 0.0
+              }
+            }
+          }
+        },
+        "rule" : {
+          "effect" : "ENABLE",
+          "condition" : {
+            "scope" : "#/properties/model/properties/prior",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "Gauss"
+              }, {
+                "const" : "Laplace"
+              } ]
+            }
+          }
+        }
+      } ]
+    }, {
+      "label" : "Data Handling",
+      "type" : "Section",
+      "options" : {
+        "isAdvanced" : true
+      },
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/inMemory",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/chunkSize",
+        "options" : {
+          "validation" : {
+            "max" : {
+              "errorMessage" : "The value must not exceed 2147483647.",
+              "parameters" : {
+                "isExclusive" : false,
+                "max" : 2.147483647E9
+              }
+            },
+            "min" : {
+              "errorMessage" : "The value must be at least 1.",
+              "parameters" : {
+                "isExclusive" : false,
+                "min" : 1.0
+              }
+            }
+          }
+        },
+        "rule" : {
+          "effect" : "ENABLE",
+          "condition" : {
+            "scope" : "#/properties/model/properties/inMemory",
+            "schema" : {
+              "const" : false
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/seedParameters/properties/useRandomSeed",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/seedParameters/properties/randomSeed",
+        "options" : {
+          "validation" : {
+            "pattern" : {
+              "errorMessage" : "Please enter a valid integer number between -9223372036854775808 to 9223372036854775807.",
+              "parameters" : {
+                "pattern" : "[+-]?(0|[1-9][0-9]{0,18})"
+              }
+            }
+          }
+        },
+        "rule" : {
+          "effect" : "ENABLE",
+          "condition" : {
+            "scope" : "#/properties/model/properties/seedParameters/properties/useRandomSeed",
+            "schema" : {
+              "const" : true
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/seedParameters/properties/newSeed",
+        "options" : {
+          "format" : "simpleButton",
+          "triggerId" : "org.knime.base.node.mine.regression.logistic.learner4.LogRegLearnerNodeParameters$NewSeedButtonRef"
+        },
+        "rule" : {
+          "effect" : "ENABLE",
+          "condition" : {
+            "scope" : "#/properties/model/properties/seedParameters/properties/useRandomSeed",
+            "schema" : {
+              "const" : true
+            }
+          }
+        }
+      } ]
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "targetColumn" : {
+            "configKey" : "target"
+          },
+          "targetReferenceCategory" : {
+            "configPaths" : [ [ "targetReferenceCategory" ] ]
+          },
+          "useTargetDomainOrder" : {
+            "configKey" : "useOrderFromTargetDomain"
+          },
+          "solver" : {
+            "configKey" : "solver",
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ ]
+            } ]
+          },
+          "includedColumns" : {
+            "configPaths" : [ [ "column-filter", "filter-type" ], [ "column-filter", "included_names" ], [ "column-filter", "excluded_names" ], [ "column-filter", "enforce_option" ], [ "column-filter", "name_pattern", "pattern" ], [ "column-filter", "name_pattern", "type" ], [ "column-filter", "name_pattern", "caseSensitive" ], [ "column-filter", "name_pattern", "excludeMatching" ] ]
+          },
+          "useFeatureDomainOrder" : {
+            "configKey" : "useOrderFromFeatureDomain"
+          },
+          "performLazy" : {
+            "configKey" : "performLazy"
+          },
+          "calcCovMatrix" : {
+            "configKey" : "calcCoefficientStatistics"
+          },
+          "maxEpoch" : {
+            "configKey" : "maxEpoch"
+          },
+          "epsilon" : {
+            "configKey" : "epsilon"
+          },
+          "learningRateStrategy" : {
+            "configKey" : "learningRateStrategy"
+          },
+          "initialLearningRate" : {
+            "configKey" : "stepSize"
+          },
+          "prior" : {
+            "configKey" : "prior"
+          },
+          "priorVariance" : {
+            "configKey" : "priorVariance"
+          },
+          "inMemory" : {
+            "configKey" : "inMemory"
+          },
+          "chunkSize" : {
+            "configKey" : "chunkSize"
+          },
+          "seedParameters" : {
+            "configPaths" : [ [ "seed" ] ]
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/includedColumns",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Cluster Membership",
+        "text" : "Cluster Membership",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "Universe_0_0",
+        "text" : "Universe_0_0",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Universe_0_1",
+        "text" : "Universe_0_1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Universe_1_0",
+        "text" : "Universe_1_0",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Universe_1_1",
+        "text" : "Universe_1_1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/targetColumn",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Cluster Membership",
+        "text" : "Cluster Membership",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/targetReferenceCategory",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Cluster_0",
+        "text" : "Cluster_0"
+      }, {
+        "id" : "Cluster_1",
+        "text" : "Cluster_1"
+      }, {
+        "id" : "Cluster_2",
+        "text" : "Cluster_2"
+      }, {
+        "id" : "Cluster_3",
+        "text" : "Cluster_3"
+      } ]
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "id" : "after-open-dialog"
+    },
+    "triggerInitially" : true,
+    "dependencies" : [ "#/properties/model/properties/targetColumn", "#/properties/model/properties/targetReferenceCategory" ]
+  }, {
+    "trigger" : {
+      "id" : "org.knime.base.node.mine.regression.logistic.learner4.LogRegLearnerNodeParameters$NewSeedButtonRef"
+    },
+    "dependencies" : [ ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/targetColumn"
+    },
+    "dependencies" : [ "#/properties/model/properties/targetColumn", "#/properties/model/properties/targetReferenceCategory" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/targetReferenceCategory"
+    },
+    "dependencies" : [ "#/properties/model/properties/targetColumn", "#/properties/model/properties/targetReferenceCategory" ]
+  } ]
+}

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
+    <entry key="target" type="xstring" value="Cluster Membership"/>
+    <config key="targetReferenceCategory">
+        <entry key="datacell" type="xstring" value="org.knime.core.data.def.StringCell"/>
+        <config key="org.knime.core.data.def.StringCell">
+            <entry key="StringCell" type="xstring" value="Cluster_3"/>
+        </config>
+    </config>
+    <entry key="useOrderFromTargetDomain" type="xboolean" value="false"/>
+    <entry key="solver" type="xstring" value="SAG"/>
+    <config key="column-filter">
+        <entry key="filter-type" type="xstring" value="STANDARD"/>
+        <config key="included_names">
+            <entry key="array-size" type="xint" value="4"/>
+            <entry key="0" type="xstring" value="Universe_0_0"/>
+            <entry key="1" type="xstring" value="Universe_0_1"/>
+            <entry key="2" type="xstring" value="Universe_1_0"/>
+            <entry key="3" type="xstring" value="Universe_1_1"/>
+        </config>
+        <config key="excluded_names">
+            <entry key="array-size" type="xint" value="0"/>
+        </config>
+        <entry key="enforce_option" type="xstring" value="EnforceExclusion"/>
+        <config key="name_pattern">
+            <entry key="pattern" type="xstring" value=""/>
+            <entry key="caseSensitive" type="xboolean" value="true"/>
+            <entry key="excludeMatching" type="xboolean" value="false"/>
+            <entry key="type" type="xstring" value="Wildcard"/>
+        </config>
+        <config key="datatype">
+            <config key="typelist"/>
+        </config>
+    </config>
+    <entry key="useOrderFromFeatureDomain" type="xboolean" value="false"/>
+    <entry key="performLazy" type="xboolean" value="true"/>
+    <entry key="calcCoefficientStatistics" type="xboolean" value="true"/>
+    <entry key="maxEpoch" type="xint" value="100"/>
+    <entry key="epsilon" type="xdouble" value="1.0E-5"/>
+    <entry key="learningRateStrategy" type="xstring" value="Fixed"/>
+    <entry key="stepSize" type="xdouble" value="0.1"/>
+    <entry key="prior" type="xstring" value="Uniform"/>
+    <entry key="priorVariance" type="xdouble" value="0.1"/>
+    <entry key="inMemory" type="xboolean" value="true"/>
+    <entry key="chunkSize" type="xint" value="10000"/>
+    <entry key="seed" type="xstring" isnull="true" value=""/>
+</config>
