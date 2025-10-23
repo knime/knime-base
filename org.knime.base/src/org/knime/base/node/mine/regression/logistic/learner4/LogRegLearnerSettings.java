@@ -56,6 +56,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
+import org.knime.node.parameters.widget.choices.Label;
 
 /**
  * This class hold the settings for the Logistic Learner Node.
@@ -79,6 +80,7 @@ public class LogRegLearnerSettings {
          * It also can't find solution to linearly separable problems or problems where there are more features than samples,
          * due to the lack of a regularization.
          */
+        @Label(value = "Iteratively reweighted least squares")
         IRLS("Iteratively reweighted least squares", false, EnumSet.noneOf(LearningRateStrategies.class), EnumSet.noneOf(Prior.class)),
         /**
          * A fast and robust stochastic gradient descent variant that can be used for large scale problems.
@@ -86,6 +88,7 @@ public class LogRegLearnerSettings {
          * Limitations of SAG are that it has to store the raw gradients for all samples (sounds worse than it is since this
          * corresponds to a single double/float for each row) and it requires real random drawing of samples.
          */
+        @Label(value = "Stochastic average gradient")
         SAG("Stochastic average gradient", true, EnumSet.of(LearningRateStrategies.Fixed, LearningRateStrategies.LineSearch),
             EnumSet.allOf(Prior.class));
 
@@ -214,23 +217,22 @@ public class LogRegLearnerSettings {
 
     }
 
-
-    private static final String CFG_TARGET = "target";
-    private static final String CFG_TARGET_REFERENCE_CATEGORY = "targetReferenceCategory";
-    private static final String CFG_USE_ORDER_TARGET_DOMAIN = "useOrderFromTargetDomain";
-    private static final String CFG_USE_ORDER_FEATURE_DOMAIN = "useOrderFromFeatureDomain";
-    private static final String CFG_SOLVER = "solver";
-    private static final String CFG_MAX_EPOCH = "maxEpoch";
-    private static final String CFG_PERFORM_LAZY = "performLazy";
-    private static final String CFG_EPSILON = "epsilon";
-    private static final String CFG_PRIOR = "prior";
-    private static final String CFG_PRIOR_VARIANCE = "priorVariance";
-    private static final String CFG_LEARNING_RATE_STRATEGY = "learningRateStrategy";
-    private static final String CFG_STEP_SIZE = "stepSize";
-    private static final String CFG_SEED = "seed";
-    private static final String CFG_IN_MEMORY = "inMemory";
-    private static final String CFG_CHUNK_SIZE = "chunkSize";
-    private static final String CFG_CALC_COVMATRIX = "calcCoefficientStatistics";
+    static final String CFG_TARGET = "target";
+    static final String CFG_TARGET_REFERENCE_CATEGORY = "targetReferenceCategory";
+    static final String CFG_USE_ORDER_TARGET_DOMAIN = "useOrderFromTargetDomain";
+    static final String CFG_USE_ORDER_FEATURE_DOMAIN = "useOrderFromFeatureDomain";
+    static final String CFG_SOLVER = "solver";
+    static final String CFG_MAX_EPOCH = "maxEpoch";
+    static final String CFG_PERFORM_LAZY = "performLazy";
+    static final String CFG_EPSILON = "epsilon";
+    static final String CFG_PRIOR = "prior";
+    static final String CFG_PRIOR_VARIANCE = "priorVariance";
+    static final String CFG_LEARNING_RATE_STRATEGY = "learningRateStrategy";
+    static final String CFG_STEP_SIZE = "stepSize";
+    static final String CFG_SEED = "seed";
+    static final String CFG_IN_MEMORY = "inMemory";
+    static final String CFG_CHUNK_SIZE = "chunkSize";
+    static final String CFG_CALC_COVMATRIX = "calcCoefficientStatistics";
 
     static final Solver DEFAULT_SOLVER = Solver.SAG;
     static final boolean DEFAULT_PERFORM_LAZY = true;
