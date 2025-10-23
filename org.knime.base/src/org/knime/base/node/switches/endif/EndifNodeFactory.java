@@ -47,14 +47,35 @@
  */
 package org.knime.base.node.switches.endif;
 
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
 
 /**
  * @author M. Berthold, University of Konstanz
+ * @author Kai Franze, KNIME GmbH, Germany
+ * @author AI Migration Pipeline v1.2
+ * @since 5.9
  */
-public class EndifNodeFactory extends NodeFactory<EndifNodeModel> {
+@SuppressWarnings("restriction")
+public class EndifNodeFactory extends NodeFactory<EndifNodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     /**
      * Create factory, that instantiates nodes.
@@ -62,35 +83,81 @@ public class EndifNodeFactory extends NodeFactory<EndifNodeModel> {
     public EndifNodeFactory() {
     }
 
-    /** {@inheritDoc} */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new EndifNodeDialog();
-    }
-
-    /** {@inheritDoc} */
     @Override
     public EndifNodeModel createNodeModel() {
         return new EndifNodeModel();
     }
 
-    /** {@inheritDoc} */
-    @Override
-    public NodeView<EndifNodeModel> createNodeView(final int index,
-            final EndifNodeModel model) {
-        return null;
-    }
-
-    /** {@inheritDoc} */
     @Override
     protected int getNrNodeViews() {
         return 0;
     }
 
-    /** {@inheritDoc} */
+    @Override
+    public NodeView<EndifNodeModel> createNodeView(final int viewIndex, final EndifNodeModel nodeModel) {
+        return null;
+    }
+
     @Override
     protected boolean hasDialog() {
         return true;
     }
 
+    private static final String NODE_NAME = "End IF";
+
+    private static final String NODE_ICON = "switches_fi.png";
+
+    private static final String DESCRIPTION = """
+            This nodes takes the data either from the top or bottom input port or concatenates the two tables if
+            both branches contain data.
+            """;
+
+    private static final List<PortDescription> INPUT_PORTS = List.of( //
+        fixedPort("Input table", "The first input table."), //
+        fixedPort("Second table", "The second input table."));
+
+    private static final List<PortDescription> OUTPUT_PORTS = List.of( //
+        fixedPort("Output table", "Output Table."));
+
+    /**
+     * @since 5.9
+     */
+    @Override
+    public NodeDialogPane createNodeDialogPane() {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    /**
+     * @since 5.9
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, EndifNodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription( //
+            NODE_NAME, //
+            NODE_ICON, //
+            INPUT_PORTS, //
+            OUTPUT_PORTS, //
+            DESCRIPTION, //
+            DESCRIPTION, //
+            List.of(), //
+            EndifNodeParameters.class, //
+            null, //
+            NodeType.Manipulator, //
+            List.of(), //
+            null //
+        );
+    }
+
+    /**
+     * @since 5.9
+     */
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, EndifNodeParameters.class));
+    }
 }
