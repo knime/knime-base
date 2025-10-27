@@ -59,15 +59,24 @@ import org.knime.node.parameters.widget.choices.Label;
 public enum PValueAlternative {
 
         /** two sided p-value */
-        @Label(value = "two-sided")
+        @Label(value = "two-sided", description = """
+                Corresponds to the probability of obtaining a correlation value that is at least as extreme as the
+                observed correlation.
+                """)
         TWO_SIDED("two-sided"),
 
         /** Positive association: One-sided (right) */
-        @Label(value = "one-sided (right)")
+        @Label(value = "one-sided (right)", description = """
+                Corresponds to the probability of obtaining a correlation value that shows even greater <b>positive</b>
+                association.
+                """)
         GREATER("one-sided (right)"),
 
         /** Negative association: One-sided (left) */
-        @Label(value = "one-sided (left)")
+        @Label(value = "one-sided (left)", description = """
+                Corresponds to the probability of obtaining a correlation value that shows even greater <b>negative</b>
+                association.
+                """)
         LESS("one-sided (left)");
 
     private final String m_desc;
