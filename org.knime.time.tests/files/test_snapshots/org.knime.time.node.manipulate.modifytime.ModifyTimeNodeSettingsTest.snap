@@ -170,7 +170,7 @@
           },
           "localTime" : {
             "type" : "string",
-            "format" : "date-time",
+            "format" : "time",
             "title" : "Time",
             "description" : "A time value.",
             "default" : "14:00:00"
