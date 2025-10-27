@@ -1,0 +1,275 @@
+{
+  "data" : {
+    "model" : {
+      "columnFilter" : {
+        "mode" : "MANUAL",
+        "patternFilter" : {
+          "pattern" : "",
+          "isCaseSensitive" : true,
+          "isInverted" : false
+        },
+        "manualFilter" : {
+          "manuallySelected" : [ "age", "workclass", "fnlwgt", "education", "education-num", "marital-status", "occupation", "relationship", "race", "sex", "capital-gain", "capital-loss", "hours-per-week", "native-country", "income" ],
+          "manuallyDeselected" : [ ],
+          "includeUnknownColumns" : true
+        },
+        "typeFilter" : {
+          "selectedTypes" : [ ],
+          "typeDisplays" : [ ]
+        }
+      },
+      "outputColumnPairs" : "COMPATIBLE_PAIRS",
+      "possibleValuesCount" : 50,
+      "pValue" : "TWO_SIDED"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columnFilter" : {
+            "type" : "object",
+            "properties" : {
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "includeUnknownColumns" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "manuallyDeselected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "manuallySelected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "manuallySelected" : [ ],
+                  "manuallyDeselected" : [ ],
+                  "includeUnknownColumns" : false
+                }
+              },
+              "mode" : {
+                "oneOf" : [ {
+                  "const" : "MANUAL",
+                  "title" : "Manual"
+                }, {
+                  "const" : "REGEX",
+                  "title" : "Regex"
+                }, {
+                  "const" : "WILDCARD",
+                  "title" : "Wildcard"
+                }, {
+                  "const" : "TYPE",
+                  "title" : "Type"
+                } ],
+                "default" : "MANUAL"
+              },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "isCaseSensitive" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "isInverted" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "pattern" : {
+                    "type" : "string",
+                    "default" : ""
+                  }
+                },
+                "default" : {
+                  "pattern" : "",
+                  "isCaseSensitive" : false,
+                  "isInverted" : false
+                }
+              },
+              "selected" : {
+                "type" : "array",
+                "items" : {
+                  "type" : "string"
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "selectedTypes" : [ ],
+                  "typeDisplays" : [ ]
+                }
+              }
+            },
+            "title" : "Column selection",
+            "description" : "Select the columns to be included in the correlation analysis. Only numeric and nominal columns are available. Use the include/exclude lists to specify which columns should be processed. ",
+            "default" : {
+              "mode" : "MANUAL",
+              "patternFilter" : {
+                "pattern" : "",
+                "isCaseSensitive" : false,
+                "isInverted" : false
+              },
+              "manualFilter" : {
+                "manuallySelected" : [ "StringCol1", "StringCol2" ],
+                "manuallyDeselected" : [ ],
+                "includeUnknownColumns" : true
+              },
+              "typeFilter" : {
+                "selectedTypes" : [ ],
+                "typeDisplays" : [ ]
+              }
+            }
+          },
+          "outputColumnPairs" : {
+            "oneOf" : [ {
+              "const" : "ALL",
+              "title" : "All column pairs"
+            }, {
+              "const" : "COMPATIBLE_PAIRS",
+              "title" : "Only column pairs of compatible columns"
+            }, {
+              "const" : "VALID_CORRELATION",
+              "title" : "Only column pairs with a valid correlation"
+            } ],
+            "title" : "Output column pairs",
+            "description" : "Select which column pairs of the selected columns should be included in the correlation measure table. If only compatible column pairs are included <tt>numeric &lt;-&gt; nominal</tt> pairs will be excluded. If only pairs with a valid correlation are included all pairs for which the correlation cannot be computed are excluded. ",
+            "default" : "COMPATIBLE_PAIRS"
+          },
+          "pValue" : {
+            "oneOf" : [ {
+              "const" : "TWO_SIDED",
+              "title" : "two-sided"
+            }, {
+              "const" : "GREATER",
+              "title" : "one-sided (right)"
+            }, {
+              "const" : "LESS",
+              "title" : "one-sided (left)"
+            } ],
+            "title" : "p-value",
+            "description" : "Select which p-value should be computed for Pearson's product-moment coefficient. <ul> <li>\"two-sided\" corresponds to the probability of obtaining a correlation value that is at least as extreme as the observed correlation.</li> <li>\"one-sided (right)\" corresponds to the probability of obtaining a correlation value that shows even greater <b>positive</b> association.</li> <li>\"one-sided (left)\" corresponds to the probability of obtaining a correlation value that shows even greater <b>negative</b> association.</li> </ul> Note that the p-value for Pearson's chi square test is always one-sided. ",
+            "default" : "TWO_SIDED"
+          },
+          "possibleValuesCount" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Possible values count",
+            "description" : "Select an upper bound for the number of possible values for each of the nominal columns. If more values are encountered in a nominal column, the column will be ignored (no correlation values will be computed). ",
+            "default" : 50
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/columnFilter",
+      "options" : {
+        "format" : "typedStringFilter",
+        "unknownValuesText" : "Any unknown column",
+        "emptyStateLabel" : "No columns in this list.",
+        "hideTypeFilter" : true
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/outputColumnPairs",
+      "options" : {
+        "format" : "radio",
+        "radioLayout" : "vertical"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/possibleValuesCount",
+      "options" : {
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 2147483647.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 2.147483647E9
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 2.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 2.0
+            }
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/pValue",
+      "options" : {
+        "format" : "radio",
+        "radioLayout" : "vertical"
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columnFilter" : {
+            "configPaths" : [ [ "include-list", "filter-type" ], [ "include-list", "included_names" ], [ "include-list", "excluded_names" ], [ "include-list", "enforce_option" ], [ "include-list", "name_pattern", "pattern" ], [ "include-list", "name_pattern", "type" ], [ "include-list", "name_pattern", "caseSensitive" ], [ "include-list", "name_pattern", "excludeMatching" ] ]
+          },
+          "outputColumnPairs" : {
+            "configKey" : "columnPairsFilter"
+          },
+          "possibleValuesCount" : {
+            "configKey" : "possibleValuesCount"
+          },
+          "pValue" : {
+            "configKey" : "pvalAlternative"
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/columnFilter",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "StringCol1",
+        "text" : "StringCol1",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "StringCol2",
+        "text" : "StringCol2",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  } ]
+}

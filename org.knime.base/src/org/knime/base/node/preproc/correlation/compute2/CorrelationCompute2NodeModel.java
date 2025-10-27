@@ -96,6 +96,11 @@ final class CorrelationCompute2NodeModel extends NodeModel implements BufferedDa
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(CorrelationCompute2NodeModel.class);
 
+    public static final String CFG_POSSIBLE_VALUES_COUNT = "possibleValuesCount";
+    public static final String CFG_INCLUDE_LIST = "include-list";
+    public static final String CFG_PVAL_ALTERNATIVE = "pvalAlternative";
+    public static final String CFG_COLUMN_PAIRS_FILTER = "columnPairsFilter";
+
     /**
      * Factory method to instantiate a default settings object, used in constructor and in dialog.
      *
@@ -103,7 +108,7 @@ final class CorrelationCompute2NodeModel extends NodeModel implements BufferedDa
      */
     @SuppressWarnings("unchecked")
     static SettingsModelColumnFilter2 createColumnFilterModel() {
-        return new SettingsModelColumnFilter2("include-list", DoubleValue.class, NominalValue.class);
+        return new SettingsModelColumnFilter2(CFG_INCLUDE_LIST, DoubleValue.class, NominalValue.class);
     }
 
     /**
@@ -112,7 +117,7 @@ final class CorrelationCompute2NodeModel extends NodeModel implements BufferedDa
      * @return A new model.
      */
     static SettingsModelIntegerBounded createNewPossValueCounterModel() {
-        return new SettingsModelIntegerBounded("possibleValuesCount", 50, 2, Integer.MAX_VALUE);
+        return new SettingsModelIntegerBounded(CFG_POSSIBLE_VALUES_COUNT, 50, 2, Integer.MAX_VALUE);
     }
 
     /**
@@ -121,7 +126,7 @@ final class CorrelationCompute2NodeModel extends NodeModel implements BufferedDa
      * @return A new model.
      */
     static SettingsModelString createPValAlternativeModel() {
-        return new SettingsModelString("pvalAlternative", PValueAlternative.TWO_SIDED.name());
+        return new SettingsModelString(CFG_PVAL_ALTERNATIVE, PValueAlternative.TWO_SIDED.name());
     }
 
     /**
@@ -130,7 +135,7 @@ final class CorrelationCompute2NodeModel extends NodeModel implements BufferedDa
      * @return A new model.
      */
     static SettingsModelString createColumnPairsFilterModel() {
-        return new SettingsModelString("columnPairsFilter", ColumnPairFilter.COMPATIBLE_PAIRS.name());
+        return new SettingsModelString(CFG_COLUMN_PAIRS_FILTER, ColumnPairFilter.COMPATIBLE_PAIRS.name());
     }
 
     private SettingsModelColumnFilter2 m_columnFilterModel;

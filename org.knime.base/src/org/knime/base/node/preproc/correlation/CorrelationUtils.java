@@ -70,6 +70,7 @@ import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
+import org.knime.node.parameters.widget.choices.Label;
 
 /**
  * @since 4.1
@@ -248,12 +249,15 @@ public final class CorrelationUtils {
     public enum ColumnPairFilter {
 
             /** All column pairs */
+            @Label("All column pairs")
             ALL("Include all column pairs"),
 
             /** Only pairs of compatible columns */
+            @Label("Only column pairs of compatible columns")
             COMPATIBLE_PAIRS("Include only column pairs of compatible columns"),
 
             /** Only pairs with valid correlation */
+            @Label("Only column pairs with a valid correlation")
             VALID_CORRELATION("Include only column pairs with a valid correlation");
 
         private final String m_desc;
