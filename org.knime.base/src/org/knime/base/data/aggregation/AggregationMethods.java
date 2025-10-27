@@ -56,6 +56,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 
@@ -115,6 +116,7 @@ import org.knime.base.data.aggregation.numerical.MedianOperator;
 import org.knime.base.data.aggregation.numerical.PSquarePercentileOperator;
 import org.knime.base.data.aggregation.numerical.ProductOperator;
 import org.knime.base.data.aggregation.numerical.QuantileOperator;
+import org.knime.base.data.aggregation.numerical.QuantileOperator.QuantileOperatorParameters;
 import org.knime.base.data.aggregation.numerical.RangeOperator;
 import org.knime.base.data.aggregation.numerical.SecondMomentOperator;
 import org.knime.base.data.aggregation.numerical.SkewnessOperator;
@@ -188,6 +190,9 @@ public final class AggregationMethods implements AggregationFunctionProvider<Agg
      * operators are not shown to the user.*/
     private final Map<String, AggregationOperator> m_deprecatedOperators = new HashMap<>();
 
+    /**Map with aggregation operator parameter classes registered via extension point.*/
+    private final Map<String, Class<? extends AggregationOperatorParameters>> m_parameterClasses = new HashMap<>();
+
     private final AggregationMethod m_defNotNumericalMeth;
     private final AggregationMethod m_defNumericalMeth;
     private final AggregationMethod m_rowOrderMethod;
@@ -248,7 +253,7 @@ public final class AggregationMethods implements AggregationFunctionProvider<Agg
             /**Geometric deviation.*/
             addOperator(new GeometricStdDeviationOperator(GlobalSettings.DEFAULT,
                 OperatorColumnSettings.DEFAULT_EXCL_MISSING));
-            addOperator(new QuantileOperator(GlobalSettings.DEFAULT, OperatorColumnSettings.DEFAULT_EXCL_MISSING));
+            addOperator(new QuantileOperator(GlobalSettings.DEFAULT, OperatorColumnSettings.DEFAULT_EXCL_MISSING), QuantileOperatorParameters.class);
             addOperator(new KurtosisOperator(GlobalSettings.DEFAULT, OperatorColumnSettings.DEFAULT_EXCL_MISSING));
             addOperator(new SkewnessOperator(GlobalSettings.DEFAULT, OperatorColumnSettings.DEFAULT_EXCL_MISSING));
             addOperator(new PSquarePercentileOperator(GlobalSettings.DEFAULT,
@@ -440,6 +445,26 @@ public final class AggregationMethods implements AggregationFunctionProvider<Agg
                     continue;
                 }
                 boolean isDeprecated = Boolean.parseBoolean(elem.getAttribute("deprecated"));
+
+                // Load optional parameter class if specified
+                final String paramClassName = elem.getAttribute("optionalParameters");
+                if (paramClassName != null && !paramClassName.trim().isEmpty()) {
+                    try {
+                        @SuppressWarnings("unchecked")
+                        final Class<? extends AggregationOperatorParameters> paramClass =
+                            (Class<? extends AggregationOperatorParameters>)
+                            Platform.getBundle(elem.getContributor().getName()).loadClass(paramClassName);
+
+                        m_parameterClasses.put(operator, paramClass);
+
+                        LOGGER.debug("Registered aggregation operator parameters: " + paramClassName +
+                                   " for operator: " + operator);
+
+                    } catch (final ClassNotFoundException | ClassCastException e) {
+                        LOGGER.error("Failed to load aggregation operator parameters class: " + paramClassName, e);
+                    }
+                }
+
                 try {
                     final AggregationOperator aggrOperator =
                             (AggregationOperator)elem.createExecutableExtension(EXT_POINT_ATTR_DF);
@@ -474,6 +499,14 @@ public final class AggregationMethods implements AggregationFunctionProvider<Agg
         m_operators.put(id, operator);
     }
 
+    private void addOperator(final AggregationOperator operator,
+            final Class<? extends AggregationOperatorParameters> paramClass) throws DuplicateOperatorException {
+        addOperator(operator);
+        if (paramClass != null) {
+            m_parameterClasses.put(operator.getClass().getName(), paramClass);
+        }
+    }
+
     /**
      * This method allows the registration of new {@link AggregationOperator}s.
      * Check first if an {@link AggregationOperator} with the same name
@@ -502,6 +535,31 @@ public final class AggregationMethods implements AggregationFunctionProvider<Agg
      */
     private Collection<AggregationOperator> getOperators() {
         return Collections.unmodifiableCollection(m_operators.values());
+    }
+
+    /**
+     * Gets the custom parameters class for the given operator. Note that the optional returned can be empty even if the
+     * operator has optional parameters, but it cannot be present if the operator has no optional parameters.
+     *
+     * @param operatorID the operator ID to get custom parameters for
+     * @return the class representing the custom parameters, or {@link Optional#empty()} if there is no such class
+     *
+     * @since 5.9
+     */
+    public Optional<Class<? extends AggregationOperatorParameters>>
+            getParametersClassFor(final String operatorID) {
+        // TODO instancemethod on AggregationOperator/AggregationMethod?
+        return Optional.ofNullable(m_parameterClasses.getOrDefault(getOperator(operatorID).getClass().getName(), null));
+    }
+
+    /**
+     * Get all registered parameter classes.
+     *
+     * @return all registered parameter classes
+     * @since 5.9
+     */
+    public static Collection<Class<? extends AggregationOperatorParameters>> getAllParameterClasses() {
+        return getInstance().m_parameterClasses.values().stream().toList();
     }
 
     /**

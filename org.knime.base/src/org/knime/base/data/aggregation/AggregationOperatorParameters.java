@@ -44,52 +44,19 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   20 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   27 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.groupby;
+package org.knime.base.data.aggregation;
 
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.webui.node.dialog.FallbackDialogNodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
-import org.knime.node.parameters.Widget;
 
 /**
- * Utility class for the optional parameters of the GroupBy aggregation operators.
+ * Interface to define optional parameters for aggregation operators.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ * @since 5.9
  */
-@SuppressWarnings("restriction")
-final class OptionalParameters {
-
-    private OptionalParameters() {
-        // utility
-    }
-
-    /**
-     * Common interface for legacy fallback parameters and new extension point-based parameters for aggregation
-     * operators that have custom settings.
-     */
-    interface AggregationOperatorParameters extends DynamicParameters.DynamicNodeParameters {
-    }
-
-    /**
-     * Parameters to display legacy operator settings in "fallback style".
-     */
-    static final class LegacyAggregationOperatorParameters extends FallbackDialogNodeParameters
-        implements AggregationOperatorParameters {
-        public LegacyAggregationOperatorParameters(final NodeSettingsRO nodeSettings) {
-            super(nodeSettings);
-        }
-    }
-
-    /**
-     * Placeholder for new extension point-based parameters, such that we can upgrade often-used operator settings to
-     * proper node parameters with a default node dialog.
-     */
-    // TODO define via extension point
-    static final class ViaExtensionPointAggregationOperatorParameters implements AggregationOperatorParameters {
-        @Widget(title = "New param 1", description = "Coming from extension point.")
-        String m_newParam1 = "placeholder";
-    }
+@SuppressWarnings("restriction") // webui
+public interface AggregationOperatorParameters extends DynamicParameters.DynamicNodeParameters {
 
 }

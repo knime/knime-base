@@ -54,13 +54,13 @@ import java.util.Map;
 
 import org.knime.base.data.aggregation.AggregationMethods;
 import org.knime.base.data.aggregation.ColumnAggregator;
-import org.knime.base.node.preproc.groupby.OptionalParameters.LegacyAggregationOperatorParameters;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.util.MutableInteger;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.node.parameters.persistence.NodeParametersPersistor;
 
 /**
@@ -102,7 +102,14 @@ final class LegacyColumnAggregatorsPersistor implements NodeParametersPersistor<
                 final var operatorSettings =
                     new NodeSettings(createSettingsKey(idMap, aggr.getId(), aggr.getOriginalColName()));
                 aggr.saveSettingsTo(operatorSettings);
-                element.m_parameters = new LegacyAggregationOperatorParameters(operatorSettings);
+                final var params = AggregationMethods.getInstance().getParametersClassFor(aggr.getId());
+                if (params.isPresent()) {
+                    final var optionalParamsClass = params.get();
+                    element.m_parameters = NodeParametersUtil.loadSettings(operatorSettings, optionalParamsClass);
+                } else {
+                    // nothing custom, so fallback
+                    element.m_parameters = new LegacyAggregationOperatorParameters(operatorSettings);
+                }
             }
             elements.add(element);
         }
@@ -121,13 +128,17 @@ final class LegacyColumnAggregatorsPersistor implements NodeParametersPersistor<
         // names it "extracted model settings"
         final var idMap = new HashMap<String, MutableInteger>();
         for (final var elem : elems) {
+            final var settingsToSaveInto =
+                    new NodeSettings(createSettingsKey(idMap, elem.m_aggregationMethod, elem.m_column));
             if (elem.m_parameters instanceof LegacyAggregationOperatorParameters legacyParams) {
                 final var extractedSettings = legacyParams.getNodeSettings();
-                final var settingsToSaveInto =
-                    new NodeSettings(createSettingsKey(idMap, elem.m_aggregationMethod, elem.m_column));
                 extractedSettings.copyTo(settingsToSaveInto);
-                operatorSettings.addNodeSettings(settingsToSaveInto);
+            } else {
+                final var params = elem.m_parameters;
+                NodeParametersUtil.saveSettings(params.getClass(), params, settingsToSaveInto);
+                final var test = params; //
             }
+            operatorSettings.addNodeSettings(settingsToSaveInto);
         }
     }
 

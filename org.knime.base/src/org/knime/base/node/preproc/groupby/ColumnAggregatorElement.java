@@ -52,8 +52,8 @@ import java.util.List;
 import java.util.function.Supplier;
 
 import org.knime.base.data.aggregation.AggregationMethods;
+import org.knime.base.data.aggregation.AggregationOperatorParameters;
 import org.knime.base.node.preproc.groupby.AggregationOperatorParametersProvider.AggregationMethodRef;
-import org.knime.base.node.preproc.groupby.OptionalParameters.AggregationOperatorParameters;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;

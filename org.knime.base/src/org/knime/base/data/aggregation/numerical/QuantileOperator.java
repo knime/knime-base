@@ -55,6 +55,7 @@ import org.apache.commons.math3.stat.descriptive.rank.Percentile;
 import org.apache.commons.math3.stat.descriptive.rank.Percentile.EstimationType;
 import org.apache.commons.math3.util.KthSelector;
 import org.knime.base.data.aggregation.AggregationOperator;
+import org.knime.base.data.aggregation.AggregationOperatorParameters;
 import org.knime.base.data.aggregation.GlobalSettings;
 import org.knime.base.data.aggregation.OperatorColumnSettings;
 import org.knime.base.data.aggregation.OperatorData;
@@ -71,6 +72,9 @@ import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
 import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
 import org.knime.core.node.defaultnodesettings.SettingsModelDouble;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
+import org.knime.node.parameters.persistence.Persistor;
 
 /**
  * Computes the pth quantile per group.
@@ -177,15 +181,17 @@ public class QuantileOperator extends StoreResizableDoubleArrayOperator {
         return "Calculates the quantile per group.";
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    private static final String DESC_DETAIL_QUANT = "Calculates the quantile per group by skipping missing cells.";
+
+    private static final String DESC_DETAIL_ESTIMATION = "There are several algorithms you can choose from (see "
+            + "<a href=\"" + ExternalLinks.QUANTILE_ESTIMATION + "\">here</a>)."
+            + "The default algorithm is 'LEGACY' with h=(N+1)p and Q<sub>p</sub> = x<sub>[h-1/2]</sub></p>";
+
+    private static final String DESC_DETAIL = DESC_DETAIL_QUANT + " " + DESC_DETAIL_ESTIMATION;
+
     @Override
     public String getDetailedDescription() {
-        return "Calculates the quantile per group by skipping missing cells. "
-            + "There are several algorithms you can choose for (see advanced tab and "
-            + "<a href=\"http://en.wikipedia.org/wiki/Quantile#Estimating_the_quantiles_of_a_population\">here</a>)."
-            + "The default algorithm is 'LEGACY' with h=(N+1)p and Q<sub>p</sub> = x<sub>[h-1/2]</sub></p>";
+        return DESC_DETAIL;
     }
 
     /**
@@ -291,11 +297,65 @@ public class QuantileOperator extends StoreResizableDoubleArrayOperator {
     }
 
     /**
+     * Node parameters for the {@link QuantileOperator}.
+     *
+     * @since 5.9
+     */
+    @Persistor(ParamsPersistor.class)
+    public static final class QuantileOperatorParameters implements AggregationOperatorParameters {
+
+        @Widget(title = "Quantile", description = DESC_DETAIL_QUANT)
+        double m_quantile = QuantileFuntionSettings.DEFAULT_QUANTILE;
+
+        @Widget(title = "Estimation", description = DESC_DETAIL_ESTIMATION)
+        EstimationType m_estimationType = EstimationType.valueOf(QuantileFuntionSettings.DEFAULT_ESTIMATION);
+
+        /**
+         * Default constructor for deserialization.
+         */
+        public QuantileOperatorParameters() {
+            // deserialization by framework
+        }
+
+        QuantileOperatorParameters(final double quantile, final EstimationType estimationType) {
+            m_quantile = quantile;
+            m_estimationType = estimationType;
+        }
+    }
+
+    static final class ParamsPersistor implements NodeParametersPersistor<QuantileOperatorParameters> {
+
+        @Override
+        public QuantileOperatorParameters load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            final var s = new QuantileFuntionSettings();
+            s.validateSettings(settings);
+            s.loadSettingsFrom(settings);
+            final var type = s.m_estimationType.getStringValue();
+            return new QuantileOperatorParameters(s.m_function.getDoubleValue(), EstimationType.valueOf(type));
+        }
+
+        @Override
+        public void save(final QuantileOperatorParameters param, final NodeSettingsWO settings) {
+            final var s = new QuantileFuntionSettings();
+            s.setQuantile(param.m_quantile);
+            s.setEstimation(param.m_estimationType.name());
+            s.saveSettingsTo(settings);
+        }
+
+        @Override
+        public String[][] getConfigPaths() {
+            return new String[][]{{QuantileFuntionSettings.CFG_CUSTOM_QUANTILE},
+                {QuantileFuntionSettings.CFG_CUSTOM_ESTIMATIOM}};
+        }
+
+    }
+
+    /**
      * Class that save the settings of the {@link QuantileSettingsPanel}.
      *
      * @author Lara Gorini
      */
-    private class QuantileFuntionSettings {
+    private static class QuantileFuntionSettings {
 
         private static final String CFG_CUSTOM_QUANTILE = "customQuantile";
 

@@ -52,15 +52,16 @@ import java.util.Comparator;
 import java.util.List;
 
 import org.knime.base.data.aggregation.AggregationMethods;
+import org.knime.base.data.aggregation.AggregationOperatorParameters;
 import org.knime.base.data.aggregation.dialogutil.pattern.PatternAggregator;
 import org.knime.base.node.preproc.groupby.LegacyPatternAggregatorsArrayPersistor.IndexedElement;
 import org.knime.base.node.preproc.groupby.LegacyPatternAggregatorsArrayPersistor.PatternAggregatorElementDTO;
-import org.knime.base.node.preproc.groupby.OptionalParameters.AggregationOperatorParameters;
-import org.knime.base.node.preproc.groupby.OptionalParameters.LegacyAggregationOperatorParameters;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.ArrayPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.ElementFieldPersistor;
 
@@ -171,13 +172,18 @@ final class LegacyPatternAggregatorsArrayPersistor
         @Override
         public AggregationOperatorParameters load(final NodeSettingsRO nodeSettings, final IndexedElement loadContext)
             throws InvalidSettingsException {
-            if (!loadContext.getAggregator().hasOptionalSettings()) {
+            final var aggr = loadContext.getAggregator();
+            if (!aggr.hasOptionalSettings()) {
                 return null;
             }
             final var cfg = nodeSettings //
                 .getNodeSettings(GroupByNodeModel.CFG_PATTERN_AGGREGATORS) //
                 .getNodeSettings("f_" + loadContext.m_index) //
                 .getNodeSettings("functionSettings");
+            final var paramClass = AggregationMethods.getInstance().getParametersClassFor(aggr.getId()).orElse(null);
+            if (paramClass != null) {
+                return NodeParametersUtil.loadSettings(cfg, paramClass);
+            }
             return new LegacyAggregationOperatorParameters(cfg);
         }
 
@@ -261,9 +267,21 @@ final class LegacyPatternAggregatorsArrayPersistor
         final var includeMissing = elem.m_includeMissing == MissingValueOption.INCLUDE;
         final var agg =
             new PatternAggregator(elem.m_pattern, elem.m_patternType == PatternType.REGEX, method, includeMissing);
-        if (elem.m_parameters instanceof LegacyAggregationOperatorParameters legacyParams) {
+        // inject optional settings into aggregator instance
+        final var params = elem.m_parameters;
+        if (params != null) {
+            final NodeSettings functionSettings;
+            if (elem.m_parameters instanceof LegacyAggregationOperatorParameters legacyParams) {
+                // the fallback just wraps
+                functionSettings = legacyParams.getNodeSettings();
+            } else {
+                // must be custom parameters via extension point
+                final var settingsToSaveInto = new NodeSettings("functionSettings");
+                NodeParametersUtil.saveSettings(elem.m_parameters.getClass(), elem.m_parameters, settingsToSaveInto);
+                functionSettings = settingsToSaveInto;
+            }
             try {
-                agg.loadValidatedSettings(legacyParams.getNodeSettings());
+                agg.loadValidatedSettings(functionSettings);
             } catch (InvalidSettingsException e) {
                 throw new IllegalStateException("Failed to map optional settings", e);
             }
