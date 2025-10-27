@@ -107,17 +107,16 @@ public class CovarianceOperator extends ColumnSelectorOperator {
      */
     @Override
     public String getDescription() {
-        return "Computes the covariance between two columns per group. Attention: calculation is bias-corrected and the number of data in both groups must match. If "
-            + "the latter does not hold, a missing cell will be returned.";
+        return "Calculates the covariance between two columns per group.";
     }
-
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public String getColumnLabel() {
-        return getColumnName() + "-covariance";
+    public String getDetailedDescription() {
+        return "Calculates the covariance between two columns per group. "
+            + "You need to select a second column for covariance calculation.";
     }
 
     /**
@@ -156,9 +155,6 @@ public class CovarianceOperator extends ColumnSelectorOperator {
      */
     @Override
     protected DataCell getResultInternal() {
-        if (m_cells.getNumElements() != add_cells.getNumElements()) {
-            return DataType.getMissingCell();
-        }
         Covariance cov = new Covariance();
         double value = cov.covariance(m_cells.getElements(), add_cells.getElements());
         return new DoubleCell(value);
@@ -171,7 +167,6 @@ public class CovarianceOperator extends ColumnSelectorOperator {
     protected void resetInternal() {
         m_cells.clear();
         add_cells.clear();
-
     }
 
     /**
@@ -179,8 +174,15 @@ public class CovarianceOperator extends ColumnSelectorOperator {
      */
     @Override
     protected boolean computeInternal(final DataCell cell) {
-        // TODO Auto-generated method stub
         return false;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getColumnLabel() {
+        return getColumnName() + "-covar";
     }
 
 }

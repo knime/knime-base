@@ -56,6 +56,7 @@ import org.apache.commons.math.util.ResizableDoubleArray;
 import org.apache.commons.math3.stat.correlation.KendallsCorrelation;
 import org.apache.commons.math3.stat.correlation.SpearmansCorrelation;
 import org.knime.base.data.aggregation.AggregationOperator;
+import org.knime.base.data.aggregation.AggregationOperatorParameters;
 import org.knime.base.data.aggregation.GlobalSettings;
 import org.knime.base.data.aggregation.OperatorColumnSettings;
 import org.knime.base.data.aggregation.OperatorData;
@@ -73,6 +74,12 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.util.ButtonGroupEnumInterface;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
+import org.knime.node.parameters.persistence.Persistor;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.EnumChoicesProvider;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 
 /**
  * Calculates correlation coefficients
@@ -372,7 +379,7 @@ public class CorrelationOperator extends ColumnSelectorOperator {
      *
      * @author Lara Gorini
      */
-    private class CorrelationMethodSettings {
+    private static class CorrelationMethodSettings {
 
         private static final String CFG_CUSTOM_CORRELATION = "customCorrelation";
 
@@ -412,9 +419,9 @@ public class CorrelationOperator extends ColumnSelectorOperator {
         }
 
         /**
-         * @return the correlationMethod
+         * @return the correlation method model
          */
-        public SettingsModelString getCorrelationMethodModel() {
+        SettingsModelString getCorrelationMethodModel() {
             return m_correlationMethodModel;
         }
 
@@ -424,8 +431,7 @@ public class CorrelationOperator extends ColumnSelectorOperator {
          */
         public void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
             final String val =
-                ((SettingsModelString)m_correlationMethodModel.createCloneWithValidatedValue(settings))
-                    .getStringValue();
+                ((SettingsModelString)m_correlationMethodModel.createCloneWithValidatedValue(settings)).getStringValue();
             if (val == null) {
                 throw new InvalidSettingsException("No method selected.");
             }
@@ -437,7 +443,6 @@ public class CorrelationOperator extends ColumnSelectorOperator {
          */
         public void loadSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
             m_correlationMethodModel.loadSettingsFrom(settings);
-
         }
 
         /**
@@ -445,9 +450,62 @@ public class CorrelationOperator extends ColumnSelectorOperator {
          */
         public void saveSettingsTo(final NodeSettingsWO settings) {
             m_correlationMethodModel.saveSettingsTo(settings);
+        }
+    }
 
+    /**
+     * Operator parameters for {@link CorrelationOperator}.
+     *
+     * @since 5.9
+     */
+    @Persistor(CorrelationParamsPersistor.class)
+    public static final class CorrelationOperatorParameters implements AggregationOperatorParameters {
+
+        @Widget(title = "Correlation method", description = "Method to use for calculating correlation coefficient")
+        @ValueSwitchWidget
+        @ChoicesProvider(CorrelationMethodChoicesProvider.class)
+        CorrelationMethods m_correlationMethod = CorrelationMethods.valueOf(CorrelationMethodSettings.DEFAULT_METHOD);
+
+        /**
+         * Default constructor for deserialization.
+         */
+        public CorrelationOperatorParameters() {
+            // deserialization by framework
         }
 
+        CorrelationOperatorParameters(final CorrelationMethods correlationMethod) {
+            m_correlationMethod = correlationMethod;
+        }
+    }
+
+    private static final class CorrelationMethodChoicesProvider implements EnumChoicesProvider<CorrelationMethods> {
+
+    }
+
+    private static final class CorrelationParamsPersistor
+        implements NodeParametersPersistor<CorrelationOperatorParameters> {
+
+        @Override
+        public CorrelationOperatorParameters load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            final var corrSettings = settings.getNodeSettings(CORRELATION_SETTINGS);
+            final var s = new CorrelationMethodSettings();
+            s.validateSettings(corrSettings);
+            s.loadSettingsFrom(corrSettings);
+            return new CorrelationOperatorParameters(
+                CorrelationMethods.valueOf(s.getCorrelationMethodModel().getStringValue()));
+        }
+
+        @Override
+        public void save(final CorrelationOperatorParameters param, final NodeSettingsWO settings) {
+            final var corrSettings = settings.addNodeSettings(CORRELATION_SETTINGS);
+            final var s = new CorrelationMethodSettings(param.m_correlationMethod.name());
+            s.saveSettingsTo(corrSettings);
+        }
+
+        @Override
+        public String[][] getConfigPaths() {
+            return new String[][]{{CORRELATION_SETTINGS, CorrelationMethodSettings.CFG_CUSTOM_CORRELATION}};
+        }
     }
 
 }

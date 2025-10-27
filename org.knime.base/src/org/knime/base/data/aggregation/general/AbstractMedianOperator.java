@@ -55,6 +55,7 @@ import java.util.Map;
 import javax.swing.JPanel;
 
 import org.knime.base.data.aggregation.AggregationOperator;
+import org.knime.base.data.aggregation.AggregationOperatorParameters;
 import org.knime.base.data.aggregation.GlobalSettings;
 import org.knime.base.data.aggregation.OperatorColumnSettings;
 import org.knime.base.data.aggregation.OperatorData;
@@ -72,6 +73,10 @@ import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.ButtonGroupEnumInterface;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
+import org.knime.node.parameters.persistence.Persistor;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 
 /**
  * Abstract base class for aggregation operators that return the median of a group. This class covers
@@ -571,6 +576,75 @@ public abstract class AbstractMedianOperator extends SortedListCellOperator {
          */
         public void configure(final DataTableSpec spec) throws InvalidSettingsException {
             // nothing to configure by default; override if operator requires configuration
+        }
+    }
+
+    private enum MedianMethod {
+        // yes, the labels are the ids
+        LOWER(EvenListMedianMethodDescription.LOWER_MEDIAN_LABEL),
+        MEAN(EvenListMedianMethodDescription.MEAN_MEDIAN_LABEL),
+        UPPER(EvenListMedianMethodDescription.UPPER_MEDIAN_LABEL);
+
+        private final String m_id;
+
+        MedianMethod(final String id) {
+            m_id = id;
+        }
+
+        static MedianMethod byID(final String id) {
+            return switch (id) {
+                case EvenListMedianMethodDescription.LOWER_MEDIAN_LABEL -> LOWER;
+                case EvenListMedianMethodDescription.MEAN_MEDIAN_LABEL -> MEAN;
+                case EvenListMedianMethodDescription.UPPER_MEDIAN_LABEL -> UPPER;
+                default -> throw new IllegalArgumentException("Unknown MedianMethod id: " + id);
+            };
+        }
+    }
+
+    /**
+     * Operator parameters for {@link AbstractMedianOperator}.
+     *
+     * @since 5.9
+     */
+    @Persistor(ParamsPersistor.class)
+    public static final class AbstractMedianOperatorParameters implements AggregationOperatorParameters {
+
+        @Widget(title = "Median method", description = "Method to use for calculating median of even-sized groups")
+        @ValueSwitchWidget
+        MedianMethod m_medianMethod = MedianMethod.byID(MedianSettings.DEFAULT_MEDIAN_METHOD);
+
+        /**
+         * Default constructor for deserialization.
+         */
+        public AbstractMedianOperatorParameters() {
+            // deserialization by framework
+        }
+
+        AbstractMedianOperatorParameters(final MedianMethod method) {
+            m_medianMethod = method;
+        }
+    }
+
+
+    private static final class ParamsPersistor implements NodeParametersPersistor<AbstractMedianOperatorParameters> {
+
+        @Override
+        public AbstractMedianOperatorParameters load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            final var s = new MedianSettings();
+            s.validateSettings(settings);
+            s.loadSettingsFrom(settings);
+            return new AbstractMedianOperatorParameters(MedianMethod.byID(s.getMedianMethodModel().getStringValue()));
+        }
+
+        @Override
+        public void save(final AbstractMedianOperatorParameters param, final NodeSettingsWO settings) {
+            final var s = new MedianSettings(param.m_medianMethod.m_id);
+            s.saveSettingsTo(settings);
+        }
+
+        @Override
+        public String[][] getConfigPaths() {
+            return new String[][]{{MedianSettings.CFG_MEDIAN_METHOD}};
         }
     }
 }

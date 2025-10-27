@@ -52,6 +52,7 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 
 import org.knime.base.data.aggregation.AggregationOperator;
+import org.knime.base.data.aggregation.AggregationOperatorParameters;
 import org.knime.base.data.aggregation.GlobalSettings;
 import org.knime.base.data.aggregation.OperatorColumnSettings;
 import org.knime.base.data.aggregation.OperatorData;
@@ -63,6 +64,11 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelection;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
+import org.knime.node.parameters.persistence.Persistor;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.util.AllColumnsProvider;
 
 /**
  * Selects an additional column from a given Data Table
@@ -306,6 +312,48 @@ public abstract class ColumnSelectorOperator extends AggregationOperator {
 
         }
 
+    }
+
+    /**
+     * Operator parameters for {@link ColumnSelectorOperator}.
+     *
+     * @since 5.9
+     */
+    @Persistor(ParamsPersistor.class)
+    public static final class ColumnSelectorOperatorParameters implements AggregationOperatorParameters {
+
+        @Widget(title = "Column selection", description = "Column to calculate covariance with")
+        @ChoicesProvider(AllColumnsProvider.class)
+        String m_selectedColumn;
+
+        /**
+         * Default constructor for deserialization.
+         */
+        public ColumnSelectorOperatorParameters() {
+            // deserialization by framework
+        }
+
+        ColumnSelectorOperatorParameters(final String selectedColumn) {
+            m_selectedColumn = selectedColumn;
+        }
+    }
+
+    private static final class ParamsPersistor implements NodeParametersPersistor<ColumnSelectorOperatorParameters> {
+
+        @Override
+        public ColumnSelectorOperatorParameters load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            return new ColumnSelectorOperatorParameters(settings.getString(ColumnSelectorSettings.CFG_CUSTOM_COLUMN));
+        }
+
+        @Override
+        public void save(final ColumnSelectorOperatorParameters param, final NodeSettingsWO settings) {
+            settings.addString(ColumnSelectorSettings.CFG_CUSTOM_COLUMN, param.m_selectedColumn);
+        }
+
+        @Override
+        public String[][] getConfigPaths() {
+            return new String[][]{{ColumnSelectorSettings.CFG_CUSTOM_COLUMN}};
+        }
     }
 
 }

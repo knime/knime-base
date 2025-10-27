@@ -52,6 +52,7 @@ import javax.swing.JPanel;
 
 import org.apache.commons.math3.stat.descriptive.rank.PSquarePercentile;
 import org.knime.base.data.aggregation.AggregationOperator;
+import org.knime.base.data.aggregation.AggregationOperatorParameters;
 import org.knime.base.data.aggregation.GlobalSettings;
 import org.knime.base.data.aggregation.OperatorColumnSettings;
 import org.knime.base.data.aggregation.OperatorData;
@@ -63,6 +64,11 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
 import org.knime.core.node.defaultnodesettings.SettingsModelDouble;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
+import org.knime.node.parameters.persistence.Persistor;
+import org.knime.node.parameters.widget.number.NumberInputWidget;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation;
 
 /**
  * Computes the percentiles using the P^2 algorithm
@@ -229,7 +235,7 @@ public class PSquarePercentileOperator extends StorelessUnivariantStatisticOpera
      *
      * @author Lara Gorini
      */
-    private class PSquarePercentileFuntionSettings {
+    private static class PSquarePercentileFuntionSettings {
 
         private static final String CFG_CUSTOM_PERCENTILE = "customPercentile";
 
@@ -311,6 +317,68 @@ public class PSquarePercentileOperator extends StorelessUnivariantStatisticOpera
             m_function.saveSettingsTo(settings);
         }
 
+    }
+
+    private static final class AtMost100 extends NumberInputWidgetValidation.MaxValidation {
+
+        @Override
+        protected double getMax() {
+            return 100.0;
+        }
+
+        @Override
+        public boolean isExclusive() {
+            return false;
+        }
+
+    }
+
+    /**
+     * Operator parameters for {@link PSquarePercentileOperator}.
+     *
+     * @since 5.9
+     */
+    @Persistor(PSquarePercentileParamsPersistor.class)
+    public static final class PSquarePercentileOperatorParameters implements AggregationOperatorParameters {
+
+        @Widget(title = "Percentile", description = "The percentile to compute (0-100)")
+        @NumberInputWidget(minValidation = NumberInputWidgetValidation.MinValidation.IsNonNegativeValidation.class,
+            maxValidation = AtMost100.class)
+        double m_percentile = PSquarePercentileFuntionSettings.DEFAULT_PERCENTILE;
+
+        /**
+         * Default constructor for deserialization.
+         */
+        public PSquarePercentileOperatorParameters() {
+            // deserialization by framework
+        }
+
+        PSquarePercentileOperatorParameters(final double percentile) {
+            m_percentile = percentile;
+        }
+    }
+
+    private static final class PSquarePercentileParamsPersistor
+        implements NodeParametersPersistor<PSquarePercentileOperatorParameters> {
+
+        @Override
+        public PSquarePercentileOperatorParameters load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            final var s = new PSquarePercentileFuntionSettings();
+            s.validateSettings(settings);
+            s.loadSettingsFrom(settings);
+            return new PSquarePercentileOperatorParameters(s.getFunctionModel().getDoubleValue());
+        }
+
+        @Override
+        public void save(final PSquarePercentileOperatorParameters param, final NodeSettingsWO settings) {
+            final var s = new PSquarePercentileFuntionSettings(param.m_percentile);
+            s.saveSettingsTo(settings);
+        }
+
+        @Override
+        public String[][] getConfigPaths() {
+            return new String[][]{{PSquarePercentileFuntionSettings.CFG_CUSTOM_PERCENTILE}};
+        }
     }
 
 }
