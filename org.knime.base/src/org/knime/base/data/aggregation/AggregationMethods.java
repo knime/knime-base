@@ -59,6 +59,7 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import javax.swing.JComponent;
 import javax.swing.JEditorPane;
@@ -80,6 +81,7 @@ import org.knime.base.data.aggregation.booleancell.TrueCountOperator;
 import org.knime.base.data.aggregation.collection.AndElementCountOperator;
 import org.knime.base.data.aggregation.collection.AndElementOperator;
 import org.knime.base.data.aggregation.collection.AppendElementOperator;
+import org.knime.base.data.aggregation.collection.AppendElementOperator.AppendElementOperatorParameters;
 import org.knime.base.data.aggregation.collection.ElementCountOperator;
 import org.knime.base.data.aggregation.collection.OrElementCountOperator;
 import org.knime.base.data.aggregation.collection.OrElementOperator;
@@ -134,6 +136,7 @@ import org.knime.core.data.collection.CollectionDataValue;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.database.aggregation.AggregationFunctionProvider;
+import org.knime.core.util.EclipseUtil;
 
 
 /**
@@ -219,7 +222,8 @@ public final class AggregationMethods implements AggregationFunctionProvider<Agg
             /**Element counter.*/
             addOperator(new ElementCountOperator(GlobalSettings.DEFAULT, OperatorColumnSettings.DEFAULT_INCL_MISSING));
             /**Append.*/
-            addOperator(new AppendElementOperator(GlobalSettings.DEFAULT, OperatorColumnSettings.DEFAULT_INCL_MISSING));
+            addOperator(new AppendElementOperator(GlobalSettings.DEFAULT, OperatorColumnSettings.DEFAULT_INCL_MISSING),
+                AppendElementOperatorParameters.class);
             //The date methods
             /**Date mean operator.*/
             addOperator(new DateMeanOperator(GlobalSettings.DEFAULT, OperatorColumnSettings.DEFAULT_EXCL_MISSING));
@@ -339,6 +343,12 @@ public final class AggregationMethods implements AggregationFunctionProvider<Agg
         }
         //register all extension point implementations
         registerExtensionPoints();
+
+        if (EclipseUtil.isRunFromSDK()) {
+            final var ops = getOperators().stream().filter(AggregationOperator::hasOptionalSettings)
+                .map(op -> op.getClass().getName()).collect(Collectors.joining(", "));
+            LOGGER.info("Operators with optional settings:" + ops);
+        }
     }
 
     /**

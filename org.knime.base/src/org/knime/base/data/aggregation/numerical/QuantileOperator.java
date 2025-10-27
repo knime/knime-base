@@ -323,7 +323,7 @@ public class QuantileOperator extends StoreResizableDoubleArrayOperator {
         }
     }
 
-    static final class ParamsPersistor implements NodeParametersPersistor<QuantileOperatorParameters> {
+    private static final class ParamsPersistor implements NodeParametersPersistor<QuantileOperatorParameters> {
 
         @Override
         public QuantileOperatorParameters load(final NodeSettingsRO settings) throws InvalidSettingsException {

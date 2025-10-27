@@ -51,6 +51,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 
 import org.knime.base.data.aggregation.AggregationOperator;
+import org.knime.base.data.aggregation.AggregationOperatorParameters;
 import org.knime.base.data.aggregation.GlobalSettings;
 import org.knime.base.data.aggregation.OperatorColumnSettings;
 import org.knime.base.data.aggregation.OperatorData;
@@ -67,6 +68,9 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DialogComponent;
 import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
+import org.knime.node.parameters.persistence.Persistor;
 
 
 /**
@@ -76,11 +80,20 @@ import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
  */
 public class AppendElementOperator extends AggregationOperator {
 
+    private static final String TITLE = "Filter missing collection elements";
+
+    private static final String DESCRIPTION = "Enable this option to filter missing collection elements";
+
+    private static final boolean DEFAULT_FILTER_MISSING = true;
+
+    private static final String CFG_IGNORE_MISSING = "ignoreMissing";
+
     private final Collection<DataCell> m_vals = new LinkedList<>();
 
     private DialogComponentBoolean m_filterMissingDC;
 
-    private final SettingsModelBoolean m_filterMissing = new SettingsModelBoolean("ignoreMissing", true);
+    private final SettingsModelBoolean m_filterMissing =
+        new SettingsModelBoolean(CFG_IGNORE_MISSING, DEFAULT_FILTER_MISSING);
 
     /**Constructor for class AndElementOperator.
      * @param operatorData the operator data
@@ -172,6 +185,45 @@ public class AppendElementOperator extends AggregationOperator {
     }
 
     /**
+     * Operator parameters for {@link AppendElementOperator}.
+     *
+     * @since 5.9
+     */
+    @Persistor(ParamsPersistor.class)
+    public static final class AppendElementOperatorParameters implements AggregationOperatorParameters {
+
+        @Widget(title = TITLE, description = DESCRIPTION)
+        boolean m_filterMissing = DEFAULT_FILTER_MISSING;
+
+        public AppendElementOperatorParameters() {
+            // deserialization by framework
+        }
+
+        AppendElementOperatorParameters(final boolean filterMissing) {
+            m_filterMissing = filterMissing;
+        }
+    }
+
+    private static final class ParamsPersistor implements NodeParametersPersistor<AppendElementOperatorParameters> {
+
+        @Override
+        public AppendElementOperatorParameters load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            return new AppendElementOperatorParameters(settings.getBoolean(CFG_IGNORE_MISSING));
+        }
+
+        @Override
+        public void save(final AppendElementOperatorParameters param, final NodeSettingsWO settings) {
+            settings.addBoolean(CFG_IGNORE_MISSING, param.m_filterMissing);
+        }
+
+        @Override
+        public String[][] getConfigPaths() {
+            return new String[][] { { CFG_IGNORE_MISSING } };
+        }
+
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override
@@ -210,8 +262,8 @@ public class AppendElementOperator extends AggregationOperator {
      */
     private DialogComponent getDC() {
         if (m_filterMissingDC == null) {
-            m_filterMissingDC = new DialogComponentBoolean(m_filterMissing, "Filter missing collection elements");
-            m_filterMissingDC.setToolTipText("Tick this option to filter missing collection elements");
+            m_filterMissingDC = new DialogComponentBoolean(m_filterMissing, TITLE);
+            m_filterMissingDC.setToolTipText(DESCRIPTION);
         }
         return m_filterMissingDC;
     }
