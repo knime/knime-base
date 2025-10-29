@@ -46,6 +46,7 @@
 
 package org.knime.base.node.switches.endif;
 
+import org.knime.node.parameters.Advanced;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
@@ -59,7 +60,7 @@ import org.knime.node.parameters.updates.EffectPredicateProvider;
 import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.choices.Label;
-import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 
 
 /**
@@ -73,30 +74,31 @@ import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
 final class EndifNodeParameters implements NodeParameters {
 
     enum DuplicateRowHandling {
+            @Label(value = "Append suffix", description = """
+                    The output table will contain all rows, but duplicate row identifiers are labeled with a suffix. \
+                    Similar to the "Skip Rows" option this method is also memory intensive.""")
+            APPEND_SUFFIX,
+
             @Label(value = "Skip rows", description = """
                     Duplicate row identifiers (RowID) occurring in the second table are not appended to the \
                     output table. This option is relatively memory intensive as it needs to cache the RowIDs \
                     in order to find duplicates.""")
-            SKIP_ROWS,
-
-            @Label(value = "Append suffix", description = """
-                    The output table will contain all rows, but duplicate row identifiers are labeled with a suffix. \
-                    Similar to the "Skip Rows" option this method is also memory intensive.""")
-            APPEND_SUFFIX
+            SKIP_ROWS
     }
 
     @Widget(title = "Duplicate RowID handling",
         description = "How to handle duplicate row identifiers (RowID) when concatenating the two input tables.")
-    @RadioButtonsWidget
+    @ValueSwitchWidget
     @ValueReference(DuplicateRowHandlingRef.class)
     @Persistor(DuplicateRowHandlingPersistor.class)
-    DuplicateRowHandling m_duplicateRowHandling = DuplicateRowHandling.SKIP_ROWS;
+    DuplicateRowHandling m_duplicateRowHandling = DuplicateRowHandling.APPEND_SUFFIX;
 
     @Widget(title = "Suffix",
         description = "The suffix to append to duplicate row identifiers (RowID) to make them unique.")
     @Effect(predicate = IsAppendSuffixPredicate.class, type = EffectType.SHOW)
     String m_suffix = "_dup";
 
+    @Advanced
     @Widget(title = "Enable hiliting",
         description = "Enables hiliting between both inputs and the concatenated output table.")
     @Persist(configKey = EndifNodeModel.CFG_HILITING)

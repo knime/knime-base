@@ -1,7 +1,7 @@
 {
   "data" : {
     "model" : {
-      "duplicateRowHandling" : "SKIP_ROWS",
+      "duplicateRowHandling" : "APPEND_SUFFIX",
       "suffix" : "_dup",
       "enableHiliting" : false
     }
@@ -14,15 +14,15 @@
         "properties" : {
           "duplicateRowHandling" : {
             "oneOf" : [ {
-              "const" : "SKIP_ROWS",
-              "title" : "Skip rows"
-            }, {
               "const" : "APPEND_SUFFIX",
               "title" : "Append suffix"
+            }, {
+              "const" : "SKIP_ROWS",
+              "title" : "Skip rows"
             } ],
             "title" : "Duplicate RowID handling",
-            "description" : "How to handle duplicate row identifiers (RowID) when concatenating the two input tables.\n<ul>\n<li><b>Skip rows</b>: Duplicate row identifiers (RowID) occurring in the second table are not appended to the output table. This option is relatively memory intensive as it needs to cache the RowIDs in order to find duplicates.</li>\n<li><b>Append suffix</b>: The output table will contain all rows, but duplicate row identifiers are labeled with a suffix. Similar to the \"Skip Rows\" option this method is also memory intensive.</li>\n</ul>",
-            "default" : "SKIP_ROWS"
+            "description" : "How to handle duplicate row identifiers (RowID) when concatenating the two input tables.\n<ul>\n<li><b>Append suffix</b>: The output table will contain all rows, but duplicate row identifiers are labeled with a suffix. Similar to the \"Skip Rows\" option this method is also memory intensive.</li>\n<li><b>Skip rows</b>: Duplicate row identifiers (RowID) occurring in the second table are not appended to the output table. This option is relatively memory intensive as it needs to cache the RowIDs in order to find duplicates.</li>\n</ul>",
+            "default" : "APPEND_SUFFIX"
           },
           "enableHiliting" : {
             "type" : "boolean",
@@ -45,8 +45,7 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/duplicateRowHandling",
       "options" : {
-        "format" : "radio",
-        "radioLayout" : "vertical"
+        "format" : "valueSwitch"
       }
     }, {
       "type" : "Control",
@@ -66,7 +65,8 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/enableHiliting",
       "options" : {
-        "format" : "checkbox"
+        "format" : "checkbox",
+        "isAdvanced" : true
       }
     } ]
   },
