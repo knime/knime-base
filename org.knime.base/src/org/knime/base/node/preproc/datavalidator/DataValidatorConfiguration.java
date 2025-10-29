@@ -80,10 +80,10 @@ final class DataValidatorConfiguration {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(DataValidatorConfiguration.class);
 
-    private static final String CFG_REJECTING_BEHAVIOR = "rejecting_behavior";
+    static final String CFG_REJECTING_BEHAVIOR = "rejecting_behavior";
 
     /** NodeSettings which determines to remove unknown columns or not. */
-    private static final String CFG_REMOVE_UNKNOWN_COLUMNS = "unkown_columns_handling";
+    static final String CFG_REMOVE_UNKNOWN_COLUMNS = "unkown_columns_handling";
 
     /** NodeSettings branch identifier for meta settings. */
     private static final String CFG_INDIVDUALS = "individual_settings";

@@ -76,19 +76,19 @@ import org.knime.core.node.NodeSettingsWO;
 final class DataValidatorColConfiguration {
 
     /** NodeSettings key: write column name (only for individual columns). */
-    private static final String CFG_COL_NAMES = "column_names";
+    static final String CFG_COL_NAMES = "column_names";
 
-    private static final String CFG_CASE_INSENSITIVE = "case_insensitive_name_matching";
+    static final String CFG_CASE_INSENSITIVE = "case_insensitive_name_matching";
 
-    private static final String CFG_DATA_TYPE_HANDLING = "datatype_handling";
+    static final String CFG_DATA_TYPE_HANDLING = "datatype_handling";
 
-    private static final String CFG_DOMAIN_HANDLING_POSSIBLE_DOMAIN = "domain_handling_possible_values";
+    static final String CFG_DOMAIN_HANDLING_POSSIBLE_DOMAIN = "domain_handling_possible_values";
 
-    private static final String CFG_DOMAIN_HANDLING_MIN_MAX = "domain_handling_min_max";
+    static final String CFG_DOMAIN_HANDLING_MIN_MAX = "domain_handling_min_max";
 
-    private static final String CFG_COLUMN_MISSING_HANDLING = "colum_missing_handling";
+    static final String CFG_COLUMN_MISSING_HANDLING = "colum_missing_handling";
 
-    private static final String CFG_REJECT_ON_MISSING_VALUE = "reject_on_missing_value";
+    static final String CFG_REJECT_ON_MISSING_VALUE = "reject_on_missing_value";
 
     /** String array with names of the column or null if meta column. */
     private String[] m_names;

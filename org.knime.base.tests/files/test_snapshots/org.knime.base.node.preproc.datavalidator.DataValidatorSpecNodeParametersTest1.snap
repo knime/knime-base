@@ -1,0 +1,270 @@
+{
+  "data" : {
+    "model" : {
+      "columnNameMatching" : "CASE_SENSITIVE",
+      "missingColumnHandling" : "FAIL",
+      "additionalColumnsHandling" : "FAIL",
+      "dataTypeHandling" : "FAIL",
+      "columnNames" : [ ],
+      "missingValueHandling" : "IGNORE",
+      "categoricDomainHandling" : "IGNORE",
+      "numericDomainHandling" : "IGNORE",
+      "validationFailureBehavior" : "FAIL_NODE"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "additionalColumnsHandling" : {
+            "oneOf" : [ {
+              "const" : "FAIL",
+              "title" : "Fail validation"
+            }, {
+              "const" : "REMOVE",
+              "title" : "Remove"
+            }, {
+              "const" : "MOVE",
+              "title" : "Move to the end"
+            } ],
+            "title" : "If there is an additional column in the table to validate",
+            "description" : "Specifies how to handle columns which are not included in the reference table but in the table to validate. Additional columns can cause the validation to fail, be removed, or moved to the end of the table.\n<ul>\n<li><b>Fail validation</b>: Additional columns will cause the validation to fail</li>\n<li><b>Remove</b>: Additional columns will be removed</li>\n<li><b>Move to the end</b>: Additional columns will be moved to the end of the table</li>\n</ul>",
+            "default" : "FAIL"
+          },
+          "categoricDomainHandling" : {
+            "oneOf" : [ {
+              "const" : "IGNORE",
+              "title" : "Ignore"
+            }, {
+              "const" : "FAIL",
+              "title" : "Fail validation"
+            }, {
+              "const" : "MISSING_VALUE",
+              "title" : "Replace with missing values"
+            } ],
+            "title" : "If categoric value is not in domain (possible values) of reference column",
+            "description" : " Allows one to optionally validate categoric values in columns against a set of allowed values. This option is only enabled if the reference column defines possible values.\n<ul>\n<li><b>Ignore</b>: Categoric values are not validated</li>\n<li><b>Fail validation</b>: Fails validation if values are not in the domain of the reference column</li>\n<li><b>Replace with missing values</b>: Replaces out-of-domain values with missing values</li>\n</ul>",
+            "default" : "IGNORE"
+          },
+          "columnNameMatching" : {
+            "oneOf" : [ {
+              "const" : "CASE_SENSITIVE",
+              "title" : "Case sensitive"
+            }, {
+              "const" : "CASE_INSENSITIVE",
+              "title" : "Case insensitive"
+            } ],
+            "title" : "Column name matching",
+            "description" : "Controls what counts as a column name match between the input table and the reference table. If 'case insensitive' is choosen, it still tries to find an exactly (case sensitively) matching column name first, and then falls back to case insensitive matching.\n<ul>\n<li><b>Case sensitive</b>: Column names must match exactly</li>\n<li><b>Case insensitive</b>: Also columns with a similar name will be considered to be validated according to this configuration</li>\n</ul>",
+            "default" : "CASE_SENSITIVE"
+          },
+          "columnNames" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            },
+            "default" : [ "StringCol", "IntCol", "DoubleCol" ]
+          },
+          "dataTypeHandling" : {
+            "oneOf" : [ {
+              "const" : "IGNORE",
+              "title" : "Ignore"
+            }, {
+              "const" : "FAIL",
+              "title" : "Fail validation"
+            }, {
+              "const" : "CONVERT_FAIL",
+              "title" : "Try to convert"
+            } ],
+            "title" : "If data type does not match",
+            "description" : "Ensures a correct data type.\n<ul>\n<li><b>Ignore</b>: Ignores data type mismatches and do nothing</li>\n<li><b>Fail validation</b>: Fails the validation if reference data type is not a super type of the data type to validate</li>\n<li><b>Try to convert</b>: Attempts conversion and fails the validation if not possible</li>\n</ul>",
+            "default" : "FAIL"
+          },
+          "missingColumnHandling" : {
+            "oneOf" : [ {
+              "const" : "IGNORE",
+              "title" : "Ignore"
+            }, {
+              "const" : "FAIL",
+              "title" : "Fail validation"
+            }, {
+              "const" : "INSERT",
+              "title" : "Insert column with missing values"
+            } ],
+            "title" : "If column is missing in table to validate",
+            "description" : "Ensures that the reference columns exist in the input table. If case insensitive name matching is selected, the first matching column will satisfy this condition.\n<ul>\n<li><b>Ignore</b>: Ignore missing columns and do nothing</li>\n<li><b>Fail validation</b>: Fails the validation if columns don't exist</li>\n<li><b>Insert column with missing values</b>: Inserts missing columns and fills them with missing values</li>\n</ul>",
+            "default" : "FAIL"
+          },
+          "missingValueHandling" : {
+            "oneOf" : [ {
+              "const" : "IGNORE",
+              "title" : "Ignore"
+            }, {
+              "const" : "FAIL",
+              "title" : "Fail validation"
+            } ],
+            "title" : "If there are missing values",
+            "description" : "Validation fails if any of the columns contains missing values.\n<ul>\n<li><b>Ignore</b>: Missing values in columns are ignored</li>\n<li><b>Fail validation</b>: Fails the validation if a column contains missing values</li>\n</ul>",
+            "default" : "IGNORE"
+          },
+          "numericDomainHandling" : {
+            "oneOf" : [ {
+              "const" : "IGNORE",
+              "title" : "Ignore"
+            }, {
+              "const" : "FAIL",
+              "title" : "Fail validation"
+            }, {
+              "const" : "MISSING_VALUE",
+              "title" : "Replace with missing values"
+            } ],
+            "title" : "If numeric value is outside the domain of reference column (min/max)",
+            "description" : "Checks if each data object is between min and max defined by the domain of the reference column. This option is only enabled if the reference column defines a numeric domain (min/max).\n<ul>\n<li><b>Ignore</b>: Numeric values are not validated</li>\n<li><b>Fail validation</b>: Fails validation if numeric values are outside domain (min/max)</li>\n<li><b>Replace with missing values</b>: Replaces out-of-domain values with missing values</li>\n</ul>",
+            "default" : "IGNORE"
+          },
+          "validationFailureBehavior" : {
+            "oneOf" : [ {
+              "const" : "FAIL_NODE",
+              "title" : "Fail node"
+            }, {
+              "const" : "OUTPUT_TO_PORT",
+              "title" : "Deactivate first output port"
+            } ],
+            "title" : "If validation fails",
+            "description" : "Controls the effect of a failed validation.\n<ul>\n<li><b>Fail node</b>: Forces the node to fail if the validation fails, with detailed validation fault descriptions. There data validation will be skipped if the structure validation already fails.</li>\n<li><b>Deactivate first output port</b>: Never fails but deactivates first output port if the validation fails and outputs results at the second port. It will always do both, structure and data validation.</li>\n</ul>",
+            "default" : "FAIL_NODE"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "label" : "Structure Validation",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/columnNameMatching",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/missingColumnHandling",
+        "options" : {
+          "format" : "radio",
+          "radioLayout" : "vertical"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/additionalColumnsHandling",
+        "options" : {
+          "format" : "radio",
+          "radioLayout" : "vertical"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/dataTypeHandling",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      } ]
+    }, {
+      "label" : "Data Validation",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/missingValueHandling",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/categoricDomainHandling",
+        "options" : {
+          "format" : "radio",
+          "radioLayout" : "vertical"
+        },
+        "rule" : {
+          "effect" : "ENABLE",
+          "condition" : {
+            "schema" : {
+              "not" : { }
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/numericDomainHandling",
+        "options" : {
+          "format" : "radio",
+          "radioLayout" : "vertical"
+        },
+        "rule" : {
+          "effect" : "ENABLE",
+          "condition" : {
+            "schema" : {
+              "not" : { }
+            }
+          }
+        }
+      } ]
+    }, {
+      "label" : "Output",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/validationFailureBehavior",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      } ]
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columnNameMatching" : {
+            "configPaths" : [ [ "individual_settings", "0", "case_insensitive_name_matching" ] ],
+            "route" : [ "individual_settings", "0" ]
+          },
+          "missingColumnHandling" : {
+            "configPaths" : [ [ "individual_settings", "0", "colum_missing_handling" ] ],
+            "route" : [ "individual_settings", "0" ]
+          },
+          "additionalColumnsHandling" : {
+            "configPaths" : [ [ "unkown_columns_handling" ] ]
+          },
+          "dataTypeHandling" : {
+            "configPaths" : [ [ "individual_settings", "0", "datatype_handling" ] ],
+            "route" : [ "individual_settings", "0" ]
+          },
+          "columnNames" : {
+            "configPaths" : [ ],
+            "route" : [ "individual_settings", "0" ]
+          },
+          "missingValueHandling" : {
+            "configPaths" : [ [ "individual_settings", "0", "reject_on_missing_value" ] ],
+            "route" : [ "individual_settings", "0" ]
+          },
+          "categoricDomainHandling" : {
+            "configPaths" : [ [ "individual_settings", "0", "domain_handling_possible_values" ] ],
+            "route" : [ "individual_settings", "0" ]
+          },
+          "numericDomainHandling" : {
+            "configPaths" : [ [ "individual_settings", "0", "domain_handling_min_max" ] ],
+            "route" : [ "individual_settings", "0" ]
+          },
+          "validationFailureBehavior" : {
+            "configPaths" : [ [ "rejecting_behavior" ] ]
+          }
+        }
+      }
+    }
+  }
+}

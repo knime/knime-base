@@ -374,6 +374,16 @@ class DataValidatorNodeModel extends NodeModel {
     /**
      * @return the config
      */
+    protected DataValidatorConfiguration getOrCreateDefaultConfig() {
+        if (m_config == null) {
+            m_config = createConfig();
+        }
+        return m_config;
+    }
+
+    /**
+     * @return the config
+     */
     protected DataValidatorConfiguration createConfig() {
         return new DataValidatorConfiguration();
     }
