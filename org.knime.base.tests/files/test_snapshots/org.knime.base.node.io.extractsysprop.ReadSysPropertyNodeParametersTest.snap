@@ -1,0 +1,113 @@
+{
+  "data" : {
+    "model" : {
+      "extractAllProps" : true,
+      "failIfSomeMissing" : false,
+      "selectedProps" : [ ]
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "extractAllProps" : {
+            "type" : "boolean",
+            "title" : "Extract all available properties",
+            "description" : "If selected all available runtime properties are extracted. Note that the properties may vary when run on different systems.",
+            "default" : true
+          },
+          "failIfSomeMissing" : {
+            "type" : "boolean",
+            "title" : "Fail if property not present in runtime environment",
+            "description" : "If selected and any chosen property is not available in the current runtime environment, the node will fail upon execution. If not selected and any property is not present, the node will silently ignore this property. This option is important if the workflow is run on a different system/machine than it was configured on, e.g. when used in a compute cluster environment or on a central server.",
+            "default" : false
+          },
+          "selectedProps" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            },
+            "title" : "Select properties",
+            "description" : "Choose which system properties to extract. Properties that are not available in the current runtime environment will be handled according to the 'Fail if property not present' setting.",
+            "default" : [ ]
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/extractAllProps",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/failIfSomeMissing",
+      "options" : {
+        "format" : "checkbox"
+      },
+      "rule" : {
+        "effect" : "ENABLE",
+        "condition" : {
+          "scope" : "#/properties/model/properties/extractAllProps",
+          "schema" : {
+            "const" : false
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/selectedProps",
+      "options" : {
+        "format" : "twinList"
+      },
+      "providedOptions" : [ "possibleValues" ],
+      "rule" : {
+        "effect" : "ENABLE",
+        "condition" : {
+          "scope" : "#/properties/model/properties/extractAllProps",
+          "schema" : {
+            "const" : false
+          }
+        }
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "extractAllProps" : {
+            "configKey" : "isExtractAllProps"
+          },
+          "failIfSomeMissing" : {
+            "configKey" : "failIfSomeMissing"
+          },
+          "selectedProps" : {
+            "configKey" : "selectedProps"
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/selectedProps",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "prop1",
+        "text" : "prop1"
+      }, {
+        "id" : "prop2",
+        "text" : "prop2"
+      } ]
+    } ]
+  } ]
+}
