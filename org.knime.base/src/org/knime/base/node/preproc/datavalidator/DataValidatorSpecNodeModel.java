@@ -48,12 +48,15 @@
  */
 package org.knime.base.node.preproc.datavalidator;
 
+import java.util.List;
+
+import org.knime.base.node.preproc.datavalidator.DataValidatorConfiguration.RejectBehavior;
+import org.knime.base.node.preproc.datavalidator.DataValidatorConfiguration.UnknownColumnHandling;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.port.PortObject;
-import org.knime.core.node.util.CheckUtils;
 
 /**
  * @author Marcel Hanser
@@ -71,9 +74,9 @@ public class DataValidatorSpecNodeModel extends DataValidatorNodeModel {
      */
     @Override
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
-        CheckUtils.checkSettingNotNull(getConfig(), "Configuration is missing.");
-        getConfig().setReferenceTableSpec(inSpecs[1]);
-        getConfig().getIndividualConfigurations().get(0).setNames(inSpecs[1].getColumnNames());
+        var config = getOrCreateDefaultConfig();
+        config.setReferenceTableSpec(inSpecs[1]);
+        config.getIndividualConfigurations().get(0).setNames(inSpecs[1].getColumnNames());
         return super.configure(inSpecs);
     }
 
@@ -93,6 +96,11 @@ public class DataValidatorSpecNodeModel extends DataValidatorNodeModel {
      */
     @Override
     protected DataValidatorConfiguration createConfig() {
-        return new DataValidatorConfiguration(false);
+        // default config
+        var config = new DataValidatorConfiguration(false);
+        config.setIndividualConfigurations(List.of(new DataValidatorColConfiguration()));
+        config.setRemoveUnknownColumns(UnknownColumnHandling.REJECT);
+        config.setFailingBehavior(RejectBehavior.FAIL_NODE);
+        return config;
     }
 }
