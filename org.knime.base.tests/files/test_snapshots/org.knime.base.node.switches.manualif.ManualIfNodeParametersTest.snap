@@ -41,8 +41,7 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/portChoice",
       "options" : {
-        "format" : "radio",
-        "radioLayout" : "horizontal"
+        "format" : "valueSwitch"
       }
     }, {
       "type" : "Control",

@@ -56,7 +56,7 @@ import org.knime.node.parameters.persistence.NodeParametersPersistor;
 import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.widget.choices.Label;
-import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 
 /**
  * Node parameters for IF Switch.
@@ -95,7 +95,7 @@ final class ManualIfNodeParameters implements NodeParameters {
 
     @Persistor(PortChoicePersistor.class)
     @Widget(title = "Select active port", description = "Select the active output port")
-    @RadioButtonsWidget(horizontal = true)
+    @ValueSwitchWidget
     PortChoice m_portChoice = PortChoice.BOTH;
 
     @Widget(title = "Activate all outputs during configuration step", description = """
