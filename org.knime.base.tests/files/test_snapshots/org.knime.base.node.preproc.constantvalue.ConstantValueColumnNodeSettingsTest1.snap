@@ -229,7 +229,10 @@
           "value" : 123
         },
         "schema" : "{\"type\":\"object\",\"properties\":{\"value\":{\"type\":\"integer\",\"format\":\"int64\",\"title\":\"Custom value\",\"description\":\"The value to be used when filling the output column.\",\"default\":0}}}",
-        "uiSchema" : "{\"elements\":[{\"type\":\"Control\",\"scope\":\"#/properties/value\",\"options\":{\"validation\":{\"max\":{\"errorMessage\":\"Value too large to process without risking precision loss (> 9007199254740991).\",\"parameters\":{\"isExclusive\":false,\"max\":9.007199254740991E15}},\"min\":{\"errorMessage\":\"Value too small to process without risking precision loss (< -9007199254740991).\",\"parameters\":{\"isExclusive\":false,\"min\":-9.007199254740991E15}}}}}]}"
+        "uiSchema" : "{\"elements\":[{\"type\":\"Control\",\"scope\":\"#/properties/value\",\"options\":{\"validation\":{\"max\":{\"errorMessage\":\"Value too large to process without risking precision loss (> 9007199254740991).\",\"parameters\":{\"isExclusive\":false,\"max\":9.007199254740991E15}},\"min\":{\"errorMessage\":\"Value too small to process without risking precision loss (< -9007199254740991).\",\"parameters\":{\"isExclusive\":false,\"min\":-9.007199254740991E15}}}}}]}",
+        "persist" : "{\"type\":\"object\",\"properties\":{\"value\":{}}}",
+        "updates" : "{}",
+        "settingsId" : null
       }
     } ]
   }, {
