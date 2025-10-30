@@ -1,0 +1,88 @@
+{
+  "data" : {
+    "model" : {
+      "selectedPort" : "0",
+      "activateAllOutputsDuringConfigure" : true
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "activateAllOutputsDuringConfigure" : {
+            "type" : "boolean",
+            "title" : "Activate all outputs during configuration step",
+            "description" : "When set the node will keep all outputs active during workflow configuration (that is, while the traffic light of the node is \"yellow\"). This allows the configuration of connected downstream nodes and simplifies the workflow design at the expense of additional configuration calls of nodes that are later on inactive. It's recommended to switch this flag off for production workflows as this avoids unnecessary configuration calls of the inactive branches.\n",
+            "default" : true
+          },
+          "portTypeNameMessage" : {
+            "type" : "object"
+          },
+          "selectedPort" : {
+            "type" : "string",
+            "title" : "Select active port",
+            "description" : "Select the active output port. This can be controlled by an integer or string flow variable and used to create a string flow variable.\n",
+            "default" : "0"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "id" : "#/properties/model/properties/portTypeNameMessage",
+      "options" : {
+        "format" : "textMessage"
+      },
+      "providedOptions" : [ "message" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/selectedPort",
+      "options" : {
+        "format" : "dropDown"
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/activateAllOutputsDuringConfigure",
+      "options" : {
+        "format" : "checkbox"
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "portTypeNameMessage" : { },
+          "selectedPort" : {
+            "configKey" : "PortIndex"
+          },
+          "activateAllOutputsDuringConfigure" : {
+            "configKey" : "activate_all_outputs_during_configure"
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/selectedPort",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ ]
+    } ]
+  }, {
+    "id" : "#/properties/model/properties/portTypeNameMessage",
+    "providedOptionName" : "message",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : null
+    } ]
+  } ]
+}

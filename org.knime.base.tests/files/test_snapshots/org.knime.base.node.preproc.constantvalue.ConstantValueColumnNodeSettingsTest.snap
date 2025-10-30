@@ -224,10 +224,7 @@
           "value" : ""
         },
         "schema" : "{\"type\":\"object\",\"properties\":{\"value\":{\"type\":\"string\",\"title\":\"Custom value\",\"description\":\"The value to be used when filling the output column.\",\"default\":\"\"}}}",
-        "uiSchema" : "{\"elements\":[{\"type\":\"Control\",\"scope\":\"#/properties/value\"}]}",
-        "persist" : "{\"type\":\"object\",\"properties\":{\"value\":{}}}",
-        "updates" : "{}",
-        "settingsId" : null
+        "uiSchema" : "{\"elements\":[{\"type\":\"Control\",\"scope\":\"#/properties/value\"}]}"
       }
     } ]
   }, {
