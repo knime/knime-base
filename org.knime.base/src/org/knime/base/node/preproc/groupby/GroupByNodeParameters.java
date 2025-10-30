@@ -46,17 +46,21 @@
 
 package org.knime.base.node.preproc.groupby;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringEscapeUtils;
 import org.knime.base.data.aggregation.GlobalSettings;
 import org.knime.base.node.preproc.groupby.GroupByNodeModel.TypeMatch;
+import org.knime.core.data.DataColumnSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.PersistArray;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.node.parameters.Advanced;
 import org.knime.node.parameters.NodeParameters;
@@ -83,6 +87,7 @@ import org.knime.node.parameters.updates.ValueProvider;
 import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.ChoicesStateProvider;
+import org.knime.node.parameters.widget.choices.ColumnChoicesProvider;
 import org.knime.node.parameters.widget.choices.EnumChoicesProvider;
 import org.knime.node.parameters.widget.choices.TypedStringChoice;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
@@ -102,17 +107,12 @@ final class GroupByNodeParameters implements NodeParameters {
     static final NodeLogger LOGGER = NodeLogger.getLogger(GroupByNodeParameters.class);
 
     private interface Sections {
-        @Section(title = "Group")
-        interface Group {
-        }
 
         @Section(title = "Aggregation")
-        @After(Group.class)
         interface Aggregation {
         }
 
-        @Section(title = "Type- and pattern-based aggregation", sideDrawer = true,
-                sideDrawerSetText = "Configure")
+        @Section(title = "Type/Pattern Based Aggregation", sideDrawer = true, sideDrawerSetText = "Configure")
         @After(Aggregation.class)
         // not @Advanced on purpose, otherwise it is easy to overlook
         interface TypeAndPatternAggregations {
@@ -133,10 +133,13 @@ final class GroupByNodeParameters implements NodeParameters {
         }
     }
 
-    @Layout(Sections.Group.class)
     @Persist(configKey = GroupByNodeModel.CFG_GROUP_BY_COLUMNS)
     @Modification(GroupByColumnsModification.class)
+    @ValueReference(GroupByColumnsRef.class)
     LegacyStringFilter m_groupByColumns = new LegacyStringFilter(new String[0], new String[0]);
+
+    interface GroupByColumnsRef extends ParameterReference<LegacyStringFilter> {
+    }
 
     static final class ExclListProvider extends ColumnBasedExclListProvider {
 
@@ -149,11 +152,31 @@ final class GroupByNodeParameters implements NodeParameters {
 
     static final class GroupByColumnsModification extends LegacyStringFilter.LegacyStringFilterModification {
         GroupByColumnsModification() {
-            super(false, "Group settings", """
+            super(false, "Group columns", """
                     Select one or more column(s) according to which the group(s)
                     is/are created.
-                    """, "Available column(s)", "Group column(s)",
-                AllColumnsProvider.class, ExclListProvider.class);
+                    """, "Group columns", "Available columns", AllColumnsProvider.class, ExclListProvider.class);
+        }
+    }
+
+    static final class NonGroupColumnsProvider implements ColumnChoicesProvider {
+
+        private Supplier<LegacyStringFilter> m_groupByColumnsSupplier;
+
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            ColumnChoicesProvider.super.init(initializer);
+            m_groupByColumnsSupplier = initializer.computeFromValueSupplier(GroupByColumnsRef.class);
+        }
+
+        @Override
+        public List<DataColumnSpec> columnChoices(final NodeParametersInput context) {
+            final var tableSpec = context.getInTableSpec(0);
+            if (tableSpec.isEmpty()) {
+                return List.of();
+            }
+            final var inclSet = Arrays.stream(m_groupByColumnsSupplier.get().m_inclList).collect(Collectors.toSet());
+            return tableSpec.get().stream().filter(colSpec -> !inclSet.contains(colSpec.getName())).toList();
         }
     }
 
@@ -166,10 +189,33 @@ final class GroupByNodeParameters implements NodeParameters {
             column select all columns to change, open the context menu with a
             right mouse click and select the aggregation method to use.
             """)
-    @ArrayWidget(addButtonText = "Add manual") // TODO disable "add" button based on input (e.g. no table connected)
+    @ArrayWidget(addButtonText = "Add manual", elementDefaultValueProvider = DefaultColumnAggregatorElementProvider.class) // TODO disable "add" button based on input (e.g. no table connected)
     @Persistor(LegacyColumnAggregatorsPersistor.class) // No array persistor...
     @Migration(LegacyColumnAggregatorsMigration.class) // ...because then we could not deprecate keys here
     ColumnAggregatorElement[] m_columnAggregators = new ColumnAggregatorElement[0];
+
+    static final class DefaultColumnAggregatorElementProvider
+        implements StateProvider<ColumnAggregatorElement> {
+
+        private Supplier<List<TypedStringChoice>> m_aggregationColumnChoicesSupplier;
+
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            initializer.computeAfterOpenDialog();
+            m_aggregationColumnChoicesSupplier = initializer.computeFromProvidedState(GroupByNodeParameters.NonGroupColumnsProvider.class);
+        }
+
+        @Override
+        public ColumnAggregatorElement computeState(final NodeParametersInput parametersInput)
+            throws StateComputationFailureException {
+            final var choices = m_aggregationColumnChoicesSupplier.get();
+            if (choices.isEmpty()) {
+                return new ColumnAggregatorElement();
+            }
+            return new ColumnAggregatorElement(choices.get(0).id());
+        }
+
+    }
 
     @Layout(Sections.TypeAndPatternAggregations.class)
     @Widget(title = "Pattern", description = """
@@ -307,8 +353,8 @@ final class GroupByNodeParameters implements NodeParameters {
             m_delimiter = delimiter;
         }
 
-
     }
+
     static final class DelimiterPersistor implements NodeParametersPersistor<Delimiter> {
 
         private static final String CFG_VERSION = GroupByNodeModel.createVersionModel().getKey();
@@ -323,6 +369,7 @@ final class GroupByNodeParameters implements NodeParameters {
             // we need to escape, otherwise the Frontend will display the invisible control characters as-is
             return new Delimiter(version, version == 0 ? delim : StringEscapeUtils.escapeJava(delim));
         }
+
         @Override
         public void save(final Delimiter param, final NodeSettingsWO settings) {
             // the frontend sends us escaped control characters
@@ -333,12 +380,14 @@ final class GroupByNodeParameters implements NodeParameters {
             settings.addString(GroupByNodeModel.CFG_VALUE_DELIMITER, toSave);
             settings.addInt(CFG_VERSION, version);
         }
+
         @Override
         public String[][] getConfigPaths() {
-            return new String[][] { { GroupByNodeModel.CFG_VALUE_DELIMITER } };
+            return new String[][]{{GroupByNodeModel.CFG_VALUE_DELIMITER}};
         }
 
     }
+
     @Persistor(DelimiterPersistor.class)
     @Layout(Sections.Output.class)
     Delimiter m_valueDelimiter = new Delimiter(GlobalSettings.STANDARD_DELIMITER);

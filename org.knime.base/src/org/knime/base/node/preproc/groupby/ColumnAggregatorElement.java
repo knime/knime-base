@@ -54,6 +54,7 @@ import java.util.function.Supplier;
 import org.knime.base.data.aggregation.AggregationMethods;
 import org.knime.base.data.aggregation.AggregationOperatorParameters;
 import org.knime.base.node.preproc.groupby.AggregationOperatorParametersProvider.AggregationMethodRef;
+import org.knime.base.node.preproc.groupby.GroupByNodeParameters.NonGroupColumnsProvider;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
@@ -74,7 +75,6 @@ import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.StringChoice;
 import org.knime.node.parameters.widget.choices.StringChoicesProvider;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
-import org.knime.node.parameters.widget.choices.util.AllColumnsProvider;
 
 /**
  * Manual per-column aggregation parameters.
@@ -84,10 +84,9 @@ import org.knime.node.parameters.widget.choices.util.AllColumnsProvider;
 @SuppressWarnings("restriction")
 final class ColumnAggregatorElement implements NodeParameters {
 
-    static class AggregationColumnsProvider extends AllColumnsProvider { } //
     static final class SelectedColumnRef implements ParameterReference<String> { } //
     @Widget(title = "Column", description = "The column to aggregate")
-    @ChoicesProvider(AggregationColumnsProvider.class)
+    @ChoicesProvider(NonGroupColumnsProvider.class)
     @ValueReference(SelectedColumnRef.class)
     String m_column;
 
@@ -161,6 +160,10 @@ final class ColumnAggregatorElement implements NodeParameters {
             .findFirst()
             .map(DataColumnSpec::getName)
             .ifPresent(col -> m_column = col);
+    }
+
+    ColumnAggregatorElement(final String initialColumn) {
+        m_column = initialColumn;
     }
 
     /* ===== Providers ===== */
