@@ -65,8 +65,7 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
 import org.knime.core.node.defaultnodesettings.SettingsModelDouble;
 import org.knime.node.parameters.Widget;
-import org.knime.node.parameters.persistence.NodeParametersPersistor;
-import org.knime.node.parameters.persistence.Persistor;
+import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.widget.number.NumberInputWidget;
 import org.knime.node.parameters.widget.number.NumberInputWidgetValidation;
 
@@ -100,11 +99,11 @@ public class PSquarePercentileOperator extends StorelessUnivariantStatisticOpera
      * @param percentile the percentile value
      * @since 3.6
      */
-    public PSquarePercentileOperator(final GlobalSettings globalSettings,
-        final OperatorColumnSettings opColSettings, final double percentile) {
+    public PSquarePercentileOperator(final GlobalSettings globalSettings, final OperatorColumnSettings opColSettings,
+        final double percentile) {
         super(new OperatorData("P^2 Percentile", "P^2 percentile", false, false, DoubleValue.class, false),
-            globalSettings, AggregationOperator.setInclMissingFlag(opColSettings, false), new PSquarePercentile(
-                percentile));
+            globalSettings, AggregationOperator.setInclMissingFlag(opColSettings, false),
+            new PSquarePercentile(percentile));
         m_settings.setPercentile(percentile);
 
     }
@@ -115,8 +114,8 @@ public class PSquarePercentileOperator extends StorelessUnivariantStatisticOpera
     @Override
     public AggregationOperator createInstance(final GlobalSettings globalSettings,
         final OperatorColumnSettings opColSettings) {
-        return new PSquarePercentileOperator(globalSettings, opColSettings, m_settings.getFunctionModel()
-            .getDoubleValue());
+        return new PSquarePercentileOperator(globalSettings, opColSettings,
+            m_settings.getFunctionModel().getDoubleValue());
 
     }
 
@@ -319,66 +318,28 @@ public class PSquarePercentileOperator extends StorelessUnivariantStatisticOpera
 
     }
 
-    private static final class AtMost100 extends NumberInputWidgetValidation.MaxValidation {
-
-        @Override
-        protected double getMax() {
-            return 100.0;
-        }
-
-        @Override
-        public boolean isExclusive() {
-            return false;
-        }
-
-    }
-
     /**
      * Operator parameters for {@link PSquarePercentileOperator}.
      *
      * @since 5.9
      */
-    @Persistor(PSquarePercentileParamsPersistor.class)
     public static final class PSquarePercentileOperatorParameters implements AggregationOperatorParameters {
 
         @Widget(title = "Percentile", description = "The percentile to compute (0-100)")
         @NumberInputWidget(minValidation = NumberInputWidgetValidation.MinValidation.IsNonNegativeValidation.class,
             maxValidation = AtMost100.class)
+        @Persist(configKey = PSquarePercentileFuntionSettings.CFG_CUSTOM_PERCENTILE)
         double m_percentile = PSquarePercentileFuntionSettings.DEFAULT_PERCENTILE;
 
-        /**
-         * Default constructor for deserialization.
-         */
-        public PSquarePercentileOperatorParameters() {
-            // deserialization by framework
+        private static final class AtMost100 extends NumberInputWidgetValidation.MaxValidation {
+
+            @Override
+            protected double getMax() {
+                return 100.0;
+            }
+
         }
 
-        PSquarePercentileOperatorParameters(final double percentile) {
-            m_percentile = percentile;
-        }
-    }
-
-    private static final class PSquarePercentileParamsPersistor
-        implements NodeParametersPersistor<PSquarePercentileOperatorParameters> {
-
-        @Override
-        public PSquarePercentileOperatorParameters load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            final var s = new PSquarePercentileFuntionSettings();
-            s.validateSettings(settings);
-            s.loadSettingsFrom(settings);
-            return new PSquarePercentileOperatorParameters(s.getFunctionModel().getDoubleValue());
-        }
-
-        @Override
-        public void save(final PSquarePercentileOperatorParameters param, final NodeSettingsWO settings) {
-            final var s = new PSquarePercentileFuntionSettings(param.m_percentile);
-            s.saveSettingsTo(settings);
-        }
-
-        @Override
-        public String[][] getConfigPaths() {
-            return new String[][]{{PSquarePercentileFuntionSettings.CFG_CUSTOM_PERCENTILE}};
-        }
     }
 
 }

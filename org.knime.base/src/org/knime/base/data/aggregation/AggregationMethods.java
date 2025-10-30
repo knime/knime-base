@@ -93,7 +93,6 @@ import org.knime.base.data.aggregation.date.DayRangeOperator;
 import org.knime.base.data.aggregation.date.MedianDateOperator;
 import org.knime.base.data.aggregation.date.MillisRangeOperator;
 import org.knime.base.data.aggregation.general.AbstractMedianOperator.AbstractMedianOperatorParameters;
-import org.knime.base.data.aggregation.general.ColumnSelectorOperator.ColumnSelectorOperatorParameters;
 import org.knime.base.data.aggregation.general.ConcatenateOperator;
 import org.knime.base.data.aggregation.general.CountOperator;
 import org.knime.base.data.aggregation.general.FirstOperator;
@@ -112,6 +111,7 @@ import org.knime.base.data.aggregation.general.UniqueCountOperator;
 import org.knime.base.data.aggregation.numerical.CorrelationOperator;
 import org.knime.base.data.aggregation.numerical.CorrelationOperator.CorrelationOperatorParameters;
 import org.knime.base.data.aggregation.numerical.CovarianceOperator;
+import org.knime.base.data.aggregation.numerical.CovarianceOperator.CovarianceOperatorParameters;
 import org.knime.base.data.aggregation.numerical.GeometricMeanOperator;
 import org.knime.base.data.aggregation.numerical.GeometricStdDeviationOperator;
 import org.knime.base.data.aggregation.numerical.KurtosisOperator;
@@ -274,7 +274,7 @@ public final class AggregationMethods implements AggregationFunctionProvider<Agg
             addOperator(new CorrelationOperator(GlobalSettings.DEFAULT, OperatorColumnSettings.DEFAULT_EXCL_MISSING),
                 CorrelationOperatorParameters.class);
             addOperator(new CovarianceOperator(GlobalSettings.DEFAULT, OperatorColumnSettings.DEFAULT_EXCL_MISSING),
-                ColumnSelectorOperatorParameters.class);
+                CovarianceOperatorParameters.class);
             addOperator(new MeanAbsoluteDeviationOperator(GlobalSettings.DEFAULT,
                 OperatorColumnSettings.DEFAULT_EXCL_MISSING));
             addOperator(new MedianAbsoluteDeviationOperator(GlobalSettings.DEFAULT,

@@ -69,8 +69,7 @@ import org.knime.core.node.defaultnodesettings.DialogComponent;
 import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.node.parameters.Widget;
-import org.knime.node.parameters.persistence.NodeParametersPersistor;
-import org.knime.node.parameters.persistence.Persistor;
+import org.knime.node.parameters.persistence.Persist;
 
 
 /**
@@ -189,37 +188,11 @@ public class AppendElementOperator extends AggregationOperator {
      *
      * @since 5.9
      */
-    @Persistor(ParamsPersistor.class)
     public static final class AppendElementOperatorParameters implements AggregationOperatorParameters {
 
         @Widget(title = TITLE, description = DESCRIPTION)
+        @Persist(configKey = CFG_IGNORE_MISSING)
         boolean m_filterMissing = DEFAULT_FILTER_MISSING;
-
-        public AppendElementOperatorParameters() {
-            // deserialization by framework
-        }
-
-        AppendElementOperatorParameters(final boolean filterMissing) {
-            m_filterMissing = filterMissing;
-        }
-    }
-
-    private static final class ParamsPersistor implements NodeParametersPersistor<AppendElementOperatorParameters> {
-
-        @Override
-        public AppendElementOperatorParameters load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            return new AppendElementOperatorParameters(settings.getBoolean(CFG_IGNORE_MISSING));
-        }
-
-        @Override
-        public void save(final AppendElementOperatorParameters param, final NodeSettingsWO settings) {
-            settings.addBoolean(CFG_IGNORE_MISSING, param.m_filterMissing);
-        }
-
-        @Override
-        public String[][] getConfigPaths() {
-            return new String[][] { { CFG_IGNORE_MISSING } };
-        }
 
     }
 

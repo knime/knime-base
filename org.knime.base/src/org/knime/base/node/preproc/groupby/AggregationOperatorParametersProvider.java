@@ -59,13 +59,13 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.webui.node.dialog.FallbackDialogNodeParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.ClassIdStrategy;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DefaultClassIdStrategy;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.updates.ParameterReference;
-
 
 /**
  * Provider for aggregation operator parameters (aka optional parameters), which depend on the selected aggregation
@@ -89,7 +89,8 @@ abstract class AggregationOperatorParametersProvider
 
     abstract Class<? extends AggregationMethodRef> getMethodParameterRefClass();
 
-    interface AggregationMethodRef extends ParameterReference<String> { } //
+    interface AggregationMethodRef extends ParameterReference<String> {
+    } //
 
     @Override
     public final void init(final StateProviderInitializer initializer) {
@@ -130,10 +131,10 @@ abstract class AggregationOperatorParametersProvider
             return currentValue;
         } else if (paramClass != null) {
             try {
-                return paramClass.getDeclaredConstructor().newInstance();
+                return NodeParametersUtil.createSettings(paramClass, parametersInput);
             } catch (final Exception e) {
-                LOGGER.warn("Failed to instantiate parameter class " + paramClass.getName() +
-                           ", falling back to legacy parameters", e);
+                LOGGER.warn("Failed to instantiate parameter class " + paramClass.getName()
+                    + ", falling back to legacy parameters", e);
             }
         }
 

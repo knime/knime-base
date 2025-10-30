@@ -64,11 +64,14 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelection;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification.WidgetGroupModifier;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
-import org.knime.node.parameters.persistence.NodeParametersPersistor;
-import org.knime.node.parameters.persistence.Persistor;
+import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
-import org.knime.node.parameters.widget.choices.util.AllColumnsProvider;
+import org.knime.node.parameters.widget.choices.ColumnChoicesProvider;
+import org.knime.node.parameters.widget.choices.util.ColumnSelectionUtil;
 
 /**
  * Selects an additional column from a given Data Table
@@ -302,12 +305,11 @@ public abstract class ColumnSelectorOperator extends AggregationOperator {
             m_columnName.saveSettingsTo(settings);
         }
 
-
         private void configure(final DataTableSpec spec) throws InvalidSettingsException {
 
             if (spec.findColumnIndex(m_columnName.getStringValue()) < 0) {
-                throw new InvalidSettingsException("Selected column " + m_columnName.getStringValue()
-                    + " is not contained in Data Table");
+                throw new InvalidSettingsException(
+                    "Selected column " + m_columnName.getStringValue() + " is not contained in Data Table");
             }
 
         }
@@ -315,44 +317,76 @@ public abstract class ColumnSelectorOperator extends AggregationOperator {
     }
 
     /**
-     * Operator parameters for {@link ColumnSelectorOperator}.
+     * Operator parameters for {@link ColumnSelectorOperator}. Use the {@link ColumnSelectorOperatorParametersModifier}
+     * to set the UI of the column selection.
      *
      * @since 5.9
      */
-    @Persistor(ParamsPersistor.class)
-    public static final class ColumnSelectorOperatorParameters implements AggregationOperatorParameters {
+    @SuppressWarnings("restriction")
+    public static class ColumnSelectorOperatorParameters implements AggregationOperatorParameters {
 
-        @Widget(title = "Column selection", description = "Column to calculate covariance with")
-        @ChoicesProvider(AllColumnsProvider.class)
-        String m_selectedColumn;
+        protected ColumnSelectorOperatorParameters() {
+            // prevent instantiation from outside
+        }
 
         /**
-         * Default constructor for deserialization.
+         * Set the initial value of the selected column to the last double column of the input port.
+         *
+         * @param params the node parameters input
          */
-        public ColumnSelectorOperatorParameters() {
-            // deserialization by framework
+        public ColumnSelectorOperatorParameters(final NodeParametersInput params) {
+            final var allDoubleColumns = ColumnSelectionUtil.getDoubleColumnsOfFirstPort(params);
+            if (allDoubleColumns.isEmpty()) {
+                return;
+            }
+            final var lastIndex = allDoubleColumns.size() - 1;
+            m_selectedColumn = allDoubleColumns.get(lastIndex).getName();
         }
 
-        ColumnSelectorOperatorParameters(final String selectedColumn) {
-            m_selectedColumn = selectedColumn;
-        }
-    }
+        @Persist(configKey = ColumnSelectorSettings.CFG_CUSTOM_COLUMN)
+        @Modification.WidgetReference(SelectedColumnRef.class)
+        String m_selectedColumn;
 
-    private static final class ParamsPersistor implements NodeParametersPersistor<ColumnSelectorOperatorParameters> {
-
-        @Override
-        public ColumnSelectorOperatorParameters load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            return new ColumnSelectorOperatorParameters(settings.getString(ColumnSelectorSettings.CFG_CUSTOM_COLUMN));
+        interface SelectedColumnRef extends Modification.Reference {
         }
 
-        @Override
-        public void save(final ColumnSelectorOperatorParameters param, final NodeSettingsWO settings) {
-            settings.addString(ColumnSelectorSettings.CFG_CUSTOM_COLUMN, param.m_selectedColumn);
-        }
+        /**
+         * Modifier to set the UI of the column selection for {@link ColumnSelectorOperatorParameters}.
+         *
+         * @author Paul Bärnreuther
+         */
+        public static abstract class ColumnSelectorOperatorParametersModifier implements Modification.Modifier {
 
-        @Override
-        public String[][] getConfigPaths() {
-            return new String[][]{{ColumnSelectorSettings.CFG_CUSTOM_COLUMN}};
+            @Override
+            public void modify(final WidgetGroupModifier group) {
+                final var field = group.find(SelectedColumnRef.class);
+                field.addAnnotation(Widget.class).withProperty("title", getTitle())
+                    .withProperty("description", getDescription()).modify();
+                field.addAnnotation(ChoicesProvider.class).withProperty("value", getChoicesProviderClass()).modify();
+
+            }
+
+            /**
+             * column choices
+             *
+             * @return the class of the choices provider for the column selection
+             */
+            protected abstract Class<? extends ColumnChoicesProvider> getChoicesProviderClass();
+
+            /**
+             * title of the column selection
+             *
+             * @return title
+             */
+            protected abstract String getTitle();
+
+            /**
+             * description of the column selection
+             *
+             * @return description
+             */
+            protected abstract String getDescription();
+
         }
     }
 

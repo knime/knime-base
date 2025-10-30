@@ -301,52 +301,30 @@ public class QuantileOperator extends StoreResizableDoubleArrayOperator {
      *
      * @since 5.9
      */
-    @Persistor(ParamsPersistor.class)
     public static final class QuantileOperatorParameters implements AggregationOperatorParameters {
 
         @Widget(title = "Quantile", description = DESC_DETAIL_QUANT)
+        @Persist(configKey = QuantileFuntionSettings.CFG_CUSTOM_QUANTILE)
+        @NumberInputWidget(minValidation = IsNonNegativeValidation.class, maxValidation = IsLessThanOneValidation.class)
         double m_quantile = QuantileFuntionSettings.DEFAULT_QUANTILE;
 
+        static final class IsLessThanOneValidation extends MaxValidation {
+
+            @Override
+            protected double getMax() {
+                return QuantileFuntionSettings.MAX_VALUE;
+            }
+
+            @Override
+            public boolean isExclusive() {
+                return true;
+            }
+
+        }
+
         @Widget(title = "Estimation", description = DESC_DETAIL_ESTIMATION)
+        @Persist(configKey = QuantileFuntionSettings.CFG_CUSTOM_ESTIMATIOM)
         EstimationType m_estimationType = EstimationType.valueOf(QuantileFuntionSettings.DEFAULT_ESTIMATION);
-
-        /**
-         * Default constructor for deserialization.
-         */
-        public QuantileOperatorParameters() {
-            // deserialization by framework
-        }
-
-        QuantileOperatorParameters(final double quantile, final EstimationType estimationType) {
-            m_quantile = quantile;
-            m_estimationType = estimationType;
-        }
-    }
-
-    private static final class ParamsPersistor implements NodeParametersPersistor<QuantileOperatorParameters> {
-
-        @Override
-        public QuantileOperatorParameters load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            final var s = new QuantileFuntionSettings();
-            s.validateSettings(settings);
-            s.loadSettingsFrom(settings);
-            final var type = s.m_estimationType.getStringValue();
-            return new QuantileOperatorParameters(s.m_function.getDoubleValue(), EstimationType.valueOf(type));
-        }
-
-        @Override
-        public void save(final QuantileOperatorParameters param, final NodeSettingsWO settings) {
-            final var s = new QuantileFuntionSettings();
-            s.setQuantile(param.m_quantile);
-            s.setEstimation(param.m_estimationType.name());
-            s.saveSettingsTo(settings);
-        }
-
-        @Override
-        public String[][] getConfigPaths() {
-            return new String[][]{{QuantileFuntionSettings.CFG_CUSTOM_QUANTILE},
-                {QuantileFuntionSettings.CFG_CUSTOM_ESTIMATIOM}};
-        }
 
     }
 
