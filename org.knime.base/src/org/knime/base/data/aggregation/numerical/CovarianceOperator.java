@@ -51,6 +51,7 @@ package org.knime.base.data.aggregation.numerical;
 import org.apache.commons.math.util.ResizableDoubleArray;
 import org.apache.commons.math3.stat.correlation.Covariance;
 import org.knime.base.data.aggregation.AggregationOperator;
+import org.knime.base.data.aggregation.AggregationOperatorParameters;
 import org.knime.base.data.aggregation.GlobalSettings;
 import org.knime.base.data.aggregation.OperatorColumnSettings;
 import org.knime.base.data.aggregation.OperatorData;
@@ -191,12 +192,18 @@ public class CovarianceOperator extends ColumnSelectorOperator {
     }
 
     /**
-     * Parameters for the Covariance operator.
-     *
      * @since 5.9
      */
+    @Override
+    public Class<? extends AggregationOperatorParameters> getParametersClass() {
+        return CovarianceOperatorParameters.class;
+    }
+
+    /**
+     * Parameters for the Covariance operator.
+     */
     @Modification(CovarianceOperatorParametersModifier.class)
-    public static final class CovarianceOperatorParameters extends ColumnSelectorOperatorParameters {
+    static final class CovarianceOperatorParameters extends ColumnSelectorOperatorParameters {
 
         /**
          * Called by the framework.

@@ -319,11 +319,17 @@ public class PSquarePercentileOperator extends StorelessUnivariantStatisticOpera
     }
 
     /**
-     * Operator parameters for {@link PSquarePercentileOperator}.
-     *
      * @since 5.9
      */
-    public static final class PSquarePercentileOperatorParameters implements AggregationOperatorParameters {
+    @Override
+    public Class<? extends AggregationOperatorParameters> getParametersClass() {
+        return PSquarePercentileOperatorParameters.class;
+    }
+
+    /**
+     * Operator parameters for {@link PSquarePercentileOperator}.
+     */
+    static final class PSquarePercentileOperatorParameters implements AggregationOperatorParameters {
 
         @Widget(title = "Percentile", description = "The percentile to compute (0-100)")
         @NumberInputWidget(minValidation = NumberInputWidgetValidation.MinValidation.IsNonNegativeValidation.class,

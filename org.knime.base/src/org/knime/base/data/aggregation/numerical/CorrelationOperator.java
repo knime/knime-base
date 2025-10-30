@@ -82,7 +82,6 @@ import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.widget.choices.ColumnChoicesProvider;
 import org.knime.node.parameters.widget.choices.Label;
 import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
-import org.knime.node.parameters.widget.choices.util.ColumnSelectionUtil;
 import org.knime.node.parameters.widget.choices.util.CompatibleColumnsProvider.DoubleColumnsProvider;
 
 /**
@@ -464,23 +463,24 @@ public class CorrelationOperator extends ColumnSelectorOperator {
     }
 
     /**
-     * Operator parameters for {@link CorrelationOperator}.
-     *
      * @since 5.9
      */
-    public static final class CorrelationOperatorParameters implements AggregationOperatorParameters {
+    @Override
+    public Class<? extends AggregationOperatorParameters> getParametersClass() {
+        return CorrelationOperatorParameters.class;
+    }
+
+    /**
+     * Operator parameters for {@link CorrelationOperator}.
+     */
+    static final class CorrelationOperatorParameters implements AggregationOperatorParameters {
 
         CorrelationOperatorParameters() {
             // for framework
         }
 
         CorrelationOperatorParameters(final NodeParametersInput params) {
-            final var allDoubleColumns = ColumnSelectionUtil.getDoubleColumnsOfFirstPort(params);
-            if (allDoubleColumns.isEmpty()) {
-                return;
-            }
-            final var lastIndex = allDoubleColumns.size() - 1;
-            m_columnSelectorParams = new ColumnSelectorOperatorParameters(allDoubleColumns.get(lastIndex).getName());
+            m_columnSelectorParams = new ColumnSelectorOperatorParameters(params);
         }
 
         @Persist(configKey = COLUMN_SETTINGS)

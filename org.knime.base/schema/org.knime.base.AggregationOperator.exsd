@@ -66,17 +66,6 @@
                </documentation>
             </annotation>
          </attribute>
-         <attribute name="optionalParameters" type="string">
-            <annotation>
-               <documentation>
-                  Interface to define a default dialog for the optional aggregation operator parameters.
-Intended as a replacement for the legacy dialog-based optional parameters.
-               </documentation>
-               <appInfo>
-                  <meta.attribute kind="java" basedOn=":org.knime.base.data.aggregation.AggregationOperatorParameters"/>
-               </appInfo>
-            </annotation>
-         </attribute>
       </complexType>
    </element>
 

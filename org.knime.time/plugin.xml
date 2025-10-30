@@ -425,17 +425,14 @@
          point="org.knime.base.AggregationOperator">
       <AggregationOperator
             AggregationOperator="org.knime.base.data.aggregation.datetime.LocalDateMedianOperator"
-            optionalParameters="org.knime.base.data.aggregation.general.AbstractMedianOperator.AbstractMedianOperatorParameters"
             deprecated="false">
       </AggregationOperator>
       <AggregationOperator
             AggregationOperator="org.knime.base.data.aggregation.datetime.LocalTimeMedianOperator"
-            optionalParameters="org.knime.base.data.aggregation.general.AbstractMedianOperator.AbstractMedianOperatorParameters"
             deprecated="false">
       </AggregationOperator>
       <AggregationOperator
             AggregationOperator="org.knime.base.data.aggregation.datetime.LocalDateTimeMedianOperator"
-            optionalParameters="org.knime.base.data.aggregation.general.AbstractMedianOperator.AbstractMedianOperatorParameters"
             deprecated="false">
       </AggregationOperator>
       <AggregationOperator

@@ -183,12 +183,15 @@ public class AppendElementOperator extends AggregationOperator {
         return true;
     }
 
+    @Override
+    public Class<? extends AggregationOperatorParameters> getParametersClass() {
+        return AppendElementOperatorParameters.class;
+    }
+
     /**
      * Operator parameters for {@link AppendElementOperator}.
-     *
-     * @since 5.9
      */
-    public static final class AppendElementOperatorParameters implements AggregationOperatorParameters {
+    static final class AppendElementOperatorParameters implements AggregationOperatorParameters {
 
         @Widget(title = TITLE, description = DESCRIPTION)
         @Persist(configKey = CFG_IGNORE_MISSING)

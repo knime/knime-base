@@ -128,6 +128,9 @@ final class LegacyColumnAggregatorsPersistor implements NodeParametersPersistor<
         // names it "extracted model settings"
         final var idMap = new HashMap<String, MutableInteger>();
         for (final var elem : elems) {
+            if (elem.m_parameters == null) {
+                continue;
+            }
             final var settingsToSaveInto =
                     new NodeSettings(createSettingsKey(idMap, elem.m_aggregationMethod, elem.m_column));
             if (elem.m_parameters instanceof LegacyAggregationOperatorParameters legacyParams) {
@@ -136,7 +139,6 @@ final class LegacyColumnAggregatorsPersistor implements NodeParametersPersistor<
             } else {
                 final var params = elem.m_parameters;
                 NodeParametersUtil.saveSettings(params.getClass(), params, settingsToSaveInto);
-                final var test = params; //
             }
             operatorSettings.addNodeSettings(settingsToSaveInto);
         }

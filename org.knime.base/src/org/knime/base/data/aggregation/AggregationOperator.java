@@ -63,6 +63,7 @@ import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
+import org.knime.node.parameters.NodeParameters;
 
 
 /**
@@ -570,6 +571,18 @@ public abstract class AggregationOperator implements AggregationMethod {
     @Override
     public Component getSettingsPanel() {
         //nothing to return by default override if operator requires settings
+        return null;
+    }
+
+    /**
+     * Overwrite thie method if the operator has optional settings.
+     * If the operator has optional settings and this method is not overwritten, a fallback dialog is displayed from the
+     * node settings.
+     *
+     * @return the {@link NodeParameters} class that holds the optional settings for this operator
+     * @since 5.9
+     */
+    public Class<? extends AggregationOperatorParameters> getParametersClass() {
         return null;
     }
 

@@ -60,6 +60,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.swing.JComponent;
 import javax.swing.JEditorPane;
@@ -67,7 +68,6 @@ import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
 
 import org.apache.commons.lang.StringEscapeUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.IExtensionRegistry;
@@ -82,7 +82,6 @@ import org.knime.base.data.aggregation.booleancell.TrueCountOperator;
 import org.knime.base.data.aggregation.collection.AndElementCountOperator;
 import org.knime.base.data.aggregation.collection.AndElementOperator;
 import org.knime.base.data.aggregation.collection.AppendElementOperator;
-import org.knime.base.data.aggregation.collection.AppendElementOperator.AppendElementOperatorParameters;
 import org.knime.base.data.aggregation.collection.ElementCountOperator;
 import org.knime.base.data.aggregation.collection.OrElementCountOperator;
 import org.knime.base.data.aggregation.collection.OrElementOperator;
@@ -92,7 +91,6 @@ import org.knime.base.data.aggregation.date.DateMeanOperator;
 import org.knime.base.data.aggregation.date.DayRangeOperator;
 import org.knime.base.data.aggregation.date.MedianDateOperator;
 import org.knime.base.data.aggregation.date.MillisRangeOperator;
-import org.knime.base.data.aggregation.general.AbstractMedianOperator.AbstractMedianOperatorParameters;
 import org.knime.base.data.aggregation.general.ConcatenateOperator;
 import org.knime.base.data.aggregation.general.CountOperator;
 import org.knime.base.data.aggregation.general.FirstOperator;
@@ -109,9 +107,7 @@ import org.knime.base.data.aggregation.general.UniqueConcatenateOperator;
 import org.knime.base.data.aggregation.general.UniqueConcatenateWithCountOperator;
 import org.knime.base.data.aggregation.general.UniqueCountOperator;
 import org.knime.base.data.aggregation.numerical.CorrelationOperator;
-import org.knime.base.data.aggregation.numerical.CorrelationOperator.CorrelationOperatorParameters;
 import org.knime.base.data.aggregation.numerical.CovarianceOperator;
-import org.knime.base.data.aggregation.numerical.CovarianceOperator.CovarianceOperatorParameters;
 import org.knime.base.data.aggregation.numerical.GeometricMeanOperator;
 import org.knime.base.data.aggregation.numerical.GeometricStdDeviationOperator;
 import org.knime.base.data.aggregation.numerical.KurtosisOperator;
@@ -120,10 +116,8 @@ import org.knime.base.data.aggregation.numerical.MeanOperator;
 import org.knime.base.data.aggregation.numerical.MedianAbsoluteDeviationOperator;
 import org.knime.base.data.aggregation.numerical.MedianOperator;
 import org.knime.base.data.aggregation.numerical.PSquarePercentileOperator;
-import org.knime.base.data.aggregation.numerical.PSquarePercentileOperator.PSquarePercentileOperatorParameters;
 import org.knime.base.data.aggregation.numerical.ProductOperator;
 import org.knime.base.data.aggregation.numerical.QuantileOperator;
-import org.knime.base.data.aggregation.numerical.QuantileOperator.QuantileOperatorParameters;
 import org.knime.base.data.aggregation.numerical.RangeOperator;
 import org.knime.base.data.aggregation.numerical.SecondMomentOperator;
 import org.knime.base.data.aggregation.numerical.SkewnessOperator;
@@ -198,8 +192,6 @@ public final class AggregationMethods implements AggregationFunctionProvider<Agg
      * operators are not shown to the user.*/
     private final Map<String, AggregationOperator> m_deprecatedOperators = new HashMap<>();
 
-    /**Map with aggregation operator parameter classes registered via extension point.*/
-    private final Map<String, Class<? extends AggregationOperatorParameters>> m_parameterClasses = new HashMap<>();
 
     private final AggregationMethod m_defNotNumericalMeth;
     private final AggregationMethod m_defNumericalMeth;
@@ -224,13 +216,12 @@ public final class AggregationMethods implements AggregationFunctionProvider<Agg
             /**XOR count.*/
             addOperator(new XORElementCountOperator(GlobalSettings.DEFAULT,
                 OperatorColumnSettings.DEFAULT_INCL_MISSING));
-            /**Element counter.*/
+            /** Element counter. */
             addOperator(new ElementCountOperator(GlobalSettings.DEFAULT, OperatorColumnSettings.DEFAULT_INCL_MISSING));
-            /**Append.*/
-            addOperator(new AppendElementOperator(GlobalSettings.DEFAULT, OperatorColumnSettings.DEFAULT_INCL_MISSING),
-                AppendElementOperatorParameters.class);
+            /** Append. */
+            addOperator(new AppendElementOperator(GlobalSettings.DEFAULT, OperatorColumnSettings.DEFAULT_INCL_MISSING));
             //The date methods
-            /**Date mean operator.*/
+            /** Date mean operator. */
             addOperator(new DateMeanOperator(GlobalSettings.DEFAULT, OperatorColumnSettings.DEFAULT_EXCL_MISSING));
             /**Median date operator.*/
             addOperator(new MedianDateOperator(GlobalSettings.DEFAULT, OperatorColumnSettings.DEFAULT_EXCL_MISSING));
@@ -247,12 +238,11 @@ public final class AggregationMethods implements AggregationFunctionProvider<Agg
             m_defNumericalMeth = getOperator(meanOperator.getId());
             /**Standard deviation.*/
             addOperator(new StdDeviationOperator(GlobalSettings.DEFAULT, OperatorColumnSettings.DEFAULT_EXCL_MISSING));
-            /**Variance.*/
+            /** Variance. */
             addOperator(new VarianceOperator(GlobalSettings.DEFAULT, OperatorColumnSettings.DEFAULT_EXCL_MISSING));
-            /**Median.*/
-            addOperator(new MedianOperator(GlobalSettings.DEFAULT, OperatorColumnSettings.DEFAULT_EXCL_MISSING),
-                AbstractMedianOperatorParameters.class);
-            /**Sum.*/
+            /** Median. */
+            addOperator(new MedianOperator(GlobalSettings.DEFAULT, OperatorColumnSettings.DEFAULT_EXCL_MISSING));
+            /** Sum. */
             addOperator(new SumOperator(GlobalSettings.DEFAULT, OperatorColumnSettings.DEFAULT_EXCL_MISSING));
             /**Product.*/
             addOperator(new ProductOperator(GlobalSettings.DEFAULT, OperatorColumnSettings.DEFAULT_EXCL_MISSING));
@@ -263,18 +253,15 @@ public final class AggregationMethods implements AggregationFunctionProvider<Agg
             /**Geometric deviation.*/
             addOperator(new GeometricStdDeviationOperator(GlobalSettings.DEFAULT,
                 OperatorColumnSettings.DEFAULT_EXCL_MISSING));
-            addOperator(new QuantileOperator(GlobalSettings.DEFAULT, OperatorColumnSettings.DEFAULT_EXCL_MISSING),
-                QuantileOperatorParameters.class);
+            addOperator(new QuantileOperator(GlobalSettings.DEFAULT, OperatorColumnSettings.DEFAULT_EXCL_MISSING));
             addOperator(new KurtosisOperator(GlobalSettings.DEFAULT, OperatorColumnSettings.DEFAULT_EXCL_MISSING));
             addOperator(new SkewnessOperator(GlobalSettings.DEFAULT, OperatorColumnSettings.DEFAULT_EXCL_MISSING));
             addOperator(new PSquarePercentileOperator(GlobalSettings.DEFAULT,
-                OperatorColumnSettings.DEFAULT_EXCL_MISSING), PSquarePercentileOperatorParameters.class);
+                OperatorColumnSettings.DEFAULT_EXCL_MISSING));
             addOperator(new SumOfSquaresOperator(GlobalSettings.DEFAULT, OperatorColumnSettings.DEFAULT_EXCL_MISSING));
             addOperator(new SumOfLogsOperator(GlobalSettings.DEFAULT, OperatorColumnSettings.DEFAULT_EXCL_MISSING));
-            addOperator(new CorrelationOperator(GlobalSettings.DEFAULT, OperatorColumnSettings.DEFAULT_EXCL_MISSING),
-                CorrelationOperatorParameters.class);
-            addOperator(new CovarianceOperator(GlobalSettings.DEFAULT, OperatorColumnSettings.DEFAULT_EXCL_MISSING),
-                CovarianceOperatorParameters.class);
+            addOperator(new CorrelationOperator(GlobalSettings.DEFAULT, OperatorColumnSettings.DEFAULT_EXCL_MISSING));
+            addOperator(new CovarianceOperator(GlobalSettings.DEFAULT, OperatorColumnSettings.DEFAULT_EXCL_MISSING));
             addOperator(new MeanAbsoluteDeviationOperator(GlobalSettings.DEFAULT,
                 OperatorColumnSettings.DEFAULT_EXCL_MISSING));
             addOperator(new MedianAbsoluteDeviationOperator(GlobalSettings.DEFAULT,
@@ -464,11 +451,6 @@ public final class AggregationMethods implements AggregationFunctionProvider<Agg
                     continue;
                 }
 
-                // Load optional parameter class if specified
-                getParameterClass(elem)
-                    .ifPresent((final Class<? extends AggregationOperatorParameters> paramClass) -> m_parameterClasses
-                        .put(operator, paramClass));
-
                 final var isDeprecated = Boolean.parseBoolean(elem.getAttribute("deprecated"));
                 try {
                     final AggregationOperator aggrOperator =
@@ -491,33 +473,6 @@ public final class AggregationMethods implements AggregationFunctionProvider<Agg
         }
     }
 
-    private static Optional<Class<AggregationOperatorParameters>> getParameterClass(final IConfigurationElement elem) {
-        final var paramClassName = elem.getAttribute("optionalParameters");
-        if (StringUtils.isNotBlank(paramClassName)) {
-            // try to load the class from the current bundle or from this bundle as fallback
-            final var currentBundle = elem.getContributor().getName();
-            try {
-                @SuppressWarnings("unchecked")
-                final Class<AggregationOperatorParameters> paramClass =
-                    (Class<AggregationOperatorParameters>)Platform.getBundle(currentBundle).loadClass(paramClassName);
-                return Optional.of(paramClass);
-            } catch (final ClassNotFoundException | ClassCastException e) {
-                LOGGER.error(
-                    "Failed to load aggregation operator parameters class from current bundle: " + paramClassName, e);
-            }
-            try {
-                @SuppressWarnings("unchecked")
-                final Class<AggregationOperatorParameters> paramClass =
-                    (Class<AggregationOperatorParameters>)AggregationMethods.class.getClassLoader()
-                        .loadClass(paramClassName);
-                return Optional.of(paramClass);
-            } catch (final ClassNotFoundException | ClassCastException e) {
-                LOGGER.error("Failed to load aggregation operator parameters class from base bundle: " + paramClassName,
-                    e);
-            }
-        }
-        return Optional.empty();
-    }
 
     private void addOperator(final AggregationOperator operator)
             throws DuplicateOperatorException {
@@ -530,14 +485,6 @@ public final class AggregationMethods implements AggregationFunctionProvider<Agg
             throw new DuplicateOperatorException("Operator with id: " + id + " already registered", existingOp);
         }
         m_operators.put(id, operator);
-    }
-
-    private void addOperator(final AggregationOperator operator,
-            final Class<? extends AggregationOperatorParameters> paramClass) throws DuplicateOperatorException {
-        addOperator(operator);
-        if (paramClass != null) {
-            m_parameterClasses.put(operator.getClass().getName(), paramClass);
-        }
     }
 
     /**
@@ -581,8 +528,7 @@ public final class AggregationMethods implements AggregationFunctionProvider<Agg
      */
     public Optional<Class<? extends AggregationOperatorParameters>>
             getParametersClassFor(final String operatorID) {
-        // TODO instancemethod on AggregationOperator/AggregationMethod?
-        return Optional.ofNullable(m_parameterClasses.getOrDefault(getOperator(operatorID).getClass().getName(), null));
+        return Optional.ofNullable(getOperator(operatorID).getParametersClass());
     }
 
     /**
@@ -592,7 +538,14 @@ public final class AggregationMethods implements AggregationFunctionProvider<Agg
      * @since 5.9
      */
     public static Collection<Class<? extends AggregationOperatorParameters>> getAllParameterClasses() {
-        return getInstance().m_parameterClasses.values().stream().toList();
+        List<Class<? extends AggregationOperatorParameters>> paramClasses = new ArrayList<>();
+        for (AggregationOperator operator : getInstance().getAllOperators()) {
+            final var paramClass = operator.getParametersClass();
+            if (paramClass != null) {
+                paramClasses.add(paramClass);
+            }
+        }
+        return paramClasses;
     }
 
     /**
@@ -851,6 +804,10 @@ public final class AggregationMethods implements AggregationFunctionProvider<Agg
             operator = m_deprecatedOperators.get(id);
         }
         return cloneOperator(operator);
+    }
+
+    private List<AggregationOperator> getAllOperators() {
+        return Stream.concat(m_operators.values().stream(), m_deprecatedOperators.values().stream()).toList();
     }
 
     private static AggregationOperator cloneOperator(final AggregationOperator operator) {

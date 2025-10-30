@@ -73,8 +73,10 @@ import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
 import org.knime.core.node.defaultnodesettings.SettingsModelDouble;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.node.parameters.Widget;
-import org.knime.node.parameters.persistence.NodeParametersPersistor;
-import org.knime.node.parameters.persistence.Persistor;
+import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.widget.number.NumberInputWidget;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MaxValidation;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsNonNegativeValidation;
 
 /**
  * Computes the pth quantile per group.
@@ -297,11 +299,17 @@ public class QuantileOperator extends StoreResizableDoubleArrayOperator {
     }
 
     /**
-     * Node parameters for the {@link QuantileOperator}.
-     *
      * @since 5.9
      */
-    public static final class QuantileOperatorParameters implements AggregationOperatorParameters {
+    @Override
+    public Class<? extends AggregationOperatorParameters> getParametersClass() {
+        return QuantileOperatorParameters.class;
+    }
+
+    /**
+     * Node parameters for the {@link QuantileOperator}.
+     */
+    static final class QuantileOperatorParameters implements AggregationOperatorParameters {
 
         @Widget(title = "Quantile", description = DESC_DETAIL_QUANT)
         @Persist(configKey = QuantileFuntionSettings.CFG_CUSTOM_QUANTILE)

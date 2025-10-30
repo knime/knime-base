@@ -319,14 +319,16 @@ public abstract class ColumnSelectorOperator extends AggregationOperator {
     /**
      * Operator parameters for {@link ColumnSelectorOperator}. Use the {@link ColumnSelectorOperatorParametersModifier}
      * to set the UI of the column selection.
-     *
      * @since 5.9
      */
     @SuppressWarnings("restriction")
     public static class ColumnSelectorOperatorParameters implements AggregationOperatorParameters {
 
-        protected ColumnSelectorOperatorParameters() {
-            // prevent instantiation from outside
+        /**
+         * Default constructor. No column is selected initially.
+         */
+        public ColumnSelectorOperatorParameters() {
+            // default constructor
         }
 
         /**
@@ -335,6 +337,7 @@ public abstract class ColumnSelectorOperator extends AggregationOperator {
          * @param params the node parameters input
          */
         public ColumnSelectorOperatorParameters(final NodeParametersInput params) {
+
             final var allDoubleColumns = ColumnSelectionUtil.getDoubleColumnsOfFirstPort(params);
             if (allDoubleColumns.isEmpty()) {
                 return;
