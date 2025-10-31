@@ -95,15 +95,10 @@ public final class LogRegLearnerNodeFactory4
     public NodeView<LogRegLearnerNodeModel> createNodeView(
             final int index, final LogRegLearnerNodeModel model) {
         throw new IllegalStateException();
-//        switch (index) {
-//        case 0:
-//            return new LogRegLearnerNodeView(model);
-//        default:
-//            throw new IndexOutOfBoundsException();
-//        }
     }
 
     @Override
+    @SuppressWarnings("java:S5738")
     public boolean hasDialog() {
         return true;
     }
@@ -259,6 +254,7 @@ public final class LogRegLearnerNodeFactory4
      * @since 5.9
      */
     @Override
+    @SuppressWarnings("java:S5738")
     public NodeDialogPane createNodeDialogPane() {
         return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
     }

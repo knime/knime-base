@@ -46,19 +46,11 @@
 
 package org.knime.base.node.mine.regression.logistic.learner4;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-
 import org.knime.base.node.io.filereader.DataCellFactory;
 import org.knime.base.node.mine.regression.logistic.learner4.LogRegLearnerSettings.LearningRateStrategies;
 import org.knime.base.node.mine.regression.logistic.learner4.LogRegLearnerSettings.Prior;
 import org.knime.base.node.mine.regression.logistic.learner4.LogRegLearnerSettings.Solver;
 import org.knime.core.data.DataCell;
-import org.knime.core.data.DataColumnDomain;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DoubleValue;
 import org.knime.core.data.NominalValue;
@@ -106,6 +98,12 @@ import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinVa
 import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsPositiveIntegerValidation;
 import org.knime.node.parameters.widget.text.TextInputWidget;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
+import java.util.function.Supplier;
+
 /**
  * Node parameters for Logistic Regression Learner.
  *
@@ -116,7 +114,8 @@ import org.knime.node.parameters.widget.text.TextInputWidget;
 @SuppressWarnings("restriction")
 final class LogRegLearnerNodeParameters implements NodeParameters {
 
-    private static Random randomSeedGenerator = new Random();
+    @SuppressWarnings("java:S2245") // RNG not security-relevant
+    private static final Random randomSeedGenerator = new Random();
 
     @Section(title = "Solver Options")
     @Advanced
@@ -331,7 +330,7 @@ final class LogRegLearnerNodeParameters implements NodeParameters {
         String m_randomSeed;
 
         @Widget(title = "New",
-            description = "Generate a random seed and set it in the Random seed input above for reproducible runs.")
+                description = "Generate a random seed and set it in the Random seed input above for reproducible runs.")
         @SimpleButtonWidget(ref = NewSeedButtonRef.class)
         @Effect(predicate = IsUseRandomSeed.class, type = EffectType.ENABLE)
         Void m_newSeed;
@@ -470,13 +469,13 @@ final class LogRegLearnerNodeParameters implements NodeParameters {
             final var targetSpec = specOpt.get().getColumnSpec(targetColumn);
             if (targetSpec.getType().isCompatible(NominalDistributionValue.class)) {
                 final var nominalDistributionValues = NominalDistributionValueMetaData.extractFromSpec(targetSpec)
-                    .getValues().stream().collect(Collectors.toList());
+                        .getValues().stream().toList();
                 return nominalDistributionValues.isEmpty() ? null
-                    : nominalDistributionValues.get(nominalDistributionValues.size() - 1);
+                        : nominalDistributionValues.get(nominalDistributionValues.size() - 1);
             } else {
-                final DataColumnDomain domain = targetSpec.getDomain();
+                final var domain = targetSpec.getDomain();
                 final var dataCells = domain.hasValues() ? domain.getValues().stream().map(DataCell::toString).toList()
-                    : new ArrayList<String>();
+                        : new ArrayList<String>();
                 return dataCells.isEmpty() ? null : dataCells.get(dataCells.size() - 1);
             }
 
@@ -508,12 +507,11 @@ final class LogRegLearnerNodeParameters implements NodeParameters {
             final var targetColumn = m_targetColumnSupplier.get();
             final var targetSpec = specOpt.get().getColumnSpec(targetColumn);
             if (targetSpec.getType().isCompatible(NominalDistributionValue.class)) {
-                return NominalDistributionValueMetaData.extractFromSpec(targetSpec).getValues().stream()
-                    .collect(Collectors.toList());
+                return new ArrayList<>(NominalDistributionValueMetaData.extractFromSpec(targetSpec).getValues());
             } else {
-                final DataColumnDomain domain = targetSpec.getDomain();
+                final var domain = targetSpec.getDomain();
                 return domain.hasValues() ? domain.getValues().stream().map(DataCell::toString).toList()
-                    : Collections.emptyList();
+                        : Collections.emptyList();
             }
         }
 
@@ -545,7 +543,7 @@ final class LogRegLearnerNodeParameters implements NodeParameters {
         public void save(final String value, final NodeSettingsWO settings) {
             if (value != null) {
                 settings.addDataCell(LogRegLearnerSettings.CFG_TARGET_REFERENCE_CATEGORY,
-                    new DataCellFactory().createDataCellOfType(DataType.getType(StringCell.class), value));
+                        new DataCellFactory().createDataCellOfType(DataType.getType(StringCell.class), value));
             } else {
                 settings.addDataCell(LogRegLearnerSettings.CFG_TARGET_REFERENCE_CATEGORY, null);
             }
@@ -562,9 +560,9 @@ final class LogRegLearnerNodeParameters implements NodeParameters {
 
         @Override
         public SeedParameters load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            SeedParameters param = new SeedParameters();
-            String seedS = settings.getString(LogRegLearnerSettings.CFG_SEED, null);
-            String defaultSeedS = Long.toString(LogRegLearnerNodeDialogPane.DEFAULT_RANDOM_SEED);
+            var param = new SeedParameters();
+            var seedS = settings.getString(LogRegLearnerSettings.CFG_SEED, null);
+            var defaultSeedS = Long.toString(LogRegLearnerNodeDialogPane.DEFAULT_RANDOM_SEED);
             param.m_useRandomSeed = seedS != null && seedS.equals(defaultSeedS);
             if (seedS != null) {
                 if (seedS.equals(defaultSeedS)) {
