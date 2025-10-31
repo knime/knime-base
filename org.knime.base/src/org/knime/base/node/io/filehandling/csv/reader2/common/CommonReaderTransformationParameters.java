@@ -48,7 +48,11 @@
  */
 package org.knime.base.node.io.filehandling.csv.reader2.common;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -57,21 +61,38 @@ import org.knime.base.node.io.filehandling.csv.reader2.common.CommonReaderTransf
 import org.knime.base.node.io.filehandling.csv.reader2.common.CommonReaderTransformationParametersStateProviders.SourceIdProvider;
 import org.knime.base.node.io.filehandling.csv.reader2.common.CommonReaderTransformationParametersStateProviders.TransformationSettingsWidgetModification;
 import org.knime.base.node.io.filehandling.csv.reader2.common.CommonReaderTransformationParametersStateProviders.TypeChoicesProvider;
+import org.knime.base.node.io.filehandling.csv.reader2.common.ReaderSpecific.ExternalDataTypeSerializer;
 import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderLayout;
+import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataColumnSpecCreator;
+import org.knime.core.data.DataType;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.util.CheckUtils;
+import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.WidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.filehandling.core.connections.FSLocation;
+import org.knime.filehandling.core.data.location.FSLocationValueMetaData;
+import org.knime.filehandling.core.data.location.cell.SimpleFSLocationCellFactory;
+import org.knime.filehandling.core.node.table.reader.DefaultTableTransformation;
+import org.knime.filehandling.core.node.table.reader.ImmutableColumnTransformation;
+import org.knime.filehandling.core.node.table.reader.config.AbstractMultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
+import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.DefaultTableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
+import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
+import org.knime.filehandling.core.node.table.reader.selector.ImmutableUnknownColumnsTransformation;
+import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
+import org.knime.filehandling.core.node.table.reader.selector.UnknownColumnsTransformation;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
+import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec.TypedReaderTableSpecBuilder;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.WidgetGroup;
@@ -106,15 +127,16 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
  */
 @SuppressWarnings("restriction")
 @Layout(CommonReaderLayout.Transformation.class)
-public abstract class CommonReaderTransformationParameters<I extends ConfigIdSettings<?>, S>
-    implements Persistable, WidgetGroup {
+public abstract class CommonReaderTransformationParameters<C extends ReaderSpecificConfig<C>, I extends ConfigIdSettings<C>, S, T>
+    implements Persistable, WidgetGroup, ReaderSpecific.ProductionPathProviderAndTypeHierarchy<T>,
+    ExternalDataTypeSerializer<S, T> {
 
     /**
      * @param configId the initial value of the config id. It can be independent from the respective values in the
      *            settings and just serves as a starting point.
      */
     protected CommonReaderTransformationParameters(final I configId) {
-        m_persistorSettings = new PersistorSettings<>(configId);
+        m_configId = configId;
     }
 
     CommonReaderTransformationParameters() {
@@ -182,6 +204,9 @@ public abstract class CommonReaderTransformationParameters<I extends ConfigIdSet
     static class ConfigIdRef implements ParameterReference<ConfigIdSettings<?>> {
     }
 
+    @ValueReference(ConfigIdRef.class)
+    I m_configId;
+
     /**
      * TODO NOSONAR UIEXT-1946 These settings are sent to the frontend where they are not needed. They are merely held
      * here to be used in the {@link CommonReaderTransformationParametersPersistor} and the
@@ -189,19 +214,7 @@ public abstract class CommonReaderTransformationParameters<I extends ConfigIdSet
      * provide these settings to the persistor. This would then also allow us to use non-serializable types like the
      * TypedReaderTableSpec instead of the TableSpecSettings, saving us the back-and-forth conversion.
      */
-    static class PersistorSettings<I extends ConfigIdSettings<?>, S> implements WidgetGroup, Persistable {
-
-        private PersistorSettings(final I configId) {
-            CheckUtils.checkArgumentNotNull(configId);
-            m_configId = configId;
-        }
-
-        PersistorSettings() {
-            // Default constructor required as per {@link PersistablSettings} contract
-        }
-
-        @ValueReference(ConfigIdRef.class)
-        I m_configId;
+    static class PersistorSettings<S> implements WidgetGroup, Persistable { // TODO persistable? also,many of these can probably be removed, since they should also be available through the params
 
         @ValueProvider(SourceIdProvider.class)
         // for replacing it with an own provider if the file is accessed indirectly
@@ -230,7 +243,27 @@ public abstract class CommonReaderTransformationParameters<I extends ConfigIdSet
 
     }
 
-    PersistorSettings<I, S> m_persistorSettings = new PersistorSettings<>();
+    static final class DontPersist<S> implements NodeParametersPersistor<PersistorSettings<S>> {
+
+        @Override
+        public PersistorSettings<S> load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            return new PersistorSettings<>();
+        }
+
+        @Override
+        public void save(final PersistorSettings<S> obj, final NodeSettingsWO settings) {
+            // do nothing
+        }
+
+        @Override
+        public String[][] getConfigPaths() {
+            return new String[0][];
+        }
+
+    }
+
+    @Persistor(DontPersist.class)
+    PersistorSettings<S> m_persistorSettings = new PersistorSettings<>();
 
     static class TakeColumnsFromProvider implements StateProvider<ColumnFilterMode> {
 
@@ -428,5 +461,119 @@ public abstract class CommonReaderTransformationParameters<I extends ConfigIdSet
     @Effect(predicate = FileSystemPortConnectionUtil.ConnectedWithoutFileSystemSpec.class, type = EffectType.HIDE)
     TransformationElementSettings[] m_columnTransformation =
         new TransformationElementSettings[]{TransformationElementSettings.createUnknownElement()};
+
+    public void loadFromConfig(final MultiTableReadConfig<?, ?> config) {
+
+        // TODO take from CommonReaderTransformationSettingsPersistor::load
+
+    }
+
+    public void saveToConfig(final AbstractMultiTableReadConfig<C, ? extends DefaultTableReadConfig<C>, T, ?> config) {
+
+        final var individualSpecs = toSpecMap(this, m_persistorSettings.m_specs);
+        final var rawSpec = toRawSpec(individualSpecs);
+        final var transformations = determineTransformations(rawSpec);
+        final var tableTransformation = new DefaultTableTransformation<T>(rawSpec, transformations.getFirst(),
+               m_persistorSettings.m_takeColumnsFrom, transformations.getSecond(),
+                m_enforceTypes, false);
+
+        DataColumnSpec itemIdentifierColumnSpec = determineAppendPathColumnSpec(m_persistorSettings);
+
+        m_configId.applyToConfig(config.getTableReadConfig());
+        final var tableSpecConfig = DefaultTableSpecConfig.createFromTransformationModel(m_persistorSettings.m_sourceId,
+            config.getConfigID(), individualSpecs, tableTransformation, itemIdentifierColumnSpec);
+
+        config.setTableSpecConfig(tableSpecConfig);
+
+    }
+
+    static <S, T> Map<String, TypedReaderTableSpec<T>> toSpecMap(final ExternalDataTypeSerializer<S, T> serializer,
+        final List<TableSpecSettings<S>> specs) {
+        final var individualSpecs = new LinkedHashMap<String, TypedReaderTableSpec<T>>();
+        for (final var tableSpec : specs) {
+            final TypedReaderTableSpecBuilder<T> specBuilder = TypedReaderTableSpec.builder();
+            for (final var colSpec : tableSpec.m_spec) {
+                specBuilder.addColumn(colSpec.m_name, serializer.toExternalType(colSpec.m_type), true);
+            }
+            final var spec = specBuilder.build();
+            individualSpecs.put(tableSpec.m_sourceId, spec);
+        }
+        return individualSpecs;
+    }
+
+    private Pair<ArrayList<ColumnTransformation<T>>, UnknownColumnsTransformation>
+        determineTransformations(final RawSpec<T> rawSpec) {
+        final Map<String, Integer> transformationIndexByColumnName = new HashMap<>();
+        int unknownColumnsTransformationPosition = -1;
+        for (int i = 0; i < m_columnTransformation.length; i++) {
+            final var columnName = m_columnTransformation[i].m_columnName;
+            if (columnName == null) {
+                unknownColumnsTransformationPosition = i;
+            } else {
+                transformationIndexByColumnName.put(columnName, i);
+            }
+        }
+        final var transformations = new ArrayList<ColumnTransformation<T>>();
+        for (var column : rawSpec.getUnion()) {
+
+            final var columnName = column.getName().get(); // NOSONAR in the TypedReaderTableSpecsProvider we make sure that names are always present
+            if (columnName == null) {
+                continue;
+            }
+            final var position = transformationIndexByColumnName.get(columnName);
+            final var transformation = m_columnTransformation[position];
+            final var externalType = column.getType();
+            final var productionPath = getProductionPathProvider().getAvailableProductionPaths(externalType).stream()
+                .filter(p -> p.getConverterFactory().getIdentifier().equals(transformation.m_type)).findFirst()
+                .orElseGet(() -> {
+                    LOGGER.error(
+                        String.format("The column '%s' can't be converted to the configured data type.", column));
+                    return getProductionPathProvider().getDefaultProductionPath(externalType);
+                });
+
+            transformations.add(new ImmutableColumnTransformation<>(column, productionPath,
+                transformation.m_includeInOutput, position, transformation.m_columnRename));
+        }
+        final var unknownColumnsTransformation = determineUnknownTransformation(
+            m_columnTransformation[unknownColumnsTransformationPosition],
+            unknownColumnsTransformationPosition);
+        return new Pair<>(transformations, unknownColumnsTransformation);
+    }
+
+    private static ImmutableUnknownColumnsTransformation determineUnknownTransformation(
+        final TransformationElementSettings unknownTransformation, final int unknownColumnsTransformationPosition) {
+        DataType forcedUnknownType = null;
+        if (!unknownTransformation.m_type.equals(TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID)) {
+            forcedUnknownType = CommonReaderTransformationParametersStateProviders.fromDataTypeId(unknownTransformation.m_type);
+        }
+        return new ImmutableUnknownColumnsTransformation(unknownColumnsTransformationPosition,
+            unknownTransformation.m_includeInOutput, forcedUnknownType != null, forcedUnknownType);
+    }
+
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(CommonReaderTransformationParameters.class);
+
+    private static DataColumnSpec determineAppendPathColumnSpec(final PersistorSettings<?> persistorSettings) {
+        // code taken from DefaultMultiTableReadFactory.createItemIdentifierColumn
+        if (persistorSettings.m_appendPathColumn.isPresent()) {
+            DataColumnSpecCreator itemIdColCreator = null;
+            for (var path : persistorSettings.m_fsLocations) {
+                // code taken from TableReader.createIdentifierColumnSpec
+                final DataColumnSpecCreator creator =
+                    new DataColumnSpecCreator(persistorSettings.m_appendPathColumn.get(), SimpleFSLocationCellFactory.TYPE);
+                creator.addMetaData(new FSLocationValueMetaData(path.getFileSystemCategory(),
+                    path.getFileSystemSpecifier().orElse(null)), true);
+                final var itemIdCol = creator.createSpec();
+                if (itemIdColCreator == null) {
+                    itemIdColCreator = new DataColumnSpecCreator(itemIdCol);
+                } else {
+                    itemIdColCreator.merge(itemIdCol);
+                }
+            }
+            if (itemIdColCreator != null) {
+                return itemIdColCreator.createSpec();
+            }
+        }
+        return null;
+    }
 
 }

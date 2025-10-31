@@ -93,7 +93,6 @@ import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.layout.Layout;
-import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.updates.ButtonReference;
 import org.knime.node.parameters.updates.Effect;
 import org.knime.node.parameters.updates.Effect.EffectType;
@@ -145,6 +144,8 @@ public class CSVTableReaderNodeParameters implements NodeParameters {
     @Modification({CSVTableReaderNodeParameters.SetCSVExtensions.class,
         CSVTableReaderNodeParameters.SetTitleAndDescriptionForUseExistingRowIds.class})
     CommonTableReaderNodeParameters m_commonTableReaderNodeParameters = new CommonTableReaderNodeParameters();
+
+    CSVTransformationParameters m_csvTransformationParameters = new CSVTransformationParameters();
 
     enum FileEncodingOption {
             @Label(value = "OS default", description = FileEncoding.DESCRIPTION_DEFAULT) //
@@ -485,9 +486,6 @@ public class CSVTableReaderNodeParameters implements NodeParameters {
     boolean m_prependFileIndexToRowId;
     // TODO NOSONAR this setting should be shown when reading multiple files; currently blocked by UIEXT-1805
 
-    @Persistor(CSVTransformationParametersPersistor.class) // TODO get rid of custom persistor
-    CSVTransformationParameters m_tableSpecConfig = new CSVTransformationParameters();
-
     void loadFromConfig(final CSVMultiTableReadConfig config) {
 
         m_commonTableReaderNodeParameters.loadFromConfig(config);
@@ -549,8 +547,6 @@ public class CSVTableReaderNodeParameters implements NodeParameters {
 
     void saveToConfig(final CSVMultiTableReadConfig config) {
 
-        m_commonTableReaderNodeParameters.saveToConfig(config);
-
         final var tableReadConfig = config.getTableReadConfig();
         final var csvConfig = tableReadConfig.getReaderSpecificConfig();
 
@@ -597,8 +593,11 @@ public class CSVTableReaderNodeParameters implements NodeParameters {
 
         tableReadConfig.setPrependSourceIdxToRowId(m_prependFileIndexToRowId);
 
-        // TODO set table spec config via config.setTableSpecConfig to a new DefaultTableSpecConfig
-        // using the config ID from config.getConfigID()
-        // and the rest of the code from CommonReaderTransformationParametersPersistor
+        // TODO consider getting rid of quite a bit of the setters above, since we could just call ConfigId.applyToConfig
+        // TODO also add comment on why we have to call m_commonTableReaderNodeParameters.saveToConfig(config); last
+
+        m_commonTableReaderNodeParameters.saveToConfig(config);
+
+        m_csvTransformationParameters.saveToConfig(config);
     }
 }

@@ -50,6 +50,7 @@ package org.knime.base.node.io.filehandling.csv.reader2.common;
 
 import java.util.Optional;
 
+import org.knime.base.node.io.filehandling.csv.reader2.common.CommonReaderTransformationParameters.ConfigIdSettings;
 import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
 import org.knime.base.node.io.filehandling.webui.ReferenceStateProvider;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderLayout;
@@ -63,6 +64,7 @@ import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
 import org.knime.filehandling.core.node.table.reader.config.AbstractMultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
+import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
@@ -90,7 +92,8 @@ import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils;
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
 @SuppressWarnings({"javadoc", "restriction"})
-public final class CommonTableReaderNodeParameters implements NodeParameters {
+public final class CommonTableReaderNodeParameters<C extends ReaderSpecificConfig<C>, I extends ConfigIdSettings<C>, S, T, R extends CommonReaderTransformationParameters<C, I, S, T>>
+    implements NodeParameters {
 
     public static final class FileSelectionRef extends ReferenceStateProvider<FileSelection>
         implements Modification.Reference {
@@ -301,7 +304,7 @@ public final class CommonTableReaderNodeParameters implements NodeParameters {
             config.appendItemIdentifierColumn() ? Optional.of(config.getItemIdentifierColumnName()) : Optional.empty();
     }
 
-    public void saveToConfig(final AbstractMultiTableReadConfig<?, ? extends DefaultTableReadConfig<?>, ?, ?> config) {
+    public void saveToConfig(final AbstractMultiTableReadConfig<C, ? extends DefaultTableReadConfig<C>, T, ?> config) {
 
         final var tableReadConfig = config.getTableReadConfig();
 

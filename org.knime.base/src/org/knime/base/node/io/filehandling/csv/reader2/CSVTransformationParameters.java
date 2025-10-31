@@ -53,6 +53,7 @@ import java.util.Optional;
 import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
 import org.knime.base.node.io.filehandling.csv.reader.api.EscapeUtils;
 import org.knime.base.node.io.filehandling.csv.reader.api.QuoteOption;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVReaderSpecific.ProductionPathProviderAndTypeHierarchy;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeParameters.ColumnDelimiterRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeParameters.CommentStartRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeParameters.CustomEncodingRef;
@@ -73,6 +74,7 @@ import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeParamet
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeParameters.RowDelimiterOptionRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeParameters.SkipFirstLinesRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeParameters.ThousandsSeparatorRef;
+import org.knime.base.node.io.filehandling.csv.reader2.common.ClassNoopSerializer;
 import org.knime.base.node.io.filehandling.csv.reader2.common.CommonReaderTransformationParameters;
 import org.knime.base.node.io.filehandling.csv.reader2.common.CommonTableReaderNodeParameters.FirstColumnContainsRowIdsRef;
 import org.knime.base.node.io.filehandling.csv.reader2.common.CommonTableReaderNodeParameters.SkipFirstDataRowsRef;
@@ -86,7 +88,8 @@ import org.knime.node.parameters.updates.ValueProvider;
 @SuppressWarnings("restriction")
 @Modification(CSVTransformationParametersStateProviders.TransformationSettingsWidgetModification.class)
 final class CSVTransformationParameters
-    extends CommonReaderTransformationParameters<CSVTransformationParameters.ConfigIdSettings, Class<?>> {
+    extends CommonReaderTransformationParameters<CSVTableReaderConfig, CSVTransformationParameters.ConfigIdSettings, Class<?>, Class<?>>
+    implements ProductionPathProviderAndTypeHierarchy, ClassNoopSerializer {
 
     CSVTransformationParameters() {
         super(new ConfigIdSettings());
