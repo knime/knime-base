@@ -569,7 +569,7 @@
           }
         },
         "rule" : {
-          "effect" : "ENABLE",
+          "effect" : "SHOW",
           "condition" : {
             "scope" : "#/properties/model/properties/seedParameters/properties/useRandomSeed",
             "schema" : {
@@ -585,7 +585,7 @@
           "triggerId" : "org.knime.base.node.mine.regression.logistic.learner4.LogRegLearnerNodeParameters$NewSeedButtonRef"
         },
         "rule" : {
-          "effect" : "ENABLE",
+          "effect" : "SHOW",
           "condition" : {
             "scope" : "#/properties/model/properties/seedParameters/properties/useRandomSeed",
             "schema" : {
