@@ -67,7 +67,7 @@ import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
-import org.knime.node.parameters.widget.choices.util.CompatibleColumnsProvider.StringColumnsProvider;
+import org.knime.node.parameters.widget.choices.util.AllColumnsProvider;
 import org.knime.node.parameters.widget.number.NumberInputWidget;
 import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsPositiveIntegerValidation;
 
@@ -98,8 +98,8 @@ final class ColumnAutoTypeCasterNodeParameters implements NodeParameters {
 
     @Persistor(ColumnFilterPersistor.class)
     @Widget(title = "Column filter", description = "Select the string columns to consider for automatic type casting. "
-        + "Only columns compatible with String are offered. The filter supports manual selection and wildcard/regex.")
-    @ChoicesProvider(StringColumnsProvider.class)
+        + "The filter supports manual selection and wildcard/regex.")
+    @ChoicesProvider(AllColumnsProvider.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
 
     @Persist(configKey = ColumnAutoTypeCasterNodeModel.CFGKEY_DATEFORMAT)
