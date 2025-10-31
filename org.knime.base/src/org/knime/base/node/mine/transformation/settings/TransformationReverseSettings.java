@@ -60,8 +60,12 @@ import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
  */
 public class TransformationReverseSettings {
 
-    /** The configuration key of the remove used columns flag. */
-    private static final String REMOVE_USED_COLS_CFG = "remove_used_columns";
+    /**
+     * The configuration key of the remove used columns flag.
+     *
+     * @since 5.9
+     */
+    public static final String REMOVE_USED_COLS_CFG = "remove_used_columns";
 
     /** Settings model indicating whether or not to remove the used columns. */
     private final SettingsModelBoolean m_removeUsedCols = new SettingsModelBoolean(REMOVE_USED_COLS_CFG, false);

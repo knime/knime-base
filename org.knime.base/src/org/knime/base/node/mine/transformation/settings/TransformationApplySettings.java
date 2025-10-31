@@ -62,11 +62,19 @@ import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
  */
 public class TransformationApplySettings extends TransformationReverseSettings {
 
-    /** The configuration key for the number of dimensions to reduce to. */
-    private static final String K_CFG = "number_of_dimensions";
+    /**
+     * The configuration key for the number of dimensions to reduce to.
+     *
+     * @since 5.9
+     */
+    public static final String K_CFG = "number_of_dimensions";
 
-    /** The configuration key of the fail on missings flag. */
-    private static final String FAIL_ON_MISSING_CFG = "fail_on_missings";
+    /**
+     * The configuration key of the fail on missings flag.
+     *
+     * @since 5.9
+     */
+    public static final String FAIL_ON_MISSING_CFG = "fail_on_missings";
 
     /** Settings model for the dimension to reduce to. */
     private final SettingsModelInteger m_dims = new SettingsModelIntegerBounded(K_CFG, 1, 1, Integer.MAX_VALUE);
