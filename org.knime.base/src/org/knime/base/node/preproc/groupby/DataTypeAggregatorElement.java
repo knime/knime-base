@@ -130,12 +130,7 @@ final class DataTypeAggregatorElement implements NodeParameters {
             return DataTypeAggregationRef.class;
         }
     }
-    static final class ShowMissingValueOption extends MissingValueOption.ShowMissingValueOption {
-        @Override
-        Class<? extends MissingValueOption.SupportsMissingValueOptions> getMissingValueOptionSupportedReference() {
-            return SupportsMissingValueOptions.class;
-        }
-    }
+
     @ValueProvider(SupportsMissingValueOptions.class)
     @ValueReference(SupportsMissingValueOptions.class)
     @PersistArrayElement(NoPersistence.class)
@@ -150,11 +145,10 @@ final class DataTypeAggregatorElement implements NodeParameters {
             """)
     @ValueSwitchWidget
     @PersistArrayElement(LegacyDataTypeAggregatorsArrayPersistor.MissingValueOptionPersistor.class)
-    @Effect(type = EffectType.SHOW, predicate = ShowMissingValueOption.class)
+    @Effect(type = EffectType.SHOW, predicate = SupportsMissingValueOptions.class)
     MissingValueOption m_includeMissing = MissingValueOption.EXCLUDE;
 
 
-    // TODO show new parameters via extension point if defined
     static final class DataTypeOperatorParametersRef implements ParameterReference<AggregationOperatorParameters> { } //
     @DynamicParameters(value = DataTypeAggregationOperatorParametersProvider.class,
         widgetAppearingInNodeDescription = @Widget(title = "Operator settings", description = """

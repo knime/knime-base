@@ -340,7 +340,7 @@ public final class AggregationMethods implements AggregationFunctionProvider<Agg
         //register all extension point implementations
         registerExtensionPoints();
 
-        if (EclipseUtil.isRunFromSDK()) {
+        if (EclipseUtil.isRunFromSDK() || true) {
             final var ops = getOperators().stream().filter(AggregationOperator::hasOptionalSettings)
                 .map(op -> op.getClass().getName()).collect(Collectors.joining(", "));
             LOGGER.info("Operators with optional settings:" + ops);

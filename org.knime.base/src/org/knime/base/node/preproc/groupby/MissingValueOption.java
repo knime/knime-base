@@ -53,10 +53,9 @@ import java.util.function.Supplier;
 import org.knime.base.data.aggregation.AggregationMethods;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.ArrayPersistor;
 import org.knime.node.parameters.NodeParametersInput;
-import org.knime.node.parameters.updates.EffectPredicate;
-import org.knime.node.parameters.updates.EffectPredicateProvider;
 import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.StateProvider;
+import org.knime.node.parameters.updates.util.BooleanReference;
 import org.knime.node.parameters.widget.choices.Label;
 
 /**
@@ -70,7 +69,32 @@ enum MissingValueOption {
         @Label("Include")
         INCLUDE;
 
-    abstract static class SupportsMissingValueOptions implements StateProvider<Boolean>, ParameterReference<Boolean> {
+    /**
+     * Abstract class for effect provider to show the missing value option only if the selected aggregation method
+     * supports it. Annotate the {@link MissingValueOption} parameter with your derivation:
+     *
+     * <pre>
+     * <code>
+     *   &#64;Effect(type = EffectType.SHOW, predicate = MySupportsMissingValueOptions.class)
+     * </code>
+     * </pre>
+     *
+     * Then introduce a transient boolean parameter, annotated with your derivation as well:
+     *
+     * <pre>
+     * <code>
+     * &#64;ValueProvider(MySupportsMissingValueOptions.class)
+     * &#64;ValueReference(MySupportsMissingValueOptions.class)
+     * &#64;PersistArrayElement(MyNoPersistenceElementFieldPersistor.class) // if inside ArrayPersistor
+     * // helper flag to show/hide missing value option
+     * boolean m_supportsMissingValueOption;
+     * </code>
+     * </pre>
+     *
+     * If inside an {@link ArrayPersistor}, you need to derive a {@link NoPersistenceElementFieldPersistor} to make the
+     * boolean field "transient".
+     */
+    abstract static class SupportsMissingValueOptions implements StateProvider<Boolean>, BooleanReference {
 
         private Supplier<String> m_methodSupplier;
 
@@ -94,41 +118,4 @@ enum MissingValueOption {
 
     }
 
-    /**
-     * Abstract class for effect provider to show the missing value option only if the selected aggregation method
-     * supports it. Annotate the {@link MissingValueOption} parameter with your derivation:
-     *
-     * <pre>
-     * <code>
-     *   &#64;Effect(type = EffectType.SHOW, predicate = MyShowMissingValueOption.class)
-     * </code>
-     * </pre>
-     *
-     * Then introduce a transient boolean parameter, annotated with your derivation of
-     * {@link SupportsMissingValueOptions}, which is referenced by the effect predicate:
-     *
-     * <pre>
-     * <code>
-     * &#64;ValueProvider(MySupportsMissingValueOptions.class)
-     * &#64;ValueReference(MySupportsMissingValueOptions.class)
-     * &#64;PersistArrayElement(MyNoPersistenceElementFieldPersistor.class) // if inside ArrayPersistor
-     * // helper flag to show/hide missing value option
-     * boolean m_supportsMissingValueOption;
-     * </code>
-     * </pre>
-     *
-     * If inside an {@link ArrayPersistor}, you need to derive a {@link NoPersistenceElementFieldPersistor} to make the
-     * boolean field "transient".
-     */
-    @SuppressWarnings("restriction")
-    abstract static class ShowMissingValueOption implements EffectPredicateProvider {
-
-        abstract Class<? extends SupportsMissingValueOptions> getMissingValueOptionSupportedReference();
-
-        @Override
-        public final EffectPredicate init(final PredicateInitializer i) {
-            return i.getBoolean(getMissingValueOptionSupportedReference()).isTrue();
-        }
-
-    }
 }

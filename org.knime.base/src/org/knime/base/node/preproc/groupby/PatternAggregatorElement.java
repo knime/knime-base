@@ -90,16 +90,18 @@ import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 @SuppressWarnings("restriction")
 class PatternAggregatorElement implements NodeParameters {
 
+    static final class PatternRef implements ParameterReference<String> {
+    } //
 
-    static final class PatternRef implements ParameterReference<String> { } //
     @Widget(title = "Search pattern", description = "Wildcard or regular expression pattern")
     @PersistArrayElement(LegacyPatternAggregatorsArrayPersistor.PatternPersistor.class)
     @ValueReference(PatternRef.class)
     @CustomValidation(WildcardOrRegexPatternValidation.class)
     String m_pattern = ".*";
 
+    static final class PatternTypeRef implements ParameterReference<PatternType> {
+    } //
 
-    static final class PatternTypeRef implements ParameterReference<PatternType> { } //
     @Widget(title = "Pattern type", description = """
             Specifies whether the search pattern is a regular expression or a string with wildcards
             (<code>*</code> and <code>?</code>).
@@ -109,8 +111,9 @@ class PatternAggregatorElement implements NodeParameters {
     @ValueReference(PatternTypeRef.class)
     PatternType m_patternType = PatternType.REGEX;
 
+    static final class PatternAggregationRef implements AggregationMethodRef {
+    } //
 
-    static final class PatternAggregationRef implements AggregationMethodRef { } //
     @Widget(title = "Aggregation", description = "The aggregation method to use")
     @SubParameters(subLayoutRoot = PatternOperatorParametersRef.class,
         showSubParametersProvider = HasPatternOperatorParameters.class)
@@ -120,7 +123,6 @@ class PatternAggregatorElement implements NodeParameters {
     @PersistArrayElement(LegacyPatternAggregatorsArrayPersistor.AggregationMethodPersistor.class)
     String m_aggregationMethod = AggregationMethods.getInstance().getDefaultFunction(null).getId();
 
-
     static final class NoPersistence
         extends NoPersistenceElementFieldPersistor<Boolean, IndexedElement, PatternAggregatorElementDTO> {
         @Override
@@ -128,16 +130,11 @@ class PatternAggregatorElement implements NodeParameters {
             return false;
         }
     }
+
     static final class SupportsMissingValueOptions extends MissingValueOption.SupportsMissingValueOptions {
         @Override
         Class<? extends ParameterReference<String>> getMethodReference() {
             return PatternAggregationRef.class;
-        }
-    }
-    static final class ShowMissingValueOption extends MissingValueOption.ShowMissingValueOption {
-        @Override
-        Class<? extends MissingValueOption.SupportsMissingValueOptions> getMissingValueOptionSupportedReference() {
-            return SupportsMissingValueOptions.class;
         }
     }
 
@@ -155,12 +152,12 @@ class PatternAggregatorElement implements NodeParameters {
             """)
     @ValueSwitchWidget
     @PersistArrayElement(LegacyPatternAggregatorsArrayPersistor.MissingValueOptionPersistor.class)
-    @Effect(type = EffectType.SHOW, predicate = ShowMissingValueOption.class)
+    @Effect(type = EffectType.SHOW, predicate = SupportsMissingValueOptions.class)
     MissingValueOption m_includeMissing = MissingValueOption.EXCLUDE;
 
+    static final class PatternOperatorParametersRef implements ParameterReference<AggregationOperatorParameters> {
+    } //
 
-    static final class PatternOperatorParametersRef implements ParameterReference<AggregationOperatorParameters> { } //
-    // TODO show new parameters via extension point if defined
     @DynamicParameters(value = PatternAggregationOperatorParametersProvider.class,
         widgetAppearingInNodeDescription = @Widget(title = "Operator settings", description = """
                 Additional parameters for the selected aggregation method.
@@ -170,7 +167,6 @@ class PatternAggregatorElement implements NodeParameters {
     @Layout(PatternOperatorParametersRef.class)
     @PersistArrayElement(LegacyPatternAggregatorsArrayPersistor.OperatorParametersPersistor.class)
     AggregationOperatorParameters m_parameters;
-
 
     /* ===== Providers ===== */
 
@@ -218,7 +214,7 @@ class PatternAggregatorElement implements NodeParameters {
             if (m_methodSelf.get() != null) {
                 throw new StateComputationFailureException();
             }
-            // pasing `null` will select "First"
+            // parsing `null` will select "First"
             return AggregationMethods.getInstance().getDefaultFunction(null).getId();
         }
 

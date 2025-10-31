@@ -112,14 +112,19 @@ final class GroupByNodeParameters implements NodeParameters {
         interface Aggregation {
         }
 
-        @Section(title = "Type/Pattern Based Aggregation", sideDrawer = true, sideDrawerSetText = "Configure")
+        @Section(title = "Pattern Based Aggregation")
         @After(Aggregation.class)
-        // not @Advanced on purpose, otherwise it is easy to overlook
-        interface TypeAndPatternAggregations {
+        interface PatternAggregation {
+
+        }
+
+        @Section(title = "Type Based Aggregation")
+        @After(PatternAggregation.class)
+        interface TypeAggregation {
         }
 
         @Section(title = "Output")
-        @After(TypeAndPatternAggregations.class)
+        @After(TypeAggregation.class)
         interface Output {
         }
 
@@ -189,20 +194,21 @@ final class GroupByNodeParameters implements NodeParameters {
             column select all columns to change, open the context menu with a
             right mouse click and select the aggregation method to use.
             """)
-    @ArrayWidget(addButtonText = "Add manual", elementDefaultValueProvider = DefaultColumnAggregatorElementProvider.class) // TODO disable "add" button based on input (e.g. no table connected)
+    @ArrayWidget(addButtonText = "Add manual",
+        elementDefaultValueProvider = DefaultColumnAggregatorElementProvider.class) // TODO disable "add" button based on input (e.g. no table connected)
     @Persistor(LegacyColumnAggregatorsPersistor.class) // No array persistor...
     @Migration(LegacyColumnAggregatorsMigration.class) // ...because then we could not deprecate keys here
     ColumnAggregatorElement[] m_columnAggregators = new ColumnAggregatorElement[0];
 
-    static final class DefaultColumnAggregatorElementProvider
-        implements StateProvider<ColumnAggregatorElement> {
+    static final class DefaultColumnAggregatorElementProvider implements StateProvider<ColumnAggregatorElement> {
 
         private Supplier<List<TypedStringChoice>> m_aggregationColumnChoicesSupplier;
 
         @Override
         public void init(final StateProviderInitializer initializer) {
             initializer.computeAfterOpenDialog();
-            m_aggregationColumnChoicesSupplier = initializer.computeFromProvidedState(GroupByNodeParameters.NonGroupColumnsProvider.class);
+            m_aggregationColumnChoicesSupplier =
+                initializer.computeFromProvidedState(GroupByNodeParameters.NonGroupColumnsProvider.class);
         }
 
         @Override
@@ -217,7 +223,7 @@ final class GroupByNodeParameters implements NodeParameters {
 
     }
 
-    @Layout(Sections.TypeAndPatternAggregations.class)
+    @Layout(Sections.PatternAggregation.class)
     @Widget(title = "Pattern", description = """
             <p>The search pattern can either be a string with wildcards or a
             <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Pattern.html#sum">
@@ -232,7 +238,7 @@ final class GroupByNodeParameters implements NodeParameters {
     @PersistArray(LegacyPatternAggregatorsArrayPersistor.class)
     PatternAggregatorElement[] m_patternAggregators = new PatternAggregatorElement[0];
 
-    @Layout(Sections.TypeAndPatternAggregations.class)
+    @Layout(Sections.TypeAggregation.class)
     @Widget(title = "Type", description = """
             Aggregations are applied to all columns of the selected type.
             """)
@@ -244,7 +250,7 @@ final class GroupByNodeParameters implements NodeParameters {
     static final class TypeAggregationsRef implements ParameterReference<DataTypeAggregatorElement[]> {
     }
 
-    @Layout(Sections.TypeAndPatternAggregations.class)
+    @Layout(Sections.TypeAggregation.class)
     @Effect(predicate = HasTypeAggregations.class, type = EffectType.SHOW)
     @Widget(title = "Type matching", description = """
             <ul>
@@ -255,19 +261,12 @@ final class GroupByNodeParameters implements NodeParameters {
                     sub-types of the selected type. For example <i>Boolean</i> is a sub-type of <i>Integer</i>,
                 <i>Integer</i> of <i>Long</i>, and <i>Long</i> of <i>Double</i>.</li>
             </ul>
-            """, advanced = true)
-    @ChoicesProvider(TypeMatchChoicesProvider.class)
+            """)
     @ValueSwitchWidget
     @Persistor(LegacyTypeMatchPersistor.class)
+    // TODO: Remove this comment and DO default-instantiate. Currently, the default value does not have an impact (since the model defines the default) and it should be set once it has an impact.
     // Note: no initialization here, which ensures backwards compatibility (through the LegacyTypeMatchPersistor)
     TypeMatch m_typeMatch;
-
-    static final class TypeMatchChoicesProvider implements EnumChoicesProvider<TypeMatch> {
-        @Override
-        public List<TypeMatch> choices(final NodeParametersInput context) {
-            return List.of(TypeMatch.values());
-        }
-    }
 
     static final class HasTypeAggregations implements EffectPredicateProvider {
         @Override

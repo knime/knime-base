@@ -161,7 +161,7 @@ abstract class AggregationOperatorParametersProvider
         if (params instanceof LegacyAggregationOperatorParameters legacy) {
             return legacy.getNodeSettings();
         }
-        // no fallback "dialog" needed (no operator parameters or new ext point-based)
+        // no fallback "dialog" needed (no operator parameters or new parameters based)
         return null;
     }
 
