@@ -63,10 +63,10 @@ import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
 public class TransformationComputeSettings {
 
     /** The configuration key for the used columns. */
-    private static final String USED_COLS_CFG = "used_columns";
+    public static final String USED_COLS_CFG = "used_columns";
 
     /** The configuration key of the fail on missings flag. */
-    private static final String FAIL_ON_MISSING_CFG = "fail_on_missings";
+    public static final String FAIL_ON_MISSING_CFG = "fail_on_missings";
 
     /** Settings model for the used columns. */
     @SuppressWarnings("unchecked")
