@@ -46,6 +46,12 @@
 
 package org.knime.base.node.mine.regression.logistic.learner4;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
+import java.util.function.Supplier;
+
 import org.knime.base.node.io.filereader.DataCellFactory;
 import org.knime.base.node.mine.regression.logistic.learner4.LogRegLearnerSettings.LearningRateStrategies;
 import org.knime.base.node.mine.regression.logistic.learner4.LogRegLearnerSettings.Prior;
@@ -97,12 +103,6 @@ import org.knime.node.parameters.widget.number.NumberInputWidget;
 import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsPositiveDoubleValidation;
 import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsPositiveIntegerValidation;
 import org.knime.node.parameters.widget.text.TextInputWidget;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
-import java.util.function.Supplier;
 
 /**
  * Node parameters for Logistic Regression Learner.
@@ -325,14 +325,14 @@ final class LogRegLearnerNodeParameters implements NodeParameters {
                 The seed value for the random number generator.
                 """)
         @TextInputWidget(patternValidation = LongAsStringPersistor.IsLongInteger.class)
-        @Effect(predicate = IsUseRandomSeed.class, type = EffectType.ENABLE)
+        @Effect(predicate = IsUseRandomSeed.class, type = EffectType.SHOW)
         @ValueProvider(NewSeedValueProvider.class)
         String m_randomSeed;
 
         @Widget(title = "New",
                 description = "Generate a random seed and set it in the Random seed input above for reproducible runs.")
         @SimpleButtonWidget(ref = NewSeedButtonRef.class)
-        @Effect(predicate = IsUseRandomSeed.class, type = EffectType.ENABLE)
+        @Effect(predicate = IsUseRandomSeed.class, type = EffectType.SHOW)
         Void m_newSeed;
 
     }
@@ -560,20 +560,12 @@ final class LogRegLearnerNodeParameters implements NodeParameters {
 
         @Override
         public SeedParameters load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            var param = new SeedParameters();
-            var seedS = settings.getString(LogRegLearnerSettings.CFG_SEED, null);
-            var defaultSeedS = Long.toString(LogRegLearnerNodeDialogPane.DEFAULT_RANDOM_SEED);
-            param.m_useRandomSeed = seedS != null && seedS.equals(defaultSeedS);
-            if (seedS != null) {
-                if (seedS.equals(defaultSeedS)) {
-                    param.m_randomSeed = null;
-                } else {
-                    param.m_randomSeed = seedS;
-                }
-            }
-
-            param.m_randomSeed = null;
-            return param;
+            var seedParameters = new SeedParameters();
+            var seedSetting = settings.getString(LogRegLearnerSettings.CFG_SEED,
+                Long.toString(LogRegLearnerNodeDialogPane.DEFAULT_RANDOM_SEED));
+            seedParameters.m_useRandomSeed = seedSetting != null;
+            seedParameters.m_randomSeed = seedSetting;
+            return seedParameters;
         }
 
         @Override
