@@ -526,9 +526,8 @@ public class FuzzyClusterNodeModel extends NodeModel {
             // get list of included columns
             String[] columns = settings.getStringArray(INCLUDELIST_KEY);
             if (columns.length < 1) {
-                throw new InvalidSettingsException("No attributes set to work"
-                      + " on. Please check the second tab "
-                          + "\'Used Attributes\' in the dialog");
+                throw new InvalidSettingsException(
+                    "No attributes set to work on. Please check the \'Used attributes\' in the dialog");
             }
         }
         // random seed was introduced with 2.8, therefore not checks possible

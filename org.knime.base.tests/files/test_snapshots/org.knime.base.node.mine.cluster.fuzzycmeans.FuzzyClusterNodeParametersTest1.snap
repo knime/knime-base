@@ -1,0 +1,478 @@
+{
+  "data" : {
+    "model" : {
+      "nrClusters" : 3,
+      "maxNrIterations" : 99,
+      "fuzzifier" : 2.0,
+      "useRandomSeed" : false,
+      "randomSeed" : 0,
+      "keepAllColumnsSelected" : false,
+      "usedAttributes" : [ "Universe_0_0", "Universe_0_1", "Universe_1_0", "Universe_1_1" ],
+      "noise" : false,
+      "deltaMethod" : "SET_DELTA",
+      "delta" : 0.2,
+      "lambda" : 0.1,
+      "memory" : true,
+      "measures" : true
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "delta" : {
+            "type" : "number",
+            "format" : "double",
+            "title" : "Delta",
+            "description" : "The delta value.",
+            "default" : 0.2
+          },
+          "deltaMethod" : {
+            "oneOf" : [ {
+              "const" : "AUTO_DELTA",
+              "title" : "Automatic delta, specify lambda"
+            }, {
+              "const" : "SET_DELTA",
+              "title" : "Set delta"
+            } ],
+            "title" : "Delta computation method",
+            "description" : "Choose whether to set a fixed delta value or to compute it automatically based on lambda.\n<ul>\n<li><b>Automatic delta, specify lambda</b>: Delta is updated in each iteration, based on the average interpoint distances. However, a lambda\nparamater has to be set, according to the shape of the clusters.\n</li>\n<li><b>Set delta</b>: Delta is the fixed distance from every datapoint to the noise cluster.</li>\n</ul>",
+            "default" : "SET_DELTA"
+          },
+          "drawSeed" : {
+            "type" : "object",
+            "title" : "Draw seed",
+            "description" : "Generate a random seed and set it in the Random seed input above for reproducible runs."
+          },
+          "fuzzifier" : {
+            "type" : "number",
+            "format" : "double",
+            "title" : "Fuzzifier",
+            "description" : "Indicates how much the clusters are allowed to overlap.",
+            "default" : 2.0
+          },
+          "keepAllColumnsSelected" : {
+            "type" : "boolean",
+            "title" : "Always include all columns",
+            "description" : "If checked, node behaves as if all columns were moved to the Include list.\n",
+            "default" : false
+          },
+          "lambda" : {
+            "type" : "number",
+            "format" : "double",
+            "title" : "Lambda",
+            "description" : "The lambda value.",
+            "default" : 0.1
+          },
+          "maxNrIterations" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Maximum number of iterations",
+            "description" : "This is the maximum number of iterations to be performed.",
+            "default" : 99
+          },
+          "measures" : {
+            "type" : "boolean",
+            "title" : "Compute cluster quality measures",
+            "description" : "Whether to calculate quality measures for the clustering. This can be time and memory consuming with large\ndatasets.\n",
+            "default" : true
+          },
+          "memory" : {
+            "type" : "boolean",
+            "title" : "Perform the clustering in memory",
+            "description" : "If this option is selected, the clustering is performed in the memory, which speeds up the process.\n",
+            "default" : true
+          },
+          "noise" : {
+            "type" : "boolean",
+            "title" : "Induce noise cluster",
+            "description" : "Whether to induce a noise cluster or not.",
+            "default" : false
+          },
+          "nrClusters" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Number of clusters",
+            "description" : "Number of clusters to use for the algorithm.",
+            "default" : 3
+          },
+          "randomSeed" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Random seed",
+            "description" : "The seed value used for random number generation. Use the same seed to get identical clustering results\nacross multiple executions.\n",
+            "default" : 0
+          },
+          "useRandomSeed" : {
+            "type" : "boolean",
+            "title" : "Use seed for random initialization",
+            "description" : "If this checkbox is set, a seed can be set for initializing the cluster prototypes.",
+            "default" : false
+          },
+          "usedAttributes" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            },
+            "title" : "Used attributes",
+            "description" : "Select the columns that are to be used for clustering. Make sure that the input data is\nnormalized to obtain better clustering results.\n",
+            "default" : [ ]
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/nrClusters",
+      "options" : {
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 9999.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 9999.0
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 1.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 1.0
+            }
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/maxNrIterations",
+      "options" : {
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 9999.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 9999.0
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 1.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 1.0
+            }
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/fuzzifier",
+      "options" : {
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 10.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 10.0
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be greater than 1.",
+            "parameters" : {
+              "isExclusive" : true,
+              "min" : 1.0
+            }
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/useRandomSeed",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/randomSeed",
+      "options" : {
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 2147483647.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 2.147483647E9
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least -2147483648.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : -2.147483648E9
+            }
+          }
+        }
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/useRandomSeed",
+          "schema" : {
+            "const" : true
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/drawSeed",
+      "options" : {
+        "format" : "simpleButton",
+        "triggerId" : "org.knime.base.node.mine.cluster.fuzzycmeans.FuzzyClusterNodeParameters$DrawSeedButtonRef"
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/useRandomSeed",
+          "schema" : {
+            "const" : true
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/keepAllColumnsSelected",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/usedAttributes",
+      "options" : {
+        "format" : "twinList"
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "label" : "Noise Clustering",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/noise",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/deltaMethod",
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/noise",
+            "schema" : {
+              "const" : true
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/delta",
+        "options" : {
+          "validation" : {
+            "max" : {
+              "errorMessage" : "The value must not exceed 1.",
+              "parameters" : {
+                "isExclusive" : false,
+                "max" : 1.0
+              }
+            },
+            "min" : {
+              "errorMessage" : "The value must be greater than 0.",
+              "parameters" : {
+                "isExclusive" : true,
+                "min" : 0.0
+              }
+            }
+          }
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "type" : "AND",
+            "conditions" : [ {
+              "scope" : "#/properties/model/properties/deltaMethod",
+              "schema" : {
+                "oneOf" : [ {
+                  "const" : "SET_DELTA"
+                } ]
+              }
+            }, {
+              "scope" : "#/properties/model/properties/noise",
+              "schema" : {
+                "const" : true
+              }
+            } ]
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/lambda",
+        "options" : {
+          "validation" : {
+            "max" : {
+              "errorMessage" : "The value must not exceed 1.",
+              "parameters" : {
+                "isExclusive" : false,
+                "max" : 1.0
+              }
+            },
+            "min" : {
+              "errorMessage" : "The value must be greater than 0.",
+              "parameters" : {
+                "isExclusive" : true,
+                "min" : 0.0
+              }
+            }
+          }
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "type" : "AND",
+            "conditions" : [ {
+              "scope" : "#/properties/model/properties/deltaMethod",
+              "schema" : {
+                "oneOf" : [ {
+                  "const" : "AUTO_DELTA"
+                } ]
+              }
+            }, {
+              "scope" : "#/properties/model/properties/noise",
+              "schema" : {
+                "const" : true
+              }
+            } ]
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/memory",
+        "options" : {
+          "format" : "checkbox",
+          "isAdvanced" : true
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/measures",
+        "options" : {
+          "format" : "checkbox",
+          "isAdvanced" : true
+        }
+      } ]
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "nrClusters" : {
+            "configKey" : "nrclusters"
+          },
+          "maxNrIterations" : {
+            "configKey" : "maxiterations"
+          },
+          "fuzzifier" : {
+            "configKey" : "fuzzifier"
+          },
+          "useRandomSeed" : {
+            "configKey" : "useRandomSeed"
+          },
+          "randomSeed" : {
+            "configKey" : "randomSeed"
+          },
+          "drawSeed" : { },
+          "keepAllColumnsSelected" : {
+            "configKey" : "keep_all_columns"
+          },
+          "usedAttributes" : {
+            "configKey" : "exclude"
+          },
+          "noise" : {
+            "configKey" : "noise"
+          },
+          "deltaMethod" : { },
+          "delta" : {
+            "configPaths" : [ [ "delta" ] ]
+          },
+          "lambda" : {
+            "configPaths" : [ [ "lambda" ] ]
+          },
+          "memory" : {
+            "configKey" : "memory"
+          },
+          "measures" : {
+            "configKey" : "measures"
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/usedAttributes",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Universe_0_0",
+        "text" : "Universe_0_0",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Universe_0_1",
+        "text" : "Universe_0_1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Universe_1_0",
+        "text" : "Universe_1_0",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Universe_1_1",
+        "text" : "Universe_1_1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "feature1",
+        "text" : "feature1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "feature2",
+        "text" : "feature2",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      } ]
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "id" : "org.knime.base.node.mine.cluster.fuzzycmeans.FuzzyClusterNodeParameters$DrawSeedButtonRef"
+    },
+    "dependencies" : [ ]
+  } ]
+}

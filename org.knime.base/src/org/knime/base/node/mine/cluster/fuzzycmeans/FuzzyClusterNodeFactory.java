@@ -44,8 +44,25 @@
  */
 package org.knime.base.node.mine.cluster.fuzzycmeans;
 
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
+import org.knime.node.impl.description.ViewDescription;
 
 /**
  * Create classes for fuzzy c-means Clustering NodeModel, NodeView and
@@ -53,15 +70,15 @@ import org.knime.core.node.NodeFactory;
  *
  * @author Michael Berthold, University of Konstanz
  * @author Nicolas Cebron, University of Konstanz
+ * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.2
  */
+@SuppressWarnings("restriction")
 public class FuzzyClusterNodeFactory extends
-        NodeFactory<FuzzyClusterNodeModel> {
+        NodeFactory<FuzzyClusterNodeModel> implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     private boolean m_showPMMLInput;
 
-    /**
-     *
-     */
     public FuzzyClusterNodeFactory() {
         this(true);
     }
@@ -71,25 +88,16 @@ public class FuzzyClusterNodeFactory extends
 
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public FuzzyClusterNodeModel createNodeModel() {
         return new FuzzyClusterNodeModel(m_showPMMLInput);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int getNrNodeViews() {
         return 1;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public FuzzyClusterNodeView createNodeView(final int i,
             final FuzzyClusterNodeModel nodeModel) {
@@ -102,18 +110,93 @@ public class FuzzyClusterNodeFactory extends
     }
 
     /**
-     * {@inheritDoc}
+     * @since 5.9
      */
     @Override
     public NodeDialogPane createNodeDialogPane() {
-        return new FuzzyClusterNodeDialog();
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean hasDialog() {
         return true;
+    }
+
+    private static final String NODE_NAME = "Fuzzy c-Means";
+    private static final String NODE_ICON = "./kmeans.png";
+
+    private static final String SHORT_DESCRIPTION = """
+            Performs fuzzy c-means clustering.
+            """;
+
+    private static final String FULL_DESCRIPTION = """
+            <p> The fuzzy c-means algorithm is a well-known unsupervised learning technique that can be used to
+                reveal the underlying structure of the data. Fuzzy clustering allows each data point to belong to
+                several clusters, with a degree of membership to each one.<br /> <b>Make sure that the input data is
+                normalized to obtain better clustering results.</b><br /> The first output datatable provides the
+                original datatable with the cluster memberships to each cluster.
+                The second datatable provides the values of the cluster prototypes.
+                <br /> Additionally, it is possible to induce a noise cluster, to detect noise in the
+                dataset, based on the approach from R. N. Dave: 'Characterization and detection of noise in clustering'.
+                </p>
+            """;
+
+    private static final List<PortDescription> INPUT_PORTS = List.of(
+            fixedPort("Training data", """
+                Datatable with training data. Make sure that the data are normalized!
+                """),
+            fixedPort("PMML Preprocessing", """
+                Optional PMML port object containing preprocessing operations.
+                """)
+    );
+
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(
+            fixedPort("Cluster Memberships", """
+                Input table extended by cluster membership
+                """),
+            fixedPort("Prototypes", """
+                Cluster centers
+                """)
+    );
+
+    private static final List<ViewDescription> VIEWS = List.of(
+            new ViewDescription("Statistics View", """
+                Shows the WithinClusterVariation and the BetweenClusterVariation, which are indicators for 'good'
+                clustering.
+                """)
+    );
+
+    /**
+     * @since 5.9
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, FuzzyClusterNodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription(
+            NODE_NAME,
+            NODE_ICON,
+            m_showPMMLInput ? INPUT_PORTS : List.of(INPUT_PORTS.get(0)),
+            OUTPUT_PORTS,
+            SHORT_DESCRIPTION,
+            FULL_DESCRIPTION,
+            List.of(),
+            FuzzyClusterNodeParameters.class,
+            VIEWS,
+            NodeType.Learner,
+            List.of(),
+            null
+        );
+    }
+
+    /**
+     * @since 5.9
+     */
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, FuzzyClusterNodeParameters.class));
     }
 }

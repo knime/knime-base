@@ -54,9 +54,6 @@ package org.knime.base.node.mine.cluster.fuzzycmeans;
  */
 public class FuzzyClusterNodeFactory2 extends FuzzyClusterNodeFactory {
 
-    /**
-     *
-     */
     public FuzzyClusterNodeFactory2() {
         super(false);
     }
