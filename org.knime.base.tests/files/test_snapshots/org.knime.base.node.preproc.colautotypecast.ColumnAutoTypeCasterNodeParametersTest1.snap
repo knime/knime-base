@@ -123,7 +123,7 @@
               }
             },
             "title" : "Column filter",
-            "description" : "Select the string columns to consider for automatic type casting. Only columns compatible with String are offered. The filter supports manual selection and wildcard/regex.",
+            "description" : "Select the string columns to consider for automatic type casting. The filter supports manual selection and wildcard/regex.",
             "default" : {
               "mode" : "MANUAL",
               "patternFilter" : {
