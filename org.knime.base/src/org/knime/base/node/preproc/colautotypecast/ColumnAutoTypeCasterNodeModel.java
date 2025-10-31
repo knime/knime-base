@@ -259,20 +259,20 @@ public class ColumnAutoTypeCasterNodeModel extends NodeModel {
                 DataColumnSpecCreator colSpecCreator = new DataColumnSpecCreator(incls[i], types[i]);
                 DataColumnSpec colSpec = colSpecCreator.createSpec();
 
-                if (type.equals(DateAndTimeCell.TYPE)) {
+                if (m_useLegacyDateTimeType && type.equals(DateAndTimeCell.TYPE)) {
                     arrange.replace(createLegacyDateAndTimeConverter(colIdx, colSpec), colIdx);
-                } else if (type.equals(ZONED_DATE_TIME_TYPE.get())) {
+                } else if (!m_useLegacyDateTimeType && type.equals(ZONED_DATE_TIME_TYPE.get())) {
                     arrange.replace(
                         createDateAndTimeConverter(colIdx, colSpec, ZONED_DATE_TIME_TYPE.get(), ZonedDateTime::from),
                         colIdx);
-                } else if (type.equals(LOCAL_DATE_TIME_TYPE.get())) {
+                } else if (!m_useLegacyDateTimeType && type.equals(LOCAL_DATE_TIME_TYPE.get())) {
                     arrange.replace(
                         createDateAndTimeConverter(colIdx, colSpec, LOCAL_DATE_TIME_TYPE.get(), LocalDateTime::from),
                         colIdx);
-                } else if (type.equals(LOCAL_DATE_TYPE.get())) {
+                } else if (!m_useLegacyDateTimeType && type.equals(LOCAL_DATE_TYPE.get())) {
                     arrange.replace(createDateAndTimeConverter(colIdx, colSpec, LOCAL_DATE_TYPE.get(), LocalDate::from),
                         colIdx);
-                } else if (type.equals(LOCAL_TIME_TYPE.get())) {
+                } else if (!m_useLegacyDateTimeType && type.equals(LOCAL_TIME_TYPE.get())) {
                     arrange.replace(createDateAndTimeConverter(colIdx, colSpec, LOCAL_TIME_TYPE.get(), LocalTime::from),
                         colIdx);
                 } else if (type.equals(LongCell.TYPE)) {
@@ -442,8 +442,9 @@ public class ColumnAutoTypeCasterNodeModel extends NodeModel {
                      */
                     return CELL_FACTORY.createDataCellOfType(dataType, parsedDateTime.toString());
                 } catch (DateTimeParseException e) {
-                    throw new IllegalArgumentException("Can't convert '" + str + "' to " + dataType.toString() + ". In "
-                        + row.getKey() + " Column" + colIdx + ". Disable quickscan and try again.", e);
+                    throw new IllegalArgumentException("Can't convert '" + str + "' with format: '" + m_dateFormat
+                        + "' to " + dataType.toString() + ". In " + row.getKey() + " Column" + colIdx
+                        + ". Disable quickscan or change the format and try again.", e);
                 }
             }
         };
