@@ -61,9 +61,19 @@ import org.knime.core.node.defaultnodesettings.SettingsModelDoubleBounded;
  */
 public class PCAApplySettings extends TransformationApplySettings {
 
-    private static final String INFORMATION_PRESERVATION_CFG = "information_preservation";
+    /**
+     * Configuration key for information preservation setting
+     *
+     * @since 5.9
+     */
+    public static final String INFORMATION_PRESERVATION_CFG = "information_preservation";
 
-    private static final String DIMENSION_SELECTED_CFG = "use_fixed_number_dimensions";
+    /**
+     * Configuration key for dimension selection setting
+     *
+     * @since 5.9
+     */
+    public static final String DIMENSION_SELECTED_CFG = "use_fixed_number_dimensions";
 
     private final SettingsModelDoubleBounded m_infPreservation =
         new SettingsModelDoubleBounded(INFORMATION_PRESERVATION_CFG, 100, 0.01, 100);

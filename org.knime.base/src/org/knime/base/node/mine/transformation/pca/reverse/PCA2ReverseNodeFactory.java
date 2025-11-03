@@ -132,7 +132,7 @@ public class PCA2ReverseNodeFactory extends NodeFactory<PCA2ReverseNodeModel>
     );
 
     private static final List<String> KEYWORDS = List.of( //
-		"principal component analysis" //
+        "principal component analysis" //
     );
 
     /**

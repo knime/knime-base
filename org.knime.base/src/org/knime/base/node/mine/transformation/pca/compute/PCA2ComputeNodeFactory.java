@@ -144,7 +144,7 @@ public final class PCA2ComputeNodeFactory extends NodeFactory<PCA2ComputeNodeMod
     );
 
     private static final List<String> KEYWORDS = List.of( //
-		"principal component analysis" //
+        "principal component analysis" //
     );
 
     /**
