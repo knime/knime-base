@@ -43,97 +43,141 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ------------------------------------------------------------------------
  */
-    
+
 package org.knime.filehandling.utility.nodes.tempdir;
 
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
+import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FolderSelectionWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification.WidgetGroupModifier;
 import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.WidgetGroup;
 import org.knime.node.parameters.array.ArrayWidget;
+import org.knime.node.parameters.layout.After;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.layout.Section;
 import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
-import org.knime.node.parameters.persistence.legacy.LegacyFileWriter;
-import org.knime.node.parameters.persistence.Persistor;
-import org.knime.node.parameters.widget.text.TextInputWidget;
 import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.persistence.Persistor;
+import org.knime.node.parameters.persistence.legacy.LegacyFileWriter;
+import org.knime.node.parameters.widget.message.TextMessage;
+import org.knime.node.parameters.widget.message.TextMessage.MessageType;
+import org.knime.node.parameters.widget.message.TextMessage.SimpleTextMessageProvider;
+import org.knime.node.parameters.widget.text.TextInputWidget;
 
 /**
  * Node parameters for Create Temp Folder.
- * 
+ *
  * @author Martin Horn, KNIME GmbH, Konstanz, Germany
  * @author AI Migration Pipeline v1.2
  */
 @LoadDefaultsForAbsentFields
-class CreateTempDir2NodeParameters extends LegacyFileWriter implements NodeParameters {
-    
-    static final class CreateTempDirModifier implements LegacyFileWriterModifier {
-        
-        @Override
-        public void modifyWidgetGroup(final WidgetGroupModifier group) {
-            findFileSelection(group)
-                .setTitle("Folder")
-                .setDescription("Enter a valid location where the temporary folder will be created at. The required syntax of a " +
-                    "path depends on the chosen file system, such as \"C:\\path\\to\\file\" (Local File System on Windows) " +
-                    "or \"/path/to/file\" (Local File System on Linux/MacOS and Mountpoint). For file systems connected " +
-                    "via input port, the node description of the respective connector node describes the required path " +
-                    "format. You can also choose a previously selected folder from the drop-down list, or select a " +
-                    "location from the \"Browse...\" dialog. Note that browsing is disabled in some cases: <ul> " +
-                    "<li><i>Mountpoint:</i> Browsing is disabled if the selected mountpoint isn't connected. Go to the " +
-                    "KNIME Explorer and connect to the mountpoint to enable browsing.</li> <li><i>File systems " +
-                    "provided via input port:</i> Browsing is disabled if the connector node hasn't been executed " +
-                    "since the workflow has been opened. (Re)execute the connector node to enable browsing.</li> </ul> " +
-                    "<i>The location can be exposed as or automatically set via a </i><a " +
-                    "href=\"https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html#path\"> " +
-                    "<i>path flow variable.</i></a>")
-                .addAnnotation(FolderSelectionWidget.class);
-                
-            findCreateMissingFolders(group)
-                .setTitle("Create missing folders")
-                .setDescription("Select if the folders of the selected output location should be created if they do not already exist. " +
-                    "If this option is unchecked, the node will fail if a folder does not exist.");
-        }
+class CreateTempDir2NodeParameters implements NodeParameters {
+
+    @Section(title = "Output Location")
+    interface OutputLocation {
     }
-    
-    @Widget(title = "Output location", description = "Select a file system and location for creating the temporary folder.")
-    @Modification.WidgetGroupModifier(CreateTempDirModifier.class)
-    WidgetGroup m_outputLocation;
-    
+
+    @Section(title = "File Options")
+    @After(OutputLocation.class)
+    interface FileOptions {
+    }
+
+    @Section(title = "Additional Path Variables",
+        description = "A list of additional variables that will be created by the node. Each variable will denote a path to a file or folder.")
+    @After(FileOptions.class)
+    interface AdditionalPathVariablesSection {
+    }
+
+    static final class FileSystemManagedByPortMessage implements SimpleTextMessageProvider {
+
+        @Override
+        public boolean showMessage(final NodeParametersInput context) {
+            return FileSystemPortConnectionUtil.hasEmptyFileSystemPort(context);
+        }
+
+        @Override
+        public String title() {
+            return "File system managed by File System Input Port";
+        }
+
+        @Override
+        public String description() {
+            return "No file system is currently connected. To proceed, either connect a file system to the input"
+                + " port or remove the port.";
+        }
+
+        @Override
+        public MessageType type() {
+            return MessageType.INFO;
+        }
+
+    }
+
+    @TextMessage(value = FileSystemManagedByPortMessage.class)
+    @Layout(OutputLocation.class)
+    Void m_fileSystemManagedByPortMessage;
+
+    @Layout(OutputLocation.class)
+    @Modification(LegacyFileWriterModifier.class)
+    @Persist(configKey = "temp_dir_location")
+    LegacyFileWriter m_targetFolder = new LegacyFileWriter();
+
+    static final class LegacyFileWriterModifier implements LegacyFileWriter.LegacyFileWriterModifier {
+
+        @Override
+        public void modify(final WidgetGroupModifier group) {
+            final var fileSelection = LegacyFileWriter.LegacyFileWriterModifier.findFileSelection(group);
+            fileSelection.modifyAnnotation(Widget.class).withProperty("title", "Folder")//
+                .withProperty("description",
+                    "Select a file system and location for creating the temporary folder. TODO") // TODO update
+                .modify();
+            fileSelection.addAnnotation(FolderSelectionWidget.class).modify();
+        }
+
+    }
+
+    @Layout(FileOptions.class)
     @Widget(title = "Delete temp folder on reset",
         description = "Check this box to delete the folder and all its content when the node is reset.")
     @Persist(configKey = "delete_on_reset")
     boolean m_deleteTempFolderOnReset = true;
-    
+
+    @Layout(FileOptions.class)
     @Widget(title = "Temp folder prefix",
         description = "Name prefix of the temporary folder. It will be amended by some random number to ensure uniqueness.")
     @TextInputWidget
     @Persist(configKey = "temp_dir_prefix")
     String m_tempFolderPrefix = "knimetemp-";
-    
+
+    @Layout(FileOptions.class)
     @Widget(title = "Export path as (variable name)",
         description = "The name of the exported variable denoting the actual path of the created temporary folder.")
     @TextInputWidget
     @Persist(configKey = "temp_dir_path_variable_name")
     String m_tempDirPathVariableName = "temp_dir_path";
-    
+
+    @Layout(AdditionalPathVariablesSection.class)
     @Widget(title = "Additional path variables",
         description = "A list of additional variables that will be created by the node. Each variable will denote a path to a file or folder.")
     @ArrayWidget(addButtonText = "Add path variable", elementTitle = "Path Variable")
     @Persistor(PathVariableArrayPersistor.class)
     PathVariable[] m_additionalPathVariables = {};
-    
+
     static class PathVariable implements WidgetGroup {
-        
+
         @Widget(title = "Variable name", description = "The name of the path variable.")
         @TextInputWidget
         String m_variableName = "";
-        
+
         @Widget(title = "Path", description = "The path relative to the temporary directory.")
         @TextInputWidget
         String m_path = "";
-        
-        @Widget(title = "File extension", description = "Optional file extension (e.g., .txt, .csv). Leave empty for folder variables.")
+
+        @Widget(title = "File extension",
+            description = "Optional file extension (e.g., .txt, .csv). Leave empty for folder variables.")
         @TextInputWidget
         String m_extension = "";
     }

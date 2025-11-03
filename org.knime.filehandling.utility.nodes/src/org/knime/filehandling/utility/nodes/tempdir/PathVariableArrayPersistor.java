@@ -49,7 +49,6 @@
 package org.knime.filehandling.utility.nodes.tempdir;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.knime.core.node.InvalidSettingsException;
@@ -107,13 +106,13 @@ final class PathVariableArrayPersistor implements NodeParametersPersistor<Create
     private CreateTempDir2NodeParameters.PathVariable[] loadBackwardsCompatible(final NodeSettingsRO settings) throws InvalidSettingsException {
         final String[] varNames = settings.getStringArray("additional_variable_names");
         final String[] varValues = settings.getStringArray("additional_variable_values");
-        
+
         final List<CreateTempDir2NodeParameters.PathVariable> pathVars = new ArrayList<>();
         for (int i = 0; i < Math.min(varNames.length, varValues.length); i++) {
             if (!varNames[i].trim().isEmpty()) {
                 final CreateTempDir2NodeParameters.PathVariable pathVar = new CreateTempDir2NodeParameters.PathVariable();
                 pathVar.m_variableName = varNames[i];
-                
+
                 // Split value into path and extension if contains dot
                 final String value = varValues[i];
                 final int lastDotIndex = value.lastIndexOf('.');
@@ -134,7 +133,7 @@ final class PathVariableArrayPersistor implements NodeParametersPersistor<Create
     @Override
     public void save(final CreateTempDir2NodeParameters.PathVariable[] pathVariables, final NodeSettingsWO settings) {
         final NodeSettingsWO varSettings = settings.addNodeSettings(CFG_KEY);
-        
+
         final List<String> names = new ArrayList<>();
         final List<String> values = new ArrayList<>();
         final List<String> extensions = new ArrayList<>();
@@ -153,7 +152,7 @@ final class PathVariableArrayPersistor implements NodeParametersPersistor<Create
     }
 
     @Override
-    public String[] getConfigPaths() {
-        return new String[]{CFG_KEY};
+    public String[][] getConfigPaths() {
+        return new String[][]{{CFG_KEY}};
     }
 }
