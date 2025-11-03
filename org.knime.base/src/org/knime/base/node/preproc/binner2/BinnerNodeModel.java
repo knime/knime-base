@@ -326,7 +326,7 @@ final class BinnerNodeModel extends WebUINodeModel<BinnerNodeSettings> {
     private static BinNamingScheme createBinNamingScheme(final BinnerNodeSettings settings,
         final DataColumnSpec colSpec) {
         var binNaming = switch (settings.m_binNames) {
-            case NUMBERED -> BinNamingUtils.numberedBinNaming;
+            case NUMBERED -> BinNamingUtils.getNumberedBinNaming(settings.m_usePrefix ? settings.m_prefix : "Bin ");
             case BORDERS -> BinNamingUtils.getBordersBinNaming(getNumberFormatting(colSpec));
             case MIDPOINTS -> BinNamingUtils.getMidpointsBinNaming(getNumberFormatting(colSpec));
         };

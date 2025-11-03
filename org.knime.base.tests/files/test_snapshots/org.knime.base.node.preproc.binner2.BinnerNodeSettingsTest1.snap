@@ -34,6 +34,7 @@
       "fixUpperBound" : false,
       "fixedUpperBound" : 0.0,
       "binNames" : "BORDERS",
+      "usePrefix" : false,
       "prefix" : "Bin ",
       "lowerOutlierValue" : "small",
       "upperOutlierValue" : "Upper outlier",
@@ -330,6 +331,10 @@
             "title" : "Upper outlier value",
             "description" : "Label assigned to values above the fixed upper bound.",
             "default" : "Upper outlier"
+          },
+          "usePrefix" : {
+            "type" : "boolean",
+            "default" : true
           }
         }
       }
@@ -705,6 +710,9 @@
           },
           "fixedUpperBound" : { },
           "binNames" : { },
+          "usePrefix" : {
+            "configPaths" : [ ]
+          },
           "prefix" : { },
           "lowerOutlierValue" : { },
           "upperOutlierValue" : { },
