@@ -48,16 +48,36 @@
  */
 package org.knime.base.node.mine.transformation.pca.compute;
 
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
 
 /**
  * The PCA compute node factory.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
+ * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.2
  */
-public final class PCA2ComputeNodeFactory extends NodeFactory<PCA2ComputeNodeModel> {
+@SuppressWarnings("restriction")
+public final class PCA2ComputeNodeFactory extends NodeFactory<PCA2ComputeNodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     @Override
     public PCA2ComputeNodeModel createNodeModel() {
@@ -78,10 +98,96 @@ public final class PCA2ComputeNodeFactory extends NodeFactory<PCA2ComputeNodeMod
     protected boolean hasDialog() {
         return true;
     }
+    private static final String NODE_NAME = "PCA Compute";
+
+    private static final String NODE_ICON = "./../../../pca/pca_compute.png";
+
+    private static final String SHORT_DESCRIPTION = """
+            Principal component analysis computation
+            """;
+
+    private static final String FULL_DESCRIPTION = """
+            This node performs a <a href="http://en.wikipedia.org/wiki/Principal_component_analysis"> principal
+                component analysis (PCA)</a> on the given input data. The directions of maximal variance (the principal
+                components) are extracted and can be used in the PCA Apply node to project the input into a space of
+                lower dimension while preserving a maximum of information.
+            """;
+
+    private static final List<PortDescription> INPUT_PORTS = List.of(
+            fixedPort("Table to transform", """
+                Input data for the PCA
+                """)
+    );
+
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(
+            fixedPort("Covariance matrix", """
+                Covariance matrix of the input columns
+                """),
+            fixedPort("Spectral decomposition", """
+                Table containing parameters extracted from the PCA. Each row in the table represents one principal
+                component, whereby the rows are sorted with decreasing eigenvalues, i.e. variance along the
+                corresponding principal axis. The first column in the table contains the component's eigenvalue, a high
+                value indicates a high variance (or in other words, the respective component dominates the orientation
+                of the input data). <br /> Each subsequent column (labeled with the name of the selected input column)
+                contains a coefficient representing the influence of the respective input dimension to the principal
+                component. The higher the absolute value, the higher the influence of the input dimension on the
+                principal component. <br /> The mapping of the input rows to, e.g. the first principal axis, is computed
+                as follows (all done in the PCA Apply node): For each dimension in the original space subtract the
+                dimension's mean value and then multiply the resulting vector with the vector given by this table (the
+                first row in the spectral decomposition table to get the value on the first PC, the second row for the
+                second PC and so on).
+                """),
+            fixedPort("Transformation model", """
+                Model holding the PCA transformation used by the PCA Apply node to apply the transformation to, e.g.
+                another validation set.
+                """)
+    );
+
+    private static final List<String> KEYWORDS = List.of( //
+		"principal component analysis" //
+    );
+
+    /**
+     * @since 5.9
+     */
+    @Override
+    public NodeDialogPane createNodeDialogPane() {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    /**
+     * @since 5.9
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, PCA2ComputeNodeParameters.class);
+    }
 
     @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new PCA2ComputeNodeDialog();
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription(
+            NODE_NAME,
+            NODE_ICON,
+            INPUT_PORTS,
+            OUTPUT_PORTS,
+            SHORT_DESCRIPTION,
+            FULL_DESCRIPTION,
+            List.of(),
+            PCA2ComputeNodeParameters.class,
+            null,
+            NodeType.Manipulator,
+            KEYWORDS,
+            null
+        );
     }
+
+    /**
+     * @since 5.9
+     */
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, PCA2ComputeNodeParameters.class));
+    }
+
 
 }
