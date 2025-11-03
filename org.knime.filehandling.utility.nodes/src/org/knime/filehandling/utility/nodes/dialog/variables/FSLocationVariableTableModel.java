@@ -48,9 +48,7 @@
  */
 package org.knime.filehandling.utility.nodes.dialog.variables;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.stream.IntStream;
 
 import javax.swing.table.AbstractTableModel;
@@ -59,7 +57,6 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.util.KeyValuePanel;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.filehandling.core.connections.FSLocation;
@@ -74,12 +71,6 @@ public class FSLocationVariableTableModel extends AbstractTableModel {
 
     private static final long serialVersionUID = 1L;
 
-    private static final String CFG_VAR_NAMES = "variable_names";
-
-    private static final String CFG_VAR_PATH_VALUE = "path_values";
-
-    private static final String CFG_VAR_PATH_EXTENSION = "file_extensions";
-
     private static final int VARNAME_COL_IDX = 0;
 
     private static final int BASE_LOCATION_COL_IDX = 1;
@@ -92,11 +83,7 @@ public class FSLocationVariableTableModel extends AbstractTableModel {
 
     private final String m_cfgKey;
 
-    private List<String> m_varNames;
-
-    private List<String> m_varPathValues;
-
-    private List<String> m_varFileExtension;
+    private FSLocationVariables m_variables;
 
     private String m_pathBaseLocation;
 
@@ -111,9 +98,7 @@ public class FSLocationVariableTableModel extends AbstractTableModel {
     }
 
     private void initDefaults() {
-        m_varNames = new ArrayList<>();
-        m_varPathValues = new ArrayList<>();
-        m_varFileExtension = new ArrayList<>();
+        m_variables = FSLocationVariables.empty();
     }
 
     /**
@@ -122,7 +107,7 @@ public class FSLocationVariableTableModel extends AbstractTableModel {
      * @return the names of the variables
      */
     public String[] getVarNames() {
-        return m_varNames.toArray(new String[0]);
+        return m_variables.names();
     }
 
     /**
@@ -131,13 +116,13 @@ public class FSLocationVariableTableModel extends AbstractTableModel {
      * @return the locations
      */
     public String[] getLocations() {
-        return IntStream.range(0, m_varPathValues.size())//
-            .mapToObj(i -> m_varPathValues.get(i) + getExtension(i))//
+        return IntStream.range(0, m_variables.paths().length)//
+            .mapToObj(i -> m_variables.paths()[i] + getExtension(i))//
             .toArray(String[]::new);
     }
 
     private String getExtension(final int idx) {
-        final String val = m_varFileExtension.get(idx);
+        final String val = m_variables.extensions()[idx];
         if (!val.isEmpty() && !val.startsWith(".")) {
             return "." + val;
         } else {
@@ -165,17 +150,7 @@ public class FSLocationVariableTableModel extends AbstractTableModel {
     public void validateSettingsForModel(final NodeSettingsRO settings, final boolean emptyAllowed)
         throws InvalidSettingsException {
         NodeSettingsRO varSettings = settings.getNodeSettings(m_cfgKey);
-        final String[] varNames = varSettings.getStringArray(CFG_VAR_NAMES);
-        String[] varBody = varSettings.getStringArray(CFG_VAR_PATH_VALUE);
-        String[] varExtension = varSettings.getStringArray(CFG_VAR_PATH_EXTENSION);
-        for (final String varName : varNames) {
-            CheckUtils.checkSetting(!varName.isEmpty(), "Please assign names to each flow variable to be created");
-        }
-        if (!emptyAllowed) {
-            CheckUtils.checkSetting(varNames.length > 0, "Please specify at least one variable to be created");
-        }
-        CheckUtils.checkSetting(varNames.length * 2 == varBody.length + varExtension.length,
-            "The number of variable names, body and extensions must be equal");
+        FSLocationVariables.load(varSettings).validate(emptyAllowed);
     }
 
     /**
@@ -186,9 +161,7 @@ public class FSLocationVariableTableModel extends AbstractTableModel {
      */
     public void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         NodeSettingsRO varSettings = settings.getNodeSettings(m_cfgKey);
-        m_varNames = arrayToList(varSettings.getStringArray(CFG_VAR_NAMES));
-        m_varPathValues = arrayToList(varSettings.getStringArray(CFG_VAR_PATH_VALUE));
-        m_varFileExtension = arrayToList(varSettings.getStringArray(CFG_VAR_PATH_EXTENSION));
+        m_variables = FSLocationVariables.load(varSettings);
     }
 
     /**
@@ -202,30 +175,9 @@ public class FSLocationVariableTableModel extends AbstractTableModel {
     public void loadBackwardsCompatible(final NodeSettingsRO settings, final String namesCfgKey,
         final String valuesCfgKey) throws InvalidSettingsException {
         try {
-            final String[] varNames = settings.getStringArray(namesCfgKey);
-            final String[] varValues = settings.getStringArray(valuesCfgKey);
-            final String[] fileExtension = new String[varValues.length];
-            splitValuesAndExtension(varValues, fileExtension);
-            setEntries(varNames, varValues, fileExtension);
+            m_variables = FSLocationVariables.loadBackwardsCompatible(settings, namesCfgKey, valuesCfgKey);
         } catch (final InvalidSettingsException e) { //NOSONAR
             throw new InvalidSettingsException(String.format("Config for key \"%s\" not found.", m_cfgKey), e);
-        }
-    }
-
-    private static void splitValuesAndExtension(final String[] varValues, final String[] fileExtension) {
-        for (int i = 0; i < varValues.length; i++) {
-            final int delIdx = varValues[i].lastIndexOf('.');
-            final String body;
-            final String extension;
-            if (delIdx > 0) {
-                body = varValues[i].substring(0, delIdx);
-                extension = varValues[i].substring(delIdx, varValues[i].length());
-            } else {
-                body = varValues[i];
-                extension = "";
-            }
-            varValues[i] = body;
-            fileExtension[i] = extension;
         }
     }
 
@@ -236,18 +188,14 @@ public class FSLocationVariableTableModel extends AbstractTableModel {
      */
     public void saveSettingsForModel(final NodeSettingsWO settings) {
         NodeSettingsWO varSettings = settings.addNodeSettings(m_cfgKey);
-        varSettings.addStringArray(CFG_VAR_NAMES, m_varNames.toArray(new String[0]));
-        varSettings.addStringArray(CFG_VAR_PATH_VALUE, m_varPathValues.toArray(new String[0]));
-        varSettings.addStringArray(CFG_VAR_PATH_EXTENSION, m_varFileExtension.toArray(new String[0]));
+        m_variables.save(varSettings);
     }
 
     void loadSettingsForDialog(final NodeSettingsRO settings) {
         NodeSettingsRO varSettings;
         try {
             varSettings = settings.getNodeSettings(m_cfgKey);
-            m_varNames = arrayToList(varSettings.getStringArray(CFG_VAR_NAMES));
-            m_varPathValues = arrayToList(varSettings.getStringArray(CFG_VAR_PATH_VALUE));
-            m_varFileExtension = arrayToList(varSettings.getStringArray(CFG_VAR_PATH_EXTENSION));
+            m_variables = FSLocationVariables.load(varSettings);
         } catch (InvalidSettingsException e) { //NOSONAR
             initDefaults();
         }
@@ -258,27 +206,20 @@ public class FSLocationVariableTableModel extends AbstractTableModel {
     }
 
     void addRow() {
-        m_varNames.add("");
-        m_varPathValues.add("");
-        m_varFileExtension.add("");
+        m_variables = m_variables.add("", "", "");
         fireTableRowsInserted(getRowCount(), getRowCount());
     }
 
     void removeRows(final int... toRemove) {
-        Arrays.sort(toRemove);
-        final int lastIdx = toRemove.length - 1;
-        for (int i = lastIdx; i >= 0; i--) {
-            final int rowIndex = toRemove[i];
-            m_varNames.remove(rowIndex);
-            m_varPathValues.remove(rowIndex);
-            m_varFileExtension.remove(rowIndex);
-        }
-        fireTableRowsDeleted(toRemove[0], toRemove[lastIdx]);
+        m_variables = m_variables.remove(toRemove);
+        int firstRow = Arrays.stream(toRemove).min().getAsInt();
+        int lastRow = Arrays.stream(toRemove).max().getAsInt();
+        fireTableRowsDeleted(firstRow, lastRow);
     }
 
     @Override
     public int getRowCount() {
-        return m_varNames.size();
+        return m_variables.count();
     }
 
     @Override
@@ -294,13 +235,13 @@ public class FSLocationVariableTableModel extends AbstractTableModel {
     @Override
     public String getValueAt(final int rowIndex, final int columnIndex) {
         if (columnIndex == VARNAME_COL_IDX) {
-            return m_varNames.get(rowIndex);
+            return m_variables.names()[rowIndex];
         } else if (columnIndex == BASE_LOCATION_COL_IDX) {
             return m_pathBaseLocation;
         } else if (columnIndex == PATH_VALUE_COL_IDX) {
-            return m_varPathValues.get(rowIndex);
+            return m_variables.paths()[rowIndex];
         } else if (columnIndex == PATH_EXTENSION_COL_IDX) {
-            return m_varFileExtension.get(rowIndex);
+            return m_variables.extensions()[rowIndex];
         } else {
             throw new IndexOutOfBoundsException();
         }
@@ -311,13 +252,13 @@ public class FSLocationVariableTableModel extends AbstractTableModel {
         final String val = (String)aValue;
         if (!val.equals(getValueAt(rowIndex, columnIndex))) {
             if (columnIndex == VARNAME_COL_IDX) {
-                m_varNames.set(rowIndex, val);
+                m_variables.names()[rowIndex] = val;
             } else if (columnIndex == BASE_LOCATION_COL_IDX) {
                 throw new IllegalArgumentException("Can't set the reorder column.");
             } else if (columnIndex == PATH_VALUE_COL_IDX) {
-                m_varPathValues.set(rowIndex, val);
+                m_variables.paths()[rowIndex] = val;
             } else if (columnIndex == PATH_EXTENSION_COL_IDX) {
-                m_varFileExtension.set(rowIndex, val);
+                m_variables.extensions()[rowIndex] = val;
             } else {
                 throw new IndexOutOfBoundsException();
             }
@@ -346,12 +287,7 @@ public class FSLocationVariableTableModel extends AbstractTableModel {
      * @param fileExtension the file extensions
      */
     public void setEntries(final String[] varNames, final String[] varValues, final String[] fileExtension) {
-        m_varNames = arrayToList(varNames);
-        m_varPathValues = arrayToList(varValues);
-        m_varFileExtension = arrayToList(fileExtension);
+        m_variables = new FSLocationVariables(varNames, varValues, fileExtension);
     }
 
-    private static ArrayList<String> arrayToList(final String[] arr) {
-        return new ArrayList<>(Arrays.asList(arr));
-    }
 }

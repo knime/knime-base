@@ -48,27 +48,81 @@
  */
 package org.knime.filehandling.utility.nodes.tempdir;
 
+import static org.knime.node.impl.description.PortDescription.dynamicPort;
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.knime.core.node.ConfigurableNodeFactory;
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeView;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
 import org.knime.filehandling.core.port.FileSystemPortObject;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
 
 /**
  * The NodeFactory for the "Create Temp Dir" Node.
  *
  * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany
+ * @author Martin Horn, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.2
  */
-public final class CreateTempDir2NodeFactory extends ConfigurableNodeFactory<CreateTempDir2NodeModel> {
+@SuppressWarnings("restriction")
+public final class CreateTempDir2NodeFactory extends ConfigurableNodeFactory<CreateTempDir2NodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     private static final String VARIABLE_INPUT_PORT_GRP_NAME = "Variable Input Port";
 
     private static final String VARIABLE_OUTPUT_PORT_GRP_NAME = "Variable Output Ports";
 
     static final String CONNECTION_INPUT_PORT_GRP_NAME = "File System Connection";
+
+    private static final String NODE_NAME = "Create Temp Folder";
+
+    private static final String NODE_ICON = "create_temp_dir.png";
+
+    private static final String SHORT_DESCRIPTION = """
+            Creates a temporary folder upon execute and exposes its path as flow variable.
+            """;
+
+    private static final String FULL_DESCRIPTION =
+        """
+                <p> Creates a temporary folder upon execute and exposes its path as flow variable. This can be useful in
+                    (a) demo applications where the actual path of the output is not all that relevant, e.g. the KNIME
+                    public workflow server and (b) KNIME WebPortal and quickform flows, where some data is written, which is
+                    later downloaded by means of, e.g. a web link. The folder is deleted upon closing the workflow. The node
+                    can be also configured in a way that the created temporary folder is deleted upon reset. <br />
+                    <i>Note:</i> By default the temporary folder is created directly in the workflow data area, as defined
+                    by “.“ in the Folder field </p> <p> <i>This node can access a variety of different</i> <a
+                    href="https://docs.knime.com/2021-06/analytics_platform_file_handling_guide/index.html#analytics-platform-file-systems"><i>file
+                    systems.</i></a> <i>More information about file handling in KNIME can be found in the official</i> <a
+                    href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html"><i>File Handling
+                    Guide.</i></a> </p>
+                """;
+
+    private static final List<PortDescription> INPUT_PORTS = List.of(fixedPort("Input variables (optional)", """
+            Input variables (optional).
+            """), dynamicPort("File System Connection", "File system connection", """
+            The file system connection.
+            """));
+
+    private static final List<PortDescription> OUTPUT_PORTS =
+        List.of(fixedPort("Flow Variables with path information", """
+                Flow Variables with path information.
+                """));
 
     @Override
     protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
@@ -86,11 +140,6 @@ public final class CreateTempDir2NodeFactory extends ConfigurableNodeFactory<Cre
     }
 
     @Override
-    protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
-        return new CreateTempDir2NodeDialog(creationConfig.getPortConfig().orElseThrow(IllegalStateException::new));
-    }
-
-    @Override
     public NodeView<CreateTempDir2NodeModel> createNodeView(final int viewIndex,
         final CreateTempDir2NodeModel nodeModel) {
         return null;
@@ -104,5 +153,27 @@ public final class CreateTempDir2NodeFactory extends ConfigurableNodeFactory<Cre
     @Override
     protected boolean hasDialog() {
         return true;
+    }
+
+    @Override
+    public NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, CreateTempDir2NodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription(NODE_NAME, NODE_ICON, INPUT_PORTS, OUTPUT_PORTS,
+            SHORT_DESCRIPTION, FULL_DESCRIPTION, List.of(), CreateTempDir2NodeParameters.class, null, NodeType.Other,
+            List.of(), null);
+    }
+
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, CreateTempDir2NodeParameters.class));
     }
 }

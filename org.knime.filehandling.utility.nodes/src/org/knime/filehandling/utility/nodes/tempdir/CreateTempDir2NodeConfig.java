@@ -69,21 +69,21 @@ import org.knime.filehandling.utility.nodes.dialog.variables.FSLocationVariableT
  */
 final class CreateTempDir2NodeConfig {
 
-    private static final boolean DEFAULT_ON_RESET = true;
+    static final boolean DEFAULT_ON_RESET = true;
 
     private static final String DEFAULT_TEMP_PATH_VAR_NAME = "temp_dir_path";
 
-    private static final String DEFAULT_TEMP_DIR_PREFIX = "knimetemp-";
+    static final String DEFAULT_TEMP_DIR_PREFIX = "knimetemp-";
 
-    private static final String CFG_TEMP_DIR_PARENT = "temp_dir_location";
+    static final String CFG_TEMP_DIR_PARENT = "temp_dir_location";
 
-    private static final String CFG_TEMP_DIR_PREFIX = "temp_dir_prefix";
+    static final String CFG_TEMP_DIR_PREFIX = "temp_dir_prefix";
 
-    private static final String CFG_TEMP_DIR_PATH_VARIABLE_NAME = "temp_dir_path_variable_name";
+    static final String CFG_TEMP_DIR_PATH_VARIABLE_NAME = "temp_dir_path_variable_name";
 
-    private static final String CFG_DELETE_ON_RESET = "delete_on_reset";
+    static final String CFG_DELETE_ON_RESET = "delete_on_reset";
 
-    private static final String CFG_ADDITIONAL_PATH_VARIABLES = "additional_path_variables";
+    static final String CFG_ADDITIONAL_PATH_VARIABLES = "additional_path_variables";
 
     private final SettingsModelWriterFileChooser m_parentDirChooserModel;
 

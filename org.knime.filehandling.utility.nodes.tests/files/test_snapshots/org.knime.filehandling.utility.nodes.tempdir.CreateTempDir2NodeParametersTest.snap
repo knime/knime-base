@@ -1,0 +1,248 @@
+{
+  "data" : {
+    "model" : {
+      "targetFolder" : {
+        "file" : {
+          "path" : {
+            "fsCategory" : "LOCAL",
+            "path" : "",
+            "timeout" : 10000,
+            "context" : {
+              "fsToString" : "(LOCAL, )"
+            }
+          }
+        },
+        "createMissingFolders" : false
+      },
+      "deleteTempFolderOnReset" : true,
+      "tempFolderPrefix" : "knimetemp-",
+      "tempDirPathVariableName" : "temp_dir_path",
+      "additionalPathVariables" : [ ]
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "additionalPathVariables" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "extension" : {
+                  "type" : "string",
+                  "title" : "File extension",
+                  "description" : "Optional file extension (e.g., .txt, .csv). Leave empty for folder variables.",
+                  "default" : ""
+                },
+                "path" : {
+                  "type" : "string",
+                  "title" : "Path",
+                  "description" : "The path relative to the temporary directory.",
+                  "default" : ""
+                },
+                "variableName" : {
+                  "type" : "string",
+                  "title" : "Variable name",
+                  "description" : "The name of the path variable.",
+                  "default" : ""
+                }
+              }
+            },
+            "title" : "Additional path variables",
+            "description" : "A list of additional variables that will be created by the node. Each variable will denote a path to a file or folder.",
+            "default" : [ ]
+          },
+          "deleteTempFolderOnReset" : {
+            "type" : "boolean",
+            "title" : "Delete temp folder on reset",
+            "description" : "Check this box to delete the folder and all its content when the node is reset.",
+            "default" : true
+          },
+          "fileSystemManagedByPortMessage" : {
+            "type" : "object"
+          },
+          "targetFolder" : {
+            "type" : "object",
+            "properties" : {
+              "createMissingFolders" : {
+                "type" : "boolean",
+                "title" : "Create missing folders",
+                "description" : "If enabled, missing folders in the specified path will be created automatically.",
+                "default" : false
+              },
+              "file" : {
+                "type" : "object",
+                "properties" : {
+                  "path" : {
+                    "type" : "object",
+                    "default" : {
+                      "fsCategory" : "LOCAL",
+                      "path" : "",
+                      "timeout" : 10000,
+                      "context" : {
+                        "fsToString" : "(LOCAL, )"
+                      }
+                    }
+                  }
+                },
+                "title" : "Folder",
+                "description" : "Select a file system and location for creating the temporary folder.",
+                "default" : {
+                  "path" : {
+                    "fsCategory" : "LOCAL",
+                    "path" : "",
+                    "timeout" : 10000,
+                    "context" : {
+                      "fsToString" : "(LOCAL, )"
+                    }
+                  }
+                }
+              }
+            },
+            "default" : {
+              "file" : {
+                "path" : {
+                  "fsCategory" : "LOCAL",
+                  "path" : "",
+                  "timeout" : 10000,
+                  "context" : {
+                    "fsToString" : "(LOCAL, )"
+                  }
+                }
+              },
+              "createMissingFolders" : false
+            }
+          },
+          "tempDirPathVariableName" : {
+            "type" : "string",
+            "title" : "Export path as (variable name)",
+            "description" : "The name of the exported variable denoting the actual path of the created temporary folder.",
+            "default" : "temp_dir_path"
+          },
+          "tempFolderPrefix" : {
+            "type" : "string",
+            "title" : "Temp folder prefix",
+            "description" : "Name prefix of the temporary folder. It will be amended by some random number to ensure uniqueness.",
+            "default" : "knimetemp-"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "label" : "Output Location",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "id" : "#/properties/model/properties/fileSystemManagedByPortMessage",
+        "options" : {
+          "format" : "textMessage"
+        },
+        "providedOptions" : [ "message" ]
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/targetFolder/properties/file",
+        "options" : {
+          "isLocal" : true,
+          "isWriter" : true,
+          "selectionMode" : "FOLDER",
+          "spaceFSOptions" : {
+            "mountId" : "Local space"
+          },
+          "format" : "fileChooser"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/targetFolder/properties/createMissingFolders",
+        "options" : {
+          "format" : "checkbox"
+        }
+      } ]
+    }, {
+      "label" : "File Options",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/deleteTempFolderOnReset",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/tempFolderPrefix"
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/tempDirPathVariableName"
+      } ]
+    }, {
+      "label" : "Additional Path Variables",
+      "type" : "Section",
+      "description" : "A list of additional variables that will be created by the node. Each variable will denote a path to a file or folder.",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/additionalPathVariables",
+        "options" : {
+          "detail" : [ {
+            "type" : "Control",
+            "scope" : "#/properties/variableName"
+          }, {
+            "type" : "Control",
+            "scope" : "#/properties/path"
+          }, {
+            "type" : "Control",
+            "scope" : "#/properties/extension"
+          } ],
+          "addButtonText" : "Add path variable",
+          "arrayElementTitle" : "Path variable"
+        }
+      } ]
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "fileSystemManagedByPortMessage" : { },
+          "targetFolder" : {
+            "type" : "object",
+            "properties" : {
+              "file" : {
+                "configPaths" : [ [ "path" ] ]
+              },
+              "createMissingFolders" : {
+                "configKey" : "create_missing_folders"
+              }
+            },
+            "configKey" : "temp_dir_location"
+          },
+          "deleteTempFolderOnReset" : {
+            "configKey" : "delete_on_reset"
+          },
+          "tempFolderPrefix" : {
+            "configKey" : "temp_dir_prefix"
+          },
+          "tempDirPathVariableName" : {
+            "configKey" : "temp_dir_path_variable_name"
+          },
+          "additionalPathVariables" : {
+            "configPaths" : [ [ "additional_path_variables", "variable_names" ], [ "additional_path_variables", "path_values" ], [ "additional_path_variables", "file_extensions" ] ]
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "id" : "#/properties/model/properties/fileSystemManagedByPortMessage",
+    "providedOptionName" : "message",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : null
+    } ]
+  } ]
+}
