@@ -73,7 +73,6 @@ import org.knime.core.node.KNIMEException;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.pmml.PMMLPortObject;
-import org.knime.core.node.port.pmml.PMMLPortObjectSpecCreator;
 import org.knime.core.node.port.pmml.preproc.DerivedFieldMapper;
 import org.knime.core.node.util.ConvenienceMethods;
 import org.knime.core.util.binning.BinningPMMLApplyUtil;
@@ -127,7 +126,7 @@ final class BinnerNodeModel extends WebUINodeModel<BinnerNodeSettings> {
 
         var outputColumns = getOutputColumns(modelSettings, selectedColumns);
         var outputTableSpec = createOutputSpec(inSpec, outputColumns);
-        var pmmlSpec = BinningPMMLApplyUtil.createPMMLOutSpec(outputTableSpec, Arrays.asList(selectedColumns));
+        var pmmlSpec = BinningPMMLApplyUtil.createPMMLOutSpec(inSpec, Arrays.asList(selectedColumns));
 
         return new PortObjectSpec[]{outputTableSpec, pmmlSpec};
     }
@@ -146,16 +145,19 @@ final class BinnerNodeModel extends WebUINodeModel<BinnerNodeSettings> {
         );
         final var outputColumns = getOutputColumns(modelSettings, selectedColumns);
 
+        final var inSpecWithAppendedCols = createInputSpecWithAppendedColumns(inSpec, outputColumns);
+
+        final var outPMMLSpec =
+            BinningPMMLApplyUtil.createPMMLOutSpec(inSpecWithAppendedCols, Arrays.asList(selectedColumns));
+        final var outPMMLPortObject = new PMMLPortObject(outPMMLSpec, null, inSpec);
+
         final var translator = createTranslator(inSpec, inTable, exec, modelSettings, selectedColumns, outputColumns);
+        outPMMLPortObject.addGlobalTransformations(translator.exportToTransDict());
 
-        final var outputPmmlSpec = new PMMLPortObjectSpecCreator(createOutputSpec(inSpec, outputColumns)).createSpec();
-        final var outputPmml = new PMMLPortObject(outputPmmlSpec);
-        outputPmml.addGlobalTransformations(translator.exportToTransDict());
-
-        final var columnRearranger = BinningPMMLApplyUtil.createColumnRearranger(inSpec, outputPmml);
+        final var columnRearranger = BinningPMMLApplyUtil.createColumnRearranger(inSpec, outPMMLPortObject);
         final var outputTable = exec.createColumnRearrangeTable((BufferedDataTable)inData[0], columnRearranger, exec);
 
-        return new PortObject[]{outputTable, outputPmml};
+        return new PortObject[]{outputTable, outPMMLPortObject};
 
     }
 
@@ -282,6 +284,19 @@ final class BinnerNodeModel extends WebUINodeModel<BinnerNodeSettings> {
                     new DataColumnSpecCreator(outputColumn, StringCellFactory.TYPE).createSpec() //
                 );
             } else {
+                specCreator.addColumns( //
+                    new DataColumnSpecCreator(outputColumn, StringCellFactory.TYPE).createSpec() //
+                );
+            }
+        }
+        return specCreator.createSpec();
+    }
+
+    private static DataTableSpec createInputSpecWithAppendedColumns(final DataTableSpec inSpec,
+        final List<String> outputColumns) {
+        var specCreator = new DataTableSpecCreator(inSpec);
+        for (String outputColumn : outputColumns) {
+            if (!inSpec.containsName(outputColumn)) {
                 specCreator.addColumns( //
                     new DataColumnSpecCreator(outputColumn, StringCellFactory.TYPE).createSpec() //
                 );
