@@ -47,7 +47,9 @@ package org.knime.base.node.preproc.binner2.apply;
 import java.io.File;
 import java.io.IOException;
 
+import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataType;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -84,6 +86,13 @@ final class BinnerApplyNodeModel extends NodeModel {
         super(new PortType[]{PMMLPortObject.TYPE, BufferedDataTable.TYPE}, new PortType[]{BufferedDataTable.TYPE});
     }
 
+    /**
+     * Feature flag added with 5.9 (UIEXT-3029) since the Binner node did not output valid PMML before.
+     */
+    private boolean m_validatePMMLPortObject = true;
+
+    private static final String VALIDATE_PMML_CFG_KEY = "validate_pmml_port_object";
+
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         return new PortObjectSpec[]{null};
@@ -93,9 +102,43 @@ final class BinnerApplyNodeModel extends NodeModel {
     protected PortObject[] execute(final PortObject[] inObjects, final ExecutionContext exec) throws Exception {
         PMMLPortObject pmmlPort = (PMMLPortObject)inObjects[0];
         BufferedDataTable inTable = (BufferedDataTable)inObjects[1];
-        final var rearranger = BinningPMMLApplyUtil.createColumnRearranger(inTable.getSpec(), pmmlPort);
+        final var inSpec = inTable.getSpec();
+        validatePMMLPortObject(inSpec, pmmlPort);
+        final var rearranger = BinningPMMLApplyUtil.createColumnRearranger(inSpec, pmmlPort);
         final var binnedData = exec.createColumnRearrangeTable(inTable, rearranger, exec);
         return new PortObject[]{binnedData};
+    }
+
+    private void validatePMMLPortObject(final DataTableSpec inSpec, final PMMLPortObject pmmlPortObject)
+        throws InvalidSettingsException {
+        if (m_validatePMMLPortObject) {
+            final DataTableSpec pmmlInputSpec = pmmlPortObject.getSpec().getDataTableSpec();
+            for (final var derivedField : pmmlPortObject.getDerivedFields()) {
+                final String fieldName = derivedField.getDiscretize().getField();
+                validateFieldName(inSpec, pmmlInputSpec, fieldName);
+            }
+
+        }
+
+    }
+
+    private static void validateFieldName(final DataTableSpec dataTableSpec, final DataTableSpec pmmlInputSpec,
+        final String fieldName) throws InvalidSettingsException {
+        final DataColumnSpec colSpec = dataTableSpec.getColumnSpec(fieldName);
+        if (colSpec == null) {
+            throw new InvalidSettingsException("Column '" + fieldName + "' not found in input table");
+        }
+
+        final DataColumnSpec pmmlInputColSpec = pmmlInputSpec.getColumnSpec(fieldName);
+        assert (pmmlInputColSpec != null) : "Column '" + fieldName
+            + "' from derived fields not found in PMML model spec";
+
+        final DataType knimeType = pmmlInputColSpec.getType();
+        if (!colSpec.getType().isCompatible(knimeType.getPreferredValueClass())) {
+            throw new InvalidSettingsException(
+                "Date type of column '" + fieldName + "' is not compatible with PMML model: expected '" + knimeType
+                    + "' but is '" + colSpec.getType() + "'");
+        }
     }
 
     @Override
@@ -171,12 +214,14 @@ final class BinnerApplyNodeModel extends NodeModel {
 
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-        // node has no settings
+        // added with 5.9 to be able to disable PMML validation in legacy workflows
+        m_validatePMMLPortObject = settings.getBoolean(VALIDATE_PMML_CFG_KEY, false);
     }
 
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
-        // node has no settings
+        // added with 5.9 to be able to disable PMML validation in legacy workflows
+        settings.addBoolean(VALIDATE_PMML_CFG_KEY, m_validatePMMLPortObject);
     }
 
     @Override
