@@ -42,6 +42,7 @@
     <entry key="fixedUpperBound_is_present" type="xboolean" value="false"/>
     <entry key="fixedUpperBound" type="xdouble" value="0.0"/>
     <entry key="binNames" type="xstring" value="BORDERS"/>
+    <entry key="usePrefix_Internals" type="xboolean" value="true"/>
     <entry key="prefix" type="xstring" value="Bin "/>
     <entry key="lowerOutlierValue" type="xstring" value="small"/>
     <entry key="upperOutlierValue" type="xstring" value="Upper outlier"/>

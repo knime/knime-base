@@ -63,6 +63,7 @@ import org.knime.base.node.preproc.binner2.BinnerNodeSettingsPredicates.ShouldSh
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DoubleValue;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.booleanhelpers.AlwaysSaveTrueBoolean;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
@@ -70,6 +71,7 @@ import org.knime.node.parameters.array.ArrayWidget;
 import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.layout.Section;
 import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.updates.Effect;
 import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.updates.EffectPredicate;
@@ -222,6 +224,18 @@ final class BinnerNodeSettings implements NodeParameters {
     @RadioButtonsWidget
     @ValueReference(BinNamesRef.class)
     BinNaming m_binNames = BinNaming.NUMBERED;
+
+    // Introduced with 5.9 to not break existing workflows that did not use the prefix option.
+    @Persistor(UsePrefixPersistor.class)
+    boolean m_usePrefix = true;
+
+    static final class UsePrefixPersistor extends AlwaysSaveTrueBoolean {
+
+        UsePrefixPersistor() {
+            super("usePrefix");
+        }
+
+    }
 
     @Layout(OutputSection.class)
     @Widget(title = "Prefix", description = """
