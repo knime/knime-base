@@ -48,17 +48,37 @@
  */
 package org.knime.base.node.mine.transformation.pca.reverse;
 
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
 
 /**
  * The PCA reverse node factory.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
+ * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.2
  * @since 4.0
  */
-public class PCA2ReverseNodeFactory extends NodeFactory<PCA2ReverseNodeModel> {
+@SuppressWarnings("restriction")
+public class PCA2ReverseNodeFactory extends NodeFactory<PCA2ReverseNodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     @Override
     public PCA2ReverseNodeModel createNodeModel() {
@@ -79,10 +99,82 @@ public class PCA2ReverseNodeFactory extends NodeFactory<PCA2ReverseNodeModel> {
     protected boolean hasDialog() {
         return true;
     }
+    private static final String NODE_NAME = "PCA Inversion";
+
+    private static final String NODE_ICON = "./../../../pca/pca_inverse.png";
+
+    private static final String SHORT_DESCRIPTION = """
+            Inverse the PCA transformation
+            """;
+
+    private static final String FULL_DESCRIPTION = """
+            This node inverts the transformation applied by the PCA Apply node. Given data in the space resulting
+                from the <a href="http://en.wikipedia.org/wiki/Principal_component_analysis">PCA</a> reduction are
+                transformed back to its original space. Information that was lost by the <a
+                href="http://en.wikipedia.org/wiki/Principal_component_analysis">PCA</a> transformation cannot be
+                recovered.
+            """;
+
+    private static final List<PortDescription> INPUT_PORTS = List.of(
+            fixedPort("Transformation model", """
+                The Model used to reverse the PCA.
+                """),
+            fixedPort("Table to transform", """
+                Input data containing PCA transformed data.
+                """)
+    );
+
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(
+            fixedPort("Data in original space", """
+                The original data (without the selected columns) including the reconstructed data from reverting the PCA
+                transformation.
+                """)
+    );
+
+    private static final List<String> KEYWORDS = List.of( //
+		"principal component analysis" //
+    );
+
+    /**
+     * @since 5.9
+     */
+    @Override
+    public NodeDialogPane createNodeDialogPane() {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    /**
+     * @since 5.9
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, PCA2ReverseNodeParameters.class);
+    }
 
     @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new PCA2ReverseNodeDialog();
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription(
+            NODE_NAME,
+            NODE_ICON,
+            INPUT_PORTS,
+            OUTPUT_PORTS,
+            SHORT_DESCRIPTION,
+            FULL_DESCRIPTION,
+            List.of(),
+            PCA2ReverseNodeParameters.class,
+            null,
+            NodeType.Manipulator,
+            KEYWORDS,
+            null
+        );
+    }
+
+    /**
+     * @since 5.9
+     */
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, PCA2ReverseNodeParameters.class));
     }
 
 }
