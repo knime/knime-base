@@ -44,57 +44,140 @@
  */
 package org.knime.base.node.preproc.discretization.caim2.modelcreator;
 
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
+import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
-import org.knime.core.node.NodeDialogPane;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
+import org.knime.node.impl.description.ViewDescription;
 
 /**
  * The Factory for the CAIM Discretizer.
  *
  * @author Christoph Sieb, University of Konstanz
+ * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.2
  */
+@SuppressWarnings("restriction")
 public class CAIMDiscretization2NodeFactory extends
-        NodeFactory<CAIMDiscretizationNodeModel> {
+        NodeFactory<CAIMDiscretizationNodeModel> implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public CAIMDiscretizationNodeModel createNodeModel() {
         return new CAIMDiscretizationNodeModel();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int getNrNodeViews() {
         return 1;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public NodeView<CAIMDiscretizationNodeModel> createNodeView(
             final int viewIndex, final CAIMDiscretizationNodeModel nodeModel) {
         return new BinModelNodeView(nodeModel, new BinModelPlotter());
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean hasDialog() {
         return true;
     }
 
+    private static final String NODE_NAME = "CAIM Binner";
+
+    private static final String NODE_ICON = "./classbinner.png";
+
+    private static final String SHORT_DESCRIPTION = """
+            This node implements the CAIM discretization algorithm according to Kurgan and Cios (2004). The
+                discretization is performed with respect to a selected class column.
+            """;
+
+    private static final String FULL_DESCRIPTION = """
+            This node implements the CAIM binning (discretization) algorithm according to Kurgan and Cios (2004)
+                URL:http://citeseer.ist.psu.edu/kurgan04caim.html. The binning (discretization) is performed with
+                respect to a selected class column. CAIM creates all possible binning boundaries and chooses those that
+                minimize the class interdependancy measure. To reduce the runtime, this implementation creates only
+                those boundaries where the value and the class changes. The algorithm finds a minimum number of bins
+                (guided by the number of possible class values) and labels them "Interval_X". Only columns compatible
+                with double values are binned and the column's type of the output table is changed to "String".
+            """;
+
+    private static final List<PortDescription> INPUT_PORTS = List.of(
+            fixedPort("Input Data", """
+                The data table to bin (discretize).
+                """)
+    );
+
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(
+            fixedPort("Binned Data", """
+                The binned data table.
+                """),
+            fixedPort("Binning Model", """
+                The model representing the binning. Contains the intervals for each bin of each column.
+                """)
+    );
+
+    private static final List<ViewDescription> VIEWS = List.of(
+            new ViewDescription("Binning Model", """
+                The view shows the column's binning scheme. For each column a ruler is displayed on which the bin
+                boundaries are marked.
+                """)
+    );
+
     /**
-     * {@inheritDoc}
+     * @since 5.9
      */
     @Override
     public NodeDialogPane createNodeDialogPane() {
-        return new CAIMDiscretizationNodeDialog();
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    /**
+     * @since 5.9
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, CAIMDiscretization2NodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription(
+            NODE_NAME,
+            NODE_ICON,
+            INPUT_PORTS,
+            OUTPUT_PORTS,
+            SHORT_DESCRIPTION,
+            FULL_DESCRIPTION,
+            List.of(),
+            CAIMDiscretization2NodeParameters.class,
+            VIEWS,
+            NodeType.Manipulator,
+            List.of(),
+            null
+        );
+    }
+
+    /**
+     * @since 5.9
+     */
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, CAIMDiscretization2NodeParameters.class));
     }
 
 }

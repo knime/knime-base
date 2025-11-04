@@ -1,0 +1,226 @@
+{
+  "data" : {
+    "model" : {
+      "includedColumns" : {
+        "keepAllColumnsSelected" : false,
+        "twinList" : {
+          "inclList" : [ ],
+          "exclList" : [ ]
+        }
+      },
+      "sortInMemory" : true
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "classColumn" : {
+            "type" : "string",
+            "title" : "Class column",
+            "description" : "The class column. According to this column the binning is optimized.\n"
+          },
+          "includedColumns" : {
+            "type" : "object",
+            "properties" : {
+              "keepAllColumnsSelected" : {
+                "type" : "boolean",
+                "default" : false
+              },
+              "twinList" : {
+                "type" : "object",
+                "properties" : {
+                  "exclList" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    },
+                    "default" : [ ]
+                  },
+                  "inclList" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    },
+                    "title" : "Column selection",
+                    "description" : "Allows to include those columns which should be included in the discretization. Just the included\ncolumns are discretized and changed to \"String\" type.\n",
+                    "default" : [ ]
+                  }
+                },
+                "default" : {
+                  "inclList" : [ ],
+                  "exclList" : [ ]
+                }
+              }
+            },
+            "default" : {
+              "keepAllColumnsSelected" : false,
+              "twinList" : {
+                "inclList" : [ ],
+                "exclList" : [ ]
+              }
+            }
+          },
+          "sortInMemory" : {
+            "type" : "boolean",
+            "title" : "Sort in memory",
+            "description" : "To increase performance, select this option to sort the data in memory during the discretization process\nand select the memory policy 'Keep all in memory' at the PREVIOUS node (if possible)\nThis can significantly improve performance but requires more memory.\n",
+            "default" : true
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/classColumn",
+      "options" : {
+        "format" : "dropDown"
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/includedColumns/properties/twinList/properties/inclList",
+      "options" : {
+        "format" : "twinList"
+      },
+      "providedOptions" : [ "possibleValues" ],
+      "rule" : {
+        "effect" : "DISABLE",
+        "condition" : {
+          "scope" : "#/properties/model/properties/includedColumns/properties/keepAllColumnsSelected",
+          "schema" : {
+            "const" : true
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/sortInMemory",
+      "options" : {
+        "format" : "checkbox",
+        "isAdvanced" : true
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "classColumn" : {
+            "configKey" : "classColumn"
+          },
+          "includedColumns" : {
+            "type" : "object",
+            "properties" : {
+              "keepAllColumnsSelected" : {
+                "configKey" : "keep_all_columns_selected"
+              },
+              "twinList" : {
+                "type" : "object",
+                "properties" : {
+                  "inclList" : {
+                    "configPaths" : [ [ "InclList" ], [ "ExclList" ] ]
+                  },
+                  "exclList" : {
+                    "configKey" : "ExclList"
+                  }
+                },
+                "propertiesRoute" : [ ".." ]
+              }
+            },
+            "configKey" : "includedColumns"
+          },
+          "sortInMemory" : {
+            "configKey" : "sortInMemory"
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/classColumn",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Cluster Membership",
+        "text" : "Cluster Membership",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/includedColumns",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : {
+        "keepAllColumnsSelected" : false,
+        "twinList" : {
+          "inclList" : [ "Universe_0_0", "Universe_0_1", "Universe_1_0", "Universe_1_1" ],
+          "exclList" : [ ]
+        }
+      }
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/includedColumns/properties/twinList/properties/exclList",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ "Universe_0_0", "Universe_0_1", "Universe_1_0", "Universe_1_1" ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/includedColumns/properties/twinList/properties/inclList",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Universe_0_0",
+        "text" : "Universe_0_0",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Universe_0_1",
+        "text" : "Universe_0_1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Universe_1_0",
+        "text" : "Universe_1_0",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Universe_1_1",
+        "text" : "Universe_1_1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      } ]
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "id" : "after-open-dialog"
+    },
+    "triggerInitially" : true,
+    "dependencies" : [ "#/properties/model/properties/classColumn" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/includedColumns/properties/twinList/properties/inclList"
+    },
+    "dependencies" : [ "#/properties/model/properties/includedColumns/properties/twinList/properties/inclList" ]
+  } ]
+}

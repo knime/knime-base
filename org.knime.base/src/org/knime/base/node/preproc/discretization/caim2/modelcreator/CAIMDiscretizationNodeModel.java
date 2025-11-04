@@ -118,6 +118,21 @@ public class CAIMDiscretizationNodeModel extends NodeModel {
      */
     public static final String USE_CLASS_OPTIMIZATION = "classOptimized";
 
+    /**
+     * Config key for the class column setting.
+     */
+    static final String CFG_CLASS_COLUMN = "classColumn";
+
+    /**
+     * Config key for the included columns setting.
+     */
+    static final String CFG_INCLUDED_COLUMNS = "includedColumns";
+
+    /**
+     * Config key for the sort in memory setting.
+     */
+    static final String CFG_SORT_IN_MEMORY = "sortInMemory";
+
     private static final String WARNING_NO_COLS_SELECTED =
             "No columns selected for binning. Output table will be the same.";
 
@@ -1053,21 +1068,21 @@ public class CAIMDiscretizationNodeModel extends NodeModel {
      * @return a new model for holding the selected class column name
      */
     static SettingsModelString createClassColModel() {
-        return new SettingsModelString("classColumn", null);
+        return new SettingsModelString(CFG_CLASS_COLUMN, null);
     }
 
     /**
      * @return a new model to store the user settings
      */
     static SettingsModelBoolean createSortInMemModel() {
-        return new SettingsModelBoolean("sortInMemory", true);
+        return new SettingsModelBoolean(CFG_SORT_IN_MEMORY, true);
     }
 
     /**
      * @return a new model to store the user settings
      */
     static SettingsModelFilterString createIncludeColsModel() {
-        return new SettingsModelFilterString("includedColumns");
+        return new SettingsModelFilterString(CFG_INCLUDED_COLUMNS);
     }
 
 }
