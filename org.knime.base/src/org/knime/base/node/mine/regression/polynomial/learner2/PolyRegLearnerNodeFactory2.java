@@ -44,38 +44,45 @@
  */
 package org.knime.base.node.mine.regression.polynomial.learner2;
 
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
+import org.knime.node.impl.description.ViewDescription;
 
 /**
  * This factory creates all necessary objects for the polynomial regression
  * learner node.
  *
  * @author Thorsten Meinl, University of Konstanz
+ * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.2
  * @since 2.10
  */
+@SuppressWarnings("restriction")
 public class PolyRegLearnerNodeFactory2 extends
-        NodeFactory<PolyRegLearnerNodeModel> {
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new PolyRegLearnerDialog();
-    }
+        NodeFactory<PolyRegLearnerNodeModel> implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public PolyRegLearnerNodeModel createNodeModel() {
         return new PolyRegLearnerNodeModel(false);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public NodeView<PolyRegLearnerNodeModel> createNodeView(
             final int viewIndex, final PolyRegLearnerNodeModel nodeModel) {
@@ -88,19 +95,98 @@ public class PolyRegLearnerNodeFactory2 extends
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected int getNrNodeViews() {
         return 2;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected boolean hasDialog() {
         return true;
+    }
+
+    private static final String NODE_NAME = "Polynomial Regression Learner";
+
+    private static final String NODE_ICON = "polyRegLearner.png";
+
+    private static final String SHORT_DESCRIPTION = """
+            Learner that builds a polynomial regression model from the input data
+            """;
+
+    private static final String FULL_DESCRIPTION = """
+            This node performs polynomial regression on the input data and computes the coefficients that minimize
+                the squared error. The user must choose one column as target (dependent variable) and a number of
+                independent variables. By default, polynomials with degree 2 are computed, which can be changed in the
+                dialog.
+            """;
+
+    private static final List<PortDescription> INPUT_PORTS = List.of(
+            fixedPort("Training data", """
+                The input samples, which of the columns are used as independent variables can be configured in the
+                dialog. The input must not contain missing values, you have to fix them by e.g. using the Missing Values
+                node.
+                """)
+    );
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(
+            fixedPort("Regression model", """
+                The computed regression coefficients as a PMML model for use in the Regression Predictor.
+                """),
+            fixedPort("Data with training error", """
+                Training data classified with the learned model and the corresponding errors.
+                """),
+            fixedPort("Coefficients and Statistics", """
+                The computed regression coefficients as a table with statistics related to the training data.
+                """)
+    );
+
+    private static final List<ViewDescription> VIEWS = List.of(
+            new ViewDescription("Learned Coefficients", """
+                Shows all learned coefficients all attributes.
+                """),
+            new ViewDescription("Scatter Plot", """
+                Shows the data points and the regression function in one dimension.
+                """)
+    );
+
+    /**
+     * @since 5.9
+     */
+    @Override
+    public NodeDialogPane createNodeDialogPane() {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    /**
+     * @since 5.9
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, PolyRegLearnerNodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription(
+            NODE_NAME,
+            NODE_ICON,
+            INPUT_PORTS,
+            OUTPUT_PORTS,
+            SHORT_DESCRIPTION,
+            FULL_DESCRIPTION,
+            List.of(),
+            PolyRegLearnerNodeParameters.class,
+            VIEWS,
+            NodeType.Learner,
+            List.of(),
+            null
+        );
+    }
+
+    /**
+     * @since 5.9
+     */
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, PolyRegLearnerNodeParameters.class));
     }
 }

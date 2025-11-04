@@ -71,11 +71,15 @@ public class PolyRegLearnerSettings {
 
     private String m_targetColumn;
 
-    private final DataColumnSpecFilterConfiguration m_filterConfiguration = new DataColumnSpecFilterConfiguration("column filter", new DataTypeColumnFilter(DoubleValue.class), DataColumnSpecFilterConfiguration.FILTER_BY_DATATYPE | NameFilterConfiguration.FILTER_BY_NAMEPATTERN);
+    private final DataColumnSpecFilterConfiguration m_filterConfiguration = new DataColumnSpecFilterConfiguration(CFG_COLUMN_FILTER, new DataTypeColumnFilter(DoubleValue.class), DataColumnSpecFilterConfiguration.FILTER_BY_DATATYPE | NameFilterConfiguration.FILTER_BY_NAMEPATTERN);
 
     private MissingValueHandling m_missingValueHandling = MissingValueHandling.fail;
 
-    private static final String CFG_MISSING_VALUE_HANDLING = "missing_value_handling";
+    static final String CFG_MISSING_VALUE_HANDLING = "missing_value_handling";
+    static final String CFG_DEGREE = "degree";
+    static final String CFG_TARGET_COLUMN = "targetColumn";
+    static final String CFG_MAX_VIEW_ROWS = "maxViewRows";
+    static final String CFG_COLUMN_FILTER = "column filter";
 
     /**
      * Returns the maximum degree that polynomial used for regression should
@@ -105,9 +109,9 @@ public class PolyRegLearnerSettings {
      */
     public void loadSettingsFrom(final NodeSettingsRO settings)
             throws InvalidSettingsException {
-        m_degree = settings.getInt("degree");
-        m_targetColumn = settings.getString("targetColumn");
-        m_maxRowsForView = settings.getInt("maxViewRows");
+        m_degree = settings.getInt(CFG_DEGREE);
+        m_targetColumn = settings.getString(CFG_TARGET_COLUMN);
+        m_maxRowsForView = settings.getInt(CFG_MAX_VIEW_ROWS);
         boolean includeAll = settings.getBoolean("includeAll", false); // added v2.1
         // added in 2.10
         m_missingValueHandling =
@@ -151,9 +155,9 @@ public class PolyRegLearnerSettings {
      */
     public void loadSettingsInDialog(final NodeSettingsRO settings, final DataTableSpec spec)
             throws InvalidSettingsException {
-        m_degree = settings.getInt("degree");
-        m_targetColumn = settings.getString("targetColumn");
-        m_maxRowsForView = settings.getInt("maxViewRows");
+        m_degree = settings.getInt(CFG_DEGREE);
+        m_targetColumn = settings.getString(CFG_TARGET_COLUMN);
+        m_maxRowsForView = settings.getInt(CFG_MAX_VIEW_ROWS);
         // added in 2.10
         m_missingValueHandling =
             MissingValueHandling.valueOf(settings.getString(CFG_MISSING_VALUE_HANDLING,
@@ -191,9 +195,9 @@ public class PolyRegLearnerSettings {
      */
     public void saveSettingsTo(final NodeSettingsWO settings) {
         if (m_targetColumn != null) {
-            settings.addInt("degree", m_degree);
-            settings.addString("targetColumn", m_targetColumn);
-            settings.addInt("maxViewRows", m_maxRowsForView);
+            settings.addInt(CFG_DEGREE, m_degree);
+            settings.addString(CFG_TARGET_COLUMN, m_targetColumn);
+            settings.addInt(CFG_MAX_VIEW_ROWS, m_maxRowsForView);
             settings.addString(CFG_MISSING_VALUE_HANDLING, m_missingValueHandling.name());
             m_filterConfiguration.saveConfiguration(settings);
         }
