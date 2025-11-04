@@ -94,7 +94,7 @@ final class ManualIfNodeParameters implements NodeParameters {
     }
 
     @Persistor(PortChoicePersistor.class)
-    @Widget(title = "Select active port", description = "Select the active output port")
+    @Widget(title = "Active port", description = "Select the active output port")
     @ValueSwitchWidget
     PortChoice m_portChoice = PortChoice.BOTH;
 

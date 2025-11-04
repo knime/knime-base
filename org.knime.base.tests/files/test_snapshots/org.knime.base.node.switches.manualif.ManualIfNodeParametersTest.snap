@@ -28,7 +28,7 @@
               "const" : "BOTTOM",
               "title" : "Bottom"
             } ],
-            "title" : "Select active port",
+            "title" : "Active port",
             "description" : "Select the active output port",
             "default" : "BOTH"
           }

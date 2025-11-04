@@ -111,8 +111,8 @@ public final class ManualIfNodeFactory
             """;
 
     private static final String FULL_DESCRIPTION = """
-            This node passes the data either to the top, bottom, or both output ports, depending on the
-                configuration.
+            This node passes the data either to both, the top or the bottom output port, depending on the \
+            configuration.
             """;
 
     private static final List<PortDescription> INPUT_PORTS = List.of(fixedPort("Input table", """
