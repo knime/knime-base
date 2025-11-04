@@ -52,6 +52,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.OptionalDouble;
@@ -173,7 +174,7 @@ final class BinnerNodeModel extends WebUINodeModel<BinnerNodeSettings> {
         final var binningMethod = getBinningMethod(modelSettings);
 
         Map<String, String> inColToOutCol = new HashMap<>();
-        Map<String, Bin[]> binsByColumnName = new HashMap<>();
+        Map<String, Bin[]> binsByColumnName = new LinkedHashMap<>();
 
         for (int i = 0; i < selectedColumns.length; i++) {
             final var inputColName = selectedColumns[i];
