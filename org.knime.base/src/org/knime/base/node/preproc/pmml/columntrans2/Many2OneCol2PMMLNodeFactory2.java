@@ -44,59 +44,131 @@
  */
 package org.knime.base.node.preproc.pmml.columntrans2;
 
-import org.knime.base.node.preproc.columntrans2.Many2OneCol2NodeDialog;
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
 
 /**
  * <code>NodeFactory</code> for the "Many2OneColPMML" Node.
  *
  * @author Alexander Fillbrunn, Universitaet Konstanz
+ * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.2
  * @since 2.8
  */
+@SuppressWarnings("restriction")
 public class Many2OneCol2PMMLNodeFactory2
-        extends NodeFactory<Many2OneCol2PMMLNodeModel> {
+        extends NodeFactory<Many2OneCol2PMMLNodeModel> implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public Many2OneCol2PMMLNodeModel createNodeModel() {
         return new Many2OneCol2PMMLNodeModel(true, false);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int getNrNodeViews() {
         return 0;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public NodeView<Many2OneCol2PMMLNodeModel> createNodeView(final int viewIndex,
             final Many2OneCol2PMMLNodeModel nodeModel) {
         return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean hasDialog() {
         return true;
     }
 
+    private static final String NODE_NAME = "Many to One (PMML)";
+
+    private static final String NODE_ICON = "./many2one.png";
+
+    private static final String SHORT_DESCRIPTION = """
+            Transforms the values of multiple columns into a single column while generating PMML.
+            """;
+
+    private static final String FULL_DESCRIPTION = """
+            Transforms the values of multiple columns into a single column depending on the include method and
+                documents the transformation in PMML. If set to binary the condensed column's value is set to the name
+                of the first column with value 1. If the include method is maximum or minimum the value of the condensed
+                column is set to the name of the column which, of all included columns, has the largest or smallest
+                value. If the include method is binary and all columns are 0 the condensed column will contain a missing
+                value.
+            """;
+
+    private static final List<PortDescription> INPUT_PORTS = List.of(
+            fixedPort("Data to process", """
+                Data.
+                """)
+    );
+
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(
+            fixedPort("Processed data", """
+                Data with transformed columns.
+                """),
+            fixedPort("Created PMML", """
+                Transformed PMML input.
+                """)
+    );
+
     /**
-     * {@inheritDoc}
+     * @since 5.9
      */
     @Override
     public NodeDialogPane createNodeDialogPane() {
-        return new Many2OneCol2NodeDialog();
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    /**
+     * @since 5.9
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, Many2OneCol2PMMLNodeFactory2Parameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription(
+            NODE_NAME,
+            NODE_ICON,
+            INPUT_PORTS,
+            OUTPUT_PORTS,
+            SHORT_DESCRIPTION,
+            FULL_DESCRIPTION,
+            List.of(),
+            Many2OneCol2PMMLNodeFactory2Parameters.class,
+            null,
+            NodeType.Manipulator,
+            List.of(),
+            null
+        );
+    }
+
+    /**
+     * @since 5.9
+     */
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, Many2OneCol2PMMLNodeFactory2Parameters.class));
     }
 
 }

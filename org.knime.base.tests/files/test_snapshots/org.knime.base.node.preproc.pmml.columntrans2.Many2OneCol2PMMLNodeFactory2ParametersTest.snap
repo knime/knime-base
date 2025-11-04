@@ -1,0 +1,289 @@
+{
+  "data" : {
+    "model" : {
+      "selectedColumns" : {
+        "mode" : "MANUAL",
+        "patternFilter" : {
+          "pattern" : "",
+          "isCaseSensitive" : false,
+          "isInverted" : false
+        },
+        "manualFilter" : {
+          "manuallySelected" : [ ],
+          "manuallyDeselected" : [ ],
+          "includeUnknownColumns" : false
+        },
+        "typeFilter" : {
+          "selectedTypes" : [ ],
+          "typeDisplays" : [ ]
+        }
+      },
+      "appendedColumnName" : "Condensed Column",
+      "includeMethod" : "Binary",
+      "pattern" : "[^0]*",
+      "keepColumns" : true
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "appendedColumnName" : {
+            "type" : "string",
+            "title" : "Condensed column name",
+            "description" : "The name of the appended column.\n",
+            "default" : "Condensed Column"
+          },
+          "includeMethod" : {
+            "oneOf" : [ {
+              "const" : "Binary",
+              "title" : "Binary"
+            }, {
+              "const" : "Maximum",
+              "title" : "Maximum"
+            }, {
+              "const" : "Minimum",
+              "title" : "Minimum"
+            }, {
+              "const" : "RegExpPattern",
+              "title" : "RegExpPattern"
+            } ],
+            "title" : "Include method",
+            "description" : "The method to condense multiple columns into one.\n\n<ul>\n<li><b>Binary</b>: Only the column with value \"1\" matches.</li>\n<li><b>Maximum</b>: The column with the maximum value in each row matches.</li>\n<li><b>Minimum</b>: The column with the minimum value in each row matches.</li>\n<li><b>RegExpPattern</b>: The column matching the provided regular expression pattern matches.</li>\n</ul>",
+            "default" : "Binary"
+          },
+          "keepColumns" : {
+            "type" : "boolean",
+            "title" : "Keep original columns",
+            "description" : "Determines whether the included columns are kept or not.\n",
+            "default" : true
+          },
+          "pattern" : {
+            "type" : "string",
+            "title" : "Include pattern",
+            "description" : "When include method is RegExpPattern, this is the pattern used.\n",
+            "default" : "[^0]*"
+          },
+          "selectedColumns" : {
+            "type" : "object",
+            "properties" : {
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "includeUnknownColumns" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "manuallyDeselected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "manuallySelected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "manuallySelected" : [ ],
+                  "manuallyDeselected" : [ ],
+                  "includeUnknownColumns" : false
+                }
+              },
+              "mode" : {
+                "oneOf" : [ {
+                  "const" : "MANUAL",
+                  "title" : "Manual"
+                }, {
+                  "const" : "REGEX",
+                  "title" : "Regex"
+                }, {
+                  "const" : "WILDCARD",
+                  "title" : "Wildcard"
+                }, {
+                  "const" : "TYPE",
+                  "title" : "Type"
+                } ],
+                "default" : "MANUAL"
+              },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "isCaseSensitive" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "isInverted" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "pattern" : {
+                    "type" : "string",
+                    "default" : ""
+                  }
+                },
+                "default" : {
+                  "pattern" : "",
+                  "isCaseSensitive" : false,
+                  "isInverted" : false
+                }
+              },
+              "selected" : {
+                "type" : "array",
+                "items" : {
+                  "type" : "string"
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "selectedTypes" : [ ],
+                  "typeDisplays" : [ ]
+                }
+              }
+            },
+            "title" : "Columns",
+            "description" : "The columns to be condensed into a single column using the selected include method.\n",
+            "default" : {
+              "mode" : "MANUAL",
+              "patternFilter" : {
+                "pattern" : "",
+                "isCaseSensitive" : false,
+                "isInverted" : false
+              },
+              "manualFilter" : {
+                "manuallySelected" : [ ],
+                "manuallyDeselected" : [ ],
+                "includeUnknownColumns" : false
+              },
+              "typeFilter" : {
+                "selectedTypes" : [ ],
+                "typeDisplays" : [ ]
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/selectedColumns",
+      "options" : {
+        "format" : "typedStringFilter",
+        "unknownValuesText" : "Any unknown column",
+        "emptyStateLabel" : "No columns in this list."
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/appendedColumnName"
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/includeMethod"
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/pattern",
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/includeMethod",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "RegExpPattern"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/keepColumns",
+      "options" : {
+        "format" : "checkbox"
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "selectedColumns" : {
+            "configPaths" : [ [ "many2OneCols2Condense", "filter-type" ], [ "many2OneCols2Condense", "included_names" ], [ "many2OneCols2Condense", "excluded_names" ], [ "many2OneCols2Condense", "enforce_option" ], [ "many2OneCols2Condense", "name_pattern", "pattern" ], [ "many2OneCols2Condense", "name_pattern", "type" ], [ "many2OneCols2Condense", "name_pattern", "caseSensitive" ], [ "many2OneCols2Condense", "name_pattern", "excludeMatching" ] ]
+          },
+          "appendedColumnName" : {
+            "configKey" : "many2OneCondenseColName"
+          },
+          "includeMethod" : {
+            "configKey" : "includeMethod"
+          },
+          "pattern" : {
+            "configKey" : "many2OneRecoValBox"
+          },
+          "keepColumns" : {
+            "configKey" : "many2OneRemoveCols"
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/selectedColumns",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Universe_0_0",
+        "text" : "Universe_0_0",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Universe_0_1",
+        "text" : "Universe_0_1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Universe_1_0",
+        "text" : "Universe_1_0",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Universe_1_1",
+        "text" : "Universe_1_1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Cluster Membership",
+        "text" : "Cluster Membership",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  } ]
+}
