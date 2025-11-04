@@ -47,21 +47,38 @@
  */
 package org.knime.base.node.switches.caseswitch.any;
 
+import static org.knime.node.impl.description.PortDescription.dynamicPort;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.knime.core.node.ConfigurableNodeFactory;
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeView;
 import org.knime.core.node.context.NodeCreationConfiguration;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
 
 /**
  * @author Jannik Löscher, KNIME GmbH, Konstanz, Germany
+ * @author Kai Franze, KNIME GmbH, Germany
+ * @author AI Migration Pipeline v1.2
  */
-public final class CaseStartAnyNodeFactory extends ConfigurableNodeFactory<CaseStartAnyNodeModel> {
+@SuppressWarnings("restriction")
+public final class CaseStartAnyNodeFactory extends ConfigurableNodeFactory<CaseStartAnyNodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
         final var b = new PortsConfigurationBuilder();
@@ -71,40 +88,81 @@ public final class CaseStartAnyNodeFactory extends ConfigurableNodeFactory<CaseS
         return Optional.of(b);
     }
 
-    /** {@inheritDoc} */
     @Override
     public NodeView<CaseStartAnyNodeModel> createNodeView(final int index, final CaseStartAnyNodeModel model) {
         return null;
     }
 
-    /** {@inheritDoc} */
     @Override
     protected int getNrNodeViews() {
         return 0;
     }
 
-    /** {@inheritDoc} */
     @Override
     protected boolean hasDialog() {
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected CaseStartAnyNodeModel createNodeModel(final NodeCreationConfiguration creationConfig) {
         final var config = creationConfig.getPortConfig().orElseThrow();
         return new CaseStartAnyNodeModel(config.getInputPorts(), config.getOutputPorts());
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    private static final String NODE_NAME = "CASE Switch Start";
+
+    private static final String NODE_ICON = "./switches_any_start.png";
+
+    private static final String SHORT_DESCRIPTION = """
+            Routes the input to a selectable output port. The type and number of output ports can be \
+            dynamically chosen.
+            """;
+
+    private static final String FULL_DESCRIPTION = """
+            This node routes its input to a selectable output port, allowing different branches of the workflow \
+            to be activated manually or using a flow variable. The input port type can be chosen when adding an \
+            input port. The type can be changed by removing the input port and adding it again.
+            """;
+
+    private static final List<PortDescription> INPUT_PORTS = List.of(//
+        dynamicPort("Input", "Input", """
+                Select the input port type and connect it. Only one input port can be selected at a time. If the input \
+                port is removed, all output ports are also removed."""));
+
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(//
+        dynamicPort("Output", "Output", """
+                The output ports. They are only present and editable if an input port type was selected and always \
+                have the same type. At least two outputs are required."""));
+
     @Override
-    protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
-        final var config = creationConfig.getPortConfig().orElseThrow();
-        return new CaseStartAnyNodeDialog(config.getOutputPorts());
+    public NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
     }
 
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, CaseStartAnyNodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription(//
+            NODE_NAME, //
+            NODE_ICON, //
+            INPUT_PORTS, //
+            OUTPUT_PORTS, //
+            SHORT_DESCRIPTION, //
+            FULL_DESCRIPTION, //
+            Collections.emptyList(), //
+            CaseStartAnyNodeParameters.class, //
+            null, //
+            NodeType.Manipulator, //
+            Collections.emptyList(), //
+            null);
+    }
+
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, CaseStartAnyNodeParameters.class));
+    }
 }
