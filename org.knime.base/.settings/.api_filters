@@ -4,7 +4,7 @@
         <filter id="305324134">
             <message_arguments>
                 <message_argument value="org.knime.base.node.image.ImageToTableNodeDialog"/>
-                <message_argument value="org.knime.base_5.8.0"/>
+                <message_argument value="org.knime.base_5.8.1"/>
             </message_arguments>
         </filter>
     </resource>
@@ -12,7 +12,7 @@
         <filter comment="Node implementations are not API" id="305324134">
             <message_arguments>
                 <message_argument value="org.knime.base.node.preproc.caseconvert.CaseConvertNodeDialog"/>
-                <message_argument value="org.knime.base_5.8.0"/>
+                <message_argument value="org.knime.base_5.8.1"/>
             </message_arguments>
         </filter>
     </resource>
@@ -20,7 +20,7 @@
         <filter comment="Node implementations are not API" id="305324134">
             <message_arguments>
                 <message_argument value="org.knime.base.node.preproc.ungroup.UngroupNodeDialog"/>
-                <message_argument value="org.knime.base_5.8.0"/>
+                <message_argument value="org.knime.base_5.8.1"/>
             </message_arguments>
         </filter>
     </resource>
@@ -28,7 +28,7 @@
         <filter id="305324134">
             <message_arguments>
                 <message_argument value="org.knime.base.node.switches.manualif.ManualIfNodeDialog"/>
-                <message_argument value="org.knime.base_5.8.0"/>
+                <message_argument value="org.knime.base_5.8.1"/>
             </message_arguments>
         </filter>
     </resource>
@@ -36,7 +36,7 @@
         <filter comment="Node implementations are not API" id="305324134">
             <message_arguments>
                 <message_argument value="org.knime.base.node.util.sampledata.SampleDataNodeDialog"/>
-                <message_argument value="org.knime.base_5.8.0"/>
+                <message_argument value="org.knime.base_5.8.1"/>
             </message_arguments>
         </filter>
     </resource>
@@ -52,7 +52,7 @@
         <filter id="305365105">
             <message_arguments>
                 <message_argument value="org.knime.base.node.image.ImageToTableNodeFactory"/>
-                <message_argument value="org.knime.base_5.8.0"/>
+                <message_argument value="org.knime.base_5.8.1"/>
             </message_arguments>
         </filter>
     </resource>
@@ -60,7 +60,7 @@
         <filter id="305365105">
             <message_arguments>
                 <message_argument value="org.knime.base.node.image.ImageToTableNodeModel"/>
-                <message_argument value="org.knime.base_5.8.0"/>
+                <message_argument value="org.knime.base_5.8.1"/>
             </message_arguments>
         </filter>
     </resource>
@@ -68,7 +68,7 @@
         <filter comment="Node implementations are not API" id="305365105">
             <message_arguments>
                 <message_argument value="org.knime.base.node.preproc.caseconvert.CaseConvertNodeFactory"/>
-                <message_argument value="org.knime.base_5.8.0"/>
+                <message_argument value="org.knime.base_5.8.1"/>
             </message_arguments>
         </filter>
     </resource>
@@ -76,7 +76,7 @@
         <filter comment="Node implementations are not API" id="305365105">
             <message_arguments>
                 <message_argument value="org.knime.base.node.preproc.caseconvert.CaseConvertNodeModel"/>
-                <message_argument value="org.knime.base_5.8.0"/>
+                <message_argument value="org.knime.base_5.8.1"/>
             </message_arguments>
         </filter>
     </resource>
@@ -118,7 +118,7 @@
         <filter comment="Node implementations are not API" id="305365105">
             <message_arguments>
                 <message_argument value="org.knime.base.node.preproc.ungroup.UngroupNodeModel"/>
-                <message_argument value="org.knime.base_5.8.0"/>
+                <message_argument value="org.knime.base_5.8.1"/>
             </message_arguments>
         </filter>
     </resource>
@@ -126,7 +126,7 @@
         <filter comment="Node implementations are not API" id="305365105">
             <message_arguments>
                 <message_argument value="org.knime.base.node.preproc.ungroup.UngroupOperation"/>
-                <message_argument value="org.knime.base_5.8.0"/>
+                <message_argument value="org.knime.base_5.8.1"/>
             </message_arguments>
         </filter>
     </resource>
@@ -134,7 +134,7 @@
         <filter id="305365105">
             <message_arguments>
                 <message_argument value="org.knime.base.node.switches.manualif.ManualIfNodeFactory"/>
-                <message_argument value="org.knime.base_5.8.0"/>
+                <message_argument value="org.knime.base_5.8.1"/>
             </message_arguments>
         </filter>
     </resource>
@@ -142,7 +142,7 @@
         <filter id="305365105">
             <message_arguments>
                 <message_argument value="org.knime.base.node.switches.manualif.ManualIfNodeModel"/>
-                <message_argument value="org.knime.base_5.8.0"/>
+                <message_argument value="org.knime.base_5.8.1"/>
             </message_arguments>
         </filter>
     </resource>
