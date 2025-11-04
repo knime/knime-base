@@ -50,6 +50,7 @@ import org.knime.base.node.mine.regression.MissingValueHandling;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DoubleValue;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -65,17 +66,29 @@ import org.knime.core.node.util.filter.column.DataTypeColumnFilter;
  * @since 2.10
  */
 public class PolyRegLearnerSettings {
+
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(PolyRegLearnerSettings.class);
+
     private int m_degree = 2;
 
     private int m_maxRowsForView = 10000;
 
     private String m_targetColumn;
 
-    private final DataColumnSpecFilterConfiguration m_filterConfiguration = new DataColumnSpecFilterConfiguration("column filter", new DataTypeColumnFilter(DoubleValue.class), DataColumnSpecFilterConfiguration.FILTER_BY_DATATYPE | NameFilterConfiguration.FILTER_BY_NAMEPATTERN);
+    private final DataColumnSpecFilterConfiguration m_filterConfiguration = new DataColumnSpecFilterConfiguration(
+        CFG_COLUMN_FILTER,
+        new DataTypeColumnFilter(DoubleValue.class),
+        DataColumnSpecFilterConfiguration.FILTER_BY_DATATYPE | NameFilterConfiguration.FILTER_BY_NAMEPATTERN);
 
     private MissingValueHandling m_missingValueHandling = MissingValueHandling.fail;
 
-    private static final String CFG_MISSING_VALUE_HANDLING = "missing_value_handling";
+    static final String CFG_MISSING_VALUE_HANDLING = "missing_value_handling";
+    static final String CFG_DEGREE = "degree";
+    static final String CFG_TARGET_COLUMN = "targetColumn";
+    static final String CFG_MAX_VIEW_ROWS = "maxViewRows";
+    static final String CFG_COLUMN_FILTER = "column filter";
+    static final String CFG_SELECTED_COLUMNS = "selectedColumns";
+    static final String CFG_INCLUDE_ALL = "includeAll";
 
     /**
      * Returns the maximum degree that polynomial used for regression should
@@ -105,39 +118,39 @@ public class PolyRegLearnerSettings {
      */
     public void loadSettingsFrom(final NodeSettingsRO settings)
             throws InvalidSettingsException {
-        m_degree = settings.getInt("degree");
-        m_targetColumn = settings.getString("targetColumn");
-        m_maxRowsForView = settings.getInt("maxViewRows");
-        boolean includeAll = settings.getBoolean("includeAll", false); // added v2.1
+        m_degree = settings.getInt(CFG_DEGREE);
+        m_targetColumn = settings.getString(CFG_TARGET_COLUMN);
+        m_maxRowsForView = settings.getInt(CFG_MAX_VIEW_ROWS);
+        boolean includeAll = settings.getBoolean(CFG_INCLUDE_ALL, false); // added v2.1
         // added in 2.10
         m_missingValueHandling =
             MissingValueHandling.valueOf(settings.getString(CFG_MISSING_VALUE_HANDLING,
                 MissingValueHandling.ignore.name()));
 
-        if (settings.containsKey("selectedColumns")) {
+        if (settings.containsKey(CFG_SELECTED_COLUMNS)) {
             //removed in 2.10
-            String[] included = settings.getStringArray("selectedColumns");
-            //we were able to load the old settings
-            String[] excluded = new String[0];
-            //but convert to new:
-            NodeSettings fakeSettings =
-                    createFakeSettings(m_filterConfiguration.getConfigRootName(), included, excluded, includeAll);
-            //added in 2.10
+            final var legacySettings = settings.getStringArray(CFG_SELECTED_COLUMNS);
+            NodeSettings fakeSettings = createFakeSettings(
+                m_filterConfiguration.getConfigRootName(), legacySettings, new String[0], includeAll);
             m_filterConfiguration.loadConfigurationInModel(fakeSettings);
         } else {
             //no previous config: we should use the new config
             //added in 2.10
-            NodeSettingsRO filterSettings = settings.getNodeSettings(m_filterConfiguration.getConfigRootName());
-            NodeSettingsRO dtSettings = filterSettings.getNodeSettings("datatype");
-            NodeSettingsRO tlSettings = dtSettings.getNodeSettings("typelist");
-            if (!tlSettings.keySet().contains(DoubleValue.class.getName())) {
-                NodeSettings fakeSettings =
-                    createFakeSettings(m_filterConfiguration.getConfigRootName(), new String[0], new String[0],
-                        false);
-                m_filterConfiguration.loadConfigurationInModel(fakeSettings);
-            } else {
+            try {
                 m_filterConfiguration.loadConfigurationInModel(settings);
+            } catch (InvalidSettingsException e) {
+                // Not sure why this is needed
+                // It was added since the previous code change in 2.10 introduced a check
+                // for DoubleValue being present in the typelist of the configuration loading
+                // fake settings if that was not the case. With the modern ui we don't save such an
+                // so we would fall back to empty fake settings for every newly applied node.
+                LOGGER.error("Failed to load filter configuration, falling back to empty configuration.", e);
+                NodeSettings fakeSettings =
+                        createFakeSettings(m_filterConfiguration.getConfigRootName(), new String[0], new String[0],
+                            false);
+                m_filterConfiguration.loadConfigurationInModel(fakeSettings);
             }
+
         }
     }
 
@@ -151,9 +164,9 @@ public class PolyRegLearnerSettings {
      */
     public void loadSettingsInDialog(final NodeSettingsRO settings, final DataTableSpec spec)
             throws InvalidSettingsException {
-        m_degree = settings.getInt("degree");
-        m_targetColumn = settings.getString("targetColumn");
-        m_maxRowsForView = settings.getInt("maxViewRows");
+        m_degree = settings.getInt(CFG_DEGREE);
+        m_targetColumn = settings.getString(CFG_TARGET_COLUMN);
+        m_maxRowsForView = settings.getInt(CFG_MAX_VIEW_ROWS);
         // added in 2.10
         m_missingValueHandling =
             MissingValueHandling.valueOf(settings.getString(CFG_MISSING_VALUE_HANDLING,
@@ -191,9 +204,9 @@ public class PolyRegLearnerSettings {
      */
     public void saveSettingsTo(final NodeSettingsWO settings) {
         if (m_targetColumn != null) {
-            settings.addInt("degree", m_degree);
-            settings.addString("targetColumn", m_targetColumn);
-            settings.addInt("maxViewRows", m_maxRowsForView);
+            settings.addInt(CFG_DEGREE, m_degree);
+            settings.addString(CFG_TARGET_COLUMN, m_targetColumn);
+            settings.addInt(CFG_MAX_VIEW_ROWS, m_maxRowsForView);
             settings.addString(CFG_MISSING_VALUE_HANDLING, m_missingValueHandling.name());
             m_filterConfiguration.saveConfiguration(settings);
         }
