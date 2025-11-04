@@ -1,0 +1,252 @@
+{
+  "data" : {
+    "model" : {
+      "inputColumns" : {
+        "mode" : "MANUAL",
+        "patternFilter" : {
+          "pattern" : "",
+          "isCaseSensitive" : false,
+          "isInverted" : false
+        },
+        "manualFilter" : {
+          "manuallySelected" : [ ],
+          "manuallyDeselected" : [ ],
+          "includeUnknownColumns" : true
+        },
+        "typeFilter" : {
+          "selectedTypes" : [ ],
+          "typeDisplays" : [ ]
+        }
+      },
+      "removeInputColumns" : true,
+      "failOnMissing" : true,
+      "failOnOutOfInterval" : true,
+      "outputColumn" : "Byte Vector"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "failOnMissing" : {
+            "type" : "boolean",
+            "title" : "Fail on missing values",
+            "description" : "When checked, the execution will fail when there is a missing value in the input columns;\notherwise, those cells will be replaced with 0.\n",
+            "default" : true
+          },
+          "failOnOutOfInterval" : {
+            "type" : "boolean",
+            "title" : "Fail on values outside [0,255]",
+            "description" : "When checked, the execution will fail when there is a value in the input columns which is less\nthan 0 or greater than 255; otherwise, those cells will be replaced with 0.\n",
+            "default" : true
+          },
+          "inputColumns" : {
+            "type" : "object",
+            "properties" : {
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "includeUnknownColumns" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "manuallyDeselected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "manuallySelected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "manuallySelected" : [ ],
+                  "manuallyDeselected" : [ ],
+                  "includeUnknownColumns" : false
+                }
+              },
+              "mode" : {
+                "oneOf" : [ {
+                  "const" : "MANUAL",
+                  "title" : "Manual"
+                }, {
+                  "const" : "REGEX",
+                  "title" : "Regex"
+                }, {
+                  "const" : "WILDCARD",
+                  "title" : "Wildcard"
+                }, {
+                  "const" : "TYPE",
+                  "title" : "Type"
+                } ],
+                "default" : "MANUAL"
+              },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "isCaseSensitive" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "isInverted" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "pattern" : {
+                    "type" : "string",
+                    "default" : ""
+                  }
+                },
+                "default" : {
+                  "pattern" : "",
+                  "isCaseSensitive" : false,
+                  "isInverted" : false
+                }
+              },
+              "selected" : {
+                "type" : "array",
+                "items" : {
+                  "type" : "string"
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "selectedTypes" : [ ],
+                  "typeDisplays" : [ ]
+                }
+              }
+            },
+            "title" : "Input columns",
+            "description" : "The input columns to use. They are used in the order visible in the configuration,\nwhich is the order they appear in the input table.\n",
+            "default" : {
+              "mode" : "MANUAL",
+              "patternFilter" : {
+                "pattern" : "",
+                "isCaseSensitive" : false,
+                "isInverted" : false
+              },
+              "manualFilter" : {
+                "manuallySelected" : [ ],
+                "manuallyDeselected" : [ ],
+                "includeUnknownColumns" : true
+              },
+              "typeFilter" : {
+                "selectedTypes" : [ ],
+                "typeDisplays" : [ ]
+              }
+            }
+          },
+          "outputColumn" : {
+            "type" : "string",
+            "title" : "Output column",
+            "description" : "The name of the output column.\n",
+            "default" : "Byte Vector"
+          },
+          "removeInputColumns" : {
+            "type" : "boolean",
+            "title" : "Remove input columns",
+            "description" : "When checked, the input columns will be filtered out from the output.\n",
+            "default" : true
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/inputColumns",
+      "options" : {
+        "format" : "typedStringFilter",
+        "unknownValuesText" : "Any unknown column",
+        "emptyStateLabel" : "No columns in this list.",
+        "hideTypeFilter" : true
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/removeInputColumns",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/failOnMissing",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/failOnOutOfInterval",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/outputColumn"
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "inputColumns" : {
+            "configPaths" : [ [ "columns", "filter-type" ], [ "columns", "included_names" ], [ "columns", "excluded_names" ], [ "columns", "enforce_option" ], [ "columns", "name_pattern", "pattern" ], [ "columns", "name_pattern", "type" ], [ "columns", "name_pattern", "caseSensitive" ], [ "columns", "name_pattern", "excludeMatching" ] ]
+          },
+          "removeInputColumns" : {
+            "configKey" : "remove input columns"
+          },
+          "failOnMissing" : {
+            "configKey" : "fail on missing"
+          },
+          "failOnOutOfInterval" : {
+            "configKey" : "fail on out of interval"
+          },
+          "outputColumn" : {
+            "configKey" : "output"
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/inputColumns",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "IntCol",
+        "text" : "IntCol",
+        "type" : {
+          "id" : "org.knime.core.data.IntValue",
+          "text" : "Number (Integer)"
+        }
+      }, {
+        "id" : "BooleanCol",
+        "text" : "BooleanCol",
+        "type" : {
+          "id" : "org.knime.core.data.BooleanValue",
+          "text" : "Boolean"
+        }
+      } ]
+    } ]
+  } ]
+}

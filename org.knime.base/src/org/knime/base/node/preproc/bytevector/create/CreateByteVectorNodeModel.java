@@ -78,23 +78,23 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
  * @since 2.10
  */
 public class CreateByteVectorNodeModel extends NodeModel {
-    private static final String CFGKEY_COLUMNS = "columns";
+    static final String CFGKEY_COLUMNS = "columns";
 
-    private static final String CFGKEY_REMOVE_INPUT = "remove input columns";
+    static final String CFGKEY_REMOVE_INPUT = "remove input columns";
 
-    private static final boolean DEFAULT_REMOVE_INPUT = true;
+    static final boolean DEFAULT_REMOVE_INPUT = true;
 
-    private static final String CFGKEY_OUTPUT_COLUMN = "output";
+    static final String CFGKEY_OUTPUT_COLUMN = "output";
 
-    private static final String DEFAULT_OUTPUT_COLUMN = "Byte Vector";
+    static final String DEFAULT_OUTPUT_COLUMN = "Byte Vector";
 
-    private static final String CFGKEY_FAIL_ON_MISSING = "fail on missing";
+    static final String CFGKEY_FAIL_ON_MISSING = "fail on missing";
 
-    private static final boolean DEFAULT_FAIL_ON_MISSING = true;
+    static final boolean DEFAULT_FAIL_ON_MISSING = true;
 
-    private static final String CFGKEY_FAIL_ON_OUT_OF_INTERVAL = "fail on out of interval";
+    static final String CFGKEY_FAIL_ON_OUT_OF_INTERVAL = "fail on out of interval";
 
-    private static final boolean DEFAULT_FAIL_ON_OUT_OF_INTERVAL = true;
+    static final boolean DEFAULT_FAIL_ON_OUT_OF_INTERVAL = true;
 
     private final SettingsModelColumnFilter2 m_inputColumns = createInputColumns();
 

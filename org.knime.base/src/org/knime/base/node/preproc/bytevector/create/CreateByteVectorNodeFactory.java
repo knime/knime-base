@@ -46,59 +46,124 @@
  */
 package org.knime.base.node.preproc.bytevector.create;
 
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
 
 /**
  * <code>NodeFactory</code> for the "CreateByteVector" Node.
  * Creates a new byte vector column from some columns of ints.
  *
  * @author Gabor Bakos
+ * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.2
  * @since 2.10
  */
+@SuppressWarnings("restriction")
 public class CreateByteVectorNodeFactory
-        extends NodeFactory<CreateByteVectorNodeModel> {
+        extends NodeFactory<CreateByteVectorNodeModel> implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public CreateByteVectorNodeModel createNodeModel() {
         return new CreateByteVectorNodeModel();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int getNrNodeViews() {
         return 0;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public NodeView<CreateByteVectorNodeModel> createNodeView(final int viewIndex,
             final CreateByteVectorNodeModel nodeModel) {
         throw new IndexOutOfBoundsException("No views! " + viewIndex);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean hasDialog() {
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    private static final String NODE_NAME = "Create Byte Vector";
+
+    private static final String NODE_ICON = "./createByteVector.png";
+
+    private static final String SHORT_DESCRIPTION = """
+            Creates a new Byte Vector column from some columns of ints.
+            """;
+
+    private static final String FULL_DESCRIPTION = """
+            Concatenates the values from the selected int columns to a new Byte Vector column.
+            """;
+
+    private static final List<PortDescription> INPUT_PORTS = List.of(
+            fixedPort("Table", """
+                Table with int columns.
+                """)
+    );
+
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(
+            fixedPort("Table", """
+                Table with Byte Vector column.
+                """)
+    );
+
     @Override
     public NodeDialogPane createNodeDialogPane() {
-        return new CreateByteVectorNodeDialog();
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    /**
+     * @since 5.9
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, CreateByteVectorNodeParameters.class);
+    }
+
+    /**
+     * @since 5.9
+     */
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription(
+            NODE_NAME,
+            NODE_ICON,
+            INPUT_PORTS,
+            OUTPUT_PORTS,
+            SHORT_DESCRIPTION,
+            FULL_DESCRIPTION,
+            List.of(),
+            CreateByteVectorNodeParameters.class,
+            null,
+            NodeType.Manipulator,
+            List.of(),
+            null
+        );
+    }
+
+    /**
+     * @since 5.9
+     */
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, CreateByteVectorNodeParameters.class));
     }
 
 }
