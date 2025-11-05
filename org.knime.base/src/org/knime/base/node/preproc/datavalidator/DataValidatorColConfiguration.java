@@ -67,6 +67,7 @@ import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.node.parameters.widget.choices.Label;
 
 /**
  * Configuration object for a couple of columns.
@@ -428,14 +429,20 @@ final class DataValidatorColConfiguration {
         /**
          * No handling.
          */
+        @Label(value = "Ignore", description = "Ignores data type mismatches and do nothing")
         NONE(""),
         /**
          * Fails on different types.
          */
+        @Label(value = "Fail validation", description = """
+                Fails the validation if reference data type is not a super type of the data type to validate
+                """)
         FAIL("Reject if different"),
         /**
          * Trys to convert and fails if not possible.
          */
+        @Label(value = "Try to convert",
+            description = "Attempts conversion and fails the validation if not possible")
         CONVERT_FAIL("Try to convert (reject if not compatible)");
         private final String m_description;
 
@@ -458,14 +465,19 @@ final class DataValidatorColConfiguration {
         /**
          * No handling.
          */
+        @Label(value = "Ignore", description = "Numeric values are not validated")
         NONE(""),
         /**
          * Fails if a cell is out of domain.
          */
+        @Label(value = "Fail validation",
+            description = "Fails validation if numeric values are outside domain (min/max)")
         FAIL("Reject if out of domain"),
         /**
          * Replaces a cell with a missing value.
          */
+        @Label(value = "Replace with missing values",
+            description = "Replaces out-of-domain values with missing values")
         MISSING_VALUE("Replace with missing Values");
         private final String m_description;
 
@@ -488,14 +500,18 @@ final class DataValidatorColConfiguration {
         /**
          * No handling.
          */
+        @Label(value = "Ignore", description = "Ignore missing columns and do nothing")
         NONE(""),
         /**
          * Fails on different types.
          */
+        @Label(value = "Fail validation", description = "Fails the validation if columns don't exist")
         FAIL("Reject if column is missing"),
         /**
          * Trys to convert and fails if not possible.
          */
+        @Label(value = "Insert column with missing values",
+            description = "Inserts missing columns and fills them with missing values")
         FILL_WITH_MISSINGS("Insert column filled with missing values");
         private final String m_description;
 

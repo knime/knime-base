@@ -70,6 +70,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.node.parameters.widget.choices.Label;
 
 /**
  * The configuration object for the DataValidatorNodeModel.
@@ -447,10 +448,18 @@ final class DataValidatorConfiguration {
         /**
          * Fail node.
          */
+        @Label(value = "Fail node", description = """
+                Forces the node to fail if the validation fails, with detailed validation fault descriptions.
+                There data validation will be skipped if the structure validation already fails.
+                """)
         FAIL_NODE("Fail node (no data scan if structure differs)"),
         /**
          * Activate second port.
          */
+        @Label(value = "Deactivate first output port", description = """
+                Never fails but deactivates first output port if the validation fails and outputs
+                results at the second port. It will always do both, structure and data validation.
+                """)
         OUTPUT_TO_PORT_CHECK_DATA("Deactivate first output port (always scans data)");
         private final String m_description;
 
@@ -473,14 +482,17 @@ final class DataValidatorConfiguration {
         /**
          * Unknown columns cause the node to fail.
          */
+        @Label(value = "Fail validation", description = "Additional columns will cause the validation to fail")
         REJECT("Don't allow unknown columns"),
         /**
          * Unknown columns are removed.
          */
+        @Label(value = "Remove", description = "Additional columns will be removed")
         REMOVE("Remove unknown columns"),
         /**
          * Unknown columns are added to the end.
          */
+        @Label(value = "Move to the end", description = "Additional columns will be moved to the end of the table")
         IGNORE("Sort them to the end");
 
         private final String m_description;

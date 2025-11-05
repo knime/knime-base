@@ -51,7 +51,6 @@ import org.knime.base.node.preproc.datavalidator.DataValidatorColConfiguration.D
 import org.knime.base.node.preproc.datavalidator.DataValidatorColConfiguration.DomainHandling;
 import org.knime.base.node.preproc.datavalidator.DataValidatorConfiguration.RejectBehavior;
 import org.knime.base.node.preproc.datavalidator.DataValidatorConfiguration.UnknownColumnHandling;
-import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
@@ -65,6 +64,7 @@ import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.layout.Section;
 import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
 import org.knime.node.parameters.persistence.NodeParametersPersistor;
+import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.updates.Effect;
 import org.knime.node.parameters.updates.Effect.EffectType;
@@ -73,6 +73,7 @@ import org.knime.node.parameters.updates.EffectPredicateProvider;
 import org.knime.node.parameters.widget.choices.Label;
 import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
+import org.knime.node.parameters.widget.choices.util.ColumnSelectionUtil;
 
 /**
  * Node parameters for Table Validator (Reference).
@@ -119,42 +120,45 @@ class DataValidatorSpecNodeParameters implements NodeParameters {
 
     // ===== STRUCTURE VALIDATION SECTION =====
 
-    @Widget(title = "Column name matching",
-        description = "Controls what counts as a column name match between the input table and the reference table. "
-            + "If 'case insensitive' is choosen, it still tries to find an exactly (case sensitively) matching column name first, "
-            + "and then falls back to case insensitive matching.")
+    @Widget(title = "Column name matching", description = """
+            Controls what counts as a column name match between the input table and the reference table.
+            If 'case insensitive' is choosen, it still tries to find an exactly (case sensitively) matching column
+            name first, and then falls back to case insensitive matching.
+            """)
     @ValueSwitchWidget
     @Layout(StructureValidationSection.class)
     @PersistWithin({KEY_1, KEY_2})
     @Persistor(ColumnNameMatchingLegacyPersistor.class)
     ColumnNameMatchingEnum m_columnNameMatching = ColumnNameMatchingEnum.CASE_SENSITIVE;
 
-    @Widget(title = "If column is missing in table to validate",
-        description = "Ensures that the reference columns exist in the input table. "
-            + "If case insensitive name matching is selected, the first matching column will satisfy this condition.")
+    @Widget(title = "If a column is missing in the table", description = """
+            Ensures that the reference columns exist in the input table.
+            If case insensitive name matching is selected, the first matching column will satisfy this condition.
+            """)
     @Layout(StructureValidationSection.class)
     @RadioButtonsWidget
     @PersistWithin({KEY_1, KEY_2})
-    @Persistor(MissingColumnHandlingLegacyPersistor.class)
-    MissingColumnHandling m_missingColumnHandling = MissingColumnHandling.FAIL;
+    @Persist(configKey = DataValidatorColConfiguration.CFG_COLUMN_MISSING_HANDLING)
+    ColumnExistenceHandling m_missingColumnHandling = ColumnExistenceHandling.FAIL;
 
-    @Widget(title = "If there is an additional column in the table to validate",
-        description = "Specifies how to handle columns which are not included in the reference table but in the table to validate. "
-            + "Additional columns can cause the validation to fail, be removed, or moved to the end of the table.")
+    @Widget(title = "If there is an additional column in the table", description = """
+            Specifies how to handle columns which are not included in the reference table but in the table to validate.
+            Additional columns can cause the validation to fail, be removed, or moved to the end of the table.
+            """)
     @Layout(StructureValidationSection.class)
     @RadioButtonsWidget
-    @Persistor(AdditionalColumnHandlingLegacyPersistor.class)
-    AdditionalColumnHandlingEnum m_additionalColumnsHandling = AdditionalColumnHandlingEnum.FAIL;
+    @Persist(configKey = DataValidatorConfiguration.CFG_REMOVE_UNKNOWN_COLUMNS)
+    UnknownColumnHandling m_additionalColumnsHandling = UnknownColumnHandling.REJECT;
 
     @Widget(title = "If data type does not match", description = "Ensures a correct data type.")
     @Layout(StructureValidationSection.class)
     @ValueSwitchWidget
     @PersistWithin({KEY_1, KEY_2})
-    @Persistor(DataTypeHandlingLegacyPersistor.class)
-    DataTypeHandlingEnum m_dataTypeHandling = DataTypeHandlingEnum.FAIL;
+    @Persist(configKey = DataValidatorColConfiguration.CFG_DATA_TYPE_HANDLING)
+    DataTypeHandling m_dataTypeHandling = DataTypeHandling.FAIL;
 
-    @PersistWithin({"individual_settings", "0"})
-    @Persistor(ColumnNamesLegacyPersistor.class)
+    @PersistWithin({KEY_1, KEY_2})
+    @Persist(configKey = DataValidatorColConfiguration.CFG_COL_NAMES)
     String[] m_columnNames = new String[0];
 
     // ===== DATA VALIDATION SECTION =====
@@ -167,9 +171,10 @@ class DataValidatorSpecNodeParameters implements NodeParameters {
     @Persistor(MissingValueHandlingLegacyPersistor.class)
     MissingValueHandlingEnum m_missingValueHandling = MissingValueHandlingEnum.IGNORE;
 
-    @Widget(title = "If categoric value is not in domain (possible values) of reference column",
-        description = " Allows one to optionally validate categoric values in columns against a set of allowed values. "
-            + "This option is only enabled if the reference column defines possible values.")
+    @Widget(title = "If categoric value is not in the domain", description = """
+            Allows one to optionally validate categoric values in columns against a set of allowed values.
+            This option is only enabled if the reference column defines possible values.
+            """)
     @Layout(DataValidationSection.class)
     @RadioButtonsWidget
     @PersistWithin({KEY_1, KEY_2})
@@ -177,9 +182,10 @@ class DataValidatorSpecNodeParameters implements NodeParameters {
     @Effect(predicate = InputTableHasDomainValues.class, type = EffectType.ENABLE)
     CategoricDomainHandlingEnum m_categoricDomainHandling = CategoricDomainHandlingEnum.IGNORE;
 
-    @Widget(title = "If numeric value is outside the domain of reference column (min/max)",
-        description = "Checks if each data object is between min and max defined by the domain of the reference column. "
-            + "This option is only enabled if the reference column defines a numeric domain (min/max).")
+    @Widget(title = "If numeric value is outside the domain", description = """
+            Checks if each data object is between min and max defined by the domain of the reference column.
+            This option is only enabled if the reference column defines a numeric domain (min/max).
+            """)
     @Layout(DataValidationSection.class)
     @RadioButtonsWidget
     @PersistWithin({KEY_1, KEY_2})
@@ -192,8 +198,8 @@ class DataValidatorSpecNodeParameters implements NodeParameters {
     @Widget(title = "If validation fails", description = "Controls the effect of a failed validation.")
     @Layout(OutputSection.class)
     @ValueSwitchWidget
-    @Persistor(ValidationFailureBehaviorLegacyPersistor.class)
-    ValidationFailureBehavior m_validationFailureBehavior = ValidationFailureBehavior.FAIL_NODE;
+    @Persist(configKey = DataValidatorConfiguration.CFG_REJECTING_BEHAVIOR)
+    RejectBehavior m_validationFailureBehavior = RejectBehavior.FAIL_NODE;
 
     // ===== ENUMS =====
 
@@ -201,55 +207,10 @@ class DataValidatorSpecNodeParameters implements NodeParameters {
             @Label(value = "Case sensitive", description = "Column names must match exactly")
             CASE_SENSITIVE,
 
-            @Label(value = "Case insensitive",
-                description = "Also columns with a similar name will be considered to be validated according to this configuration")
+            @Label(value = "Case insensitive", description = """
+                    Also columns with a similar name will be considered to be validated according to this configuration.
+                    """)
             CASE_INSENSITIVE
-    }
-
-    enum ValidationFailureBehavior {
-            @Label(value = "Fail node",
-                description = "Forces the node to fail if the validation fails, with detailed validation fault descriptions. There data validation will be skipped if the structure validation already fails.")
-            FAIL_NODE,
-
-            @Label(value = "Deactivate first output port",
-                description = "Never fails but deactivates first output port if the validation fails and outputs results at the second port. It will always do both, structure and data validation.")
-            OUTPUT_TO_PORT
-    }
-
-    enum AdditionalColumnHandlingEnum {
-            @Label(value = "Fail validation", description = "Additional columns will cause the validation to fail")
-            FAIL,
-
-            @Label(value = "Remove", description = "Additional columns will be removed")
-            REMOVE,
-
-            @Label(value = "Move to the end", description = "Additional columns will be moved to the end of the table")
-            MOVE
-    }
-
-    enum MissingColumnHandling {
-            @Label(value = "Ignore", description = "Ignore missing columns and do nothing")
-            IGNORE,
-
-            @Label(value = "Fail validation", description = "Fails the validation if columns don't exist")
-            FAIL,
-
-            @Label(value = "Insert column with missing values",
-                description = "Inserts missing columns and fills them with missing values")
-            INSERT
-    }
-
-    enum DataTypeHandlingEnum {
-            @Label(value = "Ignore", description = "Ignores data type mismatches and do nothing")
-            IGNORE,
-
-            @Label(value = "Fail validation",
-                description = "Fails the validation if reference data type is not a super type of the data type to validate")
-            FAIL,
-
-            @Label(value = "Try to convert",
-                description = "Attempts conversion and fails the validation if not possible")
-            CONVERT_FAIL
     }
 
     enum MissingValueHandlingEnum {
@@ -288,94 +249,6 @@ class DataValidatorSpecNodeParameters implements NodeParameters {
 
     // ===== CUSTOM PERSISTORS =====
 
-    static final class ValidationFailureBehaviorLegacyPersistor
-        implements NodeParametersPersistor<ValidationFailureBehavior> {
-
-        @Override
-        public ValidationFailureBehavior load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            var behavior = ConfigSerializationUtils.getEnum(settings, DataValidatorConfiguration.CFG_REJECTING_BEHAVIOR,
-                RejectBehavior.class);
-            return switch (behavior) {
-                case FAIL_NODE -> ValidationFailureBehavior.FAIL_NODE;
-                case OUTPUT_TO_PORT_CHECK_DATA -> ValidationFailureBehavior.OUTPUT_TO_PORT;
-            };
-        }
-
-        @Override
-        public void save(final ValidationFailureBehavior value, final NodeSettingsWO settings) {
-            var behavior = switch (value) {
-                case FAIL_NODE -> RejectBehavior.FAIL_NODE;
-                case OUTPUT_TO_PORT -> RejectBehavior.OUTPUT_TO_PORT_CHECK_DATA;
-            };
-            ConfigSerializationUtils.addEnum(settings, DataValidatorConfiguration.CFG_REJECTING_BEHAVIOR, behavior);
-        }
-
-        @Override
-        public String[][] getConfigPaths() {
-            return new String[][]{{DataValidatorConfiguration.CFG_REJECTING_BEHAVIOR}};
-        }
-    }
-
-    static final class AdditionalColumnHandlingLegacyPersistor
-        implements NodeParametersPersistor<AdditionalColumnHandlingEnum> {
-
-        @Override
-        public AdditionalColumnHandlingEnum load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            var handling = ConfigSerializationUtils.getEnum(settings,
-                DataValidatorConfiguration.CFG_REMOVE_UNKNOWN_COLUMNS, UnknownColumnHandling.class);
-            return switch (handling) {
-                case REJECT -> AdditionalColumnHandlingEnum.FAIL;
-                case REMOVE -> AdditionalColumnHandlingEnum.REMOVE;
-                case IGNORE -> AdditionalColumnHandlingEnum.MOVE;
-            };
-        }
-
-        @Override
-        public void save(final AdditionalColumnHandlingEnum value, final NodeSettingsWO settings) {
-            var handling = switch (value) {
-                case FAIL -> UnknownColumnHandling.REJECT;
-                case REMOVE -> UnknownColumnHandling.REMOVE;
-                case MOVE -> UnknownColumnHandling.IGNORE;
-            };
-            ConfigSerializationUtils.addEnum(settings, DataValidatorConfiguration.CFG_REMOVE_UNKNOWN_COLUMNS, handling);
-        }
-
-        @Override
-        public String[][] getConfigPaths() {
-            return new String[][]{{DataValidatorConfiguration.CFG_REMOVE_UNKNOWN_COLUMNS}};
-        }
-    }
-
-    static final class MissingColumnHandlingLegacyPersistor implements NodeParametersPersistor<MissingColumnHandling> {
-
-        @Override
-        public MissingColumnHandling load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            var handling = ConfigSerializationUtils.getEnum(settings,
-                DataValidatorColConfiguration.CFG_COLUMN_MISSING_HANDLING, ColumnExistenceHandling.class);
-            return switch (handling) {
-                case NONE -> MissingColumnHandling.IGNORE;
-                case FAIL -> MissingColumnHandling.FAIL;
-                case FILL_WITH_MISSINGS -> MissingColumnHandling.INSERT;
-            };
-        }
-
-        @Override
-        public void save(final MissingColumnHandling value, final NodeSettingsWO settings) {
-            var handling = switch (value) {
-                case IGNORE -> ColumnExistenceHandling.NONE;
-                case FAIL -> ColumnExistenceHandling.FAIL;
-                case INSERT -> ColumnExistenceHandling.FILL_WITH_MISSINGS;
-            };
-            ConfigSerializationUtils.addEnum(settings, DataValidatorColConfiguration.CFG_COLUMN_MISSING_HANDLING,
-                handling);
-        }
-
-        @Override
-        public String[][] getConfigPaths() {
-            return new String[][]{{KEY_1, KEY_2, DataValidatorColConfiguration.CFG_COLUMN_MISSING_HANDLING}};
-        }
-    }
-
     static final class ColumnNameMatchingLegacyPersistor implements NodeParametersPersistor<ColumnNameMatchingEnum> {
 
         @Override
@@ -413,35 +286,6 @@ class DataValidatorSpecNodeParameters implements NodeParameters {
         @Override
         public String[][] getConfigPaths() {
             return new String[][]{{KEY_1, KEY_2, DataValidatorColConfiguration.CFG_REJECT_ON_MISSING_VALUE}};
-        }
-    }
-
-    static final class DataTypeHandlingLegacyPersistor implements NodeParametersPersistor<DataTypeHandlingEnum> {
-
-        @Override
-        public DataTypeHandlingEnum load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            var handling = ConfigSerializationUtils.getEnum(settings,
-                DataValidatorColConfiguration.CFG_DATA_TYPE_HANDLING, DataTypeHandling.class);
-            return switch (handling) {
-                case NONE -> DataTypeHandlingEnum.IGNORE;
-                case FAIL -> DataTypeHandlingEnum.FAIL;
-                case CONVERT_FAIL -> DataTypeHandlingEnum.CONVERT_FAIL;
-            };
-        }
-
-        @Override
-        public void save(final DataTypeHandlingEnum value, final NodeSettingsWO settings) {
-            var handling = switch (value) {
-                case IGNORE -> DataTypeHandling.NONE;
-                case FAIL -> DataTypeHandling.FAIL;
-                case CONVERT_FAIL -> DataTypeHandling.CONVERT_FAIL;
-            };
-            ConfigSerializationUtils.addEnum(settings, DataValidatorColConfiguration.CFG_DATA_TYPE_HANDLING, handling);
-        }
-
-        @Override
-        public String[][] getConfigPaths() {
-            return new String[][]{{KEY_1, KEY_2, DataValidatorColConfiguration.CFG_DATA_TYPE_HANDLING}};
         }
     }
 
@@ -507,43 +351,14 @@ class DataValidatorSpecNodeParameters implements NodeParameters {
         }
     }
 
-    static final class ColumnNamesLegacyPersistor implements NodeParametersPersistor<String[]> {
-
-        @Override
-        public String[] load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            return settings.getStringArray(DataValidatorColConfiguration.CFG_COL_NAMES, new String[0]);
-        }
-
-        @Override
-        public void save(final String[] value, final NodeSettingsWO settings) {
-            settings.addStringArray(DataValidatorColConfiguration.CFG_COL_NAMES, value);
-        }
-
-        @Override
-        public String[][] getConfigPaths() {
-            return new String[0][];
-        }
-    }
-
     // ===== EFFECTS =====
 
     static final class InputTableHasDomainValues implements EffectPredicateProvider {
 
         @Override
         public EffectPredicate init(final PredicateInitializer i) {
-            return i.getConstant(input -> {
-                var spec = input.getInTableSpec(1).orElse(null);
-                if (spec == null) {
-                    return false;
-                } else {
-                    for (DataColumnSpec colSpec : spec) {
-                        if (colSpec.getDomain().hasValues()) {
-                            return true;
-                        }
-                    }
-                    return false;
-                }
-            });
+            return i.getConstant(input -> ColumnSelectionUtil.getAllColumns(input, 1).stream()
+                .anyMatch(colSpec -> colSpec.getDomain().hasValues()));
         }
     }
 
