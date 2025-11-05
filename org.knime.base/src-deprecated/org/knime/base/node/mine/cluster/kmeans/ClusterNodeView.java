@@ -75,7 +75,9 @@ import org.knime.core.node.property.hilite.KeyEvent;
 
 /**
  * @author Michael Berthold, University of Konstanz
+ * @deprecated Replaced by [@link ClusterNodeView2}
  */
+@Deprecated
 public class ClusterNodeView extends NodeView<ClusterNodeModel>
     implements HiLiteListener {
 
@@ -107,6 +109,7 @@ public class ClusterNodeView extends NodeView<ClusterNodeModel>
      *
      * @param nodeModel the underlying model
      */
+    @Deprecated
     public ClusterNodeView(final ClusterNodeModel nodeModel) {
         super(nodeModel);
         JComponent myComp = new JPanel();

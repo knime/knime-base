@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -40,60 +41,79 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * ------------------------------------------------------------------------
+ * ---------------------------------------------------------------------
+ *
+ * History
+ *   Nov 11, 2019 (Perla Gjoka, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.base.node.mine.cluster.kmeans;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
+import org.knime.core.node.util.ButtonGroupEnumInterface;
 
 /**
- * Create classes for k-means Clustering NodeModel, NodeView and NodeDialogPane.
+ * This enum lists the implemented possibilities for centroid initialization.
+ * It is possible to initialize the centroids with the first rows of the
+ * input table or initialize them randomly.
  *
- * @author Michael Berthold, University of Konstanz
- * @since 3.1
+ * @author Perla Gjoka, KNIME GmbH, Konstanz, Germany
+ * @deprecated Replaced by {@link ClusterNodeParameters}
  */
-public class ClusterNodeFactory2 extends NodeFactory<ClusterNodeModel> {
+@Deprecated
+enum CentroidInitialization implements ButtonGroupEnumInterface {
+        FIRST_ROWS("First k rows", null),
+        RANDOM_INITIALIZATION("Random initialization", null);
+
+    private final String m_text;
+
+    private final String m_tooltip;
+
+    CentroidInitialization(final String text, final String tooltip) {
+        m_text = text;
+        m_tooltip = tooltip;
+    }
+
+
     /**
      * {@inheritDoc}
      */
     @Override
-    public ClusterNodeModel createNodeModel() {
-        return new ClusterNodeModel(false, true);
+    public String getText() {
+        return m_text;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public int getNrNodeViews() {
-        return 1;
+    public String getActionCommand() {
+        return name();
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public ClusterNodeView createNodeView(final int i, final ClusterNodeModel nodeModel) {
-        if (i != 0) {
-            throw new IllegalStateException();
+    public String getToolTip() {
+        return m_tooltip;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isDefault() {
+        return RANDOM_INITIALIZATION == this;
+    }
+
+    @Deprecated
+    public static CentroidInitialization getDefault() {
+        CentroidInitialization[] possibleValues = values();
+        for (final CentroidInitialization centroid : possibleValues) {
+            if (centroid.isDefault()) {
+                return centroid;
+            }
         }
-        return new ClusterNodeView(nodeModel);
+        return possibleValues[0];
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean hasDialog() {
-        return true;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeDialogPane createNodeDialogPane() {
-        return new ClusterNodeDialog();
-    }
 }

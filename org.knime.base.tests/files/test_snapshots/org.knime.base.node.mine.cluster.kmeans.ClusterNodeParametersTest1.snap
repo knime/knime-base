@@ -1,0 +1,431 @@
+{
+  "data" : {
+    "model" : {
+      "nrOfClusters" : 3,
+      "centroidInitialization" : "RANDOM_INITIALIZATION",
+      "useStaticRandomSeed" : false,
+      "seedValue" : "0",
+      "maxIterations" : 99,
+      "columnFilter" : {
+        "mode" : "MANUAL",
+        "patternFilter" : {
+          "pattern" : "",
+          "isCaseSensitive" : false,
+          "isInverted" : false
+        },
+        "manualFilter" : {
+          "manuallySelected" : [ "Universe_0_0", "Universe_0_1", "Universe_1_0", "Universe_1_1" ],
+          "manuallyDeselected" : [ ],
+          "includeUnknownColumns" : true
+        },
+        "typeFilter" : {
+          "selectedTypes" : [ ],
+          "typeDisplays" : [ ]
+        }
+      },
+      "enableHilite" : false
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "centroidInitialization" : {
+            "oneOf" : [ {
+              "const" : "FIRST_ROWS",
+              "title" : "First k rows"
+            }, {
+              "const" : "RANDOM_INITIALIZATION",
+              "title" : "Random initialization"
+            } ],
+            "title" : "Centroid initialization",
+            "description" : "First k rows: Initializes the centroids using the first rows of the input table. Random initialization: Initializes the centroids with random rows of the input table. Checking the Use static random seed it is possible to get reproducible results.",
+            "default" : "RANDOM_INITIALIZATION"
+          },
+          "columnFilter" : {
+            "type" : "object",
+            "properties" : {
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "includeUnknownColumns" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "manuallyDeselected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "manuallySelected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "manuallySelected" : [ ],
+                  "manuallyDeselected" : [ ],
+                  "includeUnknownColumns" : false
+                }
+              },
+              "mode" : {
+                "oneOf" : [ {
+                  "const" : "MANUAL",
+                  "title" : "Manual"
+                }, {
+                  "const" : "REGEX",
+                  "title" : "Regex"
+                }, {
+                  "const" : "WILDCARD",
+                  "title" : "Wildcard"
+                }, {
+                  "const" : "TYPE",
+                  "title" : "Type"
+                } ],
+                "default" : "MANUAL"
+              },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "isCaseSensitive" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "isInverted" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "pattern" : {
+                    "type" : "string",
+                    "default" : ""
+                  }
+                },
+                "default" : {
+                  "pattern" : "",
+                  "isCaseSensitive" : false,
+                  "isInverted" : false
+                }
+              },
+              "selected" : {
+                "type" : "array",
+                "items" : {
+                  "type" : "string"
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "selectedTypes" : [ ],
+                  "typeDisplays" : [ ]
+                }
+              }
+            },
+            "title" : "Column selection",
+            "description" : "Move the numeric columns of interest to the \"Include\" list. Always include all columns option moves all numeric columns to the \"Include\" list by default.",
+            "default" : {
+              "mode" : "MANUAL",
+              "patternFilter" : {
+                "pattern" : "",
+                "isCaseSensitive" : false,
+                "isInverted" : false
+              },
+              "manualFilter" : {
+                "manuallySelected" : [ "feature1", "feature2", "feature3", "feature4" ],
+                "manuallyDeselected" : [ ],
+                "includeUnknownColumns" : true
+              },
+              "typeFilter" : {
+                "selectedTypes" : [ ],
+                "typeDisplays" : [ ]
+              }
+            }
+          },
+          "enableHilite" : {
+            "type" : "boolean",
+            "title" : "Enable Hilite Mapping",
+            "description" : "If enabled, the hiliting of a cluster row (2nd output) will hilite all rows of this cluster in the input table and the 1st output table. Depending on the number of rows, enabling this feature might consume a lot of memory.",
+            "default" : false
+          },
+          "maxIterations" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Max number of iterations",
+            "description" : "The maximum number of iterations after which the algorithm terminates if it hasn't found a stable solution before.",
+            "default" : 99
+          },
+          "newRandomSeedValue" : {
+            "type" : "object",
+            "title" : "New",
+            "description" : "Generate a new random seed value."
+          },
+          "nrOfClusters" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Number of clusters",
+            "description" : "The number of clusters (cluster centers) to be created.",
+            "default" : 3
+          },
+          "seedValue" : {
+            "type" : "string",
+            "title" : "Seed value",
+            "description" : "The seed value for random centroid initialization.",
+            "default" : "0"
+          },
+          "useStaticRandomSeed" : {
+            "type" : "boolean",
+            "title" : "Use static random seed",
+            "description" : "When checked, uses the provided static seed for reproducible random centroid initialization.",
+            "default" : false
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/nrOfClusters",
+      "options" : {
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 2147483647.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 2.147483647E9
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 1.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 1.0
+            }
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/centroidInitialization",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/useStaticRandomSeed",
+      "options" : {
+        "format" : "checkbox"
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/centroidInitialization",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "RANDOM_INITIALIZATION"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/seedValue",
+      "options" : {
+        "validation" : {
+          "pattern" : {
+            "errorMessage" : "Please enter a valid integer number between -9223372036854775808 to 9223372036854775807.",
+            "parameters" : {
+              "pattern" : "[+-]?(0|[1-9][0-9]{0,18})"
+            }
+          }
+        }
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "type" : "AND",
+          "conditions" : [ {
+            "scope" : "#/properties/model/properties/centroidInitialization",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "RANDOM_INITIALIZATION"
+              } ]
+            }
+          }, {
+            "scope" : "#/properties/model/properties/useStaticRandomSeed",
+            "schema" : {
+              "const" : true
+            }
+          } ]
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/newRandomSeedValue",
+      "options" : {
+        "format" : "simpleButton",
+        "triggerId" : "org.knime.base.node.mine.cluster.kmeans.ClusterNodeParameters$NewRandomSeedButtonRef"
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "type" : "AND",
+          "conditions" : [ {
+            "scope" : "#/properties/model/properties/centroidInitialization",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "RANDOM_INITIALIZATION"
+              } ]
+            }
+          }, {
+            "scope" : "#/properties/model/properties/useStaticRandomSeed",
+            "schema" : {
+              "const" : true
+            }
+          } ]
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/maxIterations",
+      "options" : {
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 2147483647.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 2.147483647E9
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 1.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 1.0
+            }
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/columnFilter",
+      "options" : {
+        "format" : "typedStringFilter",
+        "unknownValuesText" : "Any unknown column",
+        "emptyStateLabel" : "No columns in this list.",
+        "hideTypeFilter" : true
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/enableHilite",
+      "options" : {
+        "format" : "checkbox",
+        "isAdvanced" : true
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "nrOfClusters" : { },
+          "centroidInitialization" : { },
+          "useStaticRandomSeed" : { },
+          "seedValue" : { },
+          "newRandomSeedValue" : { },
+          "maxIterations" : { },
+          "columnFilter" : {
+            "type" : "object",
+            "properties" : {
+              "selected" : {
+                "configPaths" : [ ]
+              },
+              "mode" : { },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "pattern" : { },
+                  "isCaseSensitive" : { },
+                  "isInverted" : { }
+                }
+              },
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "manuallySelected" : { },
+                  "manuallyDeselected" : { },
+                  "includeUnknownColumns" : { }
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : { }
+                }
+              }
+            }
+          },
+          "enableHilite" : { }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/columnFilter",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "feature1",
+        "text" : "feature1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "feature2",
+        "text" : "feature2",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "feature3",
+        "text" : "feature3",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "feature4",
+        "text" : "feature4",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      } ]
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "id" : "org.knime.base.node.mine.cluster.kmeans.ClusterNodeParameters$NewRandomSeedButtonRef"
+    },
+    "dependencies" : [ ]
+  } ]
+}

@@ -109,13 +109,15 @@ import org.knime.core.node.property.hilite.HiLiteTranslator;
  * {@link org.knime.core.data.def.DoubleCell}s (or derivatives thereof).
  *
  * @author Michael Berthold, University of Konstanz
+ * @deprecated Replcaed by {@link ClusterNodeModel2}
  */
+@Deprecated
 public class ClusterNodeModel extends NodeModel {
     /** Constant for the centroid initialization method in the dialog. */
-    private static final String CFG_CENTROID_INITIALIZATION = "centroid_initialization";
+    static final String CFG_CENTROID_INITIALIZATION = "centroid_initialization";
 
     /** Constant for the centroid seed option in the dialog. */
-    private static final String CFG_CENTROID_SEEDS = "centroid_seeds";
+    static final String CFG_CENTROID_SEEDS = "centroid_seeds";
 
     /** Constant for the RowKey generation and identification in the view. */
     public static final String CLUSTER = "cluster_";
@@ -141,15 +143,15 @@ public class ClusterNodeModel extends NodeModel {
 
     private static final String SETTINGS_FILE_NAME = "kMeansInternalSettings";
 
-    private static final String CFG_COVERAGE = "clusterCoverage";
+    static final String CFG_COVERAGE = "clusterCoverage";
 
-    private static final String CFG_DIMENSION = "dimensions";
+    static final String CFG_DIMENSION = "dimensions";
 
-    private static final String CFG_NUMBER_OF_ROWS = "numberOfRows";
+    static final String CFG_NUMBER_OF_ROWS = "numberOfRows";
 
-    private static final String CFG_IGNORED_COLS = "ignoredColumns";
+    static final String CFG_IGNORED_COLS = "ignoredColumns";
 
-    private static final String CFG_CLUSTER = "kMeansCluster";
+    static final String CFG_CLUSTER = "kMeansCluster";
 
     private int m_dimension; // dimension of input space
 
