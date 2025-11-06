@@ -46,22 +46,16 @@
 
 package org.knime.base.node.switches.caseswitch.any;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.IntStream;
 
-import org.knime.core.node.port.PortType;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
 import org.knime.node.parameters.persistence.Persist;
-import org.knime.node.parameters.updates.StateProvider;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.StringChoicesProvider;
-import org.knime.node.parameters.widget.message.TextMessage;
-import org.knime.node.parameters.widget.message.TextMessage.MessageType;
 
 /**
  * Node parameters for CASE Switch Start.
@@ -71,24 +65,6 @@ import org.knime.node.parameters.widget.message.TextMessage.MessageType;
  */
 @LoadDefaultsForAbsentFields
 final class CaseStartAnyNodeParameters implements NodeParameters {
-
-    @TextMessage(PortTypeNameMessageProvider.class)
-    Void m_portTypeNameMessage;
-
-    static final class PortTypeNameMessageProvider implements StateProvider<Optional<TextMessage.Message>> {
-        @Override
-        public void init(final StateProviderInitializer initializer) {
-            initializer.computeBeforeOpenDialog();
-
-        }
-
-        @Override
-        public Optional<TextMessage.Message> computeState(final NodeParametersInput context) {
-            return Arrays.stream(context.getInPortTypes()).findFirst() //
-                .map(PortType::getName) //
-                .map(name -> new TextMessage.Message("Port type name", name, MessageType.INFO));
-        }
-    }
 
     @Widget(title = "Select active port", description = """
             Select the active output port. This can be controlled by an integer or string flow variable \
