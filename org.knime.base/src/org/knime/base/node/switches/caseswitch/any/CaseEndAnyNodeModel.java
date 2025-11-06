@@ -91,6 +91,7 @@ import org.knime.core.node.property.hilite.HiLiteManager;
 import org.knime.core.node.property.hilite.HiLiteTranslator;
 import org.knime.core.node.util.ButtonGroupEnumInterface;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.node.parameters.widget.choices.Label;
 
 /**
  * End of an CASE Statement. Takes the data from the first available input port
@@ -453,10 +454,14 @@ final class CaseEndAnyNodeModel extends NodeModel implements InactiveBranchConsu
     enum MultipleActiveHandling implements ButtonGroupEnumInterface {
 
             /** Merge tables (only possible if in BufferedDataTable mode). */
+            @Label(value = "Concatenate tables", description = "Tries to concatenate the input tables")
             Merge("Merge tables", "Tries to merge multiple tables", false), //NOSONAR: Keep case for settings backwards compatibility
             /** Fail the execution. */
+            @Label(value = "Fail", description = "The node fails")
             Fail("Fail", "Fails during node execution if multiple inputs are active", true), //NOSONAR: Keep case for settings backwards compatibility
             /** Pass on the first active input. */
+            @Label(value = "Use first non-inactive input",
+                description = "Output the first active port, ignoring any subsequent active ports")
             UseFirstActive("Use first non-inactive input", "Chooses the top-most active input object", false); //NOSONAR: Keep case for settings backwards compatibility
 
         /** The options if the node is processing non-BufferedDataTable data. */

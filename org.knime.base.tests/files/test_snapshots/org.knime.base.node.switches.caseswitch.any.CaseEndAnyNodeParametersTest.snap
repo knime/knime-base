@@ -1,0 +1,160 @@
+{
+  "data" : {
+    "model" : {
+      "multipleActiveHandling" : "Fail",
+      "duplicateRowHandling" : "APPEND_SUFFIX",
+      "suffix" : "_dup",
+      "enableHiliting" : false
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "duplicateRowHandling" : {
+            "oneOf" : [ {
+              "const" : "APPEND_SUFFIX",
+              "title" : "Append suffix"
+            }, {
+              "const" : "SKIP_ROWS",
+              "title" : "Skip rows"
+            } ],
+            "title" : "Duplicate RowID handling",
+            "description" : "How to handle duplicate row identifiers (RowID) when concatenating the two input tables.\n<ul>\n<li><b>Append suffix</b>: The output table will contain all rows, but duplicate row identifiers are labeled with a suffix. Similar to the \"Skip Rows\" option this method is also memory intensive.</li>\n<li><b>Skip rows</b>: Duplicate row identifiers (RowID) occurring in the second table are not appended to the output table. This option is relatively memory intensive as it needs to cache the RowIDs in order to find duplicates.</li>\n</ul>",
+            "default" : "APPEND_SUFFIX"
+          },
+          "enableHiliting" : {
+            "type" : "boolean",
+            "title" : "Enable hiliting",
+            "description" : "Enables hiliting between both inputs and the concatenated output table.",
+            "default" : false
+          },
+          "multipleActiveHandling" : {
+            "oneOf" : [ {
+              "const" : "Merge",
+              "title" : "Concatenate tables"
+            }, {
+              "const" : "Fail",
+              "title" : "Fail"
+            }, {
+              "const" : "UseFirstActive",
+              "title" : "Use first non-inactive input"
+            } ],
+            "title" : "If multiple inputs are active",
+            "description" : "Choose the expected behavior of the node if two or more inputs are active. In the case all inputs are inactive the node itself will pass on an inactive object.\n<ul>\n<li><b>Concatenate tables</b>: Tries to concatenate the input tables</li>\n<li><b>Fail</b>: The node fails</li>\n<li><b>Use first non-inactive input</b>: Output the first active port, ignoring any subsequent active ports</li>\n</ul>",
+            "default" : "Fail"
+          },
+          "suffix" : {
+            "type" : "string",
+            "title" : "Suffix",
+            "description" : "The suffix to append to duplicate row identifiers (RowID) to make them unique.",
+            "default" : "_dup"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/multipleActiveHandling",
+      "options" : {
+        "format" : "radio",
+        "radioLayout" : "vertical"
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/duplicateRowHandling",
+      "options" : {
+        "format" : "valueSwitch"
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/multipleActiveHandling",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "Merge"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/suffix",
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "type" : "AND",
+          "conditions" : [ {
+            "scope" : "#/properties/model/properties/multipleActiveHandling",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "Merge"
+              } ]
+            }
+          }, {
+            "scope" : "#/properties/model/properties/duplicateRowHandling",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "APPEND_SUFFIX"
+              } ]
+            }
+          } ]
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/enableHiliting",
+      "options" : {
+        "format" : "checkbox",
+        "isAdvanced" : true
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "schema" : {
+            "not" : { }
+          }
+        }
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "multipleActiveHandling" : {
+            "configKey" : "multipleActiveHandling"
+          },
+          "duplicateRowHandling" : {
+            "configPaths" : [ [ "append_suffix" ] ]
+          },
+          "suffix" : { },
+          "enableHiliting" : {
+            "configKey" : "enable_hiliting"
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/multipleActiveHandling",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Fail",
+        "text" : "Fail"
+      }, {
+        "id" : "UseFirstActive",
+        "text" : "Use first non-inactive input"
+      } ]
+    } ]
+  } ]
+}
