@@ -413,6 +413,17 @@
       "options" : {
         "isAdvanced" : true
       },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/solver",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "SAG"
+            } ]
+          }
+        }
+      },
       "elements" : [ {
         "type" : "Control",
         "scope" : "#/properties/model/properties/learningRateStrategy",
@@ -461,6 +472,17 @@
       "type" : "Section",
       "options" : {
         "isAdvanced" : true
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/solver",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "SAG"
+            } ]
+          }
+        }
       },
       "elements" : [ {
         "type" : "Control",
@@ -666,13 +688,6 @@
     "values" : [ {
       "indices" : [ ],
       "value" : [ {
-        "id" : "Cluster Membership",
-        "text" : "Cluster Membership",
-        "type" : {
-          "id" : "org.knime.core.data.StringValue",
-          "text" : "String"
-        }
-      }, {
         "id" : "Universe_0_0",
         "text" : "Universe_0_0",
         "type" : {
@@ -750,11 +765,6 @@
   }, {
     "trigger" : {
       "scope" : "#/properties/model/properties/targetColumn"
-    },
-    "dependencies" : [ "#/properties/model/properties/targetColumn", "#/properties/model/properties/targetReferenceCategory" ]
-  }, {
-    "trigger" : {
-      "scope" : "#/properties/model/properties/targetReferenceCategory"
     },
     "dependencies" : [ "#/properties/model/properties/targetColumn", "#/properties/model/properties/targetReferenceCategory" ]
   } ]

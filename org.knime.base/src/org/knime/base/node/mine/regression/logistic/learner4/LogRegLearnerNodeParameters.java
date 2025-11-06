@@ -47,7 +47,7 @@
 package org.knime.base.node.mine.regression.logistic.learner4;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Collection;
 import java.util.List;
 import java.util.Random;
 import java.util.function.Supplier;
@@ -57,7 +57,9 @@ import org.knime.base.node.mine.regression.logistic.learner4.LogRegLearnerSettin
 import org.knime.base.node.mine.regression.logistic.learner4.LogRegLearnerSettings.Prior;
 import org.knime.base.node.mine.regression.logistic.learner4.LogRegLearnerSettings.Solver;
 import org.knime.core.data.DataCell;
+import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataType;
+import org.knime.core.data.DataValue;
 import org.knime.core.data.DoubleValue;
 import org.knime.core.data.NominalValue;
 import org.knime.core.data.def.StringCell;
@@ -95,6 +97,7 @@ import org.knime.node.parameters.updates.StateProvider;
 import org.knime.node.parameters.updates.ValueProvider;
 import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.ColumnChoicesProvider;
 import org.knime.node.parameters.widget.choices.StringChoicesProvider;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
@@ -131,12 +134,14 @@ final class LogRegLearnerNodeParameters implements NodeParameters {
     @Section(title = "Learning Rate / Step Size")
     @After(TerminationConditionsSection.class)
     @Advanced
+    @Effect(predicate = SolverIsSAG.class, type = EffectType.SHOW)
     interface LearningRateAndStepSizeSection {
     }
 
     @Section(title = "Regularization")
     @After(LearningRateAndStepSizeSection.class)
     @Advanced
+    @Effect(predicate = SolverIsSAG.class, type = EffectType.SHOW)
     interface RegularizationSection {
     }
 
@@ -191,7 +196,7 @@ final class LogRegLearnerNodeParameters implements NodeParameters {
             Specify the independent columns that should be included in the regression model. Numeric and
             nominal data can be included.
             """)
-    @ChoicesProvider(value = LogRegCompatibleColumnFilter.class)
+    @ChoicesProvider(value = LogRegCompatibleColumnFilterProvider.class)
     @Persistor(IncludedColumnsPersistor.class)
     ColumnFilter m_includedColumns = new ColumnFilter().withIncludeUnknownColumns();
 
@@ -262,7 +267,7 @@ final class LogRegLearnerNodeParameters implements NodeParameters {
             The step size (learning rate) to use in case of the fixed learning rate strategy.
             """)
     @NumberInputWidget(minValidation = IsPositiveDoubleValidation.class)
-    @Effect(predicate = LearningRateStrategyHasInitialValue.class, type = EffectType.ENABLE)
+    @Effect(predicate = LearningRateStrategyIsFixed.class, type = EffectType.ENABLE)
     double m_initialLearningRate = LogRegLearnerSettings.DEFAULT_INITIAL_LEARNING_RATE;
 
     @Layout(RegularizationSection.class)
@@ -330,7 +335,7 @@ final class LogRegLearnerNodeParameters implements NodeParameters {
         String m_randomSeed;
 
         @Widget(title = "New",
-                description = "Generate a random seed and set it in the Random seed input above for reproducible runs.")
+            description = "Generate a random seed and set it in the Random seed input above for reproducible runs.")
         @SimpleButtonWidget(ref = NewSeedButtonRef.class)
         @Effect(predicate = IsUseRandomSeed.class, type = EffectType.SHOW)
         Void m_newSeed;
@@ -379,7 +384,7 @@ final class LogRegLearnerNodeParameters implements NodeParameters {
 
     }
 
-    static final class LearningRateStrategyHasInitialValue implements EffectPredicateProvider {
+    static final class LearningRateStrategyIsFixed implements EffectPredicateProvider {
 
         @Override
         public EffectPredicate init(final PredicateInitializer i) {
@@ -429,10 +434,40 @@ final class LogRegLearnerNodeParameters implements NodeParameters {
 
     }
 
-    static final class LogRegCompatibleColumnFilter extends CompatibleColumnsProvider {
+    static final class LogRegCompatibleColumnFilterProvider implements ColumnChoicesProvider {
 
-        LogRegCompatibleColumnFilter() {
-            super(List.of(DoubleValue.class, BitVectorValue.class, ByteVectorValue.class, NominalValue.class));
+        private Supplier<String> m_classColumnSupplier;
+
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            initializer.computeBeforeOpenDialog();
+            m_classColumnSupplier = initializer.computeFromValueSupplier(TargetColumnRef.class);
+        }
+
+        @Override
+        public List<DataColumnSpec> columnChoices(final NodeParametersInput context) {
+            String classCol = m_classColumnSupplier.get();
+            if (classCol == null || classCol.isEmpty()) {
+                return List.of();
+            }
+
+            final var specOpt = context.getInTableSpec(0);
+            if (specOpt.isEmpty()) {
+                return List.of();
+            }
+
+            return specOpt.get().stream().filter(col -> !col.getName().equals(classCol))
+                .filter(LogRegCompatibleColumnFilterProvider::isIncluded).toList();
+        }
+
+        private static boolean isIncluded(final DataColumnSpec col) {
+            return hasCompatibleType(col,
+                List.of(DoubleValue.class, BitVectorValue.class, ByteVectorValue.class, NominalValue.class));
+        }
+
+        private static boolean hasCompatibleType(final DataColumnSpec col,
+            final Collection<Class<? extends DataValue>> valueClasses) {
+            return valueClasses.stream().anyMatch(valueClass -> col.getType().isCompatible(valueClass));
         }
 
     }
@@ -441,22 +476,19 @@ final class LogRegLearnerNodeParameters implements NodeParameters {
 
         private Supplier<String> m_targetColumnSupplier;
 
-        private Supplier<String> m_targetReferenceCategorySupplier;
+        private Supplier<String> m_referenceCategorySupplier;
 
         @Override
         public void init(final StateProviderInitializer initializer) {
             initializer.computeAfterOpenDialog();
             m_targetColumnSupplier = initializer.computeFromValueSupplier(TargetColumnRef.class);
-            m_targetReferenceCategorySupplier = initializer.computeFromValueSupplier(TargetReferenceCategoryRef.class);
+            m_referenceCategorySupplier = initializer.getValueSupplier(TargetReferenceCategoryRef.class);
         }
 
         @Override
         public String computeState(final NodeParametersInput context) {
-            if (m_targetReferenceCategorySupplier.get() != null && !m_targetReferenceCategorySupplier.get().isEmpty()) {
-                return m_targetReferenceCategorySupplier.get();
-            }
-
-            if (m_targetColumnSupplier.get() == null || m_targetColumnSupplier.get().isEmpty()) {
+            final var targetColumn = m_targetColumnSupplier.get();
+            if (targetColumn == null || targetColumn.isEmpty()) {
                 return null;
             }
 
@@ -465,20 +497,25 @@ final class LogRegLearnerNodeParameters implements NodeParameters {
                 return null;
             }
 
-            final var targetColumn = m_targetColumnSupplier.get();
             final var targetSpec = specOpt.get().getColumnSpec(targetColumn);
+            final List<String> possibleValues;
             if (targetSpec.getType().isCompatible(NominalDistributionValue.class)) {
-                final var nominalDistributionValues = NominalDistributionValueMetaData.extractFromSpec(targetSpec)
-                        .getValues().stream().toList();
-                return nominalDistributionValues.isEmpty() ? null
-                        : nominalDistributionValues.get(nominalDistributionValues.size() - 1);
+                possibleValues =
+                    NominalDistributionValueMetaData.extractFromSpec(targetSpec).getValues().stream().toList();
             } else {
                 final var domain = targetSpec.getDomain();
-                final var dataCells = domain.hasValues() ? domain.getValues().stream().map(DataCell::toString).toList()
-                        : new ArrayList<String>();
-                return dataCells.isEmpty() ? null : dataCells.get(dataCells.size() - 1);
+                possibleValues =
+                    domain.hasValues() ? domain.getValues().stream().map(DataCell::toString).toList() : List.of();
             }
-
+            if (possibleValues.isEmpty()) {
+                return null;
+            }
+            final var referenceCategory = m_referenceCategorySupplier.get();
+            if (referenceCategory == null || referenceCategory.isEmpty()
+                || !possibleValues.contains(referenceCategory)) {
+                return possibleValues.get(possibleValues.size() - 1);
+            }
+            return referenceCategory;
         }
 
     }
@@ -490,7 +527,7 @@ final class LogRegLearnerNodeParameters implements NodeParameters {
         @Override
         public void init(final StateProviderInitializer initializer) {
             StringChoicesProvider.super.init(initializer);
-            m_targetColumnSupplier = initializer.getValueSupplier(TargetColumnRef.class);
+            m_targetColumnSupplier = initializer.computeFromValueSupplier(TargetColumnRef.class);
         }
 
         @Override
@@ -510,8 +547,7 @@ final class LogRegLearnerNodeParameters implements NodeParameters {
                 return new ArrayList<>(NominalDistributionValueMetaData.extractFromSpec(targetSpec).getValues());
             } else {
                 final var domain = targetSpec.getDomain();
-                return domain.hasValues() ? domain.getValues().stream().map(DataCell::toString).toList()
-                        : Collections.emptyList();
+                return domain.hasValues() ? domain.getValues().stream().map(DataCell::toString).toList() : List.of();
             }
         }
 
@@ -543,7 +579,7 @@ final class LogRegLearnerNodeParameters implements NodeParameters {
         public void save(final String value, final NodeSettingsWO settings) {
             if (value != null) {
                 settings.addDataCell(LogRegLearnerSettings.CFG_TARGET_REFERENCE_CATEGORY,
-                        new DataCellFactory().createDataCellOfType(DataType.getType(StringCell.class), value));
+                    new DataCellFactory().createDataCellOfType(DataType.getType(StringCell.class), value));
             } else {
                 settings.addDataCell(LogRegLearnerSettings.CFG_TARGET_REFERENCE_CATEGORY, null);
             }

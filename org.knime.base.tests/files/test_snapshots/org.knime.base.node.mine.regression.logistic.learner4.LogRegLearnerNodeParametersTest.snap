@@ -411,6 +411,17 @@
       "options" : {
         "isAdvanced" : true
       },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/solver",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "SAG"
+            } ]
+          }
+        }
+      },
       "elements" : [ {
         "type" : "Control",
         "scope" : "#/properties/model/properties/learningRateStrategy",
@@ -459,6 +470,17 @@
       "type" : "Section",
       "options" : {
         "isAdvanced" : true
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/solver",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "SAG"
+            } ]
+          }
+        }
       },
       "elements" : [ {
         "type" : "Control",
@@ -663,42 +685,7 @@
     "providedOptionName" : "possibleValues",
     "values" : [ {
       "indices" : [ ],
-      "value" : [ {
-        "id" : "Cluster Membership",
-        "text" : "Cluster Membership",
-        "type" : {
-          "id" : "org.knime.core.data.StringValue",
-          "text" : "String"
-        }
-      }, {
-        "id" : "Universe_0_0",
-        "text" : "Universe_0_0",
-        "type" : {
-          "id" : "org.knime.core.data.DoubleValue",
-          "text" : "Number (Float)"
-        }
-      }, {
-        "id" : "Universe_0_1",
-        "text" : "Universe_0_1",
-        "type" : {
-          "id" : "org.knime.core.data.DoubleValue",
-          "text" : "Number (Float)"
-        }
-      }, {
-        "id" : "Universe_1_0",
-        "text" : "Universe_1_0",
-        "type" : {
-          "id" : "org.knime.core.data.DoubleValue",
-          "text" : "Number (Float)"
-        }
-      }, {
-        "id" : "Universe_1_1",
-        "text" : "Universe_1_1",
-        "type" : {
-          "id" : "org.knime.core.data.DoubleValue",
-          "text" : "Number (Float)"
-        }
-      } ]
+      "value" : [ ]
     } ]
   }, {
     "scope" : "#/properties/model/properties/targetColumn",
@@ -736,11 +723,6 @@
   }, {
     "trigger" : {
       "scope" : "#/properties/model/properties/targetColumn"
-    },
-    "dependencies" : [ "#/properties/model/properties/targetColumn", "#/properties/model/properties/targetReferenceCategory" ]
-  }, {
-    "trigger" : {
-      "scope" : "#/properties/model/properties/targetReferenceCategory"
     },
     "dependencies" : [ "#/properties/model/properties/targetColumn", "#/properties/model/properties/targetReferenceCategory" ]
   } ]
