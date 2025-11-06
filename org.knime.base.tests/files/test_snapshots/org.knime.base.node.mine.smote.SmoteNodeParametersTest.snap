@@ -1,0 +1,235 @@
+{
+  "data" : {
+    "model" : {
+      "nearestNeighbors" : 5,
+      "oversamplingMethod" : "OVERSAMPLE_BY",
+      "oversamplingRate" : 2.0,
+      "seedParameters" : {
+        "useRandomSeed" : false
+      }
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "classColumn" : {
+            "type" : "string",
+            "title" : "Class column",
+            "description" : "Pick the column that contains the class information.\n"
+          },
+          "nearestNeighbors" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "# Nearest neighbor",
+            "description" : "An option that determines how many nearest neighbors shall be considered. The algorithm picks an\nobject from the target class, randomly selects one of its neighbors and draws the new synthetic\nexample along the line between the sample and the neighbor.\n",
+            "default" : 5
+          },
+          "oversamplingMethod" : {
+            "oneOf" : [ {
+              "const" : "OVERSAMPLE_BY",
+              "title" : "Rate"
+            }, {
+              "const" : "OVERSAMPLE_MINORITY_CLASSES",
+              "title" : "Minority classes"
+            } ],
+            "title" : "Oversampling method",
+            "description" : "Select the oversampling method.\n\n<ul>\n<li><b>Rate</b>: This option oversamples each class equally.</li>\n<li><b>Minority classes</b>: This option adds synthetic examples to all classes that are not the majority class. The output contains\nthe same number of rows for each of the possible classes.\n</li>\n</ul>",
+            "default" : "OVERSAMPLE_BY"
+          },
+          "oversamplingRate" : {
+            "type" : "number",
+            "format" : "double",
+            "title" : "Oversampling rate",
+            "description" : "Specify how much synthetic data is introduced, e.g. a value of 2 will introduce two more portions\nfor each class (if there are 50 rows in the input table labeled as \"A\"; the output will contain 150\nrows belonging to \"A\").\n",
+            "default" : 2.0
+          },
+          "seedParameters" : {
+            "type" : "object",
+            "properties" : {
+              "newSeed" : {
+                "type" : "object",
+                "title" : "New",
+                "description" : "Generate a random seed and set it in the Random seed input above for reproducible runs."
+              },
+              "randomSeed" : {
+                "type" : "string",
+                "title" : "Random seed",
+                "description" : "The seed value for the random number generator.\n"
+              },
+              "useRandomSeed" : {
+                "type" : "boolean",
+                "title" : "Enable static seed",
+                "description" : "Check this option if you want to use a seed for the random number generator. This will cause\nconsecutive runs of the node to produce the same output data. If unchecked, each run of the node\ngenerates a new seed.\n",
+                "default" : false
+              }
+            },
+            "default" : {
+              "useRandomSeed" : false
+            }
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/classColumn",
+      "options" : {
+        "format" : "dropDown"
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/nearestNeighbors",
+      "options" : {
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 2147483647.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 2.147483647E9
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 1.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 1.0
+            }
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/oversamplingMethod",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/oversamplingRate",
+      "options" : {
+        "validation" : {
+          "min" : {
+            "errorMessage" : "The value must be greater than 0.",
+            "parameters" : {
+              "isExclusive" : true,
+              "min" : 0.0
+            }
+          }
+        }
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/oversamplingMethod",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "OVERSAMPLE_BY"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/seedParameters/properties/useRandomSeed",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/seedParameters/properties/randomSeed",
+      "options" : {
+        "validation" : {
+          "pattern" : {
+            "errorMessage" : "Please enter a valid integer number between -9223372036854775808 to 9223372036854775807.",
+            "parameters" : {
+              "pattern" : "[+-]?(0|[1-9][0-9]{0,18})"
+            }
+          }
+        }
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/seedParameters/properties/useRandomSeed",
+          "schema" : {
+            "const" : true
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/seedParameters/properties/newSeed",
+      "options" : {
+        "format" : "simpleButton",
+        "triggerId" : "org.knime.base.node.mine.smote.SmoteNodeParameters$NewSeedButtonRef"
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/seedParameters/properties/useRandomSeed",
+          "schema" : {
+            "const" : true
+          }
+        }
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "classColumn" : {
+            "configKey" : "class"
+          },
+          "nearestNeighbors" : {
+            "configKey" : "kNN"
+          },
+          "oversamplingMethod" : {
+            "configPaths" : [ [ "method" ] ]
+          },
+          "oversamplingRate" : {
+            "configKey" : "rate"
+          },
+          "seedParameters" : {
+            "configPaths" : [ [ "seed" ] ]
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/classColumn",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Cluster Membership",
+        "text" : "Cluster Membership",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "id" : "after-open-dialog"
+    },
+    "triggerInitially" : true,
+    "dependencies" : [ "#/properties/model/properties/classColumn" ]
+  }, {
+    "trigger" : {
+      "id" : "org.knime.base.node.mine.smote.SmoteNodeParameters$NewSeedButtonRef"
+    },
+    "dependencies" : [ ]
+  } ]
+}
