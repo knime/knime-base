@@ -47,63 +47,138 @@
  */
 package org.knime.base.node.switches.caseswitch.any;
 
+import static org.knime.node.impl.description.PortDescription.dynamicPort;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.knime.core.node.ConfigurableNodeFactory;
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeView;
 import org.knime.core.node.context.NodeCreationConfiguration;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
 
 /**
  * @author Jannik Löscher, KNIME GmbH, Konstanz, Germany
+ * @author Kai Franze, KNIME GmbH, Germany
+ * @author AI Migration Pipeline v1.2
  */
-public final class CaseEndAnyNodeFactory extends ConfigurableNodeFactory<CaseEndAnyNodeModel> {
+@SuppressWarnings("restriction")
+public final class CaseEndAnyNodeFactory extends ConfigurableNodeFactory<CaseEndAnyNodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
-    /**
-     * {@inheritDoc}
-     */
+    private static final String NODE_NAME = "CASE Switch End";
+
+    private static final String NODE_ICON = "./switches_any_end.png";
+
+    private static final String SHORT_DESCRIPTION = """
+            Merges one or more active branches of a workflow. The type and number of input ports can be dynamically \
+            chosen.""";
+
+    private static final String FULL_DESCRIPTION = """
+            <p>
+                This node complements the CASE Switch Start node by merging its branches into a single output port. \
+                Typically, only one branch is active; the data from that branch is passed to the output. When used \
+                with data ports, the node also offers options to concatenate data tables from multiple active \
+                branches.
+                <br />
+                The type of the input and output ports can be chosen when adding an output port. The type of the \
+                output port can be changed by removing and adding it again with a new type.\
+            </p>
+            <p>
+                <i>Note for flow variable ports:</i> Values of existing flow variables are always taken from the \
+                top-most input port of the CASE Switch End node, even if their values were modified on another active \
+                branch. However, new flow variables created within any active branch behave as expected. If you need \
+                to modify existing variables, create a new flow variable and use its value to overwrite the original \
+                after the CASE Switch End node.\
+                <br />
+                If all branches are inactive, the flow variables of the top branch are passed through.\
+            </p>
+            """;
+
+    private static final List<PortDescription> INPUT_PORTS = List.of(//
+        dynamicPort("Input", "Input", """
+                Select the input port type and connect it. Only one input port can be selected at a time. If the input
+                port is removed, all output ports are also removed.
+                """));
+
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(//
+        dynamicPort("Output", "Input", """
+                The output ports. They are only present and editable if an input port type was selected and always have
+                the same type. At least two outputs are required.
+                """));
+
     @Override
     protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
-        final var b = new PortsConfigurationBuilder();
-        b.addOptionalOutputPortGroup("Output", t -> true);
-        b.addBoundExtendableInputPortGroupWithDefault("Input", "Output", 1, 1);
-
-        return Optional.of(b);
+        final var builder = new PortsConfigurationBuilder();
+        builder.addOptionalOutputPortGroup("Output", t -> true);
+        builder.addBoundExtendableInputPortGroupWithDefault("Input", "Output", 1, 1);
+        return Optional.of(builder);
     }
 
-    /** {@inheritDoc} */
     @Override
     public NodeView<CaseEndAnyNodeModel> createNodeView(final int viewIndex, final CaseEndAnyNodeModel nodeModel) {
         return null;
     }
 
-    /** {@inheritDoc} */
     @Override
     protected int getNrNodeViews() {
         return 0;
     }
 
-    /** {@inheritDoc} */
     @Override
     protected boolean hasDialog() {
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected CaseEndAnyNodeModel createNodeModel(final NodeCreationConfiguration creationConfig) {
         final var config = creationConfig.getPortConfig().orElseThrow();
         return new CaseEndAnyNodeModel(config.getInputPorts(), config.getOutputPorts());
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
-        return new CaseEndAnyNodeDialog(creationConfig.getPortConfig().orElseThrow().getInputPorts());
+    public NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
     }
 
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, CaseEndAnyNodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription(//
+            NODE_NAME, //
+            NODE_ICON, //
+            INPUT_PORTS, //
+            OUTPUT_PORTS, //
+            SHORT_DESCRIPTION, //
+            FULL_DESCRIPTION, //
+            Collections.emptyList(), //
+            CaseEndAnyNodeParameters.class, //
+            null, //
+            NodeType.Manipulator, //
+            Collections.emptyList(), //
+            null//
+        );
+    }
+
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, CaseEndAnyNodeParameters.class));
+    }
 }
