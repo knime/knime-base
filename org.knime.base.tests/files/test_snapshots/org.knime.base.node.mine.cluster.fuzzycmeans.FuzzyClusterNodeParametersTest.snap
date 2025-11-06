@@ -252,7 +252,16 @@
       "options" : {
         "format" : "twinList"
       },
-      "providedOptions" : [ "possibleValues" ]
+      "providedOptions" : [ "possibleValues" ],
+      "rule" : {
+        "effect" : "DISABLE",
+        "condition" : {
+          "scope" : "#/properties/model/properties/keepAllColumnsSelected",
+          "schema" : {
+            "const" : true
+          }
+        }
+      }
     }, {
       "label" : "Noise Clustering",
       "type" : "Section",

@@ -158,6 +158,7 @@ final class FuzzyClusterNodeParameters implements NodeParameters {
     @ValueProvider(UsedAttributesProvider.class)
     @ValueReference(UsedAttributesFilterRef.class)
     @ChoicesProvider(DoubleColumnsProvider.class)
+    @Effect(predicate = IsKeepAllColumnsSelected.class, type = EffectType.DISABLE)
     @TwinlistWidget
     String[] m_usedAttributes = new String[0];
 
@@ -220,6 +221,15 @@ final class FuzzyClusterNodeParameters implements NodeParameters {
     }
 
     static final class DeltaMethodReference implements ParameterReference<DeltaMethod> {
+    }
+
+    private static final class IsKeepAllColumnsSelected implements EffectPredicateProvider {
+
+        @Override
+        public EffectPredicate init(final PredicateInitializer i) {
+            return i.getPredicate(KeepAllColumnsSelectedRef.class);
+        }
+
     }
 
     private static final class UseSeedPredicate implements EffectPredicateProvider {
