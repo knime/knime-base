@@ -53,7 +53,10 @@ import org.knime.base.node.flowcontrol.sleep.SleepNodeModel.WaitMode;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.LocalFileReaderWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelectionWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSystemOption;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.SingleFileSelectionMode;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.WithFileSystem;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
@@ -200,7 +203,8 @@ final class SleepNodeParameters implements NodeParameters {
     @Widget(title = "File",
         description = "Path to the file to monitor for events. Can be a local file or URL pointing to a local file.")
     @Persist(configKey = SleepNodeModel.CFGKEY_FILEPATH)
-    @LocalFileReaderWidget
+    @FileSelectionWidget(SingleFileSelectionMode.FILE_OR_FOLDER)
+    @WithFileSystem(FileSystemOption.LOCAL)
     @Effect(predicate = IsWaitForFile.class, type = EffectType.SHOW)
     String m_filePath = "";
 

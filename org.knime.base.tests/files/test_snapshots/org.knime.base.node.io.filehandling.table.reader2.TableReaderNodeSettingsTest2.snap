@@ -377,10 +377,12 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/settings/properties/source",
         "options" : {
-          "format" : "fileChooser",
+          "fileExtensions" : [ "table" ],
           "isLocal" : true,
-          "mountId" : "Local space",
-          "fileExtensions" : [ "table" ]
+          "spaceFSOptions" : {
+            "mountId" : "Local space"
+          },
+          "format" : "fileChooser"
         }
       } ]
     }, {

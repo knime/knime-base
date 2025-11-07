@@ -830,10 +830,12 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/settings/properties/source",
         "options" : {
-          "format" : "fileChooser",
+          "fileExtensions" : [ "csv", "tsv", "txt", "gz" ],
           "isLocal" : true,
-          "mountId" : "Local space",
-          "fileExtensions" : [ "csv", "tsv", "txt", "gz" ]
+          "spaceFSOptions" : {
+            "mountId" : "Local space"
+          },
+          "format" : "fileChooser"
         }
       }, {
         "type" : "Control",

@@ -344,9 +344,10 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/filePath",
       "options" : {
-        "fileExtensions" : [ ],
-        "placeholder" : "",
-        "format" : "localFileChooser"
+        "fileSystem" : "LOCAL",
+        "isLocal" : true,
+        "selectionMode" : "FILE_OR_FOLDER",
+        "format" : "stringFileChooser"
       },
       "rule" : {
         "effect" : "SHOW",
