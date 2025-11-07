@@ -46,55 +46,124 @@
  */
 package org.knime.base.node.preproc.domain.editnumeric;
 
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
 
 /**
+ * Node factory for the "Edit Numeric Domain" node.
  *
  * @author Marcel Hanser
+ * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.2
  */
-public final class EditNumericDomainNodeFactory extends NodeFactory<EditNumericDomainNodeModel> {
+@SuppressWarnings("restriction")
+public final class EditNumericDomainNodeFactory extends NodeFactory<EditNumericDomainNodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public EditNumericDomainNodeModel createNodeModel() {
         return new EditNumericDomainNodeModel();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected int getNrNodeViews() {
         return 0;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public NodeView<EditNumericDomainNodeModel> createNodeView(final int viewIndex,
         final EditNumericDomainNodeModel nodeModel) {
         throw new IndexOutOfBoundsException();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected boolean hasDialog() {
         return true;
     }
 
+    private static final String NODE_NAME = "Edit Numeric Domain";
+
+    private static final String NODE_ICON = "domain.png";
+
+    private static final String SHORT_DESCRIPTION = """
+            Sets the domain of selected numerical columns.
+            """;
+
+    private static final String FULL_DESCRIPTION = """
+            Sets the upper/lower bounds of selected numerical columns as specified by the user. During the execution
+                the data is checked against the newly defined domain and a selectable action is performed if the data
+                does not fit in the given bounds.
+            """;
+
+    private static final List<PortDescription> INPUT_PORTS = List.of(
+            fixedPort("Input", """
+                Input data
+                """)
+    );
+
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(
+            fixedPort("Output", """
+                Input data with changed specification.
+                """)
+    );
+
     /**
-     * {@inheritDoc}
+     * @since 5.9
      */
     @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new EditNumericDomainNodeDialogPane();
+    public NodeDialogPane createNodeDialogPane() {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    /**
+     * @since 5.9
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, EditNumericDomainNodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription(
+            NODE_NAME,
+            NODE_ICON,
+            INPUT_PORTS,
+            OUTPUT_PORTS,
+            SHORT_DESCRIPTION,
+            FULL_DESCRIPTION,
+            List.of(),
+            EditNumericDomainNodeParameters.class,
+            null,
+            NodeType.Manipulator,
+            List.of(),
+            null
+        );
+    }
+
+    /**
+     * @since 5.9
+     */
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, EditNumericDomainNodeParameters.class));
     }
 
 }

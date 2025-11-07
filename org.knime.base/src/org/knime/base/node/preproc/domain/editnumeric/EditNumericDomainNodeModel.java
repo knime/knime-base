@@ -83,6 +83,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.util.ConvenienceMethods;
 import org.knime.core.node.util.filter.NameFilterConfiguration.FilterResult;
+import org.knime.node.parameters.widget.choices.Label;
 
 /**
  * Enables the manual setting of numeric domains.
@@ -334,14 +335,19 @@ final class EditNumericDomainNodeModel extends NodeModel {
         /**
          * Fails.
          */
+        @Label(value = "Fail", description = "Throws an exception during execution.")
         THROW_EXCEPTION("Fail"),
         /**
          * Calculates the bounds.
          */
+        @Label(value = "Calculate Bounds", description = """
+                Ignores the user settings and calculates instead the upper and lower bound based on the column content.
+                """)
         CALCULATE_BOUNDS("Calculate Bounds"),
         /**
          * Reuses given information.
          */
+        @Label(value = "Use existing Bounds", description = "Uses the existing domain information.")
         USE_EXISTING_BOUNDS("Use existing Bounds");
 
         private String m_description;

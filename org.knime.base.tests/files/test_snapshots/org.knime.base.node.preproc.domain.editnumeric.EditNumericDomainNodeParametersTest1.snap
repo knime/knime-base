@@ -1,0 +1,300 @@
+{
+  "data" : {
+    "model" : {
+      "selectedColumns" : {
+        "mode" : "MANUAL",
+        "patternFilter" : {
+          "pattern" : "",
+          "isCaseSensitive" : true,
+          "isInverted" : false
+        },
+        "manualFilter" : {
+          "manuallySelected" : [ "Universe_0_0", "Universe_0_1", "Universe_1_0", "Universe_1_1" ],
+          "manuallyDeselected" : [ ],
+          "includeUnknownColumns" : true
+        },
+        "typeFilter" : {
+          "selectedTypes" : [ ],
+          "typeDisplays" : [ ]
+        }
+      },
+      "lowerBound" : 0.0,
+      "upperBound" : 1.0,
+      "domainOverflowPolicy" : "THROW_EXCEPTION"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "domainOverflowPolicy" : {
+            "oneOf" : [ {
+              "const" : "THROW_EXCEPTION",
+              "title" : "Fail"
+            }, {
+              "const" : "CALCULATE_BOUNDS",
+              "title" : "Calculate Bounds"
+            }, {
+              "const" : "USE_EXISTING_BOUNDS",
+              "title" : "Use existing Bounds"
+            } ],
+            "title" : "Out of domain policy",
+            "description" : "Defines the behavior if the actual content of a selected column does not fit in the given bounds.\n<ul>\n<li><b>Fail</b>: Throws an exception during execution.</li>\n<li><b>Calculate Bounds</b>: Ignores the user settings and calculates instead the upper and lower bound based on the column content.\n</li>\n<li><b>Use existing Bounds</b>: Uses the existing domain information.</li>\n</ul>",
+            "default" : "THROW_EXCEPTION"
+          },
+          "lowerBound" : {
+            "type" : "number",
+            "format" : "double",
+            "title" : "Lower bound",
+            "description" : "The lower bound of the domain.",
+            "default" : 0.0
+          },
+          "selectedColumns" : {
+            "type" : "object",
+            "properties" : {
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "includeUnknownColumns" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "manuallyDeselected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "manuallySelected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "manuallySelected" : [ ],
+                  "manuallyDeselected" : [ ],
+                  "includeUnknownColumns" : false
+                }
+              },
+              "mode" : {
+                "oneOf" : [ {
+                  "const" : "MANUAL",
+                  "title" : "Manual"
+                }, {
+                  "const" : "REGEX",
+                  "title" : "Regex"
+                }, {
+                  "const" : "WILDCARD",
+                  "title" : "Wildcard"
+                }, {
+                  "const" : "TYPE",
+                  "title" : "Type"
+                } ],
+                "default" : "MANUAL"
+              },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "isCaseSensitive" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "isInverted" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "pattern" : {
+                    "type" : "string",
+                    "default" : ""
+                  }
+                },
+                "default" : {
+                  "pattern" : "",
+                  "isCaseSensitive" : false,
+                  "isInverted" : false
+                }
+              },
+              "selected" : {
+                "type" : "array",
+                "items" : {
+                  "type" : "string"
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "selectedTypes" : [ ],
+                  "typeDisplays" : [ ]
+                }
+              }
+            },
+            "title" : "Column selection",
+            "description" : "Select the numeric columns for which to edit the domain.",
+            "default" : {
+              "mode" : "MANUAL",
+              "patternFilter" : {
+                "pattern" : "",
+                "isCaseSensitive" : false,
+                "isInverted" : false
+              },
+              "manualFilter" : {
+                "manuallySelected" : [ ],
+                "manuallyDeselected" : [ ],
+                "includeUnknownColumns" : false
+              },
+              "typeFilter" : {
+                "selectedTypes" : [ ],
+                "typeDisplays" : [ ]
+              }
+            }
+          },
+          "upperBound" : {
+            "type" : "number",
+            "format" : "double",
+            "title" : "Upper bound",
+            "description" : "The upper bound of the domain.",
+            "default" : 1.0
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/selectedColumns",
+      "options" : {
+        "format" : "typedStringFilter",
+        "unknownValuesText" : "Any unknown column",
+        "emptyStateLabel" : "No columns in this list.",
+        "hideTypeFilter" : true
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "label" : "Domain Settings",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/lowerBound",
+        "providedOptions" : [ "validation.max" ]
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/upperBound"
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/domainOverflowPolicy",
+        "options" : {
+          "format" : "dropDown",
+          "radioLayout" : "vertical"
+        },
+        "providedOptions" : [ "possibleValues" ]
+      } ]
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "selectedColumns" : {
+            "configPaths" : [ [ "datacolfilter", "filter-type" ], [ "datacolfilter", "included_names" ], [ "datacolfilter", "excluded_names" ], [ "datacolfilter", "enforce_option" ], [ "datacolfilter", "name_pattern", "pattern" ], [ "datacolfilter", "name_pattern", "type" ], [ "datacolfilter", "name_pattern", "caseSensitive" ], [ "datacolfilter", "name_pattern", "excludeMatching" ] ]
+          },
+          "lowerBound" : {
+            "configKey" : "lowerBound"
+          },
+          "upperBound" : {
+            "configKey" : "upperBound"
+          },
+          "domainOverflowPolicy" : {
+            "configKey" : "out-of-domain-policy"
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/domainOverflowPolicy",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "THROW_EXCEPTION",
+        "text" : "Fail"
+      }, {
+        "id" : "CALCULATE_BOUNDS",
+        "text" : "Calculate Bounds"
+      }, {
+        "id" : "USE_EXISTING_BOUNDS",
+        "text" : "Use existing Bounds"
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/lowerBound",
+    "providedOptionName" : "validation.max",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : {
+        "parameters" : {
+          "max" : 1.0,
+          "isExclusive" : false
+        },
+        "errorMessage" : "Lower bound must be less than or equal to upper bound."
+      }
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/selectedColumns",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Universe_0_0",
+        "text" : "Universe_0_0",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Universe_0_1",
+        "text" : "Universe_0_1",
+        "type" : {
+          "id" : "org.knime.core.data.IntValue",
+          "text" : "Number (Integer)"
+        }
+      }, {
+        "id" : "Universe_1_0",
+        "text" : "Universe_1_0",
+        "type" : {
+          "id" : "org.knime.core.data.LongValue",
+          "text" : "Number (Long Integer)"
+        }
+      }, {
+        "id" : "Universe_1_1",
+        "text" : "Universe_1_1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      } ]
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/upperBound"
+    },
+    "dependencies" : [ "#/properties/model/properties/upperBound" ]
+  } ]
+}

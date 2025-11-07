@@ -66,19 +66,23 @@ import org.knime.core.node.util.filter.column.DataColumnSpecFilterPanel;
  */
 final class EditNumericDomainConfiguration {
 
-    private static final String DOMAIN_OVERFLOW_POLICY_KEY = "out-of-domain-policy";
+    static final String DOMAIN_OVERFLOW_POLICY_KEY = "out-of-domain-policy";
 
-    private static final String MIN_KEY = "lowerBound";
+    static final String MIN_KEY = "lowerBound";
 
-    private static final String MAX_KEY = "upperBound";
+    static final String MAX_KEY = "upperBound";
 
-    private static final String DATA_COLUMN_FILTER_SPEC_KEY = "datacolfilter";
+    static final String DATA_COLUMN_FILTER_SPEC_KEY = "datacolfilter";
 
-    private double m_lowerBound = 0;
+    static final double DEFAULT_MIN = 0.0;
+    static final double DEFAULT_MAX = 1.0;
+    static final DomainOverflowPolicy DEFAULT_DOMAIN_OVERFLOW_POLICY = DomainOverflowPolicy.THROW_EXCEPTION;
 
-    private double m_upperBound = 1;
+    private double m_lowerBound = DEFAULT_MIN;
 
-    private DomainOverflowPolicy m_domainOverflowPolicy = DomainOverflowPolicy.THROW_EXCEPTION;
+    private double m_upperBound = DEFAULT_MAX;
+
+    private DomainOverflowPolicy m_domainOverflowPolicy = DEFAULT_DOMAIN_OVERFLOW_POLICY;
 
     private DataColumnSpecFilterConfiguration m_columnspecFilterConfig;
 
