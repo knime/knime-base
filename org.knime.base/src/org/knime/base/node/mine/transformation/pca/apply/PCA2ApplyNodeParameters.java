@@ -99,8 +99,11 @@ class PCA2ApplyNodeParameters implements NodeParameters {
     DimensionSelectionMethod m_dimensionSelectionMethod = DimensionSelectionMethod.FIXED_DIMENSIONS;
 
     @Persist(configKey = TransformationApplySettings.K_CFG)
-    @Widget(title = "Number of dimensions", description = "The number of dimensions to reduce the data to. "
-        + "Must be lower than or equal to the number of dimensions in the transformation model.")
+    @Widget(title = "Number of dimensions", description = """
+            The number of dimensions to reduce the data to. Must be lower than or equal to the number of dimensions in
+            the transformation model. If the PCA Compute node is connected and executed, the possible choices for
+            number of dimensions are directly mapped to the percentage of information preserved.
+            """)
     @NumberInputWidget(minValidation = IsPositiveIntegerValidation.class,
         maxValidationProvider = MaxDimensionsFromModelValidation.class)
     @Effect(predicate = NumberOfDimensionsSelected.class, type = EffectType.SHOW)
@@ -108,10 +111,11 @@ class PCA2ApplyNodeParameters implements NodeParameters {
     int m_numberOfDimensions = 1;
 
     @Persist(configKey = PCAApplySettings.INFORMATION_PRESERVATION_CFG)
-    @Widget(title = "Information preservation (%)",
-        description = "The minimum percentage of information to preserve in the reduced dimensions. "
-            + "If the PCA compute node is connected and executed, the possible choices for information "
-            + "preservation are directly mapped to the number of required columns.")
+    @Widget(title = "Information preservation (%)", description = """
+            The minimum percentage of information to preserve in the reduced dimensions. If the PCA Compute node is
+            connected and executed, the possible choices for information preservation are directly mapped to the number
+            of output dimensions.
+            """)
     @NumberInputWidget(minValidation = IsPositiveDoubleValidation.class,
         maxValidation = IsLessThanOrEqual100Percent.class)
     @Effect(predicate = MinimumInformationPreservationSelected.class, type = EffectType.SHOW)
@@ -127,8 +131,8 @@ class PCA2ApplyNodeParameters implements NodeParameters {
     boolean m_removeOriginalColumns;
 
     @Widget(title = "Fail if missing values are encountered", description = """
-            If checked, execution fails, when the selected columns contain missing values. By default, rows
-            containing missing values are ignored and not considered during the computation.
+            If checked, execution fails when the selected columns contain missing values. By default, rows with missing
+            values are ignored and excluded from the computation.
             """)
     @Persist(configKey = TransformationApplySettings.FAIL_ON_MISSING_CFG)
     boolean m_failOnMissings;

@@ -75,6 +75,8 @@ final class PCA2ApplyNodeParametersTest extends DefaultNodeSettingsSnapshotTest 
     private static SnapshotTestConfiguration getConfig() {
         return SnapshotTestConfiguration.builder() //
             .withInputPortObjectSpecs(createInputPortSpecs()) //
+            .testJsonFormsForModel(PCA2ApplyNodeParameters.class) //
+            .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings()) //
             .testNodeSettingsStructure(() -> readSettings()) //
             .build();
     }
@@ -103,9 +105,8 @@ final class PCA2ApplyNodeParametersTest extends DefaultNodeSettingsSnapshotTest 
     }
 
     private static DataTableSpec createDefaultTestTableSpec() {
-        return new DataTableSpec(
-            new String[]{"col1", "col2", "col3"},
-            new DataType[]{DataType.getType(DoubleCell.class), DataType.getType(DoubleCell.class), DataType.getType(DoubleCell.class)}
-        );
+        return new DataTableSpec(new String[]{"col1", "col2", "col3"},
+            new DataType[]{DataType.getType(DoubleCell.class), DataType.getType(DoubleCell.class),
+                DataType.getType(DoubleCell.class)});
     }
 }

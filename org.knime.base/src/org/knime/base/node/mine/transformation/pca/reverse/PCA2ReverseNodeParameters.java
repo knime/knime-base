@@ -85,8 +85,8 @@ class PCA2ReverseNodeParameters implements NodeParameters {
     boolean m_removeSelectedColumns;
 
     @Widget(title = "Fail if missing values are encountered", description = """
-            If checked, execution fails, when the selected columns contain missing values. By default, rows
-            containing missing values are ignored and not considered during the computation.
+            If checked, execution fails when the selected columns contain missing values. By default, rows with missing
+            values are ignored and excluded from the computation.
             """)
     @Persist(configKey = TransformationComputeSettings.FAIL_ON_MISSING_CFG)
     boolean m_failOnMissings;

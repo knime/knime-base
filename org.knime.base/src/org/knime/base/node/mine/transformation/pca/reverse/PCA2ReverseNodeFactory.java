@@ -108,11 +108,10 @@ public class PCA2ReverseNodeFactory extends NodeFactory<PCA2ReverseNodeModel>
             """;
 
     private static final String FULL_DESCRIPTION = """
-            This node inverts the transformation applied by the PCA Apply node. Given data in the space resulting
-                from the <a href="http://en.wikipedia.org/wiki/Principal_component_analysis">PCA</a> reduction are
-                transformed back to its original space. Information that was lost by the <a
-                href="http://en.wikipedia.org/wiki/Principal_component_analysis">PCA</a> transformation cannot be
-                recovered.
+            This node reverses the transformation applied by the PCA Apply node. It takes data from the
+            <a href="http://en.wikipedia.org/wiki/Principal_component_analysis">PCA</a>-reduced space and transforms it
+            back into the original feature space using the same PCA model. Note that the reconstruction is only an
+            approximation of the original data, since any information lost during the PCA reduction cannot be recovered.
             """;
 
     private static final List<PortDescription> INPUT_PORTS = List.of(

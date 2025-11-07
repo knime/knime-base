@@ -141,7 +141,7 @@
           "failOnMissings" : {
             "type" : "boolean",
             "title" : "Fail if missing values are encountered",
-            "description" : "If checked, execution fails, when the selected columns contain missing values. By default, rows\ncontaining missing values are ignored and not considered during the computation.\n",
+            "description" : "If checked, execution fails when the selected columns contain missing values. By default, rows with missing\nvalues are ignored and excluded from the computation.\n",
             "default" : false
           },
           "removeSelectedColumns" : {
