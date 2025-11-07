@@ -84,6 +84,18 @@ import org.knime.core.node.util.filter.NameFilterConfiguration.FilterResult;
  */
 public class CollectionCreate2NodeModel extends SimpleStreamableFunctionNodeModel {
 
+    static final String CFG_INCLUDES = "includes";
+    static final String CFG_CREATE_SET = "createSet";
+    static final String CFG_REMOVE_COLS = "removeCols";
+    static final String CFG_NEW_COL_NAME = "newColName";
+    static final String CFG_IGNORE_MISSING_VALUE = "ignoreMissingValue";
+
+    static final boolean DEFAULT_CREATE_SET = false;
+    static final boolean DEFAULT_REMOVE_COLS = false;
+    static final String DEFAULT_NEW_COL_NAME = "Collected Values";
+    static final String DEFAULT_LEGACY_NEW_COLUMN_NAME = "AggregatedValues";
+    static final boolean DEFAULT_IGNORE_MISSING_VALUE = false;
+
     private SettingsModelColumnFilter2 m_includeModel;
 
     // if true, a SetCell is created, otherwise a ListCell
@@ -301,7 +313,7 @@ public class CollectionCreate2NodeModel extends SimpleStreamableFunctionNodeMode
      * @return a new settings object.
      */
     static SettingsModelColumnFilter2 createSettingsModel() {
-        return new SettingsModelColumnFilter2("includes");
+        return new SettingsModelColumnFilter2(CFG_INCLUDES);
     }
 
     /**
@@ -310,7 +322,7 @@ public class CollectionCreate2NodeModel extends SimpleStreamableFunctionNodeMode
      * @return a new settings model object
      */
     static SettingsModelBoolean createSettingsModelSetOrList() {
-        return new SettingsModelBoolean("createSet", false);
+        return new SettingsModelBoolean(CFG_CREATE_SET, DEFAULT_CREATE_SET);
     }
 
     /**
@@ -319,7 +331,7 @@ public class CollectionCreate2NodeModel extends SimpleStreamableFunctionNodeMode
      * @return a new settings model instance
      */
     static SettingsModelBoolean createSettingsModelRemoveCols() {
-        return new SettingsModelBoolean("removeCols", false);
+        return new SettingsModelBoolean(CFG_REMOVE_COLS, DEFAULT_REMOVE_COLS);
     }
 
     /**
@@ -328,7 +340,7 @@ public class CollectionCreate2NodeModel extends SimpleStreamableFunctionNodeMode
      * @return a new settings model instance
      */
     static SettingsModelString createSettingsModelColumnName() {
-        return new SettingsModelString("newColName", "AggregatedValues");
+        return new SettingsModelString(CFG_NEW_COL_NAME, DEFAULT_NEW_COL_NAME);
     }
 
     /**
@@ -338,6 +350,6 @@ public class CollectionCreate2NodeModel extends SimpleStreamableFunctionNodeMode
      * @since 2.6
      */
     static final SettingsModelBoolean createSettingsModelIgnoreMissing() {
-        return new SettingsModelBoolean("ignoreMissingValue", false);
+        return new SettingsModelBoolean(CFG_IGNORE_MISSING_VALUE, DEFAULT_IGNORE_MISSING_VALUE);
     }
 }
