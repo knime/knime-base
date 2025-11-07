@@ -47,59 +47,131 @@
  */
 package org.knime.base.node.preproc.pmml.numbertostring3;
 
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
 
 /**
  * NodeFactory for the Number to String Node that converts numbers
  * to String values.
  *
  * @author cebron, University of Konstanz
+ * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.2
  * @since 4.0
  */
-public class NumberToString3NodeFactory extends NodeFactory {
+@SuppressWarnings("restriction")
+public class NumberToString3NodeFactory extends NodeFactory
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new NumberToString3NodeDialog();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public NodeModel createNodeModel() {
         return new NumberToString3NodeModel(false);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public NodeView createNodeView(final int viewIndex,
             final NodeModel nodeModel) {
         return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected int getNrNodeViews() {
         return 0;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected boolean hasDialog() {
         return true;
+    }
+
+    private static final String NODE_NAME = "Number to String (PMML)";
+
+    private static final String NODE_ICON = "./number_string.png";
+
+    private static final String SHORT_DESCRIPTION = """
+            Converts numbers in a column to strings.
+            """;
+
+    private static final String FULL_DESCRIPTION = """
+            Converts numbers in a column (or a set of columns) to strings. Note that for an advanced configuration,
+                such as rounding or representation in scientific notification you can also use the "Round Double"
+                node.<br /> If the optional PMML inport is connected and contains preprocessing operations in the
+                TransformationDictionary the conversion operations of this node are appended.
+            """;
+
+    private static final List<PortDescription> INPUT_PORTS = List.of(
+            fixedPort("Input", """
+                Arbitrary input data.
+                """)
+    );
+
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(
+            fixedPort("Transformed input", """
+                Input data with new StringTypes.
+                """),
+            fixedPort("Transformed PMML input", """
+                PMML port object that includes the performed operations.
+                """)
+    );
+
+    /**
+     * @since 5.9
+     */
+    @Override
+    public NodeDialogPane createNodeDialogPane() {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    /**
+     * @since 5.9
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, NumberToString3NodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription(
+            NODE_NAME,
+            NODE_ICON,
+            INPUT_PORTS,
+            OUTPUT_PORTS,
+            SHORT_DESCRIPTION,
+            FULL_DESCRIPTION,
+            List.of(),
+            NumberToString3NodeParameters.class,
+            null,
+            NodeType.Manipulator,
+            List.of(),
+            null
+        );
+    }
+
+    /**
+     * @since 5.9
+     */
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, NumberToString3NodeParameters.class));
     }
 
 }
