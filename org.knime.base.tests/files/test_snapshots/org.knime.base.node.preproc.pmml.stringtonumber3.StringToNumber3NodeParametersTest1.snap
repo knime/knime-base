@@ -1,0 +1,263 @@
+{
+  "data" : {
+    "model" : {
+      "inclCols" : {
+        "mode" : "MANUAL",
+        "patternFilter" : {
+          "pattern" : "",
+          "isCaseSensitive" : true,
+          "isInverted" : false
+        },
+        "manualFilter" : {
+          "manuallySelected" : [ "Cluster Membership" ],
+          "manuallyDeselected" : [ ],
+          "includeUnknownColumns" : true
+        },
+        "typeFilter" : {
+          "selectedTypes" : [ ],
+          "typeDisplays" : [ ]
+        }
+      },
+      "parseType" : "DOUBLE",
+      "decimalSep" : ".",
+      "thousandsSep" : ""
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "decimalSep" : {
+            "type" : "string",
+            "title" : "Decimal separator",
+            "description" : "Choose a decimal separator, which is used to mark the boundary between the integral and the fractional parts of the decimal string.",
+            "default" : "."
+          },
+          "inclCols" : {
+            "type" : "object",
+            "properties" : {
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "includeUnknownColumns" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "manuallyDeselected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "manuallySelected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "manuallySelected" : [ ],
+                  "manuallyDeselected" : [ ],
+                  "includeUnknownColumns" : false
+                }
+              },
+              "mode" : {
+                "oneOf" : [ {
+                  "const" : "MANUAL",
+                  "title" : "Manual"
+                }, {
+                  "const" : "REGEX",
+                  "title" : "Regex"
+                }, {
+                  "const" : "WILDCARD",
+                  "title" : "Wildcard"
+                }, {
+                  "const" : "TYPE",
+                  "title" : "Type"
+                } ],
+                "default" : "MANUAL"
+              },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "isCaseSensitive" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "isInverted" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "pattern" : {
+                    "type" : "string",
+                    "default" : ""
+                  }
+                },
+                "default" : {
+                  "pattern" : "",
+                  "isCaseSensitive" : false,
+                  "isInverted" : false
+                }
+              },
+              "selected" : {
+                "type" : "array",
+                "items" : {
+                  "type" : "string"
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "selectedTypes" : [ ],
+                  "typeDisplays" : [ ]
+                }
+              }
+            },
+            "title" : "Column selection",
+            "description" : "Move the columns of interest into the \"Include\" list.",
+            "default" : {
+              "mode" : "MANUAL",
+              "patternFilter" : {
+                "pattern" : "",
+                "isCaseSensitive" : false,
+                "isInverted" : false
+              },
+              "manualFilter" : {
+                "manuallySelected" : [ ],
+                "manuallyDeselected" : [ ],
+                "includeUnknownColumns" : false
+              },
+              "typeFilter" : {
+                "selectedTypes" : [ ],
+                "typeDisplays" : [ ]
+              }
+            }
+          },
+          "parseType" : {
+            "oneOf" : [ {
+              "const" : "DOUBLE",
+              "title" : "Number (Float)"
+            }, {
+              "const" : "INT",
+              "title" : "Number (Integer)"
+            } ],
+            "title" : "Type",
+            "description" : "Choose the DataType that your string should be converted to.",
+            "default" : "DOUBLE"
+          },
+          "thousandsSep" : {
+            "type" : "string",
+            "title" : "Thousands separator",
+            "description" : "Choose a thousands separator used in the decimal string to group together three digits.",
+            "default" : ""
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/inclCols",
+      "options" : {
+        "format" : "typedStringFilter",
+        "unknownValuesText" : "Any unknown column",
+        "emptyStateLabel" : "No columns in this list.",
+        "hideTypeFilter" : true
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/parseType"
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/decimalSep",
+      "options" : {
+        "validation" : {
+          "maxLength" : {
+            "errorMessage" : "The string must not exceed 1 character.",
+            "parameters" : {
+              "maxLength" : 1
+            }
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/thousandsSep",
+      "options" : {
+        "validation" : {
+          "maxLength" : {
+            "errorMessage" : "The string must not exceed 1 character.",
+            "parameters" : {
+              "maxLength" : 1
+            }
+          }
+        }
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "inclCols" : {
+            "configPaths" : [ [ "include", "filter-type" ], [ "include", "included_names" ], [ "include", "excluded_names" ], [ "include", "enforce_option" ], [ "include", "name_pattern", "pattern" ], [ "include", "name_pattern", "type" ], [ "include", "name_pattern", "caseSensitive" ], [ "include", "name_pattern", "excludeMatching" ] ]
+          },
+          "parseType" : {
+            "configPaths" : [ [ "parse_type" ] ]
+          },
+          "decimalSep" : {
+            "configKey" : "decimal_separator"
+          },
+          "thousandsSep" : {
+            "configKey" : "thousands_separator"
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/inclCols",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "String Column",
+        "text" : "String Column",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "Cluster Membership",
+        "text" : "Cluster Membership",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "Another String",
+        "text" : "Another String",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  } ]
+}
