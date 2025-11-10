@@ -293,7 +293,7 @@ public class ClusterNodeView extends NodeView<ClusterNodeModel>
             root = new DefaultMutableTreeNode("No Model");
         } else { // check for empty cluster model before adding content to
             // tree
-            ClusterViewData viewData = getNodeModel().getViewData();
+            KMeansViewData viewData = getNodeModel().getViewData();
             if (viewData == null) {
                 root = new DefaultMutableTreeNode("Empty Model");
             } else { // put cluster info into the tree

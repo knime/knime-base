@@ -109,7 +109,7 @@ import org.knime.core.node.property.hilite.HiLiteTranslator;
  * {@link org.knime.core.data.def.DoubleCell}s (or derivatives thereof).
  *
  * @author Michael Berthold, University of Konstanz
- * @deprecated Replcaed by {@link ClusterNodeModel2}
+ * @deprecated Replcaed by {@link KMeansNodeModel}
  */
 @Deprecated
 public class ClusterNodeModel extends NodeModel {
@@ -288,7 +288,7 @@ public class ClusterNodeModel extends NodeModel {
         return new SettingsModelBoolean(CFG_ENABLE_HILITE, false);
     }
 
-    private ClusterViewData m_viewData;
+    private KMeansViewData m_viewData;
 
     private boolean m_pmmlInEnabled;
     private boolean m_outputCenters;
@@ -550,7 +550,7 @@ public class ClusterNodeModel extends NodeModel {
         }
         outPMMLPort.addModelTranslater(new PMMLClusterTranslator(ComparisonMeasure.squaredEuclidean,
                 m_nrOfClusters.getIntValue(), clusters, clusterCoverage, columns));
-        m_viewData = new ClusterViewData(clusters, clusterCoverage, m_dimension - m_nrIgnoredColumns, featureNames);
+        m_viewData = new KMeansViewData(clusters, clusterCoverage, m_dimension - m_nrIgnoredColumns, featureNames);
 
         if (m_outputCenters) {
             DataContainer clusterCenterContainer = exec.createDataContainer(createClusterCentersSpec(spec));
@@ -938,7 +938,7 @@ public class ClusterNodeModel extends NodeModel {
             // ignore and set mapper to null if info is not available.
             // (fixes bug #1016)
             String[] featureNames = settings.getStringArray(CFG_FEATURE_NAMES);
-            m_viewData = new ClusterViewData(clusters, clusterCoverage, m_dimension - m_nrIgnoredColumns, featureNames);
+            m_viewData = new KMeansViewData(clusters, clusterCoverage, m_dimension - m_nrIgnoredColumns, featureNames);
             if (m_enableHilite.getBooleanValue()) {
                 NodeSettingsRO mapSet = settings.getNodeSettings(CFG_HILITEMAPPING);
                 m_translator.setMapper(DefaultHiLiteMapper.load(mapSet));
@@ -972,7 +972,7 @@ public class ClusterNodeModel extends NodeModel {
         internalSettings.saveToXML(out);
     }
 
-    ClusterViewData getViewData() {
+    KMeansViewData getViewData() {
         return m_viewData;
     }
 }

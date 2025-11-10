@@ -45,14 +45,20 @@
 package org.knime.base.node.mine.cluster.kmeans;
 
 import java.util.List;
+import java.util.Map;
 
-import org.knime.core.node.AbstractNodeView;
 import org.knime.core.node.NodeDescription;
-import org.knime.core.node.port.pmml.PMMLPortObject;
+import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeView;
+import org.knime.core.util.Version;
 import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
 import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
-import org.knime.core.webui.node.impl.WebUINodeConfiguration;
-import org.knime.core.webui.node.impl.WebUINodeFactory;
 import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
 import org.knime.node.impl.description.PortDescription;
 import org.knime.node.impl.description.ViewDescription;
@@ -60,20 +66,26 @@ import org.knime.node.impl.description.ViewDescription;
 /**
  * Create classes for k-means Clustering NodeModel, NodeView and NodeDialogPane.
  *
+ * Successor of {@link ClusterNodeFactory2} since 5.9. The new node uses the modern column filter which allows for
+ * pattern-based selection of columns and using "any unknown column" selection.
+ *
  * @author Michael Berthold, University of Konstanz
  * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
  * @author AI Migration Pipeline v1.0
  * @since 5.9
  */
 @SuppressWarnings("restriction")
-public class ClusterNodeFactory3 extends WebUINodeFactory<ClusterNodeModel2>
+public class KMeansNodeFactory extends NodeFactory<KMeansNodeModel>
     implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     private static final String NODE_NAME = "k-Means";
+
     private static final String NODE_ICON = "./kmeans.png";
+
     private static final String SHORT_DESCRIPTION = """
             Creates a crisp center based clustering.
             """;
+
     private static final String FULL_DESCRIPTION = """
             This node outputs the cluster centers for a predefined number of clusters (no dynamic number of
                 clusters). K-means performs a crisp clustering that assigns a data vector to exactly one cluster. The
@@ -81,28 +93,25 @@ public class ClusterNodeFactory3 extends WebUINodeFactory<ClusterNodeModel2>
                 the Euclidean distance on the selected attributes. The data is not normalized by the node (if required,
                 you should consider to use the "Normalizer" as a preprocessing step).
             """;
-    private static final List<PortDescription> INPUT_PORTS = List.of(
-            PortDescription.fixedPort("Clustering input", """
-                Input to clustering. All numerical values and only these are considered for clustering.
-                """)
-    );
-    private static final List<PortDescription> OUTPUT_PORTS = List.of(
-        PortDescription.fixedPort("Labeled input", """
-                The input data labeled with the cluster they are contained in.
-                """),
-        PortDescription.fixedPort("Clusters", """
-                The created clusters.
-                """),
-        PortDescription.fixedPort("PMML Cluster Model", """
-                PMML cluster model.
-                """)
-    );
-    private static final List<ViewDescription> VIEWS = List.of(
-            new ViewDescription("Cluster View", """
-                Displays the cluster prototypes in a tree-like structure, with each node containing the coordinates of
-                the cluster center.
-                """)
-    );
+
+    private static final List<PortDescription> INPUT_PORTS = List.of(PortDescription.fixedPort("Clustering input", """
+            Input to clustering. All numerical values and only these are considered for clustering.
+            """));
+
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(PortDescription.fixedPort("Labeled input", """
+            The input data labeled with the cluster they are contained in.
+            """), PortDescription.fixedPort("Clusters", """
+            The created clusters.
+            """), PortDescription.fixedPort("PMML Cluster Model", """
+            PMML cluster model.
+            """));
+
+    private static final List<ViewDescription> VIEWS = List.of(new ViewDescription("Cluster View", """
+            Displays the cluster prototypes in a tree-like structure, with each node containing the coordinates of
+            the cluster center.
+            """));
+
+    private static final List<String> KEYWORDS = List.of("cluster", "unsupervised");
 
     @Override
     public final int getNrNodeViews() {
@@ -110,63 +119,53 @@ public class ClusterNodeFactory3 extends WebUINodeFactory<ClusterNodeModel2>
     }
 
     @Override
-    public AbstractNodeView<ClusterNodeModel2> createAbstractNodeView(
-        final int viewIndex, final ClusterNodeModel2 nodeModel) {
+    public NodeView<KMeansNodeModel> createNodeView(final int viewIndex, final KMeansNodeModel nodeModel) {
         if (viewIndex != 0) {
             throw new IllegalStateException();
         }
-        return new ClusterNodeView2(nodeModel);
+        return new KMeansNodeView(nodeModel);
     }
 
     @Override
     public NodeDescription createNodeDescription() {
-        return DefaultNodeDescriptionUtil.createNodeDescription(
-            NODE_NAME,
-            NODE_ICON,
-            INPUT_PORTS,
-            OUTPUT_PORTS,
-            SHORT_DESCRIPTION,
-            FULL_DESCRIPTION,
-            List.of(),
-            ClusterNodeParameters.class,
-            VIEWS,
-            NodeType.Learner,
-            List.of(),
-            null
-        );
-    }
-
-    /**
-     * Creates a new factory for the k-Means node.
-     */
-    public ClusterNodeFactory3() {
-        super(CONFIGURATION);
+        return DefaultNodeDescriptionUtil.createNodeDescription(//
+            NODE_NAME, //
+            NODE_ICON, //
+            INPUT_PORTS, //
+            OUTPUT_PORTS, //
+            SHORT_DESCRIPTION, //
+            FULL_DESCRIPTION, //
+            List.of(), // no external resources
+            KMeansNodeParameters.class, //
+            VIEWS, //
+            NodeType.Learner, //
+            KEYWORDS, //
+            new Version(5, 9, 0));
     }
 
     @Override
-    public ClusterNodeModel2 createNodeModel() {
-        return new ClusterNodeModel2(CONFIGURATION);
+    public KMeansNodeModel createNodeModel() {
+        return new KMeansNodeModel();
     }
 
-    static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
-        .name(NODE_NAME) //
-        .icon(NODE_ICON) //
-        .shortDescription(SHORT_DESCRIPTION) //
-        .fullDescription(FULL_DESCRIPTION) //
-        .modelSettingsClass(ClusterNodeParameters.class) //
-        .nodeType(NodeType.Learner) //
-        .addInputTable("Clustering input", """
-            Input to clustering. All numerical values and only these are considered for clustering.
-            """) //
-        .addOutputTable("Labeled input", """
-            The input data labeled with the cluster they are contained in.
-            """) //
-        .addOutputTable("Clusters", """
-            The created clusters
-            """) //
-        .addOutputPort("PMML Cluster Model", PMMLPortObject.TYPE, """
-            PMML cluster model
-            """)
-        .build();
+    @Override
+    public final boolean hasDialog() {
+        return true;
+    }
+
+    @Override
+    public final DefaultNodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, KMeansNodeParameters.class);
+    }
+
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, KMeansNodeParameters.class));
+    }
+
+    @Override
+    protected final NodeDialogPane createNodeDialogPane() {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
 
 }

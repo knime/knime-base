@@ -50,11 +50,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -88,35 +86,30 @@ import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.pmml.PMMLPortObject;
 import org.knime.core.node.port.pmml.PMMLPortObjectSpec;
 import org.knime.core.node.port.pmml.PMMLPortObjectSpecCreator;
 import org.knime.core.node.property.hilite.DefaultHiLiteMapper;
 import org.knime.core.node.property.hilite.HiLiteHandler;
 import org.knime.core.node.property.hilite.HiLiteTranslator;
-import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.util.UniqueNameGenerator;
 import org.knime.core.webui.node.impl.WebUINodeModel;
+import org.knime.node.parameters.widget.choices.util.ColumnSelectionUtil;
 
 /**
- * Generate a clustering using a fixed number of cluster centers and the k-means
- * algorithm. Right now this works only on {@link DataTable}s holding
- * {@link org.knime.core.data.def.DoubleCell}s (or derivatives thereof).
+ * Generate a clustering using a fixed number of cluster centers and the k-means algorithm. Right now this works only on
+ * {@link DataTable}s holding {@link org.knime.core.data.def.DoubleCell}s (or derivatives thereof).
  *
  * @author Michael Berthold, University of Konstanz
  * @author Magnus Gohm, KNIME AG, Konstanz, Germany
  * @since 5.9
  */
 @SuppressWarnings("restriction")
-public class ClusterNodeModel2 extends WebUINodeModel<ClusterNodeParameters> {
+public final class KMeansNodeModel extends WebUINodeModel<KMeansNodeParameters> {
 
     /** Constant for the RowKey generation and identification in the view. */
     public static final String CLUSTER = "cluster_";
-
-    /** Constant for the initial number of clusters used in the dialog. */
-    public static final int INITIAL_NR_CLUSTERS = 3;
-
-    /** Constant for the initial number of iterations used in the dialog. */
-    public static final int INITIAL_MAX_ITERATIONS = 99;
 
     private int m_dimension; // dimension of input space
 
@@ -127,15 +120,15 @@ public class ClusterNodeModel2 extends WebUINodeModel<ClusterNodeParameters> {
     // mapping from cluster to covering data point
     private final HiLiteTranslator m_translator = new HiLiteTranslator();
 
-    private ClusterViewData m_viewData;
+    private KMeansViewData m_viewData;
 
     /**
      * Constructor of the k-Means node model.
-     *
-     * @param configuration the configuration of the node
      */
-    protected ClusterNodeModel2(final WebUINodeConfiguration configuration) {
-        super(configuration, ClusterNodeParameters.class);
+    KMeansNodeModel() {
+        super(new PortType[]{BufferedDataTable.TYPE},
+            new PortType[]{BufferedDataTable.TYPE, BufferedDataTable.TYPE, PMMLPortObject.TYPE},
+            KMeansNodeParameters.class);
     }
 
     /**
@@ -155,13 +148,24 @@ public class ClusterNodeModel2 extends WebUINodeModel<ClusterNodeParameters> {
     }
 
     @Override
-    protected void setInHiLiteHandler(final int inIndex,
-            final HiLiteHandler hiLiteHdl) {
+    protected void setInHiLiteHandler(final int inIndex, final HiLiteHandler hiLiteHdl) {
         m_translator.removeAllToHiliteHandlers();
         m_translator.addToHiLiteHandler(hiLiteHdl);
     }
 
     private static final String INTERNALS_HILITE_MAPPING_FILE = "hilite_mapping.xml.gz";
+
+    private static final String INTERNALS_VIEW_DATA_FILE = "view_data.xml.gz";
+
+    private static final String CFG_DIMENSION = "dimensions";
+
+    private static final String CFG_IGNORED_COLS = "ignoredColumns";
+
+    private static final String CFG_COVERAGE = "clusterCoverage";
+
+    private static final String CFG_CLUSTER = "kMeansCluster";
+
+    private static final String CFG_FEATURE_NAMES = "FeatureNames";
 
     @Override
     protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
@@ -173,6 +177,27 @@ public class ClusterNodeModel2 extends WebUINodeModel<ClusterNodeParameters> {
                 m_translator.setMapper(DefaultHiLiteMapper.load(config));
             } catch (InvalidSettingsException e) {
                 throw new IOException("Couldn't load hilite mapping", e);
+            }
+        }
+
+        // Load view data
+        final var viewDataFile = new File(nodeInternDir, INTERNALS_VIEW_DATA_FILE);
+        if (viewDataFile.exists()) {
+            try (final var is = new FileInputStream(viewDataFile)) {
+                final var settings = NodeSettings.loadFromXML(is);
+                m_dimension = settings.getInt(CFG_DIMENSION);
+                m_nrIgnoredColumns = settings.getInt(CFG_IGNORED_COLS);
+                int[] clusterCoverage = settings.getIntArray(CFG_COVERAGE);
+                int nrOfClusters = clusterCoverage.length;
+                double[][] clusters = new double[nrOfClusters][];
+                for (int i = 0; i < nrOfClusters; i++) {
+                    clusters[i] = settings.getDoubleArray(CFG_CLUSTER + i);
+                }
+                String[] featureNames = settings.getStringArray(CFG_FEATURE_NAMES);
+                m_viewData =
+                    new KMeansViewData(clusters, clusterCoverage, m_dimension - m_nrIgnoredColumns, featureNames);
+            } catch (InvalidSettingsException e) {
+                throw new IOException("Couldn't load view data", e);
             }
         }
     }
@@ -191,18 +216,33 @@ public class ClusterNodeModel2 extends WebUINodeModel<ClusterNodeParameters> {
                 settings.saveToXML(os);
             }
         }
+
+        // Save view data
+        if (m_viewData != null) {
+            final var viewDataFile = new File(nodeInternDir, INTERNALS_VIEW_DATA_FILE);
+            final var internalSettings = new NodeSettings("kMeans");
+            internalSettings.addInt(CFG_DIMENSION, m_dimension);
+            internalSettings.addInt(CFG_IGNORED_COLS, m_nrIgnoredColumns);
+            internalSettings.addIntArray(CFG_COVERAGE, m_viewData.clusterCoverage());
+            for (int i = 0; i < m_viewData.clusterCoverage().length; i++) {
+                internalSettings.addDoubleArray(CFG_CLUSTER + i, m_viewData.clusters()[i]);
+            }
+            internalSettings.addStringArray(CFG_FEATURE_NAMES, m_viewData.featureNames());
+            try (final var os = new FileOutputStream(viewDataFile)) {
+                internalSettings.saveToXML(os);
+            }
+        }
     }
 
     /**
-     * Generate new clustering based on InputDataTable and specified number of
-     * clusters. Currently the objective function only looks for cluster centers
-     * that are extremely similar to the first n patterns...
+     * Generate new clustering based on InputDataTable and specified number of clusters. Currently the objective
+     * function only looks for cluster centers that are extremely similar to the first n patterns...
      *
      * {@inheritDoc}
      */
     @Override
     protected PortObject[] execute(final PortObject[] data, final ExecutionContext exec,
-        final ClusterNodeParameters modelSettings) throws Exception {
+        final KMeansNodeParameters modelSettings) throws Exception {
         // FIXME actually do something useful with missing values!
         BufferedDataTable inData = (BufferedDataTable)data[0];
         DataTableSpec spec = inData.getDataTableSpec();
@@ -227,8 +267,7 @@ public class ClusterNodeModel2 extends WebUINodeModel<ClusterNodeParameters> {
         boolean finished = false;
         while ((!finished) && (currentIteration < modelSettings.m_maxIterations)) {
             exec.checkCanceled();
-            exec.setProgress(currentIteration / (double)modelSettings.m_maxIterations,
-                                 "Iteration " + currentIteration);
+            exec.setProgress(currentIteration / (double)modelSettings.m_maxIterations, "Iteration " + currentIteration);
             // initialize counts and cluster-deltas
             for (int c = 0; c < modelSettings.m_nrOfClusters; c++) {
                 clusterCoverage[c] = 0;
@@ -273,9 +312,9 @@ public class ClusterNodeModel2 extends WebUINodeModel<ClusterNodeParameters> {
             finished = updateClusterCenters(modelSettings, clusterCoverage, clusters, delta);
             currentIteration++;
         } // while(!finished & nrIt<maxNrIt)
-        // create list of feature names
-        int k = 0;  // index of not-ignored columns
-        int j = 0;  // index of column
+          // create list of feature names
+        int k = 0; // index of not-ignored columns
+        int j = 0; // index of column
         String[] featureNames = new String[m_dimension];
         do {
             if (!m_ignoreColumn[j]) {
@@ -315,8 +354,8 @@ public class ClusterNodeModel2 extends WebUINodeModel<ClusterNodeParameters> {
             columns.add(s);
         }
         outPMMLPort.addModelTranslater(new PMMLClusterTranslator(ComparisonMeasure.squaredEuclidean,
-                modelSettings.m_nrOfClusters, clusters, clusterCoverage, columns));
-        m_viewData = new ClusterViewData(clusters, clusterCoverage, m_dimension - m_nrIgnoredColumns, featureNames);
+            modelSettings.m_nrOfClusters, clusters, clusterCoverage, columns));
+        m_viewData = new KMeansViewData(clusters, clusterCoverage, m_dimension - m_nrIgnoredColumns, featureNames);
 
         DataContainer clusterCenterContainer = exec.createDataContainer(createClusterCentersSpec(spec));
         int i = 0;
@@ -330,10 +369,10 @@ public class ClusterNodeModel2 extends WebUINodeModel<ClusterNodeParameters> {
         }
         clusterCenterContainer.close();
         return new PortObject[]{outData, (BufferedDataTable)clusterCenterContainer.getTable(), outPMMLPort};
-     }
+    }
 
-    private boolean updateClusterCenters(final ClusterNodeParameters modelSettings,
-        final int[] clusterCoverage, final double[][] clusters, final double[][] delta) {
+    private boolean updateClusterCenters(final KMeansNodeParameters modelSettings, final int[] clusterCoverage,
+        final double[][] clusters, final double[][] delta) {
         boolean finished = true;
         for (int c = 0; c < modelSettings.m_nrOfClusters; c++) {
             if (clusterCoverage[c] > 0) {
@@ -358,8 +397,7 @@ public class ClusterNodeModel2 extends WebUINodeModel<ClusterNodeParameters> {
         return finished;
     }
 
-    private double[][] initializeClusters(final ClusterNodeParameters modelSettings,
-        final BufferedDataTable input) {
+    private double[][] initializeClusters(final KMeansNodeParameters modelSettings, final BufferedDataTable input) {
         // initialize matrix of double (nr clusters * input dimension)
         double[][] clusters = new double[modelSettings.m_nrOfClusters][];
         for (int c = 0; c < modelSettings.m_nrOfClusters; c++) {
@@ -373,12 +411,12 @@ public class ClusterNodeModel2 extends WebUINodeModel<ClusterNodeParameters> {
         }
     }
 
-    private static boolean isFirstRowsInitialized(final ClusterNodeParameters modelSettings) {
-        return modelSettings.m_centroidInitialization == ClusterNodeParameters.CentroidInitialization.FIRST_ROWS;
+    private static boolean isFirstRowsInitialized(final KMeansNodeParameters modelSettings) {
+        return modelSettings.m_centroidInitialization == KMeansNodeParameters.CentroidInitialization.FIRST_ROWS;
     }
 
-    private double[][] firstRowsClusterInitialization(final ClusterNodeParameters modelSettings,
-        final DataTable input, final double[][] clusters) {
+    private double[][] firstRowsClusterInitialization(final KMeansNodeParameters modelSettings, final DataTable input,
+        final double[][] clusters) {
         // initialize cluster centers with values of first rows in table
         int c = 0;
         final RowIterator rowIt = input.iterator();
@@ -390,30 +428,29 @@ public class ClusterNodeModel2 extends WebUINodeModel<ClusterNodeParameters> {
         return clusters;
     }
 
-    private double[][] randomClusterInitialization(final ClusterNodeParameters modelSettings,
+    private double[][] randomClusterInitialization(final KMeansNodeParameters modelSettings,
         final BufferedDataTable input, final double[][] clusters) {
         //initialize random centroids
         final long nrOfRows = input.size();
         final Set<Long> randomInitialization = randomCentroidsSetCreation(modelSettings, nrOfRows);
-        try(final CloseableRowIterator rowIt = input.iterator()) {
+        try (final CloseableRowIterator rowIt = input.iterator()) {
             int c = 0;
-            for (long rowTrack = 0; rowIt.hasNext(); rowTrack ++) {
+            for (long rowTrack = 0; rowIt.hasNext(); rowTrack++) {
                 DataRow currentRow = rowIt.next();
                 if (randomInitialization.contains(rowTrack)) {
                     assignCluster(currentRow, clusters, c);
                     c++;
                 }
             }
-        return clusters;
+            return clusters;
         }
     }
 
-    private Set<Long> randomCentroidsSetCreation(final ClusterNodeParameters modelSettings,
-        final long nrOfRows) {
+    private Set<Long> randomCentroidsSetCreation(final KMeansNodeParameters modelSettings, final long nrOfRows) {
         final Set<Long> randomInitialization = new HashSet<>();
         final RandomDataGenerator rdg = new RandomDataGenerator();
         rdg.reSeed(getSeedOrRandom(modelSettings));
-        while(randomInitialization.size() < modelSettings.m_nrOfClusters) {
+        while (randomInitialization.size() < modelSettings.m_nrOfClusters) {
             randomInitialization.add(rdg.nextLong(0L, nrOfRows - 1));
         }
         return randomInitialization;
@@ -436,7 +473,7 @@ public class ClusterNodeModel2 extends WebUINodeModel<ClusterNodeParameters> {
         }
     }
 
-    private int findClosestPrototypeFor(final ClusterNodeParameters modelSettings, final DataRow row,
+    private int findClosestPrototypeFor(final KMeansNodeParameters modelSettings, final DataRow row,
         final double[][] clusters) {
         // find closest cluster center
         int winner = -1; // closest cluster so far
@@ -482,17 +519,16 @@ public class ClusterNodeModel2 extends WebUINodeModel<ClusterNodeParameters> {
     }
 
     /**
-     * Returns <code>true</code> always and passes the current input spec to
-     * the output spec which is identical to the input specification - after
-     * all, we are building cluster centers in the original feature space.
+     * Returns <code>true</code> always and passes the current input spec to the output spec which is identical to the
+     * input specification - after all, we are building cluster centers in the original feature space.
      *
      * @param inSpecs the specifications of the input port(s) - should be one
      * @return the copied input spec
      * @throws InvalidSettingsException if PMML incompatible type was found
      */
     @Override
-    protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs,
-        final ClusterNodeParameters modelSettings) throws InvalidSettingsException {
+    protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs, final KMeansNodeParameters modelSettings)
+        throws InvalidSettingsException {
         DataTableSpec spec = (DataTableSpec)inSpecs[0];
         // input is output spec with all double compatible values set to
         // Double.
@@ -503,7 +539,8 @@ public class ClusterNodeModel2 extends WebUINodeModel<ClusterNodeParameters> {
         m_ignoreColumn = new boolean[m_dimension];
         m_nrIgnoredColumns = 0;
 
-        final var includedColumnNames = Arrays.asList(modelSettings.m_columnFilter.filterFromFullSpec(spec));
+        final var doubleColumns = ColumnSelectionUtil.getDoubleColumns(spec);
+        final var includedColumnNames = Arrays.asList(modelSettings.m_columnFilter.filter(doubleColumns));
 
         // check if some columns are included
         if (includedColumnNames.size() <= 0) {
@@ -531,7 +568,7 @@ public class ClusterNodeModel2 extends WebUINodeModel<ClusterNodeParameters> {
         return clusterCenterSpecCreator.createSpec();
     }
 
-    private static DataTableSpec createAppendedSpec(final ClusterNodeParameters modelSettings,
+    private static DataTableSpec createAppendedSpec(final KMeansNodeParameters modelSettings,
         final DataTableSpec originalSpec) {
         // determine the possible values of the appended column
         DataCell[] possibleValues = new DataCell[modelSettings.m_nrOfClusters];
@@ -540,14 +577,7 @@ public class ClusterNodeModel2 extends WebUINodeModel<ClusterNodeParameters> {
             possibleValues[i] = key;
         }
         // create the domain
-        // 1) guess an unused name for the new column (fixes bug #1022)
-        String colNameGuess = "Cluster";
-        int uniqueNr = 0;
-        while (originalSpec.getColumnSpec(colNameGuess) != null) {
-            uniqueNr++;
-            colNameGuess = "Cluster_" + uniqueNr;
-        }
-        // 2) create spec
+        final var colNameGuess = new UniqueNameGenerator(originalSpec).newName("Cluster");
         DataColumnDomainCreator domainCreator = new DataColumnDomainCreator(possibleValues);
         DataColumnSpecCreator creator = new DataColumnSpecCreator(colNameGuess, StringCell.TYPE);
         creator.setDomain(domainCreator.createDomain());
@@ -556,22 +586,17 @@ public class ClusterNodeModel2 extends WebUINodeModel<ClusterNodeParameters> {
         return new DataTableSpec(originalSpec, new DataTableSpec(labelColSpec));
     }
 
-    private void addExcludeColumnsToIgnoreList(final ClusterNodeParameters modelSettings,
+    private void addExcludeColumnsToIgnoreList(final KMeansNodeParameters modelSettings,
         final DataTableSpec originalSpec) {
         // add all excluded columns to the ignore list
-        var includedColumnNames = Arrays.asList(modelSettings.m_columnFilter.filterFromFullSpec(originalSpec));
+        var doubleColumns = ColumnSelectionUtil.getDoubleColumns(originalSpec);
+        var includedColumnNames = Arrays.asList(modelSettings.m_columnFilter.filter(doubleColumns));
+        final var includeSet = new HashSet<>(includedColumnNames);
         m_ignoreColumn = new boolean[m_dimension];
         m_nrIgnoredColumns = 0;
-        Collection<String> exclList = Arrays.asList(originalSpec.getColumnNames()).stream()
-                .filter(name -> !includedColumnNames.contains(name)).toList();
         for (int i = 0; i < m_dimension; i++) {
-            DataColumnSpec col = originalSpec.getColumnSpec(i);
-            // ignore if not compatible with double
-            boolean ignore = !col.getType().isCompatible(DoubleValue.class);
-            if (!ignore) {
-                //  or if it is in the exclude list:
-                ignore = exclList.contains(col.getName());
-            }
+            String colName = originalSpec.getColumnSpec(i).getName();
+            final var ignore = !includeSet.contains(colName);
             m_ignoreColumn[i] = ignore;
             if (ignore) {
                 m_nrIgnoredColumns++;
@@ -579,51 +604,29 @@ public class ClusterNodeModel2 extends WebUINodeModel<ClusterNodeParameters> {
         }
     }
 
-    private static PMMLPortObjectSpec createPMMLSpec(final ClusterNodeParameters modelSettings,
+    private static PMMLPortObjectSpec createPMMLSpec(final KMeansNodeParameters modelSettings,
         final PMMLPortObjectSpec pmmlSpec, final DataTableSpec originalSpec) throws InvalidSettingsException {
-        List<String> includes;
-        includes = new ArrayList<String>();
-        for (String s : Arrays.asList(modelSettings.m_columnFilter.filterFromFullSpec(originalSpec))) {
-            if (originalSpec.getColumnSpec(s).getType().isCompatible(DoubleValue.class)) {
-                includes.add(s);
-            }
-        }
-        HashSet<String> colNameHash = new HashSet<String>(includes);
-        // the order in this list is important, need to use the order defined
-        // by DTS, not m_usedColumns
-        List<String> activeCols = new LinkedList<String>();
-        for (DataColumnSpec colSpec : originalSpec) {
-            String name = colSpec.getName();
-            if (colNameHash.remove(name)) {
-                activeCols.add(name);
-            }
-        }
-        if (!colNameHash.isEmpty()) {
-            throw new InvalidSettingsException("Input table does not match "
-                    + "selected columns, unable to find column(s): " + colNameHash);
-        }
-
+        final var doubleColumns = ColumnSelectionUtil.getDoubleColumns(originalSpec);
+        final var includes = Arrays.asList(modelSettings.m_columnFilter.filter(doubleColumns));
         PMMLPortObjectSpecCreator creator = new PMMLPortObjectSpecCreator(pmmlSpec, originalSpec);
-        creator.setLearningColsNames(activeCols);
+        creator.setLearningColsNames(includes);
         return creator.createSpec();
     }
 
-    ClusterViewData getViewData() {
+    KMeansViewData getViewData() {
         return m_viewData;
     }
 
     /**
      * @param modelSettings model settings
-     * @return if the boolean is active, the stored seed is returned
-     * otherwise a random long value.
+     * @return if the boolean is active, the stored seed is returned otherwise a random long value.
      */
-    public long getSeedOrRandom(final ClusterNodeParameters modelSettings) {
+    public static long getSeedOrRandom(final KMeansNodeParameters modelSettings) {
         if (modelSettings.m_useStaticRandomSeed) {
             return Long.parseLong(modelSettings.m_seedValue);
         }
         final long l1 = Double.doubleToLongBits(Math.random());
         final long l2 = Double.doubleToLongBits(Math.random());
-        return ((0xFFFFFFFFL & l1) << 32)
-            + (0xFFFFFFFFL & l2);
+        return ((0xFFFFFFFFL & l1) << 32) + (0xFFFFFFFFL & l2);
     }
 }

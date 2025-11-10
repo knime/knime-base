@@ -51,7 +51,7 @@ import org.knime.core.node.NodeFactory;
  * Create classes for k-means Clustering NodeModel, NodeView and NodeDialogPane.
  *
  * @author Michael Berthold, University of Konstanz
- * @deprecated Replced by {@link ClusterNodeFactory3}
+ * @deprecated Replced by {@link KMeansNodeFactory}
  */
 @Deprecated
 public class ClusterNodeFactory extends NodeFactory<ClusterNodeModel> {

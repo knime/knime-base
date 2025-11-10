@@ -52,7 +52,7 @@ import org.knime.core.node.NodeFactory;
  *
  * @author Michael Berthold, University of Konstanz
  * @since 3.1
- * @deprecated Replaced by {@link ClusterNodeFactory3}
+ * @deprecated Replaced by {@link KMeansNodeFactory}
  */
 @Deprecated
 public class ClusterNodeFactory2 extends NodeFactory<ClusterNodeModel> {

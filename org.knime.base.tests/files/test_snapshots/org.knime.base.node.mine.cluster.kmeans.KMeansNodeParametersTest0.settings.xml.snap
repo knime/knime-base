@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
+    <config key="columnFilter">
+        <entry key="mode" type="xstring" value="MANUAL"/>
+        <config key="patternFilter">
+            <entry key="pattern" type="xstring" value=""/>
+            <entry key="isCaseSensitive" type="xboolean" value="false"/>
+            <entry key="isInverted" type="xboolean" value="false"/>
+        </config>
+        <config key="manualFilter">
+            <config key="manuallySelected">
+                <entry key="array-size" type="xint" value="4"/>
+                <entry key="0" type="xstring" value="Universe_0_0"/>
+                <entry key="1" type="xstring" value="Universe_0_1"/>
+                <entry key="2" type="xstring" value="Universe_1_0"/>
+                <entry key="3" type="xstring" value="Universe_1_1"/>
+            </config>
+            <config key="manuallyDeselected">
+                <entry key="array-size" type="xint" value="0"/>
+            </config>
+            <entry key="includeUnknownColumns" type="xboolean" value="true"/>
+        </config>
+        <config key="typeFilter">
+            <config key="selectedTypes">
+                <entry key="array-size" type="xint" value="0"/>
+            </config>
+        </config>
+    </config>
+    <entry key="nrOfClusters" type="xint" value="3"/>
+    <entry key="centroidInitialization" type="xstring" value="RANDOM_INITIALIZATION"/>
+    <entry key="useStaticRandomSeed" type="xboolean" value="false"/>
+    <entry key="seedValue" type="xstring" value="0"/>
+    <entry key="maxIterations" type="xint" value="99"/>
+    <entry key="enableHilite" type="xboolean" value="false"/>
+</config>

@@ -60,34 +60,34 @@ import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
 import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 
 /**
- * Snapshot test for {@link ClusterNodeParameters}.
+ * Snapshot test for {@link KMeansNodeParameters}.
  *
  * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-class ClusterNodeParametersTest extends DefaultNodeSettingsSnapshotTest {
+class KMeansNodeParametersTest extends DefaultNodeSettingsSnapshotTest {
 
-    protected ClusterNodeParametersTest() {
+    protected KMeansNodeParametersTest() {
         super(getConfig());
     }
 
     private static SnapshotTestConfiguration getConfig() {
         return SnapshotTestConfiguration.builder() //
             .withInputPortObjectSpecs(createInputPortSpecs()) //
-            .testJsonFormsForModel(ClusterNodeParameters.class) //
+            .testJsonFormsForModel(KMeansNodeParameters.class) //
             .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings()) //
             .testNodeSettingsStructure(() -> readSettings()) //
             .build();
     }
 
-    private static ClusterNodeParameters readSettings() {
+    private static KMeansNodeParameters readSettings() {
         try {
-            var path = getSnapshotPath(ClusterNodeParameters.class).getParent().resolve("node_settings")
-                .resolve("ClusterNodeParameters.xml");
+            var path = getSnapshotPath(KMeansNodeParameters.class).getParent().resolve("node_settings")
+                .resolve("KMeansNodeParameters.xml");
             try (var fis = new FileInputStream(path.toFile())) {
                 var nodeSettings = NodeSettings.loadFromXML(fis);
                 return NodeParametersUtil.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
-                    ClusterNodeParameters.class);
+                    KMeansNodeParameters.class);
             }
         } catch (IOException | InvalidSettingsException e) {
             throw new IllegalStateException(e);

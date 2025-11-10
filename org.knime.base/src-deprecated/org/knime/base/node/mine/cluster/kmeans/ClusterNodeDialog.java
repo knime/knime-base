@@ -68,11 +68,11 @@ import org.knime.core.node.defaultnodesettings.DialogComponentSeed;
 import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 
 /**
- * Dialog for {@link ClusterNodeModel2} - allows to adjust number of clusters and other properties.
+ * Dialog for {@link KMeansNodeModel} - allows to adjust number of clusters and other properties.
  *
  * @author Michael Berthold, University of Konstanz
  * @author Perla Gjoka, KNIME GmbH, Konstanz, Germany
- * @deprecated Replaced by {@link ClusterNodeParameters}
+ * @deprecated Replaced by {@link KMeansNodeParameters}
  */
 @Deprecated
 public class ClusterNodeDialog extends NodeDialogPane {

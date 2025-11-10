@@ -47,7 +47,6 @@
 package org.knime.base.node.mine.cluster.kmeans;
 
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.SimpleButtonWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.TypedStringFilterWidgetInternal;
 import org.knime.node.parameters.Advanced;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
@@ -79,12 +78,12 @@ import org.knime.node.parameters.widget.text.TextInputWidget;
  * @author AI Migration Pipeline v1.0
  */
 @SuppressWarnings("restriction")
-class ClusterNodeParameters implements NodeParameters {
+final class KMeansNodeParameters implements NodeParameters {
 
     /**
      * Constructor for the k-Means node parameters.
      */
-    ClusterNodeParameters() {
+    KMeansNodeParameters() {
     }
 
     /**
@@ -92,34 +91,34 @@ class ClusterNodeParameters implements NodeParameters {
      *
      * @param context the node parameters input context
      */
-    ClusterNodeParameters(final NodeParametersInput context) {
+    KMeansNodeParameters(final NodeParametersInput context) {
         this();
-        m_columnFilter = new ColumnFilter(ColumnSelectionUtil.getDoubleColumnsOfFirstPort(context))
-                .withIncludeUnknownColumns();
+        m_columnFilter =
+            new ColumnFilter(ColumnSelectionUtil.getDoubleColumnsOfFirstPort(context)).withIncludeUnknownColumns();
     }
 
-    @Widget(title = "Number of clusters",
-            description = "The number of clusters (cluster centers) to be created.")
+    @Widget(title = "Column selection", description = "The numerical columns to be used for clustering.")
+    @ChoicesProvider(DoubleColumnsProvider.class)
+    ColumnFilter m_columnFilter = new ColumnFilter();
+
+    @Widget(title = "Number of clusters", description = "The number of clusters (cluster centers) to be created.")
     @NumberInputWidget(minValidation = IsPositiveIntegerValidation.class)
-    int m_nrOfClusters = ClusterNodeModel2.INITIAL_NR_CLUSTERS;
+    int m_nrOfClusters = 3;
 
     @Widget(title = "Centroid initialization",
-            description = "First k rows: Initializes the centroids using the first rows of the input table. "
-                       + "Random initialization: Initializes the centroids with random rows of the input table. "
-                       + "Checking the Use static random seed it is possible to get reproducible results.")
+        description = "Determine how the initial centroids (cluster centers) are chosen.")
     @ValueSwitchWidget
     @ValueReference(CentroidInitializationModeRef.class)
     CentroidInitialization m_centroidInitialization = CentroidInitialization.RANDOM_INITIALIZATION;
 
     @Widget(title = "Use static random seed",
-            description = "When checked, uses the provided static seed for "
-                + "reproducible random centroid initialization.")
+        description = "When checked, uses the provided static seed for "
+            + "reproducible random centroid initialization.")
     @Effect(predicate = IsRandomInitialization.class, type = EffectType.SHOW)
     @ValueReference(IsUseStaticRandomSeedRef.class)
-    boolean m_useStaticRandomSeed;
+    boolean m_useStaticRandomSeed = true;
 
-    @Widget(title = "Seed value",
-    description = "The seed value for random centroid initialization.")
+    @Widget(title = "Seed value", description = "The seed value for random centroid initialization.")
     @TextInputWidget(patternValidation = LongAsStringPersistor.IsLongInteger.class)
     @Effect(predicate = IsRandomInitializationAndUseStaticRandomSeed.class, type = EffectType.SHOW)
     @ValueProvider(NewRandomSeedProvider.class)
@@ -131,23 +130,16 @@ class ClusterNodeParameters implements NodeParameters {
     Void m_newRandomSeedValue;
 
     @Widget(title = "Max number of iterations",
-            description = "The maximum number of iterations after which the algorithm "
-                + "terminates if it hasn't found a stable solution before.")
+        description = "The maximum number of iterations after which the algorithm "
+            + "terminates if it hasn't found a stable solution before.")
     @NumberInputWidget(minValidation = IsPositiveIntegerValidation.class)
-    int m_maxIterations = ClusterNodeModel2.INITIAL_MAX_ITERATIONS;
-
-    @Widget(title = "Column selection",
-            description = "Move the numeric columns of interest to the \"Include\" list. "
-                + "Always include all columns option moves all numeric columns to the \"Include\" list by default.")
-    @TypedStringFilterWidgetInternal(hideTypeFilter = true)
-    @ChoicesProvider(DoubleColumnsProvider.class)
-    ColumnFilter m_columnFilter = new ColumnFilter();
+    int m_maxIterations = 99;
 
     @Advanced
     @Widget(title = "Enable Hilite Mapping",
-            description = "If enabled, the hiliting of a cluster row (2nd output) will "
-                + "hilite all rows of this cluster in the input table and the 1st output table. "
-                + "Depending on the number of rows, enabling this feature might consume a lot of memory.")
+        description = "If enabled, the hiliting of a cluster row (2nd output) will "
+            + "hilite all rows of this cluster in the input table and the 1st output table. "
+            + "Depending on the number of rows, enabling this feature might consume a lot of memory.")
     boolean m_enableHilite;
 
     static final class CentroidInitializationModeRef implements ParameterReference<CentroidInitialization> {
@@ -172,8 +164,7 @@ class ClusterNodeParameters implements NodeParameters {
 
         @Override
         public EffectPredicate init(final PredicateInitializer i) {
-            return i.getEnum(CentroidInitializationModeRef.class)
-                    .isOneOf(CentroidInitialization.RANDOM_INITIALIZATION);
+            return i.getEnum(CentroidInitializationModeRef.class).isOneOf(CentroidInitialization.RANDOM_INITIALIZATION);
         }
 
     }
@@ -191,8 +182,7 @@ class ClusterNodeParameters implements NodeParameters {
 
         @Override
         public EffectPredicate init(final PredicateInitializer i) {
-            return i.getEnum(CentroidInitializationModeRef.class)
-                .isOneOf(CentroidInitialization.RANDOM_INITIALIZATION)
+            return i.getEnum(CentroidInitializationModeRef.class).isOneOf(CentroidInitialization.RANDOM_INITIALIZATION)
                 .and(i.getBoolean(IsUseStaticRandomSeedRef.class).isTrue());
         }
 
@@ -209,8 +199,7 @@ class ClusterNodeParameters implements NodeParameters {
         public String computeState(final NodeParametersInput parametersInput) {
             final long l1 = Double.doubleToLongBits(Math.random());
             final long l2 = Double.doubleToLongBits(Math.random());
-            final var seed = ((0xFFFFFFFFL & l1) << 32)
-                + (0xFFFFFFFFL & l2);
+            final var seed = ((0xFFFFFFFFL & l1) << 32) + (0xFFFFFFFFL & l2);
             return Long.toString(seed);
         }
 
@@ -218,17 +207,18 @@ class ClusterNodeParameters implements NodeParameters {
 
     enum CentroidInitialization {
 
-        /**
-         * No recursion policy.
-         */
-        @Label(value = "First k rows")
-        FIRST_ROWS,
-
-        /**
-         * No recursion policy.
-         */
-        @Label(value = "Random initialization")
-        RANDOM_INITIALIZATION;
+            /**
+             * No recursion policy.
+             */
+            @Label(value = "Random initialization",
+                description = "Initializes the centroids with random rows of the input table. Checking the Use static random seed it is possible to get reproducible results.")
+            RANDOM_INITIALIZATION,
+            /**
+             * No recursion policy.
+             */
+            @Label(value = "First k rows",
+                description = "Initializes the centroids using the first rows of the input table.")
+            FIRST_ROWS;
 
     }
 

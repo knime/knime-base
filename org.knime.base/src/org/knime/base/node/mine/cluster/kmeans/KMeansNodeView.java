@@ -79,7 +79,7 @@ import org.knime.core.node.property.hilite.KeyEvent;
  * @author Michael Berthold, University of Konstanz
  * @since 5.9
  */
-public class ClusterNodeView2 extends NodeView<ClusterNodeModel2>
+public class KMeansNodeView extends NodeView<KMeansNodeModel>
     implements HiLiteListener {
 
     // components holding information about ClusterModel
@@ -107,7 +107,7 @@ public class ClusterNodeView2 extends NodeView<ClusterNodeModel2>
      *
      * @param nodeModel the underlying model
      */
-    public ClusterNodeView2(final ClusterNodeModel2 nodeModel) {
+    public KMeansNodeView(final KMeansNodeModel nodeModel) {
         super(nodeModel);
         JComponent myComp = new JPanel();
         myComp.setLayout(new BorderLayout());
@@ -257,7 +257,7 @@ public class ClusterNodeView2 extends NodeView<ClusterNodeModel2>
             root = new DefaultMutableTreeNode("No Model");
         } else { // check for empty cluster model before adding content to
             // tree
-            ClusterViewData viewData = getNodeModel().getViewData();
+            KMeansViewData viewData = getNodeModel().getViewData();
             if (viewData == null) {
                 root = new DefaultMutableTreeNode("Empty Model");
             } else { // put cluster info into the tree
@@ -266,8 +266,8 @@ public class ClusterNodeView2 extends NodeView<ClusterNodeModel2>
                 // c
                 for (int c = 0; c < viewData.getNrOfClusters(); c++) {
                     // add information about coverage and center vector
-                    clusterParent = new ClusterMutableTreeNode(ClusterNodeModel2.CLUSTER + c + " (coverage: "
-                                    + viewData.getClusterCoverage(c) + ")", new RowKey(ClusterNodeModel2.CLUSTER + c));
+                    clusterParent = new ClusterMutableTreeNode(KMeansNodeModel.CLUSTER + c + " (coverage: "
+                                    + viewData.getClusterCoverage(c) + ")", new RowKey(KMeansNodeModel.CLUSTER + c));
                     for (int i = 0; i < viewData.getNrOfUsedColumns(); i++) {
                         clusterParent.add(new DefaultMutableTreeNode(
                                   viewData.getFeatureName(i) + " = " + viewData.getClusterCenter(c)[i]));

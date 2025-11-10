@@ -56,7 +56,7 @@ import org.knime.core.node.util.ButtonGroupEnumInterface;
  * input table or initialize them randomly.
  *
  * @author Perla Gjoka, KNIME GmbH, Konstanz, Germany
- * @deprecated Replaced by {@link ClusterNodeParameters}
+ * @deprecated Replaced by {@link KMeansNodeParameters}
  */
 @Deprecated
 enum CentroidInitialization implements ButtonGroupEnumInterface {
