@@ -96,14 +96,20 @@ final class NaiveBayesLearnerNodeParameters implements NodeParameters {
                     </li>
                 </ul>
                 """)
-    @NumberInputWidget(minValidation = MinProbabilityThresholdValidation.class)
+    @NumberInputWidget( //
+        minValidation = MinProbabilityThresholdValidation.class, //
+        stepSize = NaiveBayesModel.DEFAULT_MIN_PROB_THRESHOLD //
+    )
     @Persist(configKey = NaiveBayesLearnerNodeModel3.CFG_THRESHOLD_KEY)
     double m_threshold = NaiveBayesModel.DEFAULT_MIN_PROB_THRESHOLD;
 
     @Widget(title = "Minimum standard deviation",
         description = "Specify the minimum standard deviation to use for observations without enough (diverse) data. "
             + "The value must be at least 1e-10.")
-    @NumberInputWidget(minValidation = MinProbabilityThresholdValidation.class)
+    @NumberInputWidget( //
+        minValidation = MinProbabilityThresholdValidation.class, //
+        stepSize = NaiveBayesLearnerNodeModel3.MIN_SD_VALUE_DEF //
+    )
     @Persist(configKey = NaiveBayesLearnerNodeModel3.CFG_MIN_SD_VALUE_KEY)
     double m_minSdValue = NaiveBayesLearnerNodeModel3.MIN_SD_VALUE_DEF;
 
