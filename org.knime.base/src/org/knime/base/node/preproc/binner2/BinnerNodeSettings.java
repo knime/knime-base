@@ -179,7 +179,7 @@ final class BinnerNodeSettings implements NodeParameters {
     @Widget(title = "Fix lower bound", description = """
             If enabled, values below the specified lower bound will \
             be assigned to a dedicated outlier bin. The bin will have \
-            the name specified by the 'Lower outlier value' setting.
+            the name specified by the 'Lower outlier name/value' setting.
             """)
     @Effect(predicate = BinningTypeIsNotCustomCutoffs.class, type = EffectType.SHOW)
     @ValueReference(FixLowerBoundRef.class)
@@ -198,7 +198,7 @@ final class BinnerNodeSettings implements NodeParameters {
     @Widget(title = "Fix upper bound", description = """
             If enabled, values above the specified upper bound will \
             be assigned to a dedicated outlier bin. The bin will have \
-            the name specified by the 'Upper outlier value' setting.
+            the name specified by the 'Upper outlier name/value' setting.
             """)
     @Effect(predicate = BinningTypeIsNotCustomCutoffs.class, type = EffectType.SHOW)
     @ValueReference(FixUpperBoundRef.class)
@@ -246,11 +246,11 @@ final class BinnerNodeSettings implements NodeParameters {
     String m_prefix = "Bin ";
 
     @Layout(OutputSection.class)
-    @Widget(title = "Lower outlier value", description = "Label assigned to values below the fixed lower bound.")
+    @Widget(title = "Lower outlier name/value", description = "Label assigned to values below the first bin.")
     String m_lowerOutlierValue = "Lower outlier";
 
     @Layout(OutputSection.class)
-    @Widget(title = "Upper outlier value", description = "Label assigned to values above the fixed upper bound.")
+    @Widget(title = "Upper outlier name/value", description = "Label assigned to values above the last bin.")
     String m_upperOutlierValue = "Upper outlier";
 
     @Layout(OutputSection.class)

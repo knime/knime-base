@@ -156,13 +156,13 @@
           "fixLowerBound" : {
             "type" : "boolean",
             "title" : "Fix lower bound",
-            "description" : "If enabled, values below the specified lower bound will be assigned to a dedicated outlier bin. The bin will have the name specified by the 'Lower outlier value' setting.\n",
+            "description" : "If enabled, values below the specified lower bound will be assigned to a dedicated outlier bin. The bin will have the name specified by the 'Lower outlier name/value' setting.\n",
             "default" : false
           },
           "fixUpperBound" : {
             "type" : "boolean",
             "title" : "Fix upper bound",
-            "description" : "If enabled, values above the specified upper bound will be assigned to a dedicated outlier bin. The bin will have the name specified by the 'Upper outlier value' setting.\n",
+            "description" : "If enabled, values above the specified upper bound will be assigned to a dedicated outlier bin. The bin will have the name specified by the 'Upper outlier name/value' setting.\n",
             "default" : false
           },
           "fixedLowerBound" : {
@@ -181,8 +181,8 @@
           },
           "lowerOutlierValue" : {
             "type" : "string",
-            "title" : "Lower outlier value",
-            "description" : "Label assigned to values below the fixed lower bound.",
+            "title" : "Lower outlier name/value",
+            "description" : "Label assigned to values below the first bin.",
             "default" : "Lower outlier"
           },
           "numberOfBins" : {
@@ -328,8 +328,8 @@
           },
           "upperOutlierValue" : {
             "type" : "string",
-            "title" : "Upper outlier value",
-            "description" : "Label assigned to values above the fixed upper bound.",
+            "title" : "Upper outlier name/value",
+            "description" : "Label assigned to values above the last bin.",
             "default" : "Upper outlier"
           },
           "usePrefix" : {
