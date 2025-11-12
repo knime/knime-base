@@ -111,10 +111,7 @@ public class NumberToString3NodeFactory extends NodeFactory
             """;
 
     private static final String FULL_DESCRIPTION = """
-            Converts numbers in a column (or a set of columns) to strings. Note that for an advanced configuration,
-                such as rounding or representation in scientific notification you can also use the "Round Double"
-                node.<br /> If the optional PMML inport is connected and contains preprocessing operations in the
-                TransformationDictionary the conversion operations of this node are appended.
+            Converts numbers in a column (or a set of columns) to strings.
             """;
 
     private static final List<PortDescription> INPUT_PORTS = List.of(
