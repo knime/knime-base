@@ -492,7 +492,7 @@ final class DataValidatorConfiguration {
         /**
          * Unknown columns are added to the end.
          */
-        @Label(value = "Move to the end", description = "Additional columns will be moved to the end of the table")
+        @Label(value = "Move to end", description = "Additional columns will be moved to the end of the table")
         IGNORE("Sort them to the end");
 
         private final String m_description;

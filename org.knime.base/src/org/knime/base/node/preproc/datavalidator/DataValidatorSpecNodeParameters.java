@@ -146,7 +146,7 @@ class DataValidatorSpecNodeParameters implements NodeParameters {
             Additional columns can cause the validation to fail, be removed, or moved to the end of the table.
             """)
     @Layout(StructureValidationSection.class)
-    @RadioButtonsWidget
+    @ValueSwitchWidget
     @Persist(configKey = DataValidatorConfiguration.CFG_REMOVE_UNKNOWN_COLUMNS)
     UnknownColumnHandling m_additionalColumnsHandling = UnknownColumnHandling.REJECT;
 
