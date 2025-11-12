@@ -33,7 +33,7 @@
            <p>
             In the "Pattern Based Aggregation" tab you can assign aggregation methods to columns based on a  
             search pattern. The pattern can be either a string with wildcards or a
-            <a href="http://www.java.sun.com/javase/6/docs/api/java/util/regex/Pattern.html#sum">regular expression</a>.
+            <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/regex/Pattern.html#sum">regular expression</a>.
             Columns where the name matches the pattern but where the data type is not compatible with the
             selected aggregation method are ignored. Only columns that have not been selected as group column or 
             that have not been selected as aggregation column on the "Manual Aggregation" tab are considered.
@@ -135,7 +135,7 @@
             <option name="Aggregation settings">
                 Use the "Add" button to add a new row with a search pattern to the aggregation settings.
                 The search pattern can either be a string with wildcards or a 
-                <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Pattern.html#sum">regular expression</a>.
+                <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/regex/Pattern.html#sum">regular expression</a>.
                 Supported wildcards are * (matches any number of characters) and ? (matches one character) e.g. KNI*
                 would match all strings that start with KNI such as KNIME whereas KNI? would match only strings that start
                 with KNI followed by a fourth character. 
@@ -189,8 +189,8 @@
 				</ul> 
 			</option>
         </tab>
-		<link href="https://www.knime.com/knime-introductory-course/chapter3/section2/classic-aggregations-with-groupby-node">
-			KNIME E-Learning Course: Classic Aggregations with GroupBy node
+		<link href="https://hub.knime.com/knime/spaces/Examples/02_ETL_Data_Manipulation/02_Aggregations/06_Basic_Examples_for_Using_the_GroupBy_Node~31LVQFRFzoqaY_zm/most-recent">
+			Basic Examples for using the GroupBy Node
 		</link>
     </fullDescription>
     <ports>

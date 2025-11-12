@@ -112,8 +112,7 @@ public class GroupByNodeFactory extends NodeFactory<GroupByNodeModel> implements
             section.</p>
             <p>
              In the "Pattern Based Aggregation" section you can assign aggregation methods to columns based on a
-             search pattern. The pattern can be either a string with wildcards or a
-             <a href="http://www.java.sun.com/javase/6/docs/api/java/util/regex/Pattern.html#sum">regular expression
+             search pattern. The pattern can be either a string with wildcards or a <a href="%s">regular expression
              </a>.
              Columns where the name matches the pattern but where the data type is not compatible with the
              selected aggregation method are ignored. Only columns that have not been selected as group column or
@@ -126,7 +125,7 @@ public class GroupByNodeFactory extends NodeFactory<GroupByNodeModel> implements
              The data type list to choose from contains basic types e.g String, Number (Float), etc. and all data
              types the current input table contains.
             </p>
-             """;
+             """.formatted(ExternalLinks.JAVA_PATTERN);
 
     static {
         if (!HAS_WEBUI_DIALOG) {
@@ -179,9 +178,7 @@ public class GroupByNodeFactory extends NodeFactory<GroupByNodeModel> implements
             List.of(PortDescription.fixedPort("Group table",
                 "Result table with one row for each existing value combination of the selected data")),
             SHORT_DESCRIPTION, FULL_DESCRIPTION,
-            List.of(new ExternalResource(
-                "https://www.knime.com/knime-introductory-course/chapter3/section2/classic-aggregations-with-groupby-node", // NOSONAR href
-                "KNIME E-Learning Course: Classic Aggregations with GroupBy node")),
+            List.of(new ExternalResource(ExternalLinks.KNIME_GROUP_BY, "Basic Examples for using the GroupBy Node")),
             GroupByNodeParameters.class, List.of(), NodeType.Manipulator,
             List.of("Summarize", "Aggregate", "group by", "maximum", "correlation", "count", "deviation", "mean",
                 "median", "minimum", "quantile", "range", "set", "sum", "variance"),
