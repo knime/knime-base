@@ -199,7 +199,7 @@ public class GroupByNodeFactory extends NodeFactory<GroupByNodeModel> implements
         if (HAS_WEBUI_DIALOG) {
             return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
         }
-        return new GroupByNodeDialog();
+        return new GroupByNodeDialog(/* pattern */true, /* type */true);
     }
 
     /**
