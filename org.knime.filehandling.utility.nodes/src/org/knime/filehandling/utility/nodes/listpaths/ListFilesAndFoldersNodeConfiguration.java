@@ -60,9 +60,9 @@ import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.Settin
  */
 final class ListFilesAndFoldersNodeConfiguration {
 
-    private static final String CFG_INCLUDE_ROOT = "include_root_folder";
+    static final String CFG_INCLUDE_ROOT = "include_root_folder";
 
-    private static final String CFG_ADD_DIR_INDICATOR = "add_folder_identifier_column";
+    static final String CFG_ADD_DIR_INDICATOR = "add_folder_identifier_column";
 
     private boolean m_includeRootDir;
 

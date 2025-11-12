@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="settings.xml">
+    <entry key="node_file" type="xstring" value="settings.xml"/>
+    <config key="flow_stack"/>
+    <config key="internal_node_subsettings">
+        <entry key="memory_policy" type="xstring" value="CacheSmallInMemory"/>
+    </config>
+    <config key="model">
+        <config key="file_chooser_Internals">
+            <entry key="SettingsModelID" type="xstring" value="SMID_ReaderFileChooser"/>
+            <entry key="EnabledStatus" type="xboolean" value="true"/>
+        </config>
+        <config key="file_chooser">
+            <config key="file_system_chooser__Internals">
+                <entry key="has_fs_port" type="xboolean" value="false"/>
+                <entry key="overwritten_by_variable" type="xboolean" value="false"/>
+                <entry key="convenience_fs_category" type="xstring" value="RELATIVE"/>
+                <entry key="relative_to" type="xstring" value="knime.space"/>
+                <entry key="mountpoint" type="xstring" value="knime-temp-space"/>
+                <entry key="spaceId" type="xstring" value=""/>
+                <entry key="spaceName" type="xstring" value=""/>
+                <entry key="connected_fs" type="xboolean" value="true"/>
+            </config>
+            <config key="path">
+                <entry key="location_present" type="xboolean" value="true"/>
+                <entry key="file_system_type" type="xstring" value="RELATIVE"/>
+                <entry key="file_system_specifier" type="xstring" value="knime.space"/>
+                <entry key="path" type="xstring" value="knime/files"/>
+            </config>
+            <config key="filter_mode_Internals">
+                <entry key="SettingsModelID" type="xstring" value="SMID_FilterMode"/>
+                <entry key="EnabledStatus" type="xboolean" value="true"/>
+            </config>
+            <config key="filter_mode">
+                <entry key="filter_mode" type="xstring" value="FILES_AND_FOLDERS"/>
+                <entry key="include_subfolders" type="xboolean" value="false"/>
+                <config key="filter_options">
+                    <entry key="filter_files_extension" type="xboolean" value="true"/>
+                    <entry key="files_extension_expression" type="xstring" value=".md"/>
+                    <entry key="files_extension_case_sensitive" type="xboolean" value="true"/>
+                    <entry key="filter_files_name" type="xboolean" value="false"/>
+                    <entry key="files_name_expression" type="xstring" value="*"/>
+                    <entry key="files_name_case_sensitive" type="xboolean" value="false"/>
+                    <entry key="files_name_filter_type" type="xstring" value="WILDCARD"/>
+                    <entry key="include_hidden_files" type="xboolean" value="true"/>
+                    <entry key="include_special_files" type="xboolean" value="true"/>
+                    <entry key="filter_folders_name" type="xboolean" value="true"/>
+                    <entry key="folders_name_expression" type="xstring" value="test"/>
+                    <entry key="folders_name_case_sensitive" type="xboolean" value="false"/>
+                    <entry key="folders_name_filter_type" type="xstring" value="WILDCARD"/>
+                    <entry key="include_hidden_folders" type="xboolean" value="false"/>
+                    <entry key="follow_links" type="xboolean" value="false"/>
+                </config>
+            </config>
+        </config>
+        <entry key="add_folder_identifier_column" type="xboolean" value="true"/>
+        <entry key="include_root_folder" type="xboolean" value="true"/>
+    </config>
+    <entry key="customDescription" type="xstring" isnull="true" value=""/>
+    <entry key="state" type="xstring" value="CONFIGURED"/>
+    <config key="nodecontainer_message">
+        <entry key="type" type="xstring" value="ERROR"/>
+        <entry key="message" type="xstring" value="Execute failed: The specified folder knime/files does not exist."/>
+    </config>
+    <entry key="factory" type="xstring" value="org.knime.filehandling.utility.nodes.listpaths.ListFilesAndFoldersNodeFactory"/>
+    <entry key="node-name" type="xstring" value="List Files/Folders"/>
+    <entry key="node-bundle-name" type="xstring" value="KNIME Filehandling Nodes"/>
+    <entry key="node-bundle-symbolic-name" type="xstring" value="org.knime.filehandling.utility.nodes"/>
+    <entry key="node-bundle-vendor" type="xstring" value="KNIME AG, Zurich, Switzerland"/>
+    <entry key="node-bundle-version" type="xstring" value="5.9.0.v202510270634"/>
+    <entry key="node-feature-name" type="xstring" value="KNIME Base nodes"/>
+    <entry key="node-feature-symbolic-name" type="xstring" value="org.knime.features.base.feature.group"/>
+    <entry key="node-feature-vendor" type="xstring" value="KNIME AG, Zurich, Switzerland"/>
+    <entry key="node-feature-version" type="xstring" value="5.9.0.v202511031423"/>
+    <config key="factory_settings"/>
+    <config key="node_creation_config">
+        <config key="File System Connection"/>
+        <config key="table"/>
+    </config>
+    <entry key="name" type="xstring" value="List Files/Folders"/>
+    <entry key="hasContent" type="xboolean" value="false"/>
+    <entry key="isInactive" type="xboolean" value="false"/>
+    <config key="ports">
+        <config key="port_1">
+            <entry key="index" type="xint" value="1"/>
+            <entry key="port_dir_location" type="xstring" isnull="true" value=""/>
+        </config>
+    </config>
+    <config key="filestores">
+        <entry key="file_store_location" type="xstring" isnull="true" value=""/>
+        <entry key="file_store_id" type="xstring" isnull="true" value=""/>
+    </config>
+</config>

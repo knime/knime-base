@@ -48,28 +48,50 @@
  */
 package org.knime.filehandling.utility.nodes.listpaths;
 
+import static org.knime.node.impl.description.PortDescription.dynamicPort;
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ConfigurableNodeFactory;
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeView;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.context.ports.PortsConfiguration;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.defaultnodesettings.EnumConfig;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.core.port.FileSystemPortObject;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
 
 /**
  * Factory of the ListFilesAndFoldersNodeModel.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
+ * @author Paul Baernreuther, KNIME GmbH, Germany
+ * @author AI Migration Pipeline v1.2
  */
-public final class ListFilesAndFoldersNodeFactory extends ConfigurableNodeFactory<ListFilesAndFoldersNodeModel> {
+@SuppressWarnings("restriction")
+public final class ListFilesAndFoldersNodeFactory extends ConfigurableNodeFactory<ListFilesAndFoldersNodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     private static final String FS_PORT_ID = "File System Connection";
+
+    static final String CFG_FILE_CHOOSER = "file_chooser";
 
     @Override
     protected int getNrNodeViews() {
@@ -102,17 +124,71 @@ public final class ListFilesAndFoldersNodeFactory extends ConfigurableNodeFactor
     }
 
     private static ListFilesAndFoldersNodeConfiguration createSettings(final PortsConfiguration portsConfiguration) {
-        return new ListFilesAndFoldersNodeConfiguration(new SettingsModelReaderFileChooser("file_chooser",
+        return new ListFilesAndFoldersNodeConfiguration(new SettingsModelReaderFileChooser(CFG_FILE_CHOOSER,
             portsConfiguration, ListFilesAndFoldersNodeFactory.FS_PORT_ID,
             EnumConfig.create(FilterMode.FILES_IN_FOLDERS, FilterMode.FOLDERS, FilterMode.FILES_AND_FOLDERS),
             FSCategory.getStandardNonTrivialFSCategories()));
 
     }
 
+    private static final String NODE_NAME = "List Files/Folders";
+
+    private static final String NODE_ICON = "./listfiles.png";
+
+    private static final String SHORT_DESCRIPTION = """
+            List files and/or folders contained in the selected folder.
+            """;
+
+    private static final String FULL_DESCRIPTION =
+        """
+                <p> List files and/or folders contained in the selected folder. </p> <p> <i>This node can access a
+                    variety of different</i> <a
+                    href="https://docs.knime.com/2021-06/analytics_platform_file_handling_guide/index.html#analytics-platform-file-systems"><i>file
+                    systems.</i></a> <i>More information about file handling in KNIME can be found in the official</i> <a
+                    href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html"><i>File Handling
+                    Guide.</i></a> </p>
+                """;
+
+    private static final List<PortDescription> INPUT_PORTS =
+        List.of(dynamicPort(FS_PORT_ID, "File system connection", """
+                The file system connection.
+                """));
+
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(fixedPort("File/Folder List", """
+            List of files/folders.
+            """));
+
     @Override
-    protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
-        return new ListFilesAndFoldersNodeDialog(
-            createSettings(creationConfig.getPortConfig().orElseThrow(IllegalStateException::new)));
+    public NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, ListFilesAndFoldersNodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription( //
+            NODE_NAME, //
+            NODE_ICON, //
+            INPUT_PORTS, //
+            OUTPUT_PORTS, //
+            SHORT_DESCRIPTION, //
+            FULL_DESCRIPTION, //
+            List.of(), //
+            ListFilesAndFoldersNodeParameters.class, //
+            null, //
+            NodeType.Source, //
+            List.of(), //
+            null //
+        );
+    }
+
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, ListFilesAndFoldersNodeParameters.class));
     }
 
 }
