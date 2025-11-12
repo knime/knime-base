@@ -11,7 +11,7 @@
                 <config key="column_names">
                     <entry key="array-size" type="xint" value="0"/>
                 </config>
-                <entry key="case_insensitive_name_matching" type="xboolean" value="false"/>
+                <entry key="case_insensitive_name_matching" type="xboolean" value="true"/>
                 <entry key="reject_on_missing_value" type="xboolean" value="false"/>
                 <entry key="datatype_handling" type="xstring" value="FAIL"/>
                 <entry key="domain_handling_possible_values" type="xstring" value="FAIL"/>

@@ -265,7 +265,7 @@ class DataValidatorSpecNodeParameters implements NodeParameters {
 
         @Override
         public String[][] getConfigPaths() {
-            return new String[][]{{KEY_1, KEY_2, DataValidatorColConfiguration.CFG_CASE_INSENSITIVE}};
+            return new String[][]{{DataValidatorColConfiguration.CFG_CASE_INSENSITIVE}};
         }
     }
 
@@ -285,7 +285,7 @@ class DataValidatorSpecNodeParameters implements NodeParameters {
 
         @Override
         public String[][] getConfigPaths() {
-            return new String[][]{{KEY_1, KEY_2, DataValidatorColConfiguration.CFG_REJECT_ON_MISSING_VALUE}};
+            return new String[][]{{DataValidatorColConfiguration.CFG_REJECT_ON_MISSING_VALUE}};
         }
     }
 
@@ -316,7 +316,7 @@ class DataValidatorSpecNodeParameters implements NodeParameters {
 
         @Override
         public String[][] getConfigPaths() {
-            return new String[][]{{KEY_1, KEY_2, DataValidatorColConfiguration.CFG_DOMAIN_HANDLING_POSSIBLE_DOMAIN}};
+            return new String[][]{{DataValidatorColConfiguration.CFG_DOMAIN_HANDLING_POSSIBLE_DOMAIN}};
         }
     }
 
@@ -347,7 +347,7 @@ class DataValidatorSpecNodeParameters implements NodeParameters {
 
         @Override
         public String[][] getConfigPaths() {
-            return new String[][]{{KEY_1, KEY_2, DataValidatorColConfiguration.CFG_DOMAIN_HANDLING_MIN_MAX}};
+            return new String[][]{{DataValidatorColConfiguration.CFG_DOMAIN_HANDLING_MIN_MAX}};
         }
     }
 

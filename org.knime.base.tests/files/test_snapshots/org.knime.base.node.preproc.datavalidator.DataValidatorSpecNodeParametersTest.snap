@@ -230,7 +230,7 @@
         "type" : "object",
         "properties" : {
           "columnNameMatching" : {
-            "configPaths" : [ [ "individual_settings", "0", "case_insensitive_name_matching" ] ],
+            "configPaths" : [ [ "case_insensitive_name_matching" ] ],
             "route" : [ "individual_settings", "0" ]
           },
           "missingColumnHandling" : {
@@ -249,15 +249,15 @@
             "route" : [ "individual_settings", "0" ]
           },
           "missingValueHandling" : {
-            "configPaths" : [ [ "individual_settings", "0", "reject_on_missing_value" ] ],
+            "configPaths" : [ [ "reject_on_missing_value" ] ],
             "route" : [ "individual_settings", "0" ]
           },
           "categoricDomainHandling" : {
-            "configPaths" : [ [ "individual_settings", "0", "domain_handling_possible_values" ] ],
+            "configPaths" : [ [ "domain_handling_possible_values" ] ],
             "route" : [ "individual_settings", "0" ]
           },
           "numericDomainHandling" : {
-            "configPaths" : [ [ "individual_settings", "0", "domain_handling_min_max" ] ],
+            "configPaths" : [ [ "domain_handling_min_max" ] ],
             "route" : [ "individual_settings", "0" ]
           },
           "validationFailureBehavior" : {

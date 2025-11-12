@@ -2,15 +2,15 @@
 <config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
     <config key="individual_settings">
         <config key="0">
-            <entry key="case_insensitive_name_matching" type="xboolean" value="false"/>
+            <entry key="case_insensitive_name_matching" type="xboolean" value="true"/>
             <entry key="colum_missing_handling" type="xstring" value="FAIL"/>
             <entry key="datatype_handling" type="xstring" value="FAIL"/>
             <config key="column_names">
                 <entry key="array-size" type="xint" value="0"/>
             </config>
             <entry key="reject_on_missing_value" type="xboolean" value="false"/>
-            <entry key="domain_handling_possible_values" type="xstring" value="NONE"/>
-            <entry key="domain_handling_min_max" type="xstring" value="NONE"/>
+            <entry key="domain_handling_possible_values" type="xstring" value="FAIL"/>
+            <entry key="domain_handling_min_max" type="xstring" value="FAIL"/>
         </config>
     </config>
     <entry key="unkown_columns_handling" type="xstring" value="REJECT"/>
