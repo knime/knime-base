@@ -107,13 +107,13 @@ public class CAIMDiscretization2NodeFactory extends
             """;
 
     private static final String FULL_DESCRIPTION = """
-            This node implements the CAIM binning (discretization) algorithm according to Kurgan and Cios (2004)
-                URL:http://citeseer.ist.psu.edu/kurgan04caim.html. The binning (discretization) is performed with
-                respect to a selected class column. CAIM creates all possible binning boundaries and chooses those that
-                minimize the class interdependancy measure. To reduce the runtime, this implementation creates only
-                those boundaries where the value and the class changes. The algorithm finds a minimum number of bins
-                (guided by the number of possible class values) and labels them "Interval_X". Only columns compatible
-                with double values are binned and the column's type of the output table is changed to "String".
+            This node implements the CAIM binning (discretization) algorithm according to Kurgan and Cios (2004). The
+            binning (discretization) is performed with respect to a selected class column. CAIM creates all possible
+            binning boundaries and chooses those that minimize the class interdependancy measure. To reduce the runtime,
+             this implementation creates only those boundaries where the value and the class changes. The algorithm
+             finds a minimum number of bins (guided by the number of possible class values) and labels them
+             "Interval_X". Only columns compatible with double values are binned and the column's type of the output
+             table is changed to "String".
             """;
 
     private static final List<PortDescription> INPUT_PORTS = List.of(
