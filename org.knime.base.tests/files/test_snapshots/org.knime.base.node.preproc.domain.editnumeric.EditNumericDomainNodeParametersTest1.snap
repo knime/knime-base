@@ -35,13 +35,13 @@
               "title" : "Fail"
             }, {
               "const" : "CALCULATE_BOUNDS",
-              "title" : "Calculate Bounds"
+              "title" : "Calculate bounds"
             }, {
               "const" : "USE_EXISTING_BOUNDS",
-              "title" : "Use existing Bounds"
+              "title" : "Use existing bounds"
             } ],
             "title" : "Out of domain policy",
-            "description" : "Defines the behavior if the actual content of a selected column does not fit in the given bounds.\n<ul>\n<li><b>Fail</b>: Throws an exception during execution.</li>\n<li><b>Calculate Bounds</b>: Ignores the user settings and calculates instead the upper and lower bound based on the column content.\n</li>\n<li><b>Use existing Bounds</b>: Uses the existing domain information.</li>\n</ul>",
+            "description" : "Defines the behavior if the actual content of a selected column does not fit in the given bounds.\n<ul>\n<li><b>Fail</b>: Throws an exception during execution.</li>\n<li><b>Calculate bounds</b>: Ignores the user settings and calculates instead the upper and lower bound based on the column content.\n</li>\n<li><b>Use existing bounds</b>: Uses the existing domain information.</li>\n</ul>",
             "default" : "THROW_EXCEPTION"
           },
           "lowerBound" : {
@@ -236,10 +236,10 @@
         "text" : "Fail"
       }, {
         "id" : "CALCULATE_BOUNDS",
-        "text" : "Calculate Bounds"
+        "text" : "Calculate bounds"
       }, {
         "id" : "USE_EXISTING_BOUNDS",
-        "text" : "Use existing Bounds"
+        "text" : "Use existing bounds"
       } ]
     } ]
   }, {

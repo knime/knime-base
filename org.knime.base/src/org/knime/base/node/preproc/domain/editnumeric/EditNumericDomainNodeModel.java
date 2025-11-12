@@ -340,14 +340,14 @@ final class EditNumericDomainNodeModel extends NodeModel {
         /**
          * Calculates the bounds.
          */
-        @Label(value = "Calculate Bounds", description = """
+        @Label(value = "Calculate bounds", description = """
                 Ignores the user settings and calculates instead the upper and lower bound based on the column content.
                 """)
         CALCULATE_BOUNDS("Calculate Bounds"),
         /**
          * Reuses given information.
          */
-        @Label(value = "Use existing Bounds", description = "Uses the existing domain information.")
+        @Label(value = "Use existing bounds", description = "Uses the existing domain information.")
         USE_EXISTING_BOUNDS("Use existing Bounds");
 
         private String m_description;
