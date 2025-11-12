@@ -166,7 +166,7 @@ final class LegacyDataTypeAggregatorsArrayPersistor
 
         @Override
         public String[][] getConfigPaths() {
-            // TODO not possible to specify arbitrary nested keys implicitly
+            // TODO not possible to specify arbitrary nested keys dynamically
             return new String[0][];
         }
 

@@ -132,9 +132,10 @@ abstract class AggregationOperatorParametersProvider
         } else if (paramClass != null) {
             try {
                 return NodeParametersUtil.createSettings(paramClass, parametersInput);
-            } catch (final Exception e) {
-                LOGGER.warn("Failed to instantiate parameter class " + paramClass.getName()
-                    + ", falling back to legacy parameters", e);
+            } catch (final Exception e) { // NOSONAR we want to be safe and rather fall back to the fallback dialog
+                LOGGER.warn(() -> String.format(
+                    "Failed to instantiate parameter class \"%s\", falling back to legacy parameters",
+                    paramClass.getName()), e);
             }
         }
 

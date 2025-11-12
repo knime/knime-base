@@ -94,38 +94,39 @@ public class GroupByNodeFactory extends NodeFactory<GroupByNodeModel> implements
 
     private static final String FULL_DESCRIPTION =
         """
-                <p>
-                 Groups the rows of a table by the unique values in the selected group columns.
-                 A row is created for each unique set of values of the selected group column.
-                 The remaining columns are aggregated based on the specified aggregation settings.
-                 The output table contains one row for each unique value combination of the selected
-                 group columns.
-                </p>
-                <p>
-                The columns to aggregate can be either defined by selecting the columns directly,
-                by name based on a search pattern or based on the data type. Input columns are handled in
-                this order and only considered once e.g. columns that are added directly in the
-                "Aggregation" section are ignored even if their name matches a search pattern in the
-                "Pattern Based Aggregation" section or their type matches a defined type in the
-                "Type Based Aggregation" section. The same holds for columns that are added based on a search pattern.
-                They are ignored even if they match a criterion that has been defined in the "Type Based Aggregation" section.
-                </p>
-                <p>
-                 In the "Pattern Based Aggregation" section you can assign aggregation methods to columns based on a
-                 search pattern. The pattern can be either a string with wildcards or a
-                 <a href="http://www.java.sun.com/javase/6/docs/api/java/util/regex/Pattern.html#sum">regular expression</a>.
-                 Columns where the name matches the pattern but where the data type is not compatible with the
-                 selected aggregation method are ignored. Only columns that have not been selected as group column or
-                 that have not been selected as aggregation column in the "Aggregation" section are considered.
-                </p>
-                <p>
-                 The "Type Based Aggregation" section allows to select an aggregation method for all columns of a certain
-                 data type e.g. to compute the mean for all decimal columns (Number (Float)). Only columns that have not
-                 been handled by the other sections e.g. group, column based and pattern based are considered.
-                 The data type list to choose from contains basic types e.g String, Number (Float), etc. and all data types
-                 the current input table contains.
-                </p>
-                 """;
+            <p>
+             Groups the rows of a table by the unique values in the selected group columns.
+             A row is created for each unique set of values of the selected group column.
+             The remaining columns are aggregated based on the specified aggregation settings.
+             The output table contains one row for each unique value combination of the selected
+             group columns.
+            </p>
+            <p>
+            The columns to aggregate can be either defined by selecting the columns directly,
+            by name based on a search pattern or based on the data type. Input columns are handled in
+            this order and only considered once e.g. columns that are added directly in the
+            "Aggregation" section are ignored even if their name matches a search pattern in the
+            "Pattern Based Aggregation" section or their type matches a defined type in the
+            "Type Based Aggregation" section. The same holds for columns that are added based on a search pattern.
+            They are ignored even if they match a criterion that has been defined in the "Type Based Aggregation"
+            section.</p>
+            <p>
+             In the "Pattern Based Aggregation" section you can assign aggregation methods to columns based on a
+             search pattern. The pattern can be either a string with wildcards or a
+             <a href="http://www.java.sun.com/javase/6/docs/api/java/util/regex/Pattern.html#sum">regular expression
+             </a>.
+             Columns where the name matches the pattern but where the data type is not compatible with the
+             selected aggregation method are ignored. Only columns that have not been selected as group column or
+             that have not been selected as aggregation column in the "Aggregation" section are considered.
+            </p>
+            <p>
+             The "Type Based Aggregation" section allows to select an aggregation method for all columns of a
+             certain data type e.g. to compute the mean for all decimal columns (Number (Float)). Only columns that
+             have not been handled by the other sections e.g. group, column based and pattern based are considered.
+             The data type list to choose from contains basic types e.g String, Number (Float), etc. and all data
+             types the current input table contains.
+            </p>
+             """;
 
     static {
         if (!HAS_WEBUI_DIALOG) {

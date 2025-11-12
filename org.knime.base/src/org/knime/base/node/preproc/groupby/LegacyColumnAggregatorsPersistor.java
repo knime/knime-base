@@ -120,7 +120,8 @@ final class LegacyColumnAggregatorsPersistor implements NodeParametersPersistor<
     @Override
     public void save(final ColumnAggregatorElement[] elems, final NodeSettingsWO settings) {
         final var aggregators = Arrays.stream(elems) //
-                .filter(agg -> agg.m_column != null && agg.m_dataType != null) // TODO remove this workaround if we can disable the Add button
+                // TODO remove this workaround (next line) if we can disable the "Add method" button
+                .filter(agg -> agg.m_column != null && agg.m_dataType != null)
                 .map(LegacyColumnAggregatorsPersistor::mapToAggregator).toList();
         ColumnAggregator.saveColumnAggregators(settings, aggregators);
         final var operatorSettings = settings.addNodeSettings(CNFG_AGGREGATION_OPERATOR_SETTINGS);

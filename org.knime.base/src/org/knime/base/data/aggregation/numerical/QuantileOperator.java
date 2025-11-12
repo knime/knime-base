@@ -251,7 +251,7 @@ public class QuantileOperator extends StoreResizableDoubleArrayOperator {
      *
      * @author Lara Gorini
      */
-    private class QuantileSettingsPanel extends JTabbedPane {
+    private static final class QuantileSettingsPanel extends JTabbedPane {
 
         private static final long serialVersionUID = 1;
 
@@ -375,7 +375,7 @@ public class QuantileOperator extends StoreResizableDoubleArrayOperator {
          * @param val
          * @throws InvalidSettingsException
          */
-        private void checkBoundary(final double val) throws InvalidSettingsException {
+        private static void checkBoundary(final double val) throws InvalidSettingsException {
             if (val <= MIN_VALUE || val > MAX_VALUE) {
                 throw new InvalidSettingsException("Quantile must be greater than 0 and less or equal than 1");
             }

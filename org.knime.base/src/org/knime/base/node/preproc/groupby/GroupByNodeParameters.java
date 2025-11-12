@@ -194,7 +194,8 @@ final class GroupByNodeParameters implements NodeParameters {
             right mouse click and select the aggregation method to use.
             """)
     @ArrayWidget(addButtonText = "Add manual",
-        elementDefaultValueProvider = DefaultColumnAggregatorElementProvider.class) // TODO disable "add" button based on input (e.g. no table connected)
+         // TODO disable "add" button based on input (e.g. no table connected)
+        elementDefaultValueProvider = DefaultColumnAggregatorElementProvider.class)
     @Persistor(LegacyColumnAggregatorsPersistor.class) // No array persistor...
     @Migration(LegacyColumnAggregatorsMigration.class) // ...because then we could not deprecate keys here
     ColumnAggregatorElement[] m_columnAggregators = new ColumnAggregatorElement[0];

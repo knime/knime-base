@@ -628,9 +628,8 @@ public abstract class AbstractMedianOperator extends SortedListCellOperator {
 
             @Override
             public MedianMethod load(final NodeSettingsRO settings) throws InvalidSettingsException {
-                String id = settings.getString(MedianSettings.CFG_MEDIAN_METHOD,
-                    MedianSettings.DEFAULT_MEDIAN_METHOD);
-                return MedianMethod.byID(id);
+                return MedianMethod.byID(settings.getString(MedianSettings.CFG_MEDIAN_METHOD,
+                    MedianSettings.DEFAULT_MEDIAN_METHOD));
             }
 
             @Override
@@ -641,9 +640,7 @@ public abstract class AbstractMedianOperator extends SortedListCellOperator {
             @Override
             public String[][] getConfigPaths() {
                 return new String[][] { { MedianSettings.CFG_MEDIAN_METHOD } };
-            }}
-
-
+            }
+        }
     }
-
 }

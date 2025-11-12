@@ -94,6 +94,7 @@ enum MissingValueOption {
      * If inside an {@link ArrayPersistor}, you need to derive a {@link NoPersistenceElementFieldPersistor} to make the
      * boolean field "transient".
      */
+    @SuppressWarnings("restriction")
     abstract static class SupportsMissingValueOptions implements StateProvider<Boolean>, BooleanReference {
 
         private Supplier<String> m_methodSupplier;

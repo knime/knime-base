@@ -316,6 +316,7 @@ public abstract class ColumnSelectorOperator extends AggregationOperator {
     /**
      * Operator parameters for {@link ColumnSelectorOperator}. Use the {@link ColumnSelectorOperatorParametersModifier}
      * to set the UI of the column selection.
+     *
      * @since 5.9
      */
     @SuppressWarnings("restriction")
@@ -355,7 +356,7 @@ public abstract class ColumnSelectorOperator extends AggregationOperator {
          *
          * @author Paul Bärnreuther
          */
-        public static abstract class ColumnSelectorOperatorParametersModifier implements Modification.Modifier {
+        public abstract static class ColumnSelectorOperatorParametersModifier implements Modification.Modifier {
 
             @Override
             public void modify(final WidgetGroupModifier group) {

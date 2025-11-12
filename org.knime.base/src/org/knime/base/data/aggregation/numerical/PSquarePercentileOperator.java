@@ -195,7 +195,7 @@ public class PSquarePercentileOperator extends StorelessUnivariantStatisticOpera
      *
      * @author Lara Gorini
      */
-    private class PSquarePercentileSettingsPanel extends JPanel {
+    private static final class PSquarePercentileSettingsPanel extends JPanel {
 
         private static final long serialVersionUID = 1;
 
@@ -268,7 +268,7 @@ public class PSquarePercentileOperator extends StorelessUnivariantStatisticOpera
          * @param val
          * @throws InvalidSettingsException
          */
-        private void checkBoundary(final double val) throws InvalidSettingsException {
+        private static void checkBoundary(final double val) throws InvalidSettingsException {
             if (val <= MIN_VALUE || val >= MAX_VALUE) {
                 throw new InvalidSettingsException("Percentile must be greater than 0 and less than 100");
             }
