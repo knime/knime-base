@@ -190,7 +190,6 @@ public final class AggregationMethods implements AggregationFunctionProvider<Agg
      * operators are not shown to the user.*/
     private final Map<String, AggregationOperator> m_deprecatedOperators = new HashMap<>();
 
-
     private final AggregationMethod m_defNotNumericalMeth;
     private final AggregationMethod m_defNumericalMeth;
     private final AggregationMethod m_rowOrderMethod;
@@ -463,7 +462,6 @@ public final class AggregationMethods implements AggregationFunctionProvider<Agg
             LOGGER.error("Exception while registering aggregation operator extensions", e);
         }
     }
-
 
     private void addOperator(final AggregationOperator operator)
             throws DuplicateOperatorException {

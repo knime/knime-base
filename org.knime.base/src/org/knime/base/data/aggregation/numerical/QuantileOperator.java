@@ -92,6 +92,16 @@ public class QuantileOperator extends StoreResizableDoubleArrayOperator {
 
     private final QuantileFuntionSettings m_settings = new QuantileFuntionSettings();
 
+    private static final String DESC = "Calculates the quantile per group.";
+
+    private static final String DESC_DETAIL_QUANT = "Calculates the quantile per group by skipping missing cells.";
+
+    private static final String DESC_DETAIL_ESTIMATION = "There are several algorithms you can choose from (see "
+            + "<a href=\"" + ExternalLinks.QUANTILE_ESTIMATION + "\">here</a>)."
+            + "The default algorithm is 'LEGACY' with h=(N+1)p and Q<sub>p</sub> = x<sub>[h-1/2]</sub></p>";
+
+    private static final String DESC_DETAIL = DESC_DETAIL_QUANT + " " + DESC_DETAIL_ESTIMATION;
+
     /**
      * Constructor for class QuantileOperator.
      *
@@ -180,16 +190,8 @@ public class QuantileOperator extends StoreResizableDoubleArrayOperator {
      */
     @Override
     public String getDescription() {
-        return "Calculates the quantile per group.";
+        return DESC;
     }
-
-    private static final String DESC_DETAIL_QUANT = "Calculates the quantile per group by skipping missing cells.";
-
-    private static final String DESC_DETAIL_ESTIMATION = "There are several algorithms you can choose from (see "
-            + "<a href=\"" + ExternalLinks.QUANTILE_ESTIMATION + "\">here</a>)."
-            + "The default algorithm is 'LEGACY' with h=(N+1)p and Q<sub>p</sub> = x<sub>[h-1/2]</sub></p>";
-
-    private static final String DESC_DETAIL = DESC_DETAIL_QUANT + " " + DESC_DETAIL_ESTIMATION;
 
     @Override
     public String getDetailedDescription() {
@@ -298,9 +300,6 @@ public class QuantileOperator extends StoreResizableDoubleArrayOperator {
         }
     }
 
-    /**
-     * @since 5.9
-     */
     @Override
     public Class<? extends AggregationOperatorParameters> getParametersClass() {
         return QuantileOperatorParameters.class;
@@ -321,11 +320,6 @@ public class QuantileOperator extends StoreResizableDoubleArrayOperator {
             @Override
             protected double getMax() {
                 return QuantileFuntionSettings.MAX_VALUE;
-            }
-
-            @Override
-            public boolean isExclusive() {
-                return true;
             }
 
         }

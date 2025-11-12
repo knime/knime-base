@@ -589,7 +589,7 @@ public abstract class AbstractMedianOperator extends SortedListCellOperator {
     }
 
     private enum MedianMethod {
-            // yes, the labels are the ids
+            // yes, the labels are the ids (needed for backwards-compatibility with persisted settings)
             @Label(value = EvenListMedianMethodDescription.LOWER_MEDIAN_LABEL)
             LOWER(EvenListMedianMethodDescription.LOWER_MEDIAN_LABEL),
             @Label(value = EvenListMedianMethodDescription.MEAN_MEDIAN_LABEL)

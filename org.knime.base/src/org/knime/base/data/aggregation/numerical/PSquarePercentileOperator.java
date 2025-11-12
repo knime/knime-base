@@ -132,7 +132,8 @@ public class PSquarePercentileOperator extends StorelessUnivariantStatisticOpera
      */
     @Override
     public String getDetailedDescription() {
-        return "Calculates the pth percentile per group using the P^2 algorithm. For details see <a href=\"http://www.cse.wustl.edu/~jain/papers/psqr.htm\">here</a>.";
+        return "Calculates the pth percentile per group using the P^2 algorithm. "
+            + "For details see <a href=\"" + ExternalLinks.PSQUARE_PERCENTILE + "\">here</a>.";
     }
 
     @Override
@@ -318,9 +319,6 @@ public class PSquarePercentileOperator extends StorelessUnivariantStatisticOpera
 
     }
 
-    /**
-     * @since 5.9
-     */
     @Override
     public Class<? extends AggregationOperatorParameters> getParametersClass() {
         return PSquarePercentileOperatorParameters.class;
@@ -331,7 +329,7 @@ public class PSquarePercentileOperator extends StorelessUnivariantStatisticOpera
      */
     static final class PSquarePercentileOperatorParameters implements AggregationOperatorParameters {
 
-        @Widget(title = "Percentile", description = "The percentile to compute (0-100)")
+        @Widget(title = "Percentile", description = "The percentile to compute (in [0, 100])")
         @NumberInputWidget(minValidation = NumberInputWidgetValidation.MinValidation.IsNonNegativeValidation.class,
             maxValidation = AtMost100.class)
         @Persist(configKey = PSquarePercentileFuntionSettings.CFG_CUSTOM_PERCENTILE)
@@ -341,7 +339,7 @@ public class PSquarePercentileOperator extends StorelessUnivariantStatisticOpera
 
             @Override
             protected double getMax() {
-                return 100.0;
+                return PSquarePercentileFuntionSettings.MAX_VALUE;
             }
 
         }

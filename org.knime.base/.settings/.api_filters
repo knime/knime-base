@@ -1,18 +1,17 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <component id="org.knime.base" version="2">
     <resource path="src/org/knime/base/data/aggregation/AggregationOperatorParameters.java" type="org.knime.base.data.aggregation.AggregationOperatorParameters">
-        <filter comment="webui" id="576720909">
+        <filter comment="We should be able to implement our own preview API" id="576720909">
             <message_arguments>
                 <message_argument value="DynamicNodeParameters"/>
                 <message_argument value="AggregationOperatorParameters"/>
             </message_arguments>
         </filter>
     </resource>
-    <resource path="src/org/knime/base/node/preproc/groupby/GroupByNodeFactory.java" type="org.knime.base.node.preproc.groupby.GroupByNodeFactory">
-        <filter comment="WebUI" id="576725006">
+    <resource path="src/org/knime/base/node/preproc/pmml/numbertostring3/AbstractNumberToStringNodeModel.java" type="org.knime.base.node.preproc.pmml.numbertostring3.AbstractNumberToStringNodeModel$ConverterFactory">
+        <filter comment="Ignoring &quot;reduced visibility&quot; -- there were no changes that I could see -- the class is still public and the package is exported" id="337686583">
             <message_arguments>
-                <message_argument value="NodeDialogFactory"/>
-                <message_argument value="GroupByNodeFactory"/>
+                <message_argument value="org.knime.base.node.preproc.pmml.numbertostring3.AbstractNumberToStringNodeModel.ConverterFactory"/>
             </message_arguments>
         </filter>
     </resource>

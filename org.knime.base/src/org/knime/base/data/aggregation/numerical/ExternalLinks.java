@@ -62,4 +62,12 @@ final class ExternalLinks {
     static final String QUANTILE_ESTIMATION =
         "https://en.wikipedia.org/wiki/Quantile#Estimating_quantiles_from_a_sample";
 
+    static final String PEARSON = "http://en.wikipedia.org/wiki/Pearson_product-moment_correlation_coefficient";
+
+    static final String SPEARMAN = "http://en.wikipedia.org/wiki/Spearman%27s_rank_correlation_coefficient";
+
+    static final String KENDALL = "http://en.wikipedia.org/wiki/Kendall_tau_rank_correlation_coefficient";
+
+    static final String PSQUARE_PERCENTILE = "http://www.cse.wustl.edu/~jain/papers/psqr.htm";
+
 }

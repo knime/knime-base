@@ -127,11 +127,11 @@ public class CorrelationOperator extends ColumnSelectorOperator {
      */
     @Override
     public String getDetailedDescription() {
-        return "Calculates the correlation coefficient between two columns per group; thus, you have to select a second column. "
-            + "Additionally, you can choose between different correlation coefficient definitions: see "
-            + "<a href=\"http://en.wikipedia.org/wiki/Pearson_product-moment_correlation_coefficient\">Pearson</a>, "
-            + "<a href=\"http://en.wikipedia.org/wiki/Spearman%27s_rank_correlation_coefficient\">Spearman</a> and "
-            + "<a href=\"http://en.wikipedia.org/wiki/Kendall_tau_rank_correlation_coefficient\">Kendall</a>. "
+        return "Calculates the correlation coefficient between two columns per group; thus, you have to select a second"
+            + " column. Additionally, you can choose between different correlation coefficient definitions: see "
+            + "<a href=\""+ ExternalLinks.PEARSON +"\">Pearson</a>, "
+            + "<a href=\""+ ExternalLinks.SPEARMAN +"\">Spearman</a> and "
+            + "<a href=\""+ ExternalLinks.KENDALL +"\">Kendall</a>. "
             + "Pearson is the default one.";
     }
 
@@ -299,40 +299,22 @@ public class CorrelationOperator extends ColumnSelectorOperator {
     }
 
     interface Method {
-        public double compute(double[] x, double[] y);
+        double compute(double[] x, double[] y);
     }
 
     enum CorrelationMethods implements ButtonGroupEnumInterface {
 
-            @Label(value = "Pearson",
-                description = "Computes the <a href=\"http://en.wikipedia.org/wiki/Pearson_product-moment_correlation_coefficient\">Pearson</a> correlation coefficient.")
-            PEARSON("Pearson", "Computes the Pearson correlation coefficient.", new Method() {
-                @Override
-                public double compute(final double[] x, final double[] y) {
-                    PearsonsCorrelation corr = new PearsonsCorrelation();
-                    return corr.correlation(x, y);
-                }
-            }),
+        @Label(value = "Pearson",
+            description = "Computes the <a href=\""+ ExternalLinks.PEARSON +"\">Pearson</a> correlation coefficient.")
+        PEARSON("Pearson", "Computes the Pearson correlation coefficient.", new PearsonsCorrelation()::correlation),
 
-            @Label(value = "Spearman",
-                description = "Computes the <a href=\"http://en.wikipedia.org/wiki/Spearman%27s_rank_correlation_coefficient\">Spearman</a> correlation coefficient.")
-            SPEARMAN("Spearman", "Computes the Spearman correlation coefficient.", new Method() {
-                @Override
-                public double compute(final double[] x, final double[] y) {
-                    SpearmansCorrelation corr = new SpearmansCorrelation();
-                    return corr.correlation(x, y);
-                }
-            }),
+        @Label(value = "Spearman",
+            description = "Computes the <a href=\""+ ExternalLinks.SPEARMAN +"\">Spearman</a> correlation coefficient.")
+        SPEARMAN("Spearman", "Computes the Spearman correlation coefficient.", new SpearmansCorrelation()::correlation),
 
-            @Label(value = "Kendall",
-                description = "Computes the <a href=\"http://en.wikipedia.org/wiki/Kendall_tau_rank_correlation_coefficient\">Kendall</a> correlation coefficient.")
-            KENDALL("Kendall", "Computes the Kendall correlation coefficient.", new Method() {
-                @Override
-                public double compute(final double[] x, final double[] y) {
-                    KendallsCorrelation corr = new KendallsCorrelation();
-                    return corr.correlation(x, y);
-                }
-            });
+        @Label(value = "Kendall",
+            description = "Computes the <a href=\""+ ExternalLinks.KENDALL +"\">Kendall</a> correlation coefficient.")
+        KENDALL("Kendall", "Computes the Kendall correlation coefficient.", new KendallsCorrelation()::correlation);
 
         private String m_label;
 
@@ -464,9 +446,6 @@ public class CorrelationOperator extends ColumnSelectorOperator {
         }
     }
 
-    /**
-     * @since 5.9
-     */
     @Override
     public Class<? extends AggregationOperatorParameters> getParametersClass() {
         return CorrelationOperatorParameters.class;

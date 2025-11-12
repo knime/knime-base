@@ -51,7 +51,10 @@ package org.knime.base.data.aggregation;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 
 /**
- * Interface to define optional parameters for aggregation operators.
+ * Interface to define optional parameters for aggregation operators. Implement this interface, then overwrite
+ * your operator's {@link AggregationOperator#getParametersClass()} method to return your class.
+ * If your operator has optional parameters, but does not define a class of this type, a fallback dialog is
+ * generated to display the optional operator parameters.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  * @since 5.9

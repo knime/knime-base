@@ -64,6 +64,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelection;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.core.node.util.CheckUtils;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification.WidgetGroupModifier;
 import org.knime.node.parameters.NodeParametersInput;
@@ -306,12 +307,8 @@ public abstract class ColumnSelectorOperator extends AggregationOperator {
         }
 
         private void configure(final DataTableSpec spec) throws InvalidSettingsException {
-
-            if (spec.findColumnIndex(m_columnName.getStringValue()) < 0) {
-                throw new InvalidSettingsException(
-                    "Selected column " + m_columnName.getStringValue() + " is not contained in Data Table");
-            }
-
+            CheckUtils.checkSetting(spec.findColumnIndex(m_columnName.getStringValue()) >= 0,
+                "Selected column %s is not contained in Data Table", m_columnName.getStringValue());
         }
 
     }

@@ -113,7 +113,8 @@ public class CovarianceOperator extends ColumnSelectorOperator {
      */
     @Override
     public String getDescription() {
-        return "Computes the covariance between two columns per group. Attention: calculation is bias-corrected and the number of data in both groups must match. If "
+        return "Computes the covariance between two columns per group. Attention: calculation is bias-corrected and the"
+            + " number of data in both groups must match. If "
             + "the latter does not hold, a missing cell will be returned.";
     }
 
@@ -188,9 +189,6 @@ public class CovarianceOperator extends ColumnSelectorOperator {
         return false;
     }
 
-    /**
-     * @since 5.9
-     */
     @Override
     public Class<? extends AggregationOperatorParameters> getParametersClass() {
         return CovarianceOperatorParameters.class;
@@ -199,6 +197,7 @@ public class CovarianceOperator extends ColumnSelectorOperator {
     /**
      * Parameters for the Covariance operator.
      */
+    @SuppressWarnings("restriction") // webui
     @Modification(CovarianceOperatorParametersModifier.class)
     static final class CovarianceOperatorParameters extends ColumnSelectorOperatorParameters {
 
@@ -211,6 +210,8 @@ public class CovarianceOperator extends ColumnSelectorOperator {
 
         /**
          * Called by the framework.
+         *
+         * @param parametersInput node parameters input
          */
         public CovarianceOperatorParameters(final NodeParametersInput parametersInput) {
             super(parametersInput);
