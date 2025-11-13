@@ -125,8 +125,8 @@ import org.knime.node.parameters.widget.number.NumberInputWidget;
 import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsNonNegativeValidation;
 import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsPositiveIntegerValidation;
 import org.knime.node.parameters.widget.text.TextInputWidget;
-import org.knime.node.parameters.widget.text.TextInputWidgetValidation.PatternValidation;
 import org.knime.node.parameters.widget.text.TextInputWidgetValidation.MaxLengthValidation.HasAtMaxOneCharValidation;
+import org.knime.node.parameters.widget.text.TextInputWidgetValidation.PatternValidation;
 import org.knime.node.parameters.widget.text.TextInputWidgetValidation.PatternValidation.IsNotEmptyValidation;
 import org.knime.node.parameters.widget.text.TextInputWidgetValidation.PatternValidation.IsSingleCharacterValidation;
 
@@ -454,7 +454,7 @@ public final class CSVTableReaderNodeSettings implements NodeParameters {
         static class MaxDataRowsScannedRef extends ReferenceStateProvider<Long> {
         }
 
-        @Widget(title = "", description = "")
+        @Widget(title = "Max data rows scanned", description = "") // Not shown in the dialog but required for the Node Description
         @WidgetInternal(hideControlHeader = true)
         @ValueReference(MaxDataRowsScannedRef.class)
         @NumberInputWidget(minValidation = IsNonNegativeValidation.class)

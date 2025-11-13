@@ -67,6 +67,8 @@
                 }
               }
             },
+            "title" : "Constant columns",
+            "description" : "An array defining the constant columns to add to the data table.",
             "default" : [ {
               "replaceOrAppend" : "APPEND",
               "columnNameToAppend" : "New column",

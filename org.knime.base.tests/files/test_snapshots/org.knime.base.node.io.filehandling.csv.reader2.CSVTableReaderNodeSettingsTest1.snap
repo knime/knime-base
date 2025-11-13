@@ -173,6 +173,7 @@
               "maxDataRowsScanned" : {
                 "type" : "integer",
                 "format" : "int64",
+                "title" : "Max data rows scanned",
                 "default" : 10000
               },
               "maxNumChunksPerFile" : {

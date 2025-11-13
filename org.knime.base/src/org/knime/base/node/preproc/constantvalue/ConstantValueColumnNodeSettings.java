@@ -96,7 +96,8 @@ import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils;
 @SuppressWarnings("restriction")
 final class ConstantValueColumnNodeSettings implements NodeParameters {
 
-    @Widget(title = "", description = "")
+    @Widget(title = "Constant columns",
+        description = "An array defining the constant columns to add to the data table.")
     @ArrayWidget( //
         addButtonText = "Add column", //
         elementDefaultValueProvider = NewColumnSettings.InitialNewColumnSettingsValueProvider.class, //
