@@ -108,7 +108,7 @@ public class CollectionCreate2NodeFactory
 
     private static final String FULL_DESCRIPTION = """
             This node collects multiple columns in a separate new column, whose type is a "collection type". The
-                cells in the new column are typed collections of cells; that is, the content can be safely be split into
+                cells in the new column are typed collections of cells; that is, the content can be safely split into
                 the original column content. The reverse operation is available in the "Split Collection Column" node.
             """;
 
