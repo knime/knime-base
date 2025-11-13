@@ -44,7 +44,7 @@
  * ------------------------------------------------------------------------
  */
 
-package org.knime.base.node.preproc.groupby;
+package org.knime.base.node.preproc.groupby.common;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -68,7 +68,7 @@ import org.knime.node.parameters.persistence.NodeParametersPersistor;
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-final class LegacyColumnAggregatorsPersistor implements NodeParametersPersistor<ColumnAggregatorElement[]> {
+public final class LegacyColumnAggregatorsPersistor implements NodeParametersPersistor<ColumnAggregatorElement[]> {
 
     // The implementation follows ColumnAggregator persistence closely
 
@@ -120,9 +120,9 @@ final class LegacyColumnAggregatorsPersistor implements NodeParametersPersistor<
     @Override
     public void save(final ColumnAggregatorElement[] elems, final NodeSettingsWO settings) {
         final var aggregators = Arrays.stream(elems) //
-                // TODO remove this workaround (next line) if we can disable the "Add method" button
-                .filter(agg -> agg.m_column != null && agg.m_dataType != null)
-                .map(LegacyColumnAggregatorsPersistor::mapToAggregator).toList();
+            // TODO remove this workaround (next line) if we can disable the "Add method" button
+            .filter(agg -> agg.m_column != null && agg.m_dataType != null)
+            .map(LegacyColumnAggregatorsPersistor::mapToAggregator).toList();
         ColumnAggregator.saveColumnAggregators(settings, aggregators);
         final var operatorSettings = settings.addNodeSettings(CNFG_AGGREGATION_OPERATOR_SETTINGS);
         // we need to recreate the key for each operator's optional settings, because the fallback extraction
@@ -133,7 +133,7 @@ final class LegacyColumnAggregatorsPersistor implements NodeParametersPersistor<
                 continue;
             }
             final var settingsToSaveInto =
-                    new NodeSettings(createSettingsKey(idMap, elem.m_aggregationMethod, elem.m_column));
+                new NodeSettings(createSettingsKey(idMap, elem.m_aggregationMethod, elem.m_column));
             if (elem.m_parameters instanceof LegacyAggregationOperatorParameters legacyParams) {
                 final var extractedSettings = legacyParams.getNodeSettings();
                 extractedSettings.copyTo(settingsToSaveInto);
@@ -153,7 +153,6 @@ final class LegacyColumnAggregatorsPersistor implements NodeParametersPersistor<
         return new ColumnAggregator(dcs, method, includeMissing);
     }
 
-
     private static String createSettingsKey(final Map<String, MutableInteger> idMap, final String operatorID,
         final String originalColName) {
         // see ColumnAggregator#createSettingsKey
@@ -166,6 +165,7 @@ final class LegacyColumnAggregatorsPersistor implements NodeParametersPersistor<
         count.inc();
         return id + "_" + count.intValue();
     }
+
     @Override
     public String[][] getConfigPaths() {
         return new String[][]{ //

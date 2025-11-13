@@ -92,6 +92,7 @@ import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.property.hilite.HiLiteHandler;
 import org.knime.core.util.Pair;
+import org.knime.node.parameters.widget.choices.Label;
 
 /**
  * The {@link NodeModel} implementation of the pivot node which uses the {@link GroupByNodeModel} class implementations
@@ -101,23 +102,44 @@ import org.knime.core.util.Pair;
  */
 public class Pivot2NodeModel extends GroupByNodeModel {
 
+    static final String CFG_MISSING_VALUES = "missing_values";
+
+    static final String CFG_TOTAL_AGGREGATION = "total_aggregation";
+
+    static final String CFG_IGNORE_DOMAIN = "ignore_domain";
+
     /**
      * Enum providing the different options to name the pivot columns.
      *
      * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
      * @since 3.7
      */
+
+
+
     public enum ColNameOption implements BiFunction<String, String, String> {
 
             /** The pivot name + aggregation name option. */
+            @Label(value = "Pivot name" + PIVOT_AGGREGATION_DELIMITER + "Aggregation name",
+                description = "Uses the pivot name first and the aggregation name second joint by a '"
+                    + PIVOT_AGGREGATION_DELIMITER
+                    + "' character. Keeps the original column names. Note that you can use "
+                    + "all aggregation columns only once with this column naming option to prevent duplicate column "
+                    + "names.")
             PIV_FIRST_AGG_LAST("Pivot name" + PIVOT_AGGREGATION_DELIMITER + "Aggregation name",
                 (t, u) -> t + PIVOT_AGGREGATION_DELIMITER + u),
 
             /** The aggregation name + pivot name option. */
+            @Label(value = "Aggregation name" + PIVOT_AGGREGATION_DELIMITER + "Pivot name",
+                description = "Uses the aggregation name first and the pivot name second joint by a '"
+                    + PIVOT_AGGREGATION_DELIMITER + "' character.")
             AGG_FIRST_PIV_LAST("Aggregation name" + PIVOT_AGGREGATION_DELIMITER + "Pivot name",
                 (t, u) -> u + PIVOT_AGGREGATION_DELIMITER + t),
 
             /** The pivot name only option. */
+            @Label(value = "Pivot name",
+                description = "Uses solely the pivot name. Note that this option solely supports the selection of a "
+                    + "single aggregation method to ensure uniqueness of the column names.")
             PIV_ONLY("Pivot name", (t, u) -> t);
 
         // currently not supported. The problem is that the columns created by
@@ -255,10 +277,10 @@ public class Pivot2NodeModel extends GroupByNodeModel {
     }
 
     /** The column name options config key. */
-    private static final String CFG_COL_NAME_OPTION = "column_name_option";
+    static final String CFG_COL_NAME_OPTION = "column_name_option";
 
     /** The lexicographical sort config key. */
-    private static final String CFG_LEXICOGRAPHICAL_SORT = "sort_lexicographical";
+    static final String CFG_LEXICOGRAPHICAL_SORT = "sort_lexicographical";
 
     /** Configuration key of the selected group by columns. */
     protected static final String CFG_PIVOT_COLUMNS = "pivotColumns";
@@ -914,16 +936,16 @@ public class Pivot2NodeModel extends GroupByNodeModel {
 
     /** @return settings model boolean for ignoring missing values */
     static final SettingsModelBoolean createSettingsMissingValues() {
-        return new SettingsModelBoolean("missing_values", true);
+        return new SettingsModelBoolean(CFG_MISSING_VALUES, true);
     }
 
     /** @return settings model boolean for total aggregation */
     static final SettingsModelBoolean createSettingsTotal() {
-        return new SettingsModelBoolean("total_aggregation", false);
+        return new SettingsModelBoolean(CFG_TOTAL_AGGREGATION, false);
     }
 
     /** @return settings model boolean for ignoring domain */
     static final SettingsModelBoolean createSettingsIgnoreDomain() {
-        return new SettingsModelBoolean("ignore_domain", true);
+        return new SettingsModelBoolean(CFG_IGNORE_DOMAIN, true);
     }
 }

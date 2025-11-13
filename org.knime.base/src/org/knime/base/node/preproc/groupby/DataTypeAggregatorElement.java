@@ -56,9 +56,14 @@ import java.util.stream.Stream;
 
 import org.knime.base.data.aggregation.AggregationMethods;
 import org.knime.base.data.aggregation.AggregationOperatorParameters;
-import org.knime.base.node.preproc.groupby.AggregationOperatorParametersProvider.AggregationMethodRef;
 import org.knime.base.node.preproc.groupby.LegacyDataTypeAggregatorsArrayPersistor.DataTypeAggregatorElementDTO;
 import org.knime.base.node.preproc.groupby.LegacyDataTypeAggregatorsArrayPersistor.IndexedElement;
+import org.knime.base.node.preproc.groupby.common.AggregationOperatorParametersProvider;
+import org.knime.base.node.preproc.groupby.common.AggregationOperatorParametersProvider.AggregationMethodRef;
+import org.knime.base.node.preproc.groupby.common.DefaultAggregationMethodProvider;
+import org.knime.base.node.preproc.groupby.common.HasOperatorParameters;
+import org.knime.base.node.preproc.groupby.common.MissingValueOption;
+import org.knime.base.node.preproc.groupby.common.NoPersistenceElementFieldPersistor;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataType;
@@ -121,14 +126,14 @@ final class DataTypeAggregatorElement implements NodeParameters {
     static final class NoPersistence
         extends NoPersistenceElementFieldPersistor<Boolean, IndexedElement, DataTypeAggregatorElementDTO> {
         @Override
-        Boolean getLoadDefault() {
+        protected Boolean getLoadDefault() {
             return false;
         }
     }
 
     static final class SupportsMissingValueOptions extends MissingValueOption.SupportsMissingValueOptions {
         @Override
-        Class<? extends ParameterReference<String>> getMethodReference() {
+        protected Class<? extends ParameterReference<String>> getMethodReference() {
             return DataTypeAggregationRef.class;
         }
     }
@@ -212,12 +217,12 @@ final class DataTypeAggregatorElement implements NodeParameters {
 
     static final class DefaultMethodProvider extends DefaultAggregationMethodProvider {
         @Override
-        Class<? extends ParameterReference<DataType>> getTypeProvider() {
+        protected Class<? extends ParameterReference<DataType>> getTypeProvider() {
             return DataTypeSelectedRef.class;
         }
 
         @Override
-        Class<? extends ParameterReference<String>> getMethodSelfProvider() {
+        protected Class<? extends ParameterReference<String>> getMethodSelfProvider() {
             return DataTypeAggregationRef.class;
         }
     }
@@ -225,7 +230,7 @@ final class DataTypeAggregatorElement implements NodeParameters {
     static final class HasDataTypeOperatorParameters extends HasOperatorParameters {
 
         @Override
-        Class<? extends AggregationMethodRef> getAggregationMethodRefClass() {
+        protected Class<? extends AggregationMethodRef> getAggregationMethodRefClass() {
             return DataTypeAggregationRef.class;
         }
 
@@ -233,12 +238,12 @@ final class DataTypeAggregatorElement implements NodeParameters {
 
     static final class DataTypeAggregationOperatorParametersProvider extends AggregationOperatorParametersProvider {
         @Override
-        Class<? extends ParameterReference<AggregationOperatorParameters>> getParameterRefClass() {
+        protected Class<? extends ParameterReference<AggregationOperatorParameters>> getParameterRefClass() {
             return DataTypeOperatorParametersRef.class;
         }
 
         @Override
-        Class<? extends AggregationMethodRef> getMethodParameterRefClass() {
+        protected Class<? extends AggregationMethodRef> getMethodParameterRefClass() {
             return DataTypeAggregationRef.class;
         }
     }

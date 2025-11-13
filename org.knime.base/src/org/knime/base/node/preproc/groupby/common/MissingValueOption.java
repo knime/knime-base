@@ -46,41 +46,77 @@
  * History
  *   20 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.groupby;
+package org.knime.base.node.preproc.groupby.common;
 
 import java.util.function.Supplier;
 
 import org.knime.base.data.aggregation.AggregationMethods;
-import org.knime.base.node.preproc.groupby.AggregationOperatorParametersProvider.AggregationMethodRef;
-import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.ArrayPersistor;
 import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.StateProvider;
+import org.knime.node.parameters.updates.util.BooleanReference;
+import org.knime.node.parameters.widget.choices.Label;
 
 /**
- * Indicator that the selected aggregation method has optional settings.
+ * Options for missing value handling in aggregation operators.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-@SuppressWarnings("restriction")
-abstract class HasOperatorParameters implements StateProvider<Boolean> {
+public enum MissingValueOption {
+        @Label("Exclude")
+        EXCLUDE, //
+        @Label("Include")
+        INCLUDE;
 
-    private Supplier<String> m_agg;
+    /**
+     * Abstract class for effect provider to show the missing value option only if the selected aggregation method
+     * supports it. Annotate the {@link MissingValueOption} parameter with your derivation:
+     *
+     * <pre>
+     * <code>
+     *   &#64;Effect(type = EffectType.SHOW, predicate = MySupportsMissingValueOptions.class)
+     * </code>
+     * </pre>
+     *
+     * Then introduce a transient boolean parameter, annotated with your derivation as well:
+     *
+     * <pre>
+     * <code>
+     * &#64;ValueProvider(MySupportsMissingValueOptions.class)
+     * &#64;ValueReference(MySupportsMissingValueOptions.class)
+     * &#64;PersistArrayElement(MyNoPersistenceElementFieldPersistor.class) // if inside ArrayPersistor
+     * // helper flag to show/hide missing value option
+     * boolean m_supportsMissingValueOption;
+     * </code>
+     * </pre>
+     *
+     * If inside an {@link ArrayPersistor}, you need to derive a {@link NoPersistenceElementFieldPersistor} to make the
+     * boolean field "transient".
+     */
+    @SuppressWarnings({"restriction", "javadoc"})
+    public abstract static class SupportsMissingValueOptions implements StateProvider<Boolean>, BooleanReference {
 
-    abstract Class<? extends AggregationMethodRef> getAggregationMethodRefClass();
+        private Supplier<String> m_methodSupplier;
 
-    @Override
-    public final void init(final StateProviderInitializer init) {
-        init.computeBeforeOpenDialog();
-        m_agg = init.computeFromValueSupplier(getAggregationMethodRefClass());
-    }
+        protected abstract Class<? extends ParameterReference<String>> getMethodReference();
 
-    @Override
-    public final Boolean computeState(final NodeParametersInput in) throws StateComputationFailureException {
-        final var id = m_agg.get();
-        if (id == null) {
-            throw new StateComputationFailureException();
+        @Override
+        public final void init(final StateProviderInitializer initializer) {
+            initializer.computeAfterOpenDialog();
+            m_methodSupplier = initializer.computeFromValueSupplier(getMethodReference());
         }
-        return AggregationMethods.getMethod4Id(id).hasOptionalSettings();
+
+        @Override
+        public final Boolean computeState(final NodeParametersInput ignored) {
+            final var id = m_methodSupplier.get();
+            if (id == null) {
+                return false;
+            }
+            final var method = AggregationMethods.getMethod4Id(id);
+            return method.supportsMissingValueOption();
+        }
+
     }
 
 }

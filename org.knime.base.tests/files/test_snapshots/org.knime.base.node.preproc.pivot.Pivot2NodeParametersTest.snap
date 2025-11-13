@@ -1,0 +1,769 @@
+{
+  "data" : {
+    "model" : {
+      "groupByColumns" : {
+        "keepAllColumnsSelected" : false,
+        "twinList" : {
+          "inclList" : [ ],
+          "exclList" : [ ]
+        }
+      },
+      "pivotColumns" : {
+        "keepAllColumnsSelected" : false,
+        "twinList" : {
+          "inclList" : [ ],
+          "exclList" : [ ]
+        }
+      },
+      "ignoreMissingValues" : true,
+      "appendOverallTotals" : false,
+      "ignoreDomain" : true,
+      "columnAggregators" : [ ],
+      "colNameOption" : "PIV_FIRST_AGG_LAST",
+      "groupByAdditionalParameters" : {
+        "columnNamePolicy" : "AGGREGATION_METHOD_COLUMN_NAME",
+        "maxUniqueValues" : 100000,
+        "valueDelimiter" : {
+          "delimiter" : ", ",
+          "version" : 1
+        },
+        "enableHiliting" : false,
+        "processInMemory" : false,
+        "retainOrder" : false
+      },
+      "sortLexicographically" : false
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "appendOverallTotals" : {
+            "type" : "boolean",
+            "title" : "Append overall totals",
+            "description" : "Appends the overall pivot totals with each aggregation performed together on all selected pivot columns.",
+            "default" : false
+          },
+          "colNameOption" : {
+            "oneOf" : [ {
+              "const" : "PIV_FIRST_AGG_LAST",
+              "title" : "Pivot name+Aggregation name"
+            }, {
+              "const" : "AGG_FIRST_PIV_LAST",
+              "title" : "Aggregation name+Pivot name"
+            }, {
+              "const" : "PIV_ONLY",
+              "title" : "Pivot name"
+            } ],
+            "title" : "Column name",
+            "description" : "The name of the resulting pivot column(s) depends on the selected naming schema.\n\n<ul>\n<li><b>Pivot name+Aggregation name</b>: Uses the pivot name first and the aggregation name second joint by a '+' character. Keeps the original column names. Note that you can use all aggregation columns only once with this column naming option to prevent duplicate column names.</li>\n<li><b>Aggregation name+Pivot name</b>: Uses the aggregation name first and the pivot name second joint by a '+' character.</li>\n<li><b>Pivot name</b>: Uses solely the pivot name. Note that this option solely supports the selection of a single aggregation method to ensure uniqueness of the column names.</li>\n</ul>",
+            "default" : "PIV_FIRST_AGG_LAST"
+          },
+          "columnAggregators" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "aggregationMethod" : {
+                  "type" : "string",
+                  "title" : "Aggregation",
+                  "description" : "The aggregation method to use"
+                },
+                "column" : {
+                  "type" : "string",
+                  "title" : "Column",
+                  "description" : "The column to aggregate",
+                  "default" : "Universe_0_0"
+                },
+                "dataType" : {
+                  "type" : "string"
+                },
+                "includeMissing" : {
+                  "oneOf" : [ {
+                    "const" : "EXCLUDE",
+                    "title" : "Exclude"
+                  }, {
+                    "const" : "INCLUDE",
+                    "title" : "Include"
+                  } ],
+                  "title" : "Missing values",
+                  "description" : "Missing values are considered during aggregation if the missing\noption set to \"Included\".\nSome aggregation methods do not support the changing of the missing\noption such as \"Mean\".\n",
+                  "default" : "EXCLUDE"
+                },
+                "parameters" : {
+                  "type" : "object"
+                },
+                "supportsMissingValueOption" : {
+                  "type" : "boolean",
+                  "default" : false
+                }
+              }
+            },
+            "title" : "Manual Aggregations",
+            "description" : "Select one or more column(s) for aggregation from the available\ncolumns list. Change the aggregation method in the Aggregation\ncolumn of the table. You can add the same column multiple\ntimes.\n",
+            "default" : [ ]
+          },
+          "groupByAdditionalParameters" : {
+            "type" : "object",
+            "properties" : {
+              "columnNamePolicy" : {
+                "oneOf" : [ {
+                  "const" : "KEEP_ORIGINAL_NAME",
+                  "title" : "Keep original name(s)"
+                }, {
+                  "const" : "AGGREGATION_METHOD_COLUMN_NAME",
+                  "title" : "Aggregation method (column name)"
+                }, {
+                  "const" : "COLUMN_NAME_AGGREGATION_METHOD",
+                  "title" : "Column name (aggregation method)"
+                } ],
+                "title" : "Aggregation name",
+                "description" : "The name of the resulting aggregation column(s) depends on the\nselected naming schema.\n<ul>\n    <li>Keep original name(s):\n    Keeps the original column names.\n    Note that you can use all aggregation columns only once with\n    this column naming option to prevent duplicate column names.\n    </li>\n    <li>Aggregation method (column name):\n    Uses the aggregation method first and appends the column name\n    in brackets\n    </li>\n    <li>Column name (aggregation method):\n    Uses the column name first and appends the aggregation method\n    in brackets\n    </li>\n</ul>\nAll aggregation methods get a * appended if the missing value option\nis not ticked in the aggregation settings in order to distinguish\nbetween columns that considered missing values in the aggregation\nprocess and columns that do not.\n",
+                "default" : "AGGREGATION_METHOD_COLUMN_NAME"
+              },
+              "enableHiliting" : {
+                "type" : "boolean",
+                "title" : "Enable hiliting",
+                "description" : "If enabled, the hiliting of a group row will hilite all rows of this\ngroup in other views. Depending on the number of rows, enabling this\nfeature might consume a lot of memory.\n",
+                "default" : false
+              },
+              "maxUniqueValues" : {
+                "type" : "integer",
+                "format" : "int32",
+                "title" : "Maximum unique values per group",
+                "description" : "Defines the maximum number of unique values per group to avoid\nproblems with memory overloading. All groups with more unique\nvalues are skipped during the calculation and a missing value is set\nin the corresponding column, and a warning is displayed.\n",
+                "default" : 100000
+              },
+              "processInMemory" : {
+                "type" : "boolean",
+                "title" : "Process in memory",
+                "description" : "Process the table in the memory. Requires more memory but is faster\nsince the table needs not to be sorted prior aggregation.\nThe memory consumption depends on the number of unique groups and\nthe chosen aggregation method. The row order of the input table is\nautomatically retained.\n",
+                "default" : false
+              },
+              "retainOrder" : {
+                "type" : "boolean",
+                "title" : "Retain row order",
+                "description" : "Retains the original row order of the input table.\nCould result in longer execution time.\nThe row order is automatically retained if the process in memory\noption is selected.\n",
+                "default" : false
+              },
+              "valueDelimiter" : {
+                "type" : "object",
+                "properties" : {
+                  "delimiter" : {
+                    "type" : "string",
+                    "title" : "Value delimiter",
+                    "description" : "The value delimiter used by aggregation methods such as concatenate."
+                  },
+                  "version" : {
+                    "type" : "integer",
+                    "format" : "int32",
+                    "default" : 1
+                  }
+                },
+                "default" : {
+                  "delimiter" : ", ",
+                  "version" : 1
+                }
+              }
+            },
+            "default" : {
+              "columnNamePolicy" : "AGGREGATION_METHOD_COLUMN_NAME",
+              "maxUniqueValues" : 100000,
+              "valueDelimiter" : {
+                "delimiter" : ", ",
+                "version" : 1
+              },
+              "enableHiliting" : false,
+              "processInMemory" : false,
+              "retainOrder" : false
+            }
+          },
+          "groupByColumns" : {
+            "type" : "object",
+            "properties" : {
+              "keepAllColumnsSelected" : {
+                "type" : "boolean",
+                "default" : false
+              },
+              "twinList" : {
+                "type" : "object",
+                "properties" : {
+                  "exclList" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    },
+                    "default" : [ ]
+                  },
+                  "inclList" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    },
+                    "title" : "Group columns",
+                    "description" : "Select one or more columns according to which the group rows are created.\n",
+                    "default" : [ ]
+                  }
+                },
+                "default" : {
+                  "inclList" : [ ],
+                  "exclList" : [ ]
+                }
+              }
+            },
+            "default" : {
+              "keepAllColumnsSelected" : false,
+              "twinList" : {
+                "inclList" : [ ],
+                "exclList" : [ ]
+              }
+            }
+          },
+          "ignoreDomain" : {
+            "type" : "boolean",
+            "title" : "Ignore domain",
+            "description" : "Ignore domain and use only the possible values available in the input data.",
+            "default" : true
+          },
+          "ignoreMissingValues" : {
+            "type" : "boolean",
+            "title" : "Ignore missing values",
+            "description" : "Ignore rows containing missing values in pivot column.",
+            "default" : true
+          },
+          "pivotColumns" : {
+            "type" : "object",
+            "properties" : {
+              "keepAllColumnsSelected" : {
+                "type" : "boolean",
+                "default" : false
+              },
+              "twinList" : {
+                "type" : "object",
+                "properties" : {
+                  "exclList" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    },
+                    "default" : [ ]
+                  },
+                  "inclList" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    },
+                    "title" : "Pivot columns",
+                    "description" : "Select one or more columns according to which the pivot columns are created.\n",
+                    "default" : [ ]
+                  }
+                },
+                "default" : {
+                  "inclList" : [ ],
+                  "exclList" : [ ]
+                }
+              }
+            },
+            "default" : {
+              "keepAllColumnsSelected" : false,
+              "twinList" : {
+                "inclList" : [ ],
+                "exclList" : [ ]
+              }
+            }
+          },
+          "sortLexicographically" : {
+            "type" : "boolean",
+            "title" : "Sort lexicographically",
+            "description" : "Lexicographically sorts all columns belonging to the same logical group, i.e., pivots (aggregations), groups, and overall totals.",
+            "default" : false
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "label" : "Groups",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/groupByColumns/properties/twinList/properties/inclList",
+        "options" : {
+          "format" : "twinList",
+          "includedLabel" : "Group columns",
+          "excludedLabel" : "Available columns"
+        },
+        "providedOptions" : [ "possibleValues" ],
+        "rule" : {
+          "effect" : "DISABLE",
+          "condition" : {
+            "scope" : "#/properties/model/properties/pivotColumns/properties/keepAllColumnsSelected",
+            "schema" : {
+              "const" : true
+            }
+          }
+        }
+      } ]
+    }, {
+      "label" : "Pivots",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/pivotColumns/properties/twinList/properties/inclList",
+        "options" : {
+          "format" : "twinList",
+          "includedLabel" : "Pivot columns",
+          "excludedLabel" : "Available columns"
+        },
+        "providedOptions" : [ "possibleValues" ],
+        "rule" : {
+          "effect" : "DISABLE",
+          "condition" : {
+            "scope" : "#/properties/model/properties/pivotColumns/properties/keepAllColumnsSelected",
+            "schema" : {
+              "const" : true
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/ignoreMissingValues",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/appendOverallTotals",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/ignoreDomain",
+        "options" : {
+          "format" : "checkbox"
+        }
+      } ]
+    }, {
+      "label" : "Aggregation",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/columnAggregators",
+        "options" : {
+          "detail" : [ {
+            "type" : "Control",
+            "scope" : "#/properties/column",
+            "options" : {
+              "format" : "dropDown"
+            },
+            "providedOptions" : [ "possibleValues" ]
+          }, {
+            "type" : "ControlWithSubParameters",
+            "elements" : [ {
+              "type" : "Control",
+              "scope" : "#/properties/parameters",
+              "options" : {
+                "format" : "dynamicInput"
+              },
+              "providedOptions" : [ "dynamicSettings" ]
+            } ],
+            "control" : {
+              "providedOptions" : [ "showSubParameters", "possibleValues" ],
+              "type" : "Control",
+              "scope" : "#/properties/aggregationMethod",
+              "options" : {
+                "format" : "dropDown"
+              }
+            }
+          }, {
+            "type" : "Control",
+            "scope" : "#/properties/includeMissing",
+            "options" : {
+              "format" : "valueSwitch"
+            },
+            "rule" : {
+              "effect" : "SHOW",
+              "condition" : {
+                "scope" : "#/properties/supportsMissingValueOption",
+                "schema" : {
+                  "const" : true
+                }
+              }
+            }
+          } ],
+          "addButtonText" : "Add aggregation",
+          "arrayElementTitle" : "Column Aggregator"
+        },
+        "providedOptions" : [ "elementDefaultValue" ]
+      } ]
+    }, {
+      "label" : "Output",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/colNameOption"
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/groupByAdditionalParameters/properties/columnNamePolicy"
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/groupByAdditionalParameters/properties/maxUniqueValues",
+        "options" : {
+          "validation" : {
+            "max" : {
+              "errorMessage" : "The value must not exceed 2147483647.",
+              "parameters" : {
+                "isExclusive" : false,
+                "max" : 2.147483647E9
+              }
+            },
+            "min" : {
+              "errorMessage" : "The value must be at least -2147483648.",
+              "parameters" : {
+                "isExclusive" : false,
+                "min" : -2.147483648E9
+              }
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/groupByAdditionalParameters/properties/valueDelimiter/properties/delimiter"
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/sortLexicographically",
+        "options" : {
+          "format" : "checkbox"
+        }
+      } ]
+    }, {
+      "label" : "Performance",
+      "type" : "Section",
+      "description" : "The performance settings allow to optimize memory consumption and configure settings that may\nnegatively affect performance and are therefore disabled by default.\n",
+      "options" : {
+        "isAdvanced" : true
+      },
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/groupByAdditionalParameters/properties/enableHiliting",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/groupByAdditionalParameters/properties/processInMemory",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/groupByAdditionalParameters/properties/retainOrder",
+        "options" : {
+          "format" : "checkbox"
+        },
+        "rule" : {
+          "effect" : "DISABLE",
+          "condition" : {
+            "scope" : "#/properties/model/properties/groupByAdditionalParameters/properties/processInMemory",
+            "schema" : {
+              "const" : true
+            }
+          }
+        }
+      } ]
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "groupByColumns" : {
+            "type" : "object",
+            "properties" : {
+              "keepAllColumnsSelected" : {
+                "configKey" : "keep_all_columns_selected"
+              },
+              "twinList" : {
+                "type" : "object",
+                "properties" : {
+                  "inclList" : {
+                    "configPaths" : [ [ "InclList" ], [ "ExclList" ] ]
+                  },
+                  "exclList" : {
+                    "configKey" : "ExclList"
+                  }
+                },
+                "propertiesRoute" : [ ".." ]
+              }
+            },
+            "configKey" : "grouByColumns"
+          },
+          "pivotColumns" : {
+            "type" : "object",
+            "properties" : {
+              "keepAllColumnsSelected" : {
+                "configKey" : "keep_all_columns_selected"
+              },
+              "twinList" : {
+                "type" : "object",
+                "properties" : {
+                  "inclList" : {
+                    "configPaths" : [ [ "InclList" ], [ "ExclList" ] ]
+                  },
+                  "exclList" : {
+                    "configKey" : "ExclList"
+                  }
+                },
+                "propertiesRoute" : [ ".." ]
+              }
+            },
+            "configKey" : "pivotColumns"
+          },
+          "ignoreMissingValues" : {
+            "configKey" : "missing_values"
+          },
+          "appendOverallTotals" : {
+            "configKey" : "total_aggregation"
+          },
+          "ignoreDomain" : {
+            "configKey" : "ignore_domain"
+          },
+          "columnAggregators" : {
+            "configPaths" : [ [ "aggregationColumn", "columnNames" ], [ "aggregationColumn", "columnTypes" ], [ "aggregationColumn", "aggregationMethod" ], [ "aggregationColumn", "inclMissingVals" ] ],
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "aggregationOperatorSettings" ] ]
+            } ]
+          },
+          "colNameOption" : {
+            "configPaths" : [ [ "column_name_option" ] ]
+          },
+          "groupByAdditionalParameters" : {
+            "type" : "object",
+            "properties" : {
+              "columnNamePolicy" : {
+                "configPaths" : [ [ "columnNamePolicy" ] ]
+              },
+              "maxUniqueValues" : {
+                "configKey" : "maxNoneNumericalVals"
+              },
+              "valueDelimiter" : {
+                "configPaths" : [ [ "valueDelimiter" ] ]
+              },
+              "enableHiliting" : {
+                "configKey" : "enableHilite"
+              },
+              "processInMemory" : {
+                "configKey" : "inMemory"
+              },
+              "retainOrder" : {
+                "configKey" : "retainOrder"
+              }
+            },
+            "propertiesRoute" : [ ".." ]
+          },
+          "sortLexicographically" : {
+            "configKey" : "sort_lexicographical"
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/columnAggregators/items/properties/column",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Universe_0_0",
+        "text" : "Universe_0_0",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Universe_0_1",
+        "text" : "Universe_0_1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Universe_1_0",
+        "text" : "Universe_1_0",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Universe_1_1",
+        "text" : "Universe_1_1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Cluster Membership",
+        "text" : "Cluster Membership",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/columnAggregators",
+    "providedOptionName" : "elementDefaultValue",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : {
+        "column" : "Universe_0_0",
+        "supportsMissingValueOption" : false,
+        "includeMissing" : "EXCLUDE"
+      }
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/groupByColumns/properties/twinList/properties/exclList",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ "Universe_0_0", "Universe_0_1", "Universe_1_0", "Universe_1_1", "Cluster Membership" ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/groupByColumns/properties/twinList/properties/inclList",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Universe_0_0",
+        "text" : "Universe_0_0",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Universe_0_1",
+        "text" : "Universe_0_1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Universe_1_0",
+        "text" : "Universe_1_0",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Universe_1_1",
+        "text" : "Universe_1_1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Cluster Membership",
+        "text" : "Cluster Membership",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/pivotColumns/properties/twinList/properties/exclList",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ "Universe_0_0", "Universe_0_1", "Universe_1_0", "Universe_1_1", "Cluster Membership" ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/pivotColumns/properties/twinList/properties/inclList",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Universe_0_0",
+        "text" : "Universe_0_0",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Universe_0_1",
+        "text" : "Universe_0_1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Universe_1_0",
+        "text" : "Universe_1_0",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Universe_1_1",
+        "text" : "Universe_1_1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Cluster Membership",
+        "text" : "Cluster Membership",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "id" : "after-open-dialog"
+    },
+    "triggerInitially" : true,
+    "dependencies" : [ "#/properties/model/properties/columnAggregators/items/properties/aggregationMethod", "#/properties/model/properties/columnAggregators/items/properties/column", "#/properties/model/properties/groupByColumns", "#/properties/model/properties/pivotColumns" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/columnAggregators/items/properties/aggregationMethod"
+    },
+    "dependencies" : [ "#/properties/model/properties/columnAggregators/items/properties/aggregationMethod", "#/properties/model/properties/columnAggregators/items/properties/parameters" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/columnAggregators/items/properties/column"
+    },
+    "dependencies" : [ "#/properties/model/properties/columnAggregators/items/properties/column" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/columnAggregators/items/properties/dataType"
+    },
+    "dependencies" : [ "#/properties/model/properties/columnAggregators/items/properties/aggregationMethod", "#/properties/model/properties/columnAggregators/items/properties/dataType" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/groupByAdditionalParameters/properties/processInMemory"
+    },
+    "dependencies" : [ "#/properties/model/properties/groupByAdditionalParameters/properties/processInMemory", "#/properties/model/properties/groupByAdditionalParameters/properties/retainOrder" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/groupByColumns"
+    },
+    "dependencies" : [ "#/properties/model/properties/groupByColumns", "#/properties/model/properties/pivotColumns" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/groupByColumns/properties/twinList/properties/inclList"
+    },
+    "dependencies" : [ "#/properties/model/properties/groupByColumns/properties/twinList/properties/inclList" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/pivotColumns"
+    },
+    "dependencies" : [ "#/properties/model/properties/groupByColumns", "#/properties/model/properties/pivotColumns" ]
+  } ]
+}

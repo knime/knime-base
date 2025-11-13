@@ -55,9 +55,13 @@ import java.util.regex.PatternSyntaxException;
 
 import org.knime.base.data.aggregation.AggregationMethods;
 import org.knime.base.data.aggregation.AggregationOperatorParameters;
-import org.knime.base.node.preproc.groupby.AggregationOperatorParametersProvider.AggregationMethodRef;
 import org.knime.base.node.preproc.groupby.LegacyPatternAggregatorsArrayPersistor.IndexedElement;
 import org.knime.base.node.preproc.groupby.LegacyPatternAggregatorsArrayPersistor.PatternAggregatorElementDTO;
+import org.knime.base.node.preproc.groupby.common.AggregationOperatorParametersProvider;
+import org.knime.base.node.preproc.groupby.common.AggregationOperatorParametersProvider.AggregationMethodRef;
+import org.knime.base.node.preproc.groupby.common.HasOperatorParameters;
+import org.knime.base.node.preproc.groupby.common.MissingValueOption;
+import org.knime.base.node.preproc.groupby.common.NoPersistenceElementFieldPersistor;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.PersistArrayElement;
@@ -126,14 +130,14 @@ class PatternAggregatorElement implements NodeParameters {
     static final class NoPersistence
         extends NoPersistenceElementFieldPersistor<Boolean, IndexedElement, PatternAggregatorElementDTO> {
         @Override
-        Boolean getLoadDefault() {
+        protected Boolean getLoadDefault() {
             return false;
         }
     }
 
     static final class SupportsMissingValueOptions extends MissingValueOption.SupportsMissingValueOptions {
         @Override
-        Class<? extends ParameterReference<String>> getMethodReference() {
+        protected Class<? extends ParameterReference<String>> getMethodReference() {
             return PatternAggregationRef.class;
         }
     }
@@ -173,19 +177,19 @@ class PatternAggregatorElement implements NodeParameters {
     static final class HasPatternOperatorParameters extends HasOperatorParameters {
 
         @Override
-        Class<? extends AggregationMethodRef> getAggregationMethodRefClass() {
+        protected Class<? extends AggregationMethodRef> getAggregationMethodRefClass() {
             return PatternAggregationRef.class;
         }
     }
 
     static final class PatternAggregationOperatorParametersProvider extends AggregationOperatorParametersProvider {
         @Override
-        Class<? extends ParameterReference<AggregationOperatorParameters>> getParameterRefClass() {
+        protected Class<? extends ParameterReference<AggregationOperatorParameters>> getParameterRefClass() {
             return PatternOperatorParametersRef.class;
         }
 
         @Override
-        Class<? extends AggregationMethodRef> getMethodParameterRefClass() {
+        protected Class<? extends AggregationMethodRef> getMethodParameterRefClass() {
             return PatternAggregationRef.class;
         }
     }

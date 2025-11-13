@@ -56,6 +56,8 @@ import org.knime.base.data.aggregation.AggregationOperatorParameters;
 import org.knime.base.data.aggregation.dialogutil.type.DataTypeAggregator;
 import org.knime.base.node.preproc.groupby.LegacyDataTypeAggregatorsArrayPersistor.DataTypeAggregatorElementDTO;
 import org.knime.base.node.preproc.groupby.LegacyDataTypeAggregatorsArrayPersistor.IndexedElement;
+import org.knime.base.node.preproc.groupby.common.LegacyAggregationOperatorParameters;
+import org.knime.base.node.preproc.groupby.common.MissingValueOption;
 import org.knime.core.data.DataType;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;

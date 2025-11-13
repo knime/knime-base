@@ -44,25 +44,57 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   20 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   22 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.groupby;
+package org.knime.base.node.preproc.groupby.common;
 
-import org.knime.base.data.aggregation.AggregationOperatorParameters;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.webui.node.dialog.FallbackDialogNodeParameters;
+import java.util.function.Supplier;
+
+import org.knime.base.data.aggregation.AggregationMethods;
+import org.knime.core.data.DataType;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.StateProvider;
 
 /**
- * Parameters to display legacy operator settings in "fallback style".
+ * Selects the default aggregation method based on the type, if a method is not already provided.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-@SuppressWarnings("restriction")
-final class LegacyAggregationOperatorParameters extends FallbackDialogNodeParameters
-    implements AggregationOperatorParameters {
+public abstract class DefaultAggregationMethodProvider implements StateProvider<String> {
 
-    public LegacyAggregationOperatorParameters(final NodeSettingsRO nodeSettings) {
-        super(nodeSettings);
+    /** The currently selected method to avoid updating it if it is already set. */
+    private Supplier<String> m_methodSelf;
+
+    private Supplier<DataType> m_typeSupplier;
+
+    /**
+     * @return type provider class to obtain method for
+     */
+    protected abstract Class<? extends ParameterReference<DataType>> getTypeProvider();
+
+    /**
+     * @return self reference for the method to not override if already set
+     */
+    protected abstract Class<? extends ParameterReference<String>> getMethodSelfProvider();
+
+    @Override
+    public final void init(final StateProviderInitializer initializer) {
+        m_methodSelf = initializer.getValueSupplier(getMethodSelfProvider());
+        m_typeSupplier = initializer.computeFromValueSupplier(getTypeProvider());
+    }
+
+    @SuppressWarnings("restriction")
+    @Override
+    public final String computeState(final NodeParametersInput parametersInput)
+        throws StateComputationFailureException {
+        if (m_methodSelf.get() != null) {
+            throw new StateComputationFailureException();
+        }
+        final var type = m_typeSupplier.get();
+        // there always is a default, even if it is just "First"
+        return AggregationMethods.getInstance().getDefaultFunction(type).getId();
     }
 
 }

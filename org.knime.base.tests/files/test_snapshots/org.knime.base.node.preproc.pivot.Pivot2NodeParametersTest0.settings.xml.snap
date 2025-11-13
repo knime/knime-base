@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
+    <config key="grouByColumns">
+        <entry key="keep_all_columns_selected" type="xboolean" value="false"/>
+        <config key="InclList">
+            <entry key="array-size" type="xint" value="1"/>
+            <entry key="0" type="xstring" value="Universe_0_1"/>
+        </config>
+        <config key="ExclList">
+            <entry key="array-size" type="xint" value="4"/>
+            <entry key="0" type="xstring" value="Universe_0_0"/>
+            <entry key="1" type="xstring" value="Universe_1_0"/>
+            <entry key="2" type="xstring" value="Universe_1_1"/>
+            <entry key="3" type="xstring" value="Cluster Membership"/>
+        </config>
+    </config>
+    <config key="pivotColumns">
+        <entry key="keep_all_columns_selected" type="xboolean" value="false"/>
+        <config key="InclList">
+            <entry key="array-size" type="xint" value="1"/>
+            <entry key="0" type="xstring" value="Cluster Membership"/>
+        </config>
+        <config key="ExclList">
+            <entry key="array-size" type="xint" value="4"/>
+            <entry key="0" type="xstring" value="Universe_0_0"/>
+            <entry key="1" type="xstring" value="Universe_0_1"/>
+            <entry key="2" type="xstring" value="Universe_1_0"/>
+            <entry key="3" type="xstring" value="Universe_1_1"/>
+        </config>
+    </config>
+    <entry key="missing_values" type="xboolean" value="true"/>
+    <entry key="total_aggregation" type="xboolean" value="false"/>
+    <entry key="ignore_domain" type="xboolean" value="true"/>
+    <config key="aggregationColumn">
+        <config key="columnNames">
+            <entry key="array-size" type="xint" value="2"/>
+            <entry key="0" type="xstring" value="Universe_0_0"/>
+            <entry key="1" type="xstring" value="Universe_1_1"/>
+        </config>
+        <config key="columnTypes">
+            <entry key="array-size" type="xint" value="2"/>
+            <config key="0">
+                <entry key="cell_class" type="xstring" value="org.knime.core.data.def.DoubleCell"/>
+                <entry key="is_null" type="xboolean" value="false"/>
+            </config>
+            <config key="1">
+                <entry key="cell_class" type="xstring" value="org.knime.core.data.def.DoubleCell"/>
+                <entry key="is_null" type="xboolean" value="false"/>
+            </config>
+        </config>
+        <config key="aggregationMethod">
+            <entry key="array-size" type="xint" value="2"/>
+            <entry key="0" type="xstring" value="P^2 Percentile"/>
+            <entry key="1" type="xstring" value="Median_V3.4"/>
+        </config>
+        <config key="inclMissingVals">
+            <entry key="array-size" type="xint" value="2"/>
+            <entry key="0" type="xboolean" value="false"/>
+            <entry key="1" type="xboolean" value="false"/>
+        </config>
+    </config>
+    <config key="aggregationOperatorSettings">
+        <config key="P^2 Percentile_Universe_0_0">
+            <entry key="customPercentile" type="xdouble" value="80.0"/>
+        </config>
+        <config key="Median_V3.4_Universe_1_1">
+            <entry key="medianMethod" type="xstring" value="Lower middle value"/>
+        </config>
+    </config>
+    <entry key="column_name_option" type="xstring" value="Aggregation name+Pivot name"/>
+    <entry key="columnNamePolicy" type="xstring" value="Column name (aggregation method)"/>
+    <entry key="maxNoneNumericalVals" type="xint" value="9000"/>
+    <entry key="valueDelimiter" type="xstring" value=";"/>
+    <entry key="nodeVersion" type="xint" value="1"/>
+    <entry key="enableHilite" type="xboolean" value="true"/>
+    <entry key="inMemory" type="xboolean" value="true"/>
+    <entry key="retainOrder" type="xboolean" value="true"/>
+    <entry key="sort_lexicographical" type="xboolean" value="true"/>
+</config>

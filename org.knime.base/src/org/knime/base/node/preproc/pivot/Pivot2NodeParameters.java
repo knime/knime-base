@@ -44,60 +44,77 @@
  * ------------------------------------------------------------------------
  */
 
-package org.knime.base.node.preproc.groupby;
+package org.knime.base.node.preproc.pivot;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import org.knime.base.node.preproc.groupby.GroupByNodeModel.TypeMatch;
+import org.knime.base.node.preproc.groupby.Sections;
 import org.knime.base.node.preproc.groupby.common.ColumnAggregatorElement;
 import org.knime.base.node.preproc.groupby.common.GroupByAdditionalParameters;
 import org.knime.base.node.preproc.groupby.common.LegacyColumnAggregatorsMigration;
 import org.knime.base.node.preproc.groupby.common.LegacyColumnAggregatorsPersistor;
+import org.knime.base.node.preproc.pivot.Pivot2NodeModel.ColNameOption;
 import org.knime.core.data.DataColumnSpec;
-import org.knime.core.node.NodeLogger;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.PersistArray;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.PersistWithin.PersistEmbedded;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.array.ArrayWidget;
+import org.knime.node.parameters.layout.After;
+import org.knime.node.parameters.layout.Before;
 import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.layout.Section;
 import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
 import org.knime.node.parameters.migration.Migration;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
 import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.persistence.legacy.LegacyStringFilter;
 import org.knime.node.parameters.persistence.legacy.LegacyStringFilter.ColumnBasedExclListProvider;
-import org.knime.node.parameters.updates.Effect;
-import org.knime.node.parameters.updates.Effect.EffectType;
-import org.knime.node.parameters.updates.EffectPredicate;
-import org.knime.node.parameters.updates.EffectPredicateProvider;
 import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.choices.ChoicesStateProvider;
 import org.knime.node.parameters.widget.choices.ColumnChoicesProvider;
 import org.knime.node.parameters.widget.choices.TypedStringChoice;
-import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 import org.knime.node.parameters.widget.choices.util.AllColumnsProvider;
 
 /**
- * Node parameters for GroupBy.
+ * Node parameters for Pivot.
  *
- * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ * @author Paul Baernreuther, KNIME GmbH, Germany
+ * @author AI Migration Pipeline v1.2
  */
 @LoadDefaultsForAbsentFields
-@SuppressWarnings("restriction") // internal API use
-final class GroupByNodeParameters implements NodeParameters {
+@SuppressWarnings("restriction")
+class Pivot2NodeParameters implements NodeParameters {
 
-    static final NodeLogger LOGGER = NodeLogger.getLogger(GroupByNodeParameters.class);
+    /**
+     * Additional section for the group columns which was not required in the GroupBy node as there we just had the
+     * columns in no section on top of the dialog.
+     *
+     * @author Paul Bärnreuther
+     */
+    @Section(title = "Groups")
+    interface GroupsSection {
+    }
 
-    @Persist(configKey = GroupByNodeModel.CFG_GROUP_BY_COLUMNS)
+    @Section(title = "Pivots")
+    @After(GroupsSection.class)
+    @Before(Sections.Aggregation.class)
+    interface PivotsSection {
+    }
+
+    @Persist(configKey = "grouByColumns")
     @Modification(GroupByColumnsModification.class)
     @ValueReference(GroupByColumnsRef.class)
+    @Layout(GroupsSection.class)
     LegacyStringFilter m_groupByColumns = new LegacyStringFilter(new String[0], new String[0]);
 
     interface GroupByColumnsRef extends ParameterReference<LegacyStringFilter> {
@@ -115,20 +132,57 @@ final class GroupByNodeParameters implements NodeParameters {
     static final class GroupByColumnsModification extends LegacyStringFilter.LegacyStringFilterModification {
         GroupByColumnsModification() {
             super(false, "Group columns", """
-                    Select one or more column(s) according to which the group(s)
-                    is/are created.
+                    Select one or more columns according to which the group rows are created.
                     """, "Group columns", "Available columns", AllColumnsProvider.class, ExclListProvider.class);
         }
     }
 
-    static final class NonGroupColumnsProvider implements ColumnChoicesProvider {
+    @Persist(configKey = Pivot2NodeModel.CFG_PIVOT_COLUMNS)
+    @Modification(PivotColumnsModification.class)
+    @ValueReference(PivotColumnsRef.class)
+    @Layout(PivotsSection.class)
+    LegacyStringFilter m_pivotColumns = new LegacyStringFilter(new String[0], new String[0]);
+
+    interface PivotColumnsRef extends ParameterReference<LegacyStringFilter> {
+    }
+
+    static final class PivotColumnsModification extends LegacyStringFilter.LegacyStringFilterModification {
+        PivotColumnsModification() {
+            super(false, "Pivot columns", """
+                    Select one or more columns according to which the pivot columns are created.
+                    """, "Pivot columns", "Available columns", AllColumnsProvider.class, ExclListProvider.class);
+        }
+    }
+
+    @Persist(configKey = Pivot2NodeModel.CFG_MISSING_VALUES)
+    @Widget(title = "Ignore missing values", description = "Ignore rows containing missing values in pivot column.")
+    @Layout(PivotsSection.class)
+    boolean m_ignoreMissingValues = true;
+
+    @Persist(configKey = Pivot2NodeModel.CFG_TOTAL_AGGREGATION)
+    @Widget(title = "Append overall totals",
+        description = "Appends the overall pivot totals with each aggregation"
+            + " performed together on all selected pivot columns.")
+    @Layout(PivotsSection.class)
+    boolean m_appendOverallTotals;
+
+    @Persist(configKey = Pivot2NodeModel.CFG_IGNORE_DOMAIN)
+    @Widget(title = "Ignore domain",
+        description = "Ignore domain and use only the possible values available in the input data.")
+    @Layout(PivotsSection.class)
+    boolean m_ignoreDomain = true;
+
+    static final class NonGroupAndNonPivotColumnsProvider implements ColumnChoicesProvider {
 
         private Supplier<LegacyStringFilter> m_groupByColumnsSupplier;
+
+        private Supplier<LegacyStringFilter> m_pivotColumnsSupplier;
 
         @Override
         public void init(final StateProviderInitializer initializer) {
             ColumnChoicesProvider.super.init(initializer);
             m_groupByColumnsSupplier = initializer.computeFromValueSupplier(GroupByColumnsRef.class);
+            m_pivotColumnsSupplier = initializer.computeFromValueSupplier(PivotColumnsRef.class);
         }
 
         @Override
@@ -137,31 +191,32 @@ final class GroupByNodeParameters implements NodeParameters {
             if (tableSpec.isEmpty()) {
                 return List.of();
             }
-            final var inclSet =
+            final var exclSet =
                 Arrays.stream(m_groupByColumnsSupplier.get().m_twinList.m_inclList).collect(Collectors.toSet());
-            return tableSpec.get().stream().filter(colSpec -> !inclSet.contains(colSpec.getName())).toList();
+            exclSet.addAll(Arrays.asList(m_pivotColumnsSupplier.get().m_twinList.m_inclList));
+            return tableSpec.get().stream().filter(colSpec -> !exclSet.contains(colSpec.getName())).toList();
         }
     }
 
     @Layout(Sections.Aggregation.class)
-    @Widget(title = "Manual", description = """
+    @Widget(title = "Manual Aggregations", description = """
             Select one or more column(s) for aggregation from the available
             columns list. Change the aggregation method in the Aggregation
             column of the table. You can add the same column multiple
             times.
             """)
-    @Modification(ColumnAggregatorElementModifier.class)
-    @ArrayWidget(addButtonText = "Add manual",
-        // TODO disable "add" button based on input (e.g. no table connected)
-        elementDefaultValueProvider = DefaultColumnAggregatorElementProvider.class)
     @Persistor(LegacyColumnAggregatorsPersistor.class) // No array persistor...
     @Migration(LegacyColumnAggregatorsMigration.class) // ...because then we could not deprecate keys here
+    @Modification(ColumnAggregatorElementModifier.class)
+    @ArrayWidget(addButtonText = "Add aggregation",
+        // TODO disable "add" button based on input (e.g. no table connected)
+        elementDefaultValueProvider = DefaultColumnAggregatorElementProvider.class)
     ColumnAggregatorElement[] m_columnAggregators = new ColumnAggregatorElement[0];
 
     static final class ColumnAggregatorElementModifier extends ColumnAggregatorElement.ColumnAggregatorElementModifier {
 
         ColumnAggregatorElementModifier() {
-            super(NonGroupColumnsProvider.class);
+            super(NonGroupAndNonPivotColumnsProvider.class);
         }
 
     }
@@ -170,62 +225,56 @@ final class GroupByNodeParameters implements NodeParameters {
         extends ColumnAggregatorElement.DefaultColumnAggregatorElementProvider {
 
         DefaultColumnAggregatorElementProvider() {
-            super(NonGroupColumnsProvider.class);
+            super(NonGroupAndNonPivotColumnsProvider.class);
         }
+
     }
 
-    @Layout(Sections.PatternAggregation.class)
-    @Widget(title = "Pattern", description = """
-            <p>The search pattern can either be a string with wildcards or a
-            <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Pattern.html#sum">
-            regular expression</a>.</p>
-
-            Supported wildcards are <code>*</code> (matches any number of characters) and <code>?</code>
-            (matches one character) e.g. <code>KNI*</code>
-            would match all strings that start with "KNI" such as "KNIME" whereas <code>KNI?</code> would match only
-            strings that start with "KNI" followed by a fourth character.
+    @Widget(title = "Column name", description = """
+            The name of the resulting pivot column(s) depends on the selected naming schema.
             """)
-    @ArrayWidget(addButtonText = "Add pattern")
-    @PersistArray(LegacyPatternAggregatorsArrayPersistor.class)
-    PatternAggregatorElement[] m_patternAggregators = new PatternAggregatorElement[0];
+    @Layout(Sections.Output.class)
+    @Persistor(ColNameOptionPersistor.class)
+    ColNameOption m_colNameOption = ColNameOption.PIV_FIRST_AGG_LAST;
 
-    @Layout(Sections.TypeAggregation.class)
-    @Widget(title = "Type", description = """
-            Aggregations are applied to all columns of the selected type.
-            """)
-    @ArrayWidget(addButtonText = "Add type")
-    @PersistArray(LegacyDataTypeAggregatorsArrayPersistor.class)
-    @ValueReference(TypeAggregationsRef.class)
-    DataTypeAggregatorElement[] m_dataTypeAggregators = new DataTypeAggregatorElement[0];
+    static final class ColNameOptionPersistor implements NodeParametersPersistor<ColNameOption> {
 
-    static final class TypeAggregationsRef implements ParameterReference<DataTypeAggregatorElement[]> {
-    }
+        private static final String CFG_KEY = Pivot2NodeModel.CFG_COL_NAME_OPTION;
 
-    @Layout(Sections.TypeAggregation.class)
-    @Effect(predicate = HasTypeAggregations.class, type = EffectType.SHOW)
-    @Widget(title = "Type matching", description = """
-            <ul>
-                <li><b>Strict:</b> the type based aggregation method is only applied to columns of the
-                    selected type.
-                </li>
-                <li><b>Include sub-types:</b> the type based aggregation method is also applied to columns containing
-                    sub-types of the selected type. For example <i>Boolean</i> is a sub-type of <i>Integer</i>,
-                <i>Integer</i> of <i>Long</i>, and <i>Long</i> of <i>Double</i>.</li>
-            </ul>
-            """)
-    @ValueSwitchWidget
-    @Persistor(LegacyTypeMatchPersistor.class)
-    TypeMatch m_typeMatch = TypeMatch.STRICT;
-
-    static final class HasTypeAggregations implements EffectPredicateProvider {
         @Override
-        public EffectPredicate init(final PredicateInitializer i) {
-            // neither TrueCondition, nor ConstantPredicate is exported
-            return i.getArray(TypeAggregationsRef.class).containsElementSatisfying(el -> el.always());
+        public ColNameOption load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            return ColNameOption.getEnum(settings.getString(CFG_KEY, ColNameOption.PIV_FIRST_AGG_LAST.toString()));
+        }
+
+        @Override
+        public void save(final ColNameOption param, final NodeSettingsWO settings) {
+            settings.addString(CFG_KEY, param.toString());
+        }
+
+        @Override
+        public String[][] getConfigPaths() {
+            return new String[][]{{CFG_KEY}};
         }
     }
 
+    @Modification(ChangeColumnNamingStragegyTitleModification.class)
     @PersistEmbedded
-    GroupByAdditionalParameters m_additionalParameters = new GroupByAdditionalParameters();
+    GroupByAdditionalParameters m_groupByAdditionalParameters = new GroupByAdditionalParameters();
+
+    static final class ChangeColumnNamingStragegyTitleModification
+        extends GroupByAdditionalParameters.ChangeColumnNamePolicyTitleModification {
+
+        @Override
+        protected String getColumnNamePolicyTitle() {
+            return "Aggregation name";
+        }
+    }
+
+    @Widget(title = "Sort lexicographically",
+        description = "Lexicographically sorts all columns belonging to the same logical group, "
+            + "i.e., pivots (aggregations), groups, and overall totals.")
+    @Persist(configKey = Pivot2NodeModel.CFG_LEXICOGRAPHICAL_SORT)
+    @Layout(Sections.Output.class)
+    boolean m_sortLexicographically;
 
 }

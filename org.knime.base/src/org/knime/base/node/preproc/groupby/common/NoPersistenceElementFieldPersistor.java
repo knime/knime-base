@@ -46,7 +46,7 @@
  * History
  *   22 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.groupby;
+package org.knime.base.node.preproc.groupby.common;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
@@ -57,16 +57,19 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.Eleme
  * Workaround for transient fields in arrays using {@link ArrayPersistor}.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ * @param <T> the field type
+ * @param <L> the load context type
+ * @param <S> the save DTO type
  */
 @SuppressWarnings("restriction")
-abstract class NoPersistenceElementFieldPersistor<T, L, S> implements ElementFieldPersistor<T, L, S> {
+public abstract class NoPersistenceElementFieldPersistor<T, L, S> implements ElementFieldPersistor<T, L, S> {
 
     /**
      * Gets the default value to be returned on load.
      *
      * @return the default value on load
      */
-    abstract T getLoadDefault();
+    protected abstract T getLoadDefault();
 
     @Override
     public final T load(final NodeSettingsRO nodeSettings, final L loadContext) throws InvalidSettingsException {

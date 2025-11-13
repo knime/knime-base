@@ -41,36 +41,51 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * ------------------------------------------------------------------------
+ * ---------------------------------------------------------------------
+ *
+ * History
+ *   20 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
+package org.knime.base.node.preproc.groupby.common;
 
-package org.knime.base.node.preproc.groupby;
+import java.util.function.Supplier;
 
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.node.parameters.persistence.NodeParametersPersistor;
+import org.knime.base.data.aggregation.AggregationMethods;
+import org.knime.base.node.preproc.groupby.common.AggregationOperatorParametersProvider.AggregationMethodRef;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.updates.StateProvider;
 
 /**
- * Legacy persistor for column name policy in GroupBy node.
+ * Indicator that the selected aggregation method has optional settings.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-final class LegacyColumnNamePolicyPersistor implements NodeParametersPersistor<ColumnNamePolicy> {
+@SuppressWarnings("restriction")
+public abstract class HasOperatorParameters implements StateProvider<Boolean> {
+
+    private Supplier<String> m_agg;
+
+    /**
+     * Gets the class of the {@link AggregationMethodRef} to use.
+     *
+     * @return the class of the {@link AggregationMethodRef} to use
+     */
+    protected abstract Class<? extends AggregationMethodRef> getAggregationMethodRefClass();
 
     @Override
-    public ColumnNamePolicy load(final NodeSettingsRO settings) throws InvalidSettingsException {
-        return ColumnNamePolicy.getPolicy4Label(
-            settings.getString(GroupByNodeModel.CFG_COLUMN_NAME_POLICY, ColumnNamePolicy.getDefault().getLabel()));
+    public final void init(final StateProviderInitializer init) {
+        init.computeBeforeOpenDialog();
+        m_agg = init.computeFromValueSupplier(getAggregationMethodRefClass());
     }
 
     @Override
-    public void save(final ColumnNamePolicy obj, final NodeSettingsWO settings) {
-        settings.addString(GroupByNodeModel.CFG_COLUMN_NAME_POLICY, obj.getLabel());
+    public final Boolean computeState(final NodeParametersInput in) throws StateComputationFailureException {
+        final var id = m_agg.get();
+        if (id == null) {
+            throw new StateComputationFailureException();
+        }
+        return AggregationMethods.getMethod4Id(id).hasOptionalSettings();
     }
 
-    @Override
-    public String[][] getConfigPaths() {
-        return new String[][]{new String[]{GroupByNodeModel.CFG_COLUMN_NAME_POLICY}};
-    }
 }

@@ -46,7 +46,7 @@
  * History
  *   20 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.groupby;
+package org.knime.base.node.preproc.groupby.common;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -75,8 +75,8 @@ import org.knime.node.parameters.updates.ParameterReference;
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-@SuppressWarnings("restriction")
-abstract class AggregationOperatorParametersProvider
+@SuppressWarnings({"restriction", "javadoc"})
+public abstract class AggregationOperatorParametersProvider
     implements DynamicParameters.DynamicParametersWithFallbackProvider<AggregationOperatorParameters> {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(AggregationOperatorParametersProvider.class);
@@ -85,11 +85,11 @@ abstract class AggregationOperatorParametersProvider
 
     private Supplier<String> m_aggregationMethodSupplier;
 
-    abstract Class<? extends ParameterReference<AggregationOperatorParameters>> getParameterRefClass();
+    protected abstract Class<? extends ParameterReference<AggregationOperatorParameters>> getParameterRefClass();
 
-    abstract Class<? extends AggregationMethodRef> getMethodParameterRefClass();
+    protected abstract Class<? extends AggregationMethodRef> getMethodParameterRefClass();
 
-    interface AggregationMethodRef extends ParameterReference<String> {
+    public interface AggregationMethodRef extends ParameterReference<String> {
     } //
 
     @Override

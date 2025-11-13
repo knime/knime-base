@@ -46,7 +46,7 @@
  * History
  *   20 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.groupby;
+package org.knime.base.node.preproc.groupby.common;
 
 import java.util.List;
 import java.util.Optional;
@@ -54,16 +54,18 @@ import java.util.function.Supplier;
 
 import org.knime.base.data.aggregation.AggregationMethods;
 import org.knime.base.data.aggregation.AggregationOperatorParameters;
-import org.knime.base.node.preproc.groupby.AggregationOperatorParametersProvider.AggregationMethodRef;
-import org.knime.base.node.preproc.groupby.GroupByNodeParameters.NonGroupColumnsProvider;
+import org.knime.base.node.preproc.groupby.common.AggregationOperatorParametersProvider.AggregationMethodRef;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification.WidgetGroupModifier;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.array.ArrayWidget;
 import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.layout.SubParameters;
 import org.knime.node.parameters.updates.Effect;
@@ -73,24 +75,30 @@ import org.knime.node.parameters.updates.StateProvider;
 import org.knime.node.parameters.updates.ValueProvider;
 import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.ColumnChoicesProvider;
 import org.knime.node.parameters.widget.choices.StringChoice;
 import org.knime.node.parameters.widget.choices.StringChoicesProvider;
+import org.knime.node.parameters.widget.choices.TypedStringChoice;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 
 /**
  * Manual per-column aggregation parameters.
  *
+ * Use this as element type in an array layout. Use the {@link ColumnAggregatorElementModifier} to change the column
+ * choices provider. Use the {@link LegacyColumnAggregatorsMigration} and the {@link LegacyColumnAggregatorsPersistor}
+ * also use a {@link ArrayWidget#elementDefaultValueProvider()} sutiable for these column choices.
+ *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-@SuppressWarnings("restriction")
-final class ColumnAggregatorElement implements NodeParameters {
+@SuppressWarnings({"restriction", "javadoc"})
+public final class ColumnAggregatorElement implements NodeParameters {
 
-    static final class SelectedColumnRef implements ParameterReference<String> {
+    static final class SelectedColumnRef implements ParameterReference<String>, Modification.Reference {
     } //
 
     @Widget(title = "Column", description = "The column to aggregate")
-    @ChoicesProvider(NonGroupColumnsProvider.class)
     @ValueReference(SelectedColumnRef.class)
+    @Modification.WidgetReference(SelectedColumnRef.class)
     String m_column;
 
     static final class SelectedColumnTypeRef implements ParameterReference<DataType> {
@@ -114,9 +122,9 @@ final class ColumnAggregatorElement implements NodeParameters {
     @ValueProvider(DefaultMethodProvider.class)
     String m_aggregationMethod;
 
-    static final class SupportsMissingValueOptions extends MissingValueOption.SupportsMissingValueOptions {
+    public static final class SupportsMissingValueOptions extends MissingValueOption.SupportsMissingValueOptions {
         @Override
-        Class<? extends ParameterReference<String>> getMethodReference() {
+        protected Class<? extends ParameterReference<String>> getMethodReference() {
             return ColumnAggregationMethodRef.class;
         }
     }
@@ -238,12 +246,12 @@ final class ColumnAggregatorElement implements NodeParameters {
     static final class DefaultMethodProvider extends DefaultAggregationMethodProvider {
 
         @Override
-        Class<? extends ParameterReference<DataType>> getTypeProvider() {
+        protected Class<? extends ParameterReference<DataType>> getTypeProvider() {
             return SelectedColumnTypeRef.class;
         }
 
         @Override
-        Class<? extends ParameterReference<String>> getMethodSelfProvider() {
+        protected Class<? extends ParameterReference<String>> getMethodSelfProvider() {
             return ColumnAggregationMethodRef.class;
         }
 
@@ -251,7 +259,7 @@ final class ColumnAggregatorElement implements NodeParameters {
 
     static final class HasColumnOperatorParameters extends HasOperatorParameters {
         @Override
-        Class<? extends AggregationMethodRef> getAggregationMethodRefClass() {
+        protected Class<? extends AggregationMethodRef> getAggregationMethodRefClass() {
             return ColumnAggregationMethodRef.class;
         }
     }
@@ -261,13 +269,84 @@ final class ColumnAggregatorElement implements NodeParameters {
      */
     static final class ColumnAggregationOperatorParametersProvider extends AggregationOperatorParametersProvider {
         @Override
-        Class<? extends ParameterReference<AggregationOperatorParameters>> getParameterRefClass() {
+        protected Class<? extends ParameterReference<AggregationOperatorParameters>> getParameterRefClass() {
             return ColumnAggregationOperatorParametersRef.class;
         }
 
         @Override
-        Class<? extends AggregationMethodRef> getMethodParameterRefClass() {
+        protected Class<? extends AggregationMethodRef> getMethodParameterRefClass() {
             return ColumnAggregationMethodRef.class;
         }
+    }
+
+    /**
+     * To be attached to the array layout of the aggregation columns to provide a default element from the available
+     * choices.
+     */
+    public abstract static class DefaultColumnAggregatorElementProvider
+        implements StateProvider<ColumnAggregatorElement> {
+
+        private Class<? extends ColumnChoicesProvider> m_aggregationColumnChoicesProviderClass;
+
+        /**
+         * Constructor.
+         *
+         * @param aggregationColumnChoicesProviderClass the same class that is used for the column choices one the
+         *            {@link ColumnAggregatorElement#m_column} field (note that this can be changed via a the
+         *            {@link ColumnAggregatorElementModifier}.
+         */
+        protected DefaultColumnAggregatorElementProvider(
+            final Class<? extends ColumnChoicesProvider> aggregationColumnChoicesProviderClass) {
+            m_aggregationColumnChoicesProviderClass = aggregationColumnChoicesProviderClass;
+        }
+
+        private Supplier<List<TypedStringChoice>> m_aggregationColumnChoicesSupplier;
+
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            initializer.computeAfterOpenDialog();
+            m_aggregationColumnChoicesSupplier =
+                initializer.computeFromProvidedState(m_aggregationColumnChoicesProviderClass);
+        }
+
+        @Override
+        public ColumnAggregatorElement computeState(final NodeParametersInput parametersInput)
+            throws StateComputationFailureException {
+            final var choices = m_aggregationColumnChoicesSupplier.get();
+            if (choices.isEmpty()) {
+                return new ColumnAggregatorElement();
+            }
+            return new ColumnAggregatorElement(choices.get(0).id());
+        }
+
+    }
+
+    /**
+     * Use this modifier on the column aggregator element field to change the column choices provider used for the
+     * {@link ColumnAggregatorElement#m_column} field.
+     *
+     * @author Paul Bärnreuther
+     */
+    public abstract static class ColumnAggregatorElementModifier implements Modification.Modifier {
+
+        private Class<? extends ColumnChoicesProvider> m_aggregationColumnChoicesProviderClass;
+
+        /**
+         * Constructor.
+         *
+         * @param aggregationColumnChoicesProviderClass the class of the column choices provider to use.
+         */
+        protected ColumnAggregatorElementModifier(
+            final Class<? extends ColumnChoicesProvider> aggregationColumnChoicesProviderClass) {
+            m_aggregationColumnChoicesProviderClass = aggregationColumnChoicesProviderClass;
+        }
+
+        @Override
+        public void modify(final WidgetGroupModifier group) {
+            group.find(SelectedColumnRef.class).addAnnotation(ChoicesProvider.class)
+                .withValue(m_aggregationColumnChoicesProviderClass).modify();
+
+        }
+
     }
 }

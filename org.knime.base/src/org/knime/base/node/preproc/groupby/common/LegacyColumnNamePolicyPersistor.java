@@ -41,40 +41,39 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * ---------------------------------------------------------------------
- *
- * History
- *   16 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ * ------------------------------------------------------------------------
  */
-package org.knime.base.node.preproc.groupby;
 
-import java.util.List;
+package org.knime.base.node.preproc.groupby.common;
 
+import org.knime.base.node.preproc.groupby.ColumnNamePolicy;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.node.parameters.migration.ConfigMigration;
-import org.knime.node.parameters.migration.NodeParametersMigration;
-import org.knime.node.parameters.migration.ParametersLoader;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
 
 /**
- * Workaround to deprecate the optional settings' flow variables for manual column aggregations.
- * This currently does not work in conjunction with ArrayPersistor, hence we use it only for manual aggregations,
- * where we don't need to use ArrayPersistor.
+ * Legacy persistor for column name policy in GroupBy node.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-class LegacyColumnAggregatorsMigration implements NodeParametersMigration<ColumnAggregatorElement[]>{
+final class LegacyColumnNamePolicyPersistor implements NodeParametersPersistor<ColumnNamePolicy> {
+
+    static final String CFG_COLUMN_NAME_POLICY = "columnNamePolicy";
 
     @Override
-    public List<ConfigMigration<ColumnAggregatorElement[]>> getConfigMigrations() {
-        return List.of(ConfigMigration.builder(new ParametersLoader<ColumnAggregatorElement[]>() {
-
-            @Override
-            public ColumnAggregatorElement[] load(final NodeSettingsRO settings) throws InvalidSettingsException {
-                return null; // NOSONAR expected
-            }
-
-        }).withMatcher(s -> false).withDeprecatedConfigPath("aggregationOperatorSettings").build());
+    public ColumnNamePolicy load(final NodeSettingsRO settings) throws InvalidSettingsException {
+        return ColumnNamePolicy
+            .getPolicy4Label(settings.getString(CFG_COLUMN_NAME_POLICY, ColumnNamePolicy.getDefault().getLabel()));
     }
 
+    @Override
+    public void save(final ColumnNamePolicy obj, final NodeSettingsWO settings) {
+        settings.addString(CFG_COLUMN_NAME_POLICY, obj.getLabel());
+    }
+
+    @Override
+    public String[][] getConfigPaths() {
+        return new String[][]{new String[]{CFG_COLUMN_NAME_POLICY}};
+    }
 }

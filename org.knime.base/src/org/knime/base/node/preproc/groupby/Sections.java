@@ -44,57 +44,53 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   22 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   Nov 13, 2025 (Paul Bärnreuther): created
  */
 package org.knime.base.node.preproc.groupby;
 
-import java.util.function.Supplier;
-
-import org.knime.base.data.aggregation.AggregationMethods;
-import org.knime.core.data.DataType;
-import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
-import org.knime.node.parameters.NodeParametersInput;
-import org.knime.node.parameters.updates.ParameterReference;
-import org.knime.node.parameters.updates.StateProvider;
+import org.knime.node.parameters.Advanced;
+import org.knime.node.parameters.layout.After;
+import org.knime.node.parameters.layout.Section;
 
 /**
- * Selects the default aggregation method based on the type, if a method is not already provided.
+ * Sections for GroupBy node dialog. Public as they are intended to be used by related dialogs as well (e.g. Pivot).
  *
- * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ * @author Paul Bärnreuther
+ * @since 5.9
  */
-abstract class DefaultAggregationMethodProvider implements StateProvider<String> {
+public interface Sections {
 
-    /** The currently selected method to avoid updating it if it is already set. */
-    private Supplier<String> m_methodSelf;
-
-    private Supplier<DataType> m_typeSupplier;
-
-    /**
-     * @return type provider class to obtain method for
-     */
-    abstract Class<? extends ParameterReference<DataType>> getTypeProvider();
-
-    /**
-     * @return self reference for the method to not override if already set
-     */
-    abstract Class<? extends ParameterReference<String>> getMethodSelfProvider();
-
-    @Override
-    public final void init(final StateProviderInitializer initializer) {
-        m_methodSelf = initializer.getValueSupplier(getMethodSelfProvider());
-        m_typeSupplier = initializer.computeFromValueSupplier(getTypeProvider());
+    @SuppressWarnings("javadoc")
+    @Section(title = "Aggregation")
+    interface Aggregation {
     }
 
-    @SuppressWarnings("restriction")
-    @Override
-    public final String computeState(final NodeParametersInput parametersInput)
-        throws StateComputationFailureException {
-        if (m_methodSelf.get() != null) {
-            throw new StateComputationFailureException();
-        }
-        final var type = m_typeSupplier.get();
-        // there always is a default, even if it is just "First"
-        return AggregationMethods.getInstance().getDefaultFunction(type).getId();
+    @SuppressWarnings("javadoc")
+    @Section(title = "Pattern Based Aggregation")
+    @After(Sections.Aggregation.class)
+    interface PatternAggregation {
+
     }
 
+    @SuppressWarnings("javadoc")
+    @Section(title = "Type Based Aggregation")
+    @After(Sections.PatternAggregation.class)
+    interface TypeAggregation {
+    }
+
+    @SuppressWarnings("javadoc")
+    @Section(title = "Output")
+    @After(Sections.TypeAggregation.class)
+    interface Output {
+    }
+
+    @SuppressWarnings("javadoc")
+    @Section(title = "Performance", description = """
+            The performance settings allow to optimize memory consumption and configure settings that may
+            negatively affect performance and are therefore disabled by default.
+            """)
+    @After(Sections.Output.class)
+    @Advanced
+    interface Performance {
+    }
 }

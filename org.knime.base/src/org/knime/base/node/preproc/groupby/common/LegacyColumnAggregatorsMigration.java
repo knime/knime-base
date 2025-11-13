@@ -41,40 +41,40 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * ------------------------------------------------------------------------
+ * ---------------------------------------------------------------------
+ *
+ * History
+ *   16 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
+package org.knime.base.node.preproc.groupby.common;
 
-package org.knime.base.node.preproc.groupby;
+import java.util.List;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.defaultnodesettings.SettingsModelFilterString;
-import org.knime.node.parameters.persistence.NodeParametersPersistor;
+import org.knime.node.parameters.migration.ConfigMigration;
+import org.knime.node.parameters.migration.NodeParametersMigration;
+import org.knime.node.parameters.migration.ParametersLoader;
 
 /**
- * Legacy persistor for GroupBy column filter settings.
+ * Workaround to deprecate the optional settings' flow variables for manual column aggregations. This currently does not
+ * work in conjunction with ArrayPersistor, hence we use it only for manual aggregations, where we don't need to use
+ * ArrayPersistor.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-final class LegacyGroupByColumnsPersistor implements NodeParametersPersistor<String[]> {
+public class LegacyColumnAggregatorsMigration implements NodeParametersMigration<ColumnAggregatorElement[]> {
 
     @Override
-    public String[] load(final NodeSettingsRO settings) throws InvalidSettingsException {
-        final SettingsModelFilterString model = GroupByNodeModel.createGroupByColsSettings();
-        model.loadSettingsFrom(settings);
-        return model.getIncludeList().toArray(new String[0]);
+    public List<ConfigMigration<ColumnAggregatorElement[]>> getConfigMigrations() {
+        return List.of(ConfigMigration.builder(new ParametersLoader<ColumnAggregatorElement[]>() {
+
+            @Override
+            public ColumnAggregatorElement[] load(final NodeSettingsRO settings) throws InvalidSettingsException {
+                return null; // NOSONAR expected
+            }
+
+        }).withMatcher(s -> false).withDeprecatedConfigPath("aggregationOperatorSettings").build());
     }
 
-    @Override
-    public void save(final String[] obj, final NodeSettingsWO settings) {
-        final SettingsModelFilterString model = GroupByNodeModel.createGroupByColsSettings();
-        model.setIncludeList(java.util.Arrays.asList(obj));
-        model.saveSettingsTo(settings);
-    }
-
-    @Override
-    public String[][] getConfigPaths() {
-        return new String[][] { new String[] { GroupByNodeModel.CFG_GROUP_BY_COLUMNS }};
-    }
 }
