@@ -1,0 +1,518 @@
+{
+  "data" : {
+    "model" : {
+      "aggregationColumns" : {
+        "mode" : "MANUAL",
+        "patternFilter" : {
+          "pattern" : "",
+          "isCaseSensitive" : true,
+          "isInverted" : false
+        },
+        "manualFilter" : {
+          "manuallySelected" : [ "Universe_0_0", "Universe_0_1", "Universe_1_0", "Universe_1_1" ],
+          "manuallyDeselected" : [ "Cluster Membership" ],
+          "includeUnknownColumns" : true
+        },
+        "typeFilter" : {
+          "selectedTypes" : [ ],
+          "typeDisplays" : [ ]
+        }
+      },
+      "aggregationMethods" : [ {
+        "aggregationMethod" : "Correlation",
+        "resultColName" : "null-P-corr",
+        "supportsMissingValueOption" : false,
+        "includeMissing" : "EXCLUDE",
+        "parameters" : {
+          "@class" : "org.knime.base.data.aggregation.numerical.CorrelationOperator$CorrelationOperatorParameters",
+          "columnSelectorParams" : {
+            "selectedColumn" : "Universe_0_1"
+          },
+          "correlationSettings" : {
+            "correlationMethod" : "SPEARMAN"
+          }
+        }
+      }, {
+        "aggregationMethod" : "Covariance",
+        "resultColName" : "myCovariance",
+        "supportsMissingValueOption" : false,
+        "includeMissing" : "EXCLUDE",
+        "parameters" : {
+          "@class" : "org.knime.base.data.aggregation.numerical.CovarianceOperator$CovarianceOperatorParameters",
+          "selectedColumn" : "Universe_1_1"
+        }
+      }, {
+        "aggregationMethod" : "Product",
+        "resultColName" : "Product",
+        "supportsMissingValueOption" : false,
+        "includeMissing" : "EXCLUDE"
+      }, {
+        "aggregationMethod" : "First",
+        "resultColName" : "First",
+        "supportsMissingValueOption" : false,
+        "includeMissing" : "INCLUDE"
+      } ],
+      "removeAggregationColumns" : true,
+      "removeRetainedColumns" : true,
+      "globalAggregationMethodParameters" : {
+        "maxUniqueValues" : 9000,
+        "valueDelimiter" : {
+          "delimiter" : "; ",
+          "version" : 1
+        }
+      }
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "aggregationColumns" : {
+            "type" : "object",
+            "properties" : {
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "includeUnknownColumns" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "manuallyDeselected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "manuallySelected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "manuallySelected" : [ ],
+                  "manuallyDeselected" : [ ],
+                  "includeUnknownColumns" : false
+                }
+              },
+              "mode" : {
+                "oneOf" : [ {
+                  "const" : "MANUAL",
+                  "title" : "Manual"
+                }, {
+                  "const" : "REGEX",
+                  "title" : "Regex"
+                }, {
+                  "const" : "WILDCARD",
+                  "title" : "Wildcard"
+                }, {
+                  "const" : "TYPE",
+                  "title" : "Type"
+                } ],
+                "default" : "MANUAL"
+              },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "isCaseSensitive" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "isInverted" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "pattern" : {
+                    "type" : "string",
+                    "default" : ""
+                  }
+                },
+                "default" : {
+                  "pattern" : "",
+                  "isCaseSensitive" : false,
+                  "isInverted" : false
+                }
+              },
+              "selected" : {
+                "type" : "array",
+                "items" : {
+                  "type" : "string"
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "selectedTypes" : [ ],
+                  "typeDisplays" : [ ]
+                }
+              }
+            },
+            "title" : "Aggregation Columns",
+            "description" : "Select one or more columns to aggregate.",
+            "default" : {
+              "mode" : "MANUAL",
+              "patternFilter" : {
+                "pattern" : "",
+                "isCaseSensitive" : false,
+                "isInverted" : false
+              },
+              "manualFilter" : {
+                "manuallySelected" : [ ],
+                "manuallyDeselected" : [ ],
+                "includeUnknownColumns" : false
+              },
+              "typeFilter" : {
+                "selectedTypes" : [ ],
+                "typeDisplays" : [ ]
+              }
+            }
+          },
+          "aggregationMethods" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "aggregationMethod" : {
+                  "type" : "string",
+                  "title" : "Aggregation method",
+                  "description" : "Choose an aggregation method to be applied to the selected aggregation columns. Only methods compatible with those selected columns are available."
+                },
+                "includeMissing" : {
+                  "oneOf" : [ {
+                    "const" : "EXCLUDE",
+                    "title" : "Exclude"
+                  }, {
+                    "const" : "INCLUDE",
+                    "title" : "Include"
+                  } ],
+                  "title" : "Missing values",
+                  "description" : "Missing values are considered during aggregation if the missing\noption set to \"Included\".\nSome aggregation methods do not support the changing of the missing\noption such as \"Mean\".\n",
+                  "default" : "EXCLUDE"
+                },
+                "parameters" : {
+                  "type" : "object"
+                },
+                "resultColName" : {
+                  "type" : "string",
+                  "title" : "Column name",
+                  "description" : "Name of the resulting aggregation column.\nBy default, the name suggested by the selected aggregation method is set.\n"
+                },
+                "supportsMissingValueOption" : {
+                  "type" : "boolean",
+                  "default" : false
+                }
+              }
+            },
+            "title" : "Aggregations",
+            "description" : "Choose one or more aggregations to be applied to the selected aggregation columns. Only aggregation methods that are compatible with those selected columns are available. You can add the same method multiple times. However you have to change the name of the result column. ",
+            "default" : [ ]
+          },
+          "globalAggregationMethodParameters" : {
+            "type" : "object",
+            "properties" : {
+              "maxUniqueValues" : {
+                "type" : "integer",
+                "format" : "int32",
+                "title" : "Maximum unique values per group",
+                "description" : "Defines the maximum number of unique values per group to avoid\nproblems with memory overloading. All groups with more unique\nvalues are skipped during the calculation and a missing value is set\nin the corresponding column, and a warning is displayed.\n",
+                "default" : 100000
+              },
+              "valueDelimiter" : {
+                "type" : "object",
+                "properties" : {
+                  "delimiter" : {
+                    "type" : "string",
+                    "title" : "Value delimiter",
+                    "description" : "The value delimiter used by aggregation methods such as concatenate."
+                  },
+                  "version" : {
+                    "type" : "integer",
+                    "format" : "int32",
+                    "default" : 1
+                  }
+                },
+                "default" : {
+                  "delimiter" : ", ",
+                  "version" : 1
+                }
+              }
+            },
+            "default" : {
+              "maxUniqueValues" : 100000,
+              "valueDelimiter" : {
+                "delimiter" : ", ",
+                "version" : 1
+              }
+            }
+          },
+          "removeAggregationColumns" : {
+            "type" : "boolean",
+            "title" : "Remove aggregation columns",
+            "description" : "If selected the columns used to aggregate are filtered from\nthe output table.\n",
+            "default" : false
+          },
+          "removeRetainedColumns" : {
+            "type" : "boolean",
+            "title" : "Remove retained columns",
+            "description" : "If selected the columns that are not aggregate are filtered\nfrom the output table.\n",
+            "default" : false
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/aggregationColumns",
+      "options" : {
+        "format" : "typedStringFilter",
+        "unknownValuesText" : "Any unknown column",
+        "emptyStateLabel" : "No columns in this list."
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "label" : "Aggregation",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/aggregationMethods",
+        "options" : {
+          "detail" : [ {
+            "type" : "ControlWithSubParameters",
+            "elements" : [ {
+              "type" : "Control",
+              "scope" : "#/properties/parameters",
+              "options" : {
+                "format" : "dynamicInput"
+              },
+              "providedOptions" : [ "dynamicSettings" ]
+            } ],
+            "control" : {
+              "providedOptions" : [ "showSubParameters", "possibleValues" ],
+              "type" : "Control",
+              "scope" : "#/properties/aggregationMethod",
+              "options" : {
+                "format" : "dropDown"
+              }
+            }
+          }, {
+            "type" : "Control",
+            "scope" : "#/properties/resultColName"
+          }, {
+            "type" : "Control",
+            "scope" : "#/properties/includeMissing",
+            "options" : {
+              "format" : "valueSwitch"
+            },
+            "rule" : {
+              "effect" : "SHOW",
+              "condition" : {
+                "scope" : "#/properties/supportsMissingValueOption",
+                "schema" : {
+                  "const" : true
+                }
+              }
+            }
+          } ],
+          "addButtonText" : "Add aggregation method",
+          "arrayElementTitle" : "Aggregation Method"
+        },
+        "providedOptions" : [ "elementDefaultValue" ]
+      } ]
+    }, {
+      "label" : "Output",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/removeAggregationColumns",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/removeRetainedColumns",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/globalAggregationMethodParameters/properties/maxUniqueValues",
+        "options" : {
+          "validation" : {
+            "max" : {
+              "errorMessage" : "The value must not exceed 2147483647.",
+              "parameters" : {
+                "isExclusive" : false,
+                "max" : 2.147483647E9
+              }
+            },
+            "min" : {
+              "errorMessage" : "The value must be at least -2147483648.",
+              "parameters" : {
+                "isExclusive" : false,
+                "min" : -2.147483648E9
+              }
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/globalAggregationMethodParameters/properties/valueDelimiter/properties/delimiter"
+      } ]
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "aggregationColumns" : {
+            "configPaths" : [ [ "aggregationColumns", "filter-type" ], [ "aggregationColumns", "included_names" ], [ "aggregationColumns", "excluded_names" ], [ "aggregationColumns", "enforce_option" ], [ "aggregationColumns", "name_pattern", "pattern" ], [ "aggregationColumns", "name_pattern", "type" ], [ "aggregationColumns", "name_pattern", "caseSensitive" ], [ "aggregationColumns", "name_pattern", "excludeMatching" ] ]
+          },
+          "aggregationMethods" : {
+            "configPaths" : [ [ "aggregationMethods", "aggregationMethod" ], [ "aggregationMethods", "resultColName" ], [ "aggregationMethods", "inclMissingVals" ] ]
+          },
+          "removeAggregationColumns" : { },
+          "removeRetainedColumns" : { },
+          "globalAggregationMethodParameters" : {
+            "type" : "object",
+            "properties" : {
+              "maxUniqueValues" : {
+                "configKey" : "maxNoneNumericalVals"
+              },
+              "valueDelimiter" : {
+                "configPaths" : [ [ "valueDelimiter" ] ]
+              }
+            },
+            "propertiesRoute" : [ ".." ]
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/aggregationColumns",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Universe_0_0",
+        "text" : "Universe_0_0",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Universe_0_1",
+        "text" : "Universe_0_1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Universe_1_0",
+        "text" : "Universe_1_0",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Universe_1_1",
+        "text" : "Universe_1_1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Cluster Membership",
+        "text" : "Cluster Membership",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/aggregationMethods/items/properties/aggregationMethod",
+    "providedOptionName" : "showSubParameters",
+    "values" : [ {
+      "indices" : [ 0 ],
+      "value" : true
+    }, {
+      "indices" : [ 1 ],
+      "value" : true
+    }, {
+      "indices" : [ 2 ],
+      "value" : false
+    }, {
+      "indices" : [ 3 ],
+      "value" : false
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/aggregationMethods/items/properties/parameters",
+    "providedOptionName" : "dynamicSettings",
+    "values" : [ {
+      "indices" : [ 0 ],
+      "value" : {
+        "data" : {
+          "@class" : "org.knime.base.data.aggregation.numerical.CorrelationOperator$CorrelationOperatorParameters",
+          "columnSelectorParams" : {
+            "selectedColumn" : "Universe_0_1"
+          },
+          "correlationSettings" : {
+            "correlationMethod" : "SPEARMAN"
+          }
+        },
+        "schema" : "{\"type\":\"object\",\"properties\":{\"columnSelectorParams\":{\"type\":\"object\",\"properties\":{\"selectedColumn\":{\"type\":\"string\",\"title\":\"Correlation column\",\"description\":\"Select a second column to compute the correlation with.\",\"default\":\"Universe_1_1\"}},\"default\":{\"selectedColumn\":\"Universe_1_1\"}},\"correlationSettings\":{\"type\":\"object\",\"properties\":{\"correlationMethod\":{\"oneOf\":[{\"const\":\"PEARSON\",\"title\":\"Pearson\"},{\"const\":\"SPEARMAN\",\"title\":\"Spearman\"},{\"const\":\"KENDALL\",\"title\":\"Kendall\"}],\"title\":\"Correlation method\",\"description\":\"Method to use for calculating correlation coefficient\\n<ul>\\n<li><b>Pearson</b>: Computes the <a href=\\\"http://en.wikipedia.org/wiki/Pearson_product-moment_correlation_coefficient\\\">Pearson</a> correlation coefficient.</li>\\n<li><b>Spearman</b>: Computes the <a href=\\\"http://en.wikipedia.org/wiki/Spearman%27s_rank_correlation_coefficient\\\">Spearman</a> correlation coefficient.</li>\\n<li><b>Kendall</b>: Computes the <a href=\\\"http://en.wikipedia.org/wiki/Kendall_tau_rank_correlation_coefficient\\\">Kendall</a> correlation coefficient.</li>\\n</ul>\",\"default\":\"PEARSON\"}},\"default\":{\"correlationMethod\":\"PEARSON\"}}}}",
+        "uiSchema" : "{\"elements\":[{\"type\":\"Control\",\"scope\":\"#/properties/columnSelectorParams/properties/selectedColumn\",\"options\":{\"format\":\"dropDown\"},\"providedOptions\":[\"possibleValues\"]},{\"type\":\"Control\",\"scope\":\"#/properties/correlationSettings/properties/correlationMethod\",\"options\":{\"format\":\"radio\",\"radioLayout\":\"vertical\"}}]}",
+        "persist" : "{\"type\":\"object\",\"properties\":{\"columnSelectorParams\":{\"type\":\"object\",\"properties\":{\"selectedColumn\":{\"configKey\":\"customColumn\"}},\"configKey\":\"columnSettings\"},\"correlationSettings\":{\"type\":\"object\",\"properties\":{\"correlationMethod\":{\"configKey\":\"customCorrelation\"}},\"configKey\":\"correlationSettings\"}}}",
+        "updates" : "{\"initialUpdates\":[{\"scope\":\"#/properties/columnSelectorParams/properties/selectedColumn\",\"providedOptionName\":\"possibleValues\",\"values\":[{\"indices\":[],\"value\":[{\"id\":\"Universe_0_0\",\"text\":\"Universe_0_0\",\"type\":{\"id\":\"org.knime.core.data.DoubleValue\",\"text\":\"Number (Float)\"}},{\"id\":\"Universe_0_1\",\"text\":\"Universe_0_1\",\"type\":{\"id\":\"org.knime.core.data.DoubleValue\",\"text\":\"Number (Float)\"}},{\"id\":\"Universe_1_0\",\"text\":\"Universe_1_0\",\"type\":{\"id\":\"org.knime.core.data.DoubleValue\",\"text\":\"Number (Float)\"}},{\"id\":\"Universe_1_1\",\"text\":\"Universe_1_1\",\"type\":{\"id\":\"org.knime.core.data.DoubleValue\",\"text\":\"Number (Float)\"}}]}]}]}",
+        "settingsId" : null
+      }
+    }, {
+      "indices" : [ 1 ],
+      "value" : {
+        "data" : {
+          "@class" : "org.knime.base.data.aggregation.numerical.CovarianceOperator$CovarianceOperatorParameters",
+          "selectedColumn" : "Universe_1_1"
+        },
+        "schema" : "{\"type\":\"object\",\"properties\":{\"selectedColumn\":{\"type\":\"string\",\"title\":\"Covariance column\",\"description\":\"Select the column to compute the covariance with.\",\"default\":\"Universe_1_1\"}}}",
+        "uiSchema" : "{\"elements\":[{\"type\":\"Control\",\"scope\":\"#/properties/selectedColumn\",\"options\":{\"format\":\"dropDown\"},\"providedOptions\":[\"possibleValues\"]}]}",
+        "persist" : "{\"type\":\"object\",\"properties\":{\"selectedColumn\":{\"configKey\":\"customColumn\"}}}",
+        "updates" : "{\"initialUpdates\":[{\"scope\":\"#/properties/selectedColumn\",\"providedOptionName\":\"possibleValues\",\"values\":[{\"indices\":[],\"value\":[{\"id\":\"Universe_0_0\",\"text\":\"Universe_0_0\",\"type\":{\"id\":\"org.knime.core.data.DoubleValue\",\"text\":\"Number (Float)\"}},{\"id\":\"Universe_0_1\",\"text\":\"Universe_0_1\",\"type\":{\"id\":\"org.knime.core.data.DoubleValue\",\"text\":\"Number (Float)\"}},{\"id\":\"Universe_1_0\",\"text\":\"Universe_1_0\",\"type\":{\"id\":\"org.knime.core.data.DoubleValue\",\"text\":\"Number (Float)\"}},{\"id\":\"Universe_1_1\",\"text\":\"Universe_1_1\",\"type\":{\"id\":\"org.knime.core.data.DoubleValue\",\"text\":\"Number (Float)\"}}]}]}]}",
+        "settingsId" : null
+      }
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "id" : "after-open-dialog"
+    },
+    "triggerInitially" : true,
+    "dependencies" : [ "#/properties/model/properties/aggregationColumns", "#/properties/model/properties/aggregationMethods/items/properties/aggregationMethod" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/aggregationColumns"
+    },
+    "dependencies" : [ "#/properties/model/properties/aggregationColumns" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/aggregationMethods/items/properties/aggregationMethod"
+    },
+    "dependencies" : [ "#/properties/model/properties/aggregationMethods/items/properties/aggregationMethod", "#/properties/model/properties/aggregationMethods/items/properties/parameters" ]
+  } ]
+}

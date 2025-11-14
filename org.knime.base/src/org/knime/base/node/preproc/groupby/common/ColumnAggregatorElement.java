@@ -259,7 +259,7 @@ public final class ColumnAggregatorElement implements NodeParameters {
 
     static final class HasColumnOperatorParameters extends HasOperatorParameters {
         @Override
-        Class<? extends AggregationMethodRef> getAggregationMethodRefClass() {
+        protected Class<? extends AggregationMethodRef> getAggregationMethodRefClass() {
             return ColumnAggregationMethodRef.class;
         }
     }
@@ -269,12 +269,12 @@ public final class ColumnAggregatorElement implements NodeParameters {
      */
     static final class ColumnAggregationOperatorParametersProvider extends AggregationOperatorParametersProvider {
         @Override
-        Class<? extends ParameterReference<AggregationOperatorParameters>> getParameterRefClass() {
+        protected Class<? extends ParameterReference<AggregationOperatorParameters>> getParameterRefClass() {
             return ColumnAggregationOperatorParametersRef.class;
         }
 
         @Override
-        Class<? extends AggregationMethodRef> getMethodParameterRefClass() {
+        protected Class<? extends AggregationMethodRef> getMethodParameterRefClass() {
             return ColumnAggregationMethodRef.class;
         }
     }

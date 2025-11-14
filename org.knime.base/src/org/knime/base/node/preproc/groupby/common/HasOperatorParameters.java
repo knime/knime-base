@@ -62,7 +62,7 @@ import org.knime.node.parameters.updates.StateProvider;
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-abstract class HasOperatorParameters implements StateProvider<Boolean> {
+public abstract class HasOperatorParameters implements StateProvider<Boolean> {
 
     private Supplier<String> m_agg;
 
@@ -71,7 +71,7 @@ abstract class HasOperatorParameters implements StateProvider<Boolean> {
      *
      * @return the class of the {@link AggregationMethodRef} to use
      */
-    abstract Class<? extends AggregationMethodRef> getAggregationMethodRefClass();
+    protected abstract Class<? extends AggregationMethodRef> getAggregationMethodRefClass();
 
     @Override
     public final void init(final StateProviderInitializer init) {
