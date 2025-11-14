@@ -46,7 +46,7 @@
  * History
  *   22 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.groupby;
+package org.knime.base.node.preproc.groupby.common;
 
 import org.knime.node.parameters.widget.choices.Label;
 

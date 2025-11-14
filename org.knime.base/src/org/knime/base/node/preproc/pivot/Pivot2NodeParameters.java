@@ -53,7 +53,9 @@ import java.util.stream.Collectors;
 
 import org.knime.base.node.preproc.groupby.Sections;
 import org.knime.base.node.preproc.groupby.common.ColumnAggregatorElement;
-import org.knime.base.node.preproc.groupby.common.GroupByAdditionalParameters;
+import org.knime.base.node.preproc.groupby.common.ColumnNamePolicyParameters;
+import org.knime.base.node.preproc.groupby.common.GlobalAggregationMethodParameters;
+import org.knime.base.node.preproc.groupby.common.GroupByPerformanceParameters;
 import org.knime.base.node.preproc.groupby.common.LegacyColumnAggregatorsMigration;
 import org.knime.base.node.preproc.groupby.common.LegacyColumnAggregatorsPersistor;
 import org.knime.base.node.preproc.pivot.Pivot2NodeModel.ColNameOption;
@@ -259,16 +261,22 @@ class Pivot2NodeParameters implements NodeParameters {
 
     @Modification(ChangeColumnNamingStragegyTitleModification.class)
     @PersistEmbedded
-    GroupByAdditionalParameters m_groupByAdditionalParameters = new GroupByAdditionalParameters();
+    ColumnNamePolicyParameters m_columnNamePolicyParameters = new ColumnNamePolicyParameters();
 
     static final class ChangeColumnNamingStragegyTitleModification
-        extends GroupByAdditionalParameters.ChangeColumnNamePolicyTitleModification {
+        extends ColumnNamePolicyParameters.ChangeColumnNamePolicyTitleModification {
 
         @Override
         protected String getColumnNamePolicyTitle() {
             return "Aggregation name";
         }
     }
+
+    @PersistEmbedded
+    GlobalAggregationMethodParameters m_globalAggregationMethodParameters = new GlobalAggregationMethodParameters();
+
+    @PersistEmbedded
+    GroupByPerformanceParameters m_performanceParameters = new GroupByPerformanceParameters();
 
     @Widget(title = "Sort lexicographically",
         description = "Lexicographically sorts all columns belonging to the same logical group, "

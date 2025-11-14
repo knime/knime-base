@@ -46,7 +46,7 @@
  * History
  *   20 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.groupby;
+package org.knime.base.node.preproc.groupby.common;
 
 import java.util.List;
 import java.util.function.Supplier;
@@ -55,13 +55,9 @@ import java.util.regex.PatternSyntaxException;
 
 import org.knime.base.data.aggregation.AggregationMethods;
 import org.knime.base.data.aggregation.AggregationOperatorParameters;
-import org.knime.base.node.preproc.groupby.LegacyPatternAggregatorsArrayPersistor.IndexedElement;
-import org.knime.base.node.preproc.groupby.LegacyPatternAggregatorsArrayPersistor.PatternAggregatorElementDTO;
-import org.knime.base.node.preproc.groupby.common.AggregationOperatorParametersProvider;
 import org.knime.base.node.preproc.groupby.common.AggregationOperatorParametersProvider.AggregationMethodRef;
-import org.knime.base.node.preproc.groupby.common.HasOperatorParameters;
-import org.knime.base.node.preproc.groupby.common.MissingValueOption;
-import org.knime.base.node.preproc.groupby.common.NoPersistenceElementFieldPersistor;
+import org.knime.base.node.preproc.groupby.common.LegacyPatternAggregatorsArrayPersistor.IndexedElement;
+import org.knime.base.node.preproc.groupby.common.LegacyPatternAggregatorsArrayPersistor.PatternAggregatorElementDTO;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.PersistArrayElement;
@@ -90,9 +86,10 @@ import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
  * Aggregation operators based on pattern matching of column names.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ * @since 5.9
  */
 @SuppressWarnings("restriction")
-class PatternAggregatorElement implements NodeParameters {
+public class PatternAggregatorElement implements NodeParameters {
 
     static final class PatternRef implements ParameterReference<String> {
     } //

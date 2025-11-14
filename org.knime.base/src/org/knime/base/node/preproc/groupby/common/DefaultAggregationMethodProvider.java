@@ -62,7 +62,7 @@ import org.knime.node.parameters.updates.StateProvider;
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-public abstract class DefaultAggregationMethodProvider implements StateProvider<String> {
+abstract class DefaultAggregationMethodProvider implements StateProvider<String> {
 
     /** The currently selected method to avoid updating it if it is already set. */
     private Supplier<String> m_methodSelf;
@@ -72,12 +72,12 @@ public abstract class DefaultAggregationMethodProvider implements StateProvider<
     /**
      * @return type provider class to obtain method for
      */
-    protected abstract Class<? extends ParameterReference<DataType>> getTypeProvider();
+    abstract Class<? extends ParameterReference<DataType>> getTypeProvider();
 
     /**
      * @return self reference for the method to not override if already set
      */
-    protected abstract Class<? extends ParameterReference<String>> getMethodSelfProvider();
+    abstract Class<? extends ParameterReference<String>> getMethodSelfProvider();
 
     @Override
     public final void init(final StateProviderInitializer initializer) {

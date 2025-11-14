@@ -46,7 +46,7 @@
  * History
  *   20 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.groupby;
+package org.knime.base.node.preproc.groupby.common;
 
 import java.util.Comparator;
 import java.util.HashSet;
@@ -56,14 +56,9 @@ import java.util.stream.Stream;
 
 import org.knime.base.data.aggregation.AggregationMethods;
 import org.knime.base.data.aggregation.AggregationOperatorParameters;
-import org.knime.base.node.preproc.groupby.LegacyDataTypeAggregatorsArrayPersistor.DataTypeAggregatorElementDTO;
-import org.knime.base.node.preproc.groupby.LegacyDataTypeAggregatorsArrayPersistor.IndexedElement;
-import org.knime.base.node.preproc.groupby.common.AggregationOperatorParametersProvider;
 import org.knime.base.node.preproc.groupby.common.AggregationOperatorParametersProvider.AggregationMethodRef;
-import org.knime.base.node.preproc.groupby.common.DefaultAggregationMethodProvider;
-import org.knime.base.node.preproc.groupby.common.HasOperatorParameters;
-import org.knime.base.node.preproc.groupby.common.MissingValueOption;
-import org.knime.base.node.preproc.groupby.common.NoPersistenceElementFieldPersistor;
+import org.knime.base.node.preproc.groupby.common.LegacyDataTypeAggregatorsArrayPersistor.DataTypeAggregatorElementDTO;
+import org.knime.base.node.preproc.groupby.common.LegacyDataTypeAggregatorsArrayPersistor.IndexedElement;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataType;

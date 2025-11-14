@@ -40,13 +40,17 @@
         }
       } ],
       "colNameOption" : "AGG_FIRST_PIV_LAST",
-      "groupByAdditionalParameters" : {
-        "columnNamePolicy" : "COLUMN_NAME_AGGREGATION_METHOD",
+      "columnNamePolicyParameters" : {
+        "columnNamePolicy" : "COLUMN_NAME_AGGREGATION_METHOD"
+      },
+      "globalAggregationMethodParameters" : {
         "maxUniqueValues" : 9000,
         "valueDelimiter" : {
           "delimiter" : ";",
           "version" : 1
-        },
+        }
+      },
+      "performanceParameters" : {
         "enableHiliting" : true,
         "processInMemory" : true,
         "retainOrder" : true
@@ -125,7 +129,7 @@
             "description" : "Select one or more column(s) for aggregation from the available\ncolumns list. Change the aggregation method in the Aggregation\ncolumn of the table. You can add the same column multiple\ntimes.\n",
             "default" : [ ]
           },
-          "groupByAdditionalParameters" : {
+          "columnNamePolicyParameters" : {
             "type" : "object",
             "properties" : {
               "columnNamePolicy" : {
@@ -142,31 +146,21 @@
                 "title" : "Aggregation name",
                 "description" : "The name of the resulting aggregation column(s) depends on the\nselected naming schema.\n<ul>\n    <li>Keep original name(s):\n    Keeps the original column names.\n    Note that you can use all aggregation columns only once with\n    this column naming option to prevent duplicate column names.\n    </li>\n    <li>Aggregation method (column name):\n    Uses the aggregation method first and appends the column name\n    in brackets\n    </li>\n    <li>Column name (aggregation method):\n    Uses the column name first and appends the aggregation method\n    in brackets\n    </li>\n</ul>\nAll aggregation methods get a * appended if the missing value option\nis not ticked in the aggregation settings in order to distinguish\nbetween columns that considered missing values in the aggregation\nprocess and columns that do not.\n",
                 "default" : "AGGREGATION_METHOD_COLUMN_NAME"
-              },
-              "enableHiliting" : {
-                "type" : "boolean",
-                "title" : "Enable hiliting",
-                "description" : "If enabled, the hiliting of a group row will hilite all rows of this\ngroup in other views. Depending on the number of rows, enabling this\nfeature might consume a lot of memory.\n",
-                "default" : false
-              },
+              }
+            },
+            "default" : {
+              "columnNamePolicy" : "AGGREGATION_METHOD_COLUMN_NAME"
+            }
+          },
+          "globalAggregationMethodParameters" : {
+            "type" : "object",
+            "properties" : {
               "maxUniqueValues" : {
                 "type" : "integer",
                 "format" : "int32",
                 "title" : "Maximum unique values per group",
                 "description" : "Defines the maximum number of unique values per group to avoid\nproblems with memory overloading. All groups with more unique\nvalues are skipped during the calculation and a missing value is set\nin the corresponding column, and a warning is displayed.\n",
                 "default" : 100000
-              },
-              "processInMemory" : {
-                "type" : "boolean",
-                "title" : "Process in memory",
-                "description" : "Process the table in the memory. Requires more memory but is faster\nsince the table needs not to be sorted prior aggregation.\nThe memory consumption depends on the number of unique groups and\nthe chosen aggregation method. The row order of the input table is\nautomatically retained.\n",
-                "default" : false
-              },
-              "retainOrder" : {
-                "type" : "boolean",
-                "title" : "Retain row order",
-                "description" : "Retains the original row order of the input table.\nCould result in longer execution time.\nThe row order is automatically retained if the process in memory\noption is selected.\n",
-                "default" : false
               },
               "valueDelimiter" : {
                 "type" : "object",
@@ -189,15 +183,11 @@
               }
             },
             "default" : {
-              "columnNamePolicy" : "AGGREGATION_METHOD_COLUMN_NAME",
               "maxUniqueValues" : 100000,
               "valueDelimiter" : {
                 "delimiter" : ", ",
                 "version" : 1
-              },
-              "enableHiliting" : false,
-              "processInMemory" : false,
-              "retainOrder" : false
+              }
             }
           },
           "groupByColumns" : {
@@ -252,6 +242,34 @@
             "title" : "Ignore missing values",
             "description" : "Ignore rows containing missing values in pivot column.",
             "default" : true
+          },
+          "performanceParameters" : {
+            "type" : "object",
+            "properties" : {
+              "enableHiliting" : {
+                "type" : "boolean",
+                "title" : "Enable hiliting",
+                "description" : "If enabled, the hiliting of a group row will hilite all rows of this\ngroup in other views. Depending on the number of rows, enabling this\nfeature might consume a lot of memory.\n",
+                "default" : false
+              },
+              "processInMemory" : {
+                "type" : "boolean",
+                "title" : "Process in memory",
+                "description" : "Process the table in the memory. Requires more memory but is faster\nsince the table needs not to be sorted prior aggregation.\nThe memory consumption depends on the number of unique groups and\nthe chosen aggregation method. The row order of the input table is\nautomatically retained.\n",
+                "default" : false
+              },
+              "retainOrder" : {
+                "type" : "boolean",
+                "title" : "Retain row order",
+                "description" : "Retains the original row order of the input table.\nCould result in longer execution time.\nThe row order is automatically retained if the process in memory\noption is selected.\n",
+                "default" : false
+              }
+            },
+            "default" : {
+              "enableHiliting" : false,
+              "processInMemory" : false,
+              "retainOrder" : false
+            }
           },
           "pivotColumns" : {
             "type" : "object",
@@ -428,10 +446,10 @@
         "scope" : "#/properties/model/properties/colNameOption"
       }, {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/groupByAdditionalParameters/properties/columnNamePolicy"
+        "scope" : "#/properties/model/properties/columnNamePolicyParameters/properties/columnNamePolicy"
       }, {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/groupByAdditionalParameters/properties/maxUniqueValues",
+        "scope" : "#/properties/model/properties/globalAggregationMethodParameters/properties/maxUniqueValues",
         "options" : {
           "validation" : {
             "max" : {
@@ -452,7 +470,7 @@
         }
       }, {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/groupByAdditionalParameters/properties/valueDelimiter/properties/delimiter"
+        "scope" : "#/properties/model/properties/globalAggregationMethodParameters/properties/valueDelimiter/properties/delimiter"
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/sortLexicographically",
@@ -469,26 +487,26 @@
       },
       "elements" : [ {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/groupByAdditionalParameters/properties/enableHiliting",
+        "scope" : "#/properties/model/properties/performanceParameters/properties/enableHiliting",
         "options" : {
           "format" : "checkbox"
         }
       }, {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/groupByAdditionalParameters/properties/processInMemory",
+        "scope" : "#/properties/model/properties/performanceParameters/properties/processInMemory",
         "options" : {
           "format" : "checkbox"
         }
       }, {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/groupByAdditionalParameters/properties/retainOrder",
+        "scope" : "#/properties/model/properties/performanceParameters/properties/retainOrder",
         "options" : {
           "format" : "checkbox"
         },
         "rule" : {
           "effect" : "DISABLE",
           "condition" : {
-            "scope" : "#/properties/model/properties/groupByAdditionalParameters/properties/processInMemory",
+            "scope" : "#/properties/model/properties/performanceParameters/properties/processInMemory",
             "schema" : {
               "const" : true
             }
@@ -563,18 +581,30 @@
           "colNameOption" : {
             "configPaths" : [ [ "column_name_option" ] ]
           },
-          "groupByAdditionalParameters" : {
+          "columnNamePolicyParameters" : {
             "type" : "object",
             "properties" : {
               "columnNamePolicy" : {
                 "configPaths" : [ [ "columnNamePolicy" ] ]
-              },
+              }
+            },
+            "propertiesRoute" : [ ".." ]
+          },
+          "globalAggregationMethodParameters" : {
+            "type" : "object",
+            "properties" : {
               "maxUniqueValues" : {
                 "configKey" : "maxNoneNumericalVals"
               },
               "valueDelimiter" : {
                 "configPaths" : [ [ "valueDelimiter" ] ]
-              },
+              }
+            },
+            "propertiesRoute" : [ ".." ]
+          },
+          "performanceParameters" : {
+            "type" : "object",
+            "properties" : {
               "enableHiliting" : {
                 "configKey" : "enableHilite"
               },
@@ -793,11 +823,6 @@
     "dependencies" : [ "#/properties/model/properties/columnAggregators/items/properties/aggregationMethod", "#/properties/model/properties/columnAggregators/items/properties/dataType" ]
   }, {
     "trigger" : {
-      "scope" : "#/properties/model/properties/groupByAdditionalParameters/properties/processInMemory"
-    },
-    "dependencies" : [ "#/properties/model/properties/groupByAdditionalParameters/properties/processInMemory", "#/properties/model/properties/groupByAdditionalParameters/properties/retainOrder" ]
-  }, {
-    "trigger" : {
       "scope" : "#/properties/model/properties/groupByColumns"
     },
     "dependencies" : [ "#/properties/model/properties/groupByColumns", "#/properties/model/properties/pivotColumns" ]
@@ -806,6 +831,11 @@
       "scope" : "#/properties/model/properties/groupByColumns/properties/twinList/properties/inclList"
     },
     "dependencies" : [ "#/properties/model/properties/groupByColumns/properties/twinList/properties/inclList" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/performanceParameters/properties/processInMemory"
+    },
+    "dependencies" : [ "#/properties/model/properties/performanceParameters/properties/processInMemory", "#/properties/model/properties/performanceParameters/properties/retainOrder" ]
   }, {
     "trigger" : {
       "scope" : "#/properties/model/properties/pivotColumns"
