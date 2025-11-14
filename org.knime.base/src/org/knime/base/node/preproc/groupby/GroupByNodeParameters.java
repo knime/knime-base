@@ -51,13 +51,16 @@ import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import org.knime.base.node.preproc.groupby.GroupByNodeModel.TypeMatch;
 import org.knime.base.node.preproc.groupby.common.ColumnAggregatorElement;
-import org.knime.base.node.preproc.groupby.common.GroupByAdditionalParameters;
+import org.knime.base.node.preproc.groupby.common.ColumnNamePolicyParameters;
+import org.knime.base.node.preproc.groupby.common.DataTypeAggregationParameters;
+import org.knime.base.node.preproc.groupby.common.GlobalAggregationMethodParameters;
+import org.knime.base.node.preproc.groupby.common.GroupByPerformanceParameters;
 import org.knime.base.node.preproc.groupby.common.LegacyColumnAggregatorsMigration;
 import org.knime.base.node.preproc.groupby.common.LegacyColumnAggregatorsPersistor;
+import org.knime.base.node.preproc.groupby.common.LegacyPatternAggregatorsArrayPersistor;
+import org.knime.base.node.preproc.groupby.common.PatternAggregatorElement;
 import org.knime.core.data.DataColumnSpec;
-import org.knime.core.node.NodeLogger;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.PersistArray;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.PersistWithin.PersistEmbedded;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
@@ -72,16 +75,11 @@ import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.persistence.legacy.LegacyStringFilter;
 import org.knime.node.parameters.persistence.legacy.LegacyStringFilter.ColumnBasedExclListProvider;
-import org.knime.node.parameters.updates.Effect;
-import org.knime.node.parameters.updates.Effect.EffectType;
-import org.knime.node.parameters.updates.EffectPredicate;
-import org.knime.node.parameters.updates.EffectPredicateProvider;
 import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.choices.ChoicesStateProvider;
 import org.knime.node.parameters.widget.choices.ColumnChoicesProvider;
 import org.knime.node.parameters.widget.choices.TypedStringChoice;
-import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 import org.knime.node.parameters.widget.choices.util.AllColumnsProvider;
 
 /**
@@ -92,8 +90,6 @@ import org.knime.node.parameters.widget.choices.util.AllColumnsProvider;
 @LoadDefaultsForAbsentFields
 @SuppressWarnings("restriction") // internal API use
 final class GroupByNodeParameters implements NodeParameters {
-
-    static final NodeLogger LOGGER = NodeLogger.getLogger(GroupByNodeParameters.class);
 
     @Persist(configKey = GroupByNodeModel.CFG_GROUP_BY_COLUMNS)
     @Modification(GroupByColumnsModification.class)
@@ -175,7 +171,7 @@ final class GroupByNodeParameters implements NodeParameters {
     }
 
     @Layout(Sections.PatternAggregation.class)
-    @Widget(title = "Pattern", description = """
+    @Widget(title = "Pattern Based Aggregation", description = """
             <p>The search pattern can either be a string with wildcards or a
             <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Pattern.html#sum">
             regular expression</a>.</p>
@@ -189,43 +185,16 @@ final class GroupByNodeParameters implements NodeParameters {
     @PersistArray(LegacyPatternAggregatorsArrayPersistor.class)
     PatternAggregatorElement[] m_patternAggregators = new PatternAggregatorElement[0];
 
-    @Layout(Sections.TypeAggregation.class)
-    @Widget(title = "Type", description = """
-            Aggregations are applied to all columns of the selected type.
-            """)
-    @ArrayWidget(addButtonText = "Add type")
-    @PersistArray(LegacyDataTypeAggregatorsArrayPersistor.class)
-    @ValueReference(TypeAggregationsRef.class)
-    DataTypeAggregatorElement[] m_dataTypeAggregators = new DataTypeAggregatorElement[0];
-
-    static final class TypeAggregationsRef implements ParameterReference<DataTypeAggregatorElement[]> {
-    }
-
-    @Layout(Sections.TypeAggregation.class)
-    @Effect(predicate = HasTypeAggregations.class, type = EffectType.SHOW)
-    @Widget(title = "Type matching", description = """
-            <ul>
-                <li><b>Strict:</b> the type based aggregation method is only applied to columns of the
-                    selected type.
-                </li>
-                <li><b>Include sub-types:</b> the type based aggregation method is also applied to columns containing
-                    sub-types of the selected type. For example <i>Boolean</i> is a sub-type of <i>Integer</i>,
-                <i>Integer</i> of <i>Long</i>, and <i>Long</i> of <i>Double</i>.</li>
-            </ul>
-            """)
-    @ValueSwitchWidget
-    @Persistor(LegacyTypeMatchPersistor.class)
-    TypeMatch m_typeMatch = TypeMatch.STRICT;
-
-    static final class HasTypeAggregations implements EffectPredicateProvider {
-        @Override
-        public EffectPredicate init(final PredicateInitializer i) {
-            // neither TrueCondition, nor ConstantPredicate is exported
-            return i.getArray(TypeAggregationsRef.class).containsElementSatisfying(el -> el.always());
-        }
-    }
+    @PersistEmbedded
+    DataTypeAggregationParameters m_dataTypeAggregationParameters = new DataTypeAggregationParameters();
 
     @PersistEmbedded
-    GroupByAdditionalParameters m_additionalParameters = new GroupByAdditionalParameters();
+    ColumnNamePolicyParameters m_columnNamePolicyParameters = new ColumnNamePolicyParameters();
+
+    @PersistEmbedded
+    GlobalAggregationMethodParameters m_globalAggregationMethodParameters = new GlobalAggregationMethodParameters();
+
+    @PersistEmbedded
+    GroupByPerformanceParameters m_performanceParameters = new GroupByPerformanceParameters();
 
 }

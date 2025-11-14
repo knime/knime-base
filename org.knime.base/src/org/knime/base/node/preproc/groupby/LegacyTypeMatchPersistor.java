@@ -45,36 +45,3 @@
  */
 
 package org.knime.base.node.preproc.groupby;
-
-import org.knime.base.node.preproc.groupby.GroupByNodeModel.TypeMatch;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.node.parameters.persistence.NodeParametersPersistor;
-
-/**
- * Legacy persistor for TypeMatch in GroupBy node.
- *
- * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
- */
-final class LegacyTypeMatchPersistor implements NodeParametersPersistor<TypeMatch> {
-
-    @Override
-    public TypeMatch load(final NodeSettingsRO settings) throws InvalidSettingsException {
-        // Same as GroupByNodeModel validation code for AP-7020
-        // (backwards-compatibility with KNIME before TypeMatch was introduced)
-        return TypeMatch.loadSettingsFrom(settings);
-    }
-
-    @Override
-    public void save(final TypeMatch obj, final NodeSettingsWO settings) {
-        if (obj != null) {
-            obj.saveSettingsTo(settings);
-        }
-    }
-
-    @Override
-    public String[][] getConfigPaths() {
-        return new String[][]{new String[]{"typeMatch"}};
-    }
-}

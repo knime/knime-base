@@ -46,7 +46,7 @@
  * History
  *   21 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.groupby;
+package org.knime.base.node.preproc.groupby.common;
 
 import java.util.Comparator;
 import java.util.List;
@@ -54,10 +54,8 @@ import java.util.List;
 import org.knime.base.data.aggregation.AggregationMethods;
 import org.knime.base.data.aggregation.AggregationOperatorParameters;
 import org.knime.base.data.aggregation.dialogutil.type.DataTypeAggregator;
-import org.knime.base.node.preproc.groupby.LegacyDataTypeAggregatorsArrayPersistor.DataTypeAggregatorElementDTO;
-import org.knime.base.node.preproc.groupby.LegacyDataTypeAggregatorsArrayPersistor.IndexedElement;
-import org.knime.base.node.preproc.groupby.common.LegacyAggregationOperatorParameters;
-import org.knime.base.node.preproc.groupby.common.MissingValueOption;
+import org.knime.base.node.preproc.groupby.common.LegacyDataTypeAggregatorsArrayPersistor.DataTypeAggregatorElementDTO;
+import org.knime.base.node.preproc.groupby.common.LegacyDataTypeAggregatorsArrayPersistor.IndexedElement;
 import org.knime.core.data.DataType;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
@@ -74,10 +72,12 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.Eleme
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-final class LegacyDataTypeAggregatorsArrayPersistor
+public final class LegacyDataTypeAggregatorsArrayPersistor
     implements ArrayPersistor<IndexedElement, DataTypeAggregatorElementDTO> {
 
     private static final String F_ARRAY_INDEX = "f_${array_index}";
+
+    private static final String CFG_DATA_TYPE_AGGREGATORS = "dataTypeAggregators";
 
     private DataTypeAggregator[] m_aggregators;
 
@@ -97,8 +97,7 @@ final class LegacyDataTypeAggregatorsArrayPersistor
 
         @Override
         public String[][] getConfigPaths() {
-            return new String[][]{
-                new String[]{GroupByNodeModel.CFG_DATA_TYPE_AGGREGATORS, F_ARRAY_INDEX, "dataType"}};
+            return new String[][]{new String[]{CFG_DATA_TYPE_AGGREGATORS, F_ARRAY_INDEX, "dataType"}};
         }
     }
 
@@ -118,8 +117,7 @@ final class LegacyDataTypeAggregatorsArrayPersistor
 
         @Override
         public String[][] getConfigPaths() {
-            return new String[][]{
-                new String[]{GroupByNodeModel.CFG_DATA_TYPE_AGGREGATORS, F_ARRAY_INDEX, "aggregationMethod"}};
+            return new String[][]{new String[]{CFG_DATA_TYPE_AGGREGATORS, F_ARRAY_INDEX, "aggregationMethod"}};
         }
     }
 
@@ -140,8 +138,7 @@ final class LegacyDataTypeAggregatorsArrayPersistor
 
         @Override
         public String[][] getConfigPaths() {
-            return new String[][]{
-                new String[]{GroupByNodeModel.CFG_DATA_TYPE_AGGREGATORS, F_ARRAY_INDEX, "inclMissingVals"}};
+            return new String[][]{new String[]{CFG_DATA_TYPE_AGGREGATORS, F_ARRAY_INDEX, "inclMissingVals"}};
         }
     }
 
@@ -156,7 +153,7 @@ final class LegacyDataTypeAggregatorsArrayPersistor
                 return null;
             }
             final var cfg = nodeSettings //
-                .getNodeSettings(GroupByNodeModel.CFG_DATA_TYPE_AGGREGATORS) //
+                .getNodeSettings(CFG_DATA_TYPE_AGGREGATORS) //
                 .getNodeSettings("f_" + loadContext.m_index) //
                 .getNodeSettings("functionSettings");
             final var paramClass = AggregationMethods.getInstance().getParametersClassFor(aggr.getId()).orElse(null);
@@ -215,7 +212,7 @@ final class LegacyDataTypeAggregatorsArrayPersistor
 
     @Override
     public int getArrayLength(final NodeSettingsRO nodeSettings) throws InvalidSettingsException {
-        m_aggregators = DataTypeAggregator.loadAggregators(nodeSettings, GroupByNodeModel.CFG_DATA_TYPE_AGGREGATORS)
+        m_aggregators = DataTypeAggregator.loadAggregators(nodeSettings, CFG_DATA_TYPE_AGGREGATORS)
             .toArray(DataTypeAggregator[]::new);
         return m_aggregators.length;
     }
@@ -238,7 +235,7 @@ final class LegacyDataTypeAggregatorsArrayPersistor
             .map(DataTypeAggregatorElementDTO::getElement) //
             .map(LegacyDataTypeAggregatorsArrayPersistor::mapToAggregator) //
             .toList();
-        DataTypeAggregator.saveAggregators(nodeSettings, GroupByNodeModel.CFG_DATA_TYPE_AGGREGATORS, aggs);
+        DataTypeAggregator.saveAggregators(nodeSettings, CFG_DATA_TYPE_AGGREGATORS, aggs);
     }
 
     static DataTypeAggregator mapToAggregator(final DataTypeAggregatorElement elem) {

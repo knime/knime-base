@@ -46,7 +46,7 @@
  * History
  *   21 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.groupby;
+package org.knime.base.node.preproc.groupby.common;
 
 import java.util.Comparator;
 import java.util.List;
@@ -54,10 +54,8 @@ import java.util.List;
 import org.knime.base.data.aggregation.AggregationMethods;
 import org.knime.base.data.aggregation.AggregationOperatorParameters;
 import org.knime.base.data.aggregation.dialogutil.pattern.PatternAggregator;
-import org.knime.base.node.preproc.groupby.LegacyPatternAggregatorsArrayPersistor.IndexedElement;
-import org.knime.base.node.preproc.groupby.LegacyPatternAggregatorsArrayPersistor.PatternAggregatorElementDTO;
-import org.knime.base.node.preproc.groupby.common.LegacyAggregationOperatorParameters;
-import org.knime.base.node.preproc.groupby.common.MissingValueOption;
+import org.knime.base.node.preproc.groupby.common.LegacyPatternAggregatorsArrayPersistor.IndexedElement;
+import org.knime.base.node.preproc.groupby.common.LegacyPatternAggregatorsArrayPersistor.PatternAggregatorElementDTO;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
@@ -73,16 +71,17 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.Eleme
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-final class LegacyPatternAggregatorsArrayPersistor
+public final class LegacyPatternAggregatorsArrayPersistor
     implements ArrayPersistor<IndexedElement, PatternAggregatorElementDTO> {
 
     private static final String F_ARRAY_INDEX = "f_${array_index}";
+
+    private static final String CFG_PATTERN_AGGREGATORS = "patternAggregators";
 
     private PatternAggregator[] m_aggregators;
 
     static final class PatternPersistor
         implements ElementFieldPersistor<String, IndexedElement, PatternAggregatorElementDTO> {
-
 
         @Override
         public String load(final NodeSettingsRO nodeSettings, final IndexedElement loadContext)
@@ -97,8 +96,7 @@ final class LegacyPatternAggregatorsArrayPersistor
 
         @Override
         public String[][] getConfigPaths() {
-            return new String[][]{
-                new String[]{GroupByNodeModel.CFG_PATTERN_AGGREGATORS, F_ARRAY_INDEX, "inputPattern"}};
+            return new String[][]{new String[]{CFG_PATTERN_AGGREGATORS, F_ARRAY_INDEX, "inputPattern"}};
         }
     }
 
@@ -118,8 +116,7 @@ final class LegacyPatternAggregatorsArrayPersistor
 
         @Override
         public String[][] getConfigPaths() {
-            return new String[][]{
-                new String[]{GroupByNodeModel.CFG_PATTERN_AGGREGATORS, F_ARRAY_INDEX, "isRegularExpression"}};
+            return new String[][]{new String[]{CFG_PATTERN_AGGREGATORS, F_ARRAY_INDEX, "isRegularExpression"}};
         }
 
     }
@@ -140,8 +137,7 @@ final class LegacyPatternAggregatorsArrayPersistor
 
         @Override
         public String[][] getConfigPaths() {
-            return new String[][]{
-                new String[]{GroupByNodeModel.CFG_PATTERN_AGGREGATORS, F_ARRAY_INDEX, "aggregationMethod"}};
+            return new String[][]{new String[]{CFG_PATTERN_AGGREGATORS, F_ARRAY_INDEX, "aggregationMethod"}};
         }
 
     }
@@ -163,8 +159,7 @@ final class LegacyPatternAggregatorsArrayPersistor
 
         @Override
         public String[][] getConfigPaths() {
-            return new String[][]{
-                new String[]{GroupByNodeModel.CFG_PATTERN_AGGREGATORS, F_ARRAY_INDEX, "inclMissingVals"}};
+            return new String[][]{new String[]{CFG_PATTERN_AGGREGATORS, F_ARRAY_INDEX, "inclMissingVals"}};
         }
     }
 
@@ -179,7 +174,7 @@ final class LegacyPatternAggregatorsArrayPersistor
                 return null;
             }
             final var cfg = nodeSettings //
-                .getNodeSettings(GroupByNodeModel.CFG_PATTERN_AGGREGATORS) //
+                .getNodeSettings(CFG_PATTERN_AGGREGATORS) //
                 .getNodeSettings("f_" + loadContext.m_index) //
                 .getNodeSettings("functionSettings");
             final var paramClass = AggregationMethods.getInstance().getParametersClassFor(aggr.getId()).orElse(null);
@@ -238,8 +233,8 @@ final class LegacyPatternAggregatorsArrayPersistor
 
     @Override
     public int getArrayLength(final NodeSettingsRO nodeSettings) throws InvalidSettingsException {
-        m_aggregators = PatternAggregator.loadAggregators(nodeSettings, GroupByNodeModel.CFG_PATTERN_AGGREGATORS)
-            .toArray(PatternAggregator[]::new);
+        m_aggregators =
+            PatternAggregator.loadAggregators(nodeSettings, CFG_PATTERN_AGGREGATORS).toArray(PatternAggregator[]::new);
         return m_aggregators.length;
     }
 
@@ -261,7 +256,7 @@ final class LegacyPatternAggregatorsArrayPersistor
             .map(PatternAggregatorElementDTO::getElement) //
             .map(LegacyPatternAggregatorsArrayPersistor::mapToAggregator) //
             .toList();
-        PatternAggregator.saveAggregators(nodeSettings, GroupByNodeModel.CFG_PATTERN_AGGREGATORS, aggs);
+        PatternAggregator.saveAggregators(nodeSettings, CFG_PATTERN_AGGREGATORS, aggs);
     }
 
     static PatternAggregator mapToAggregator(final PatternAggregatorElement elem) {

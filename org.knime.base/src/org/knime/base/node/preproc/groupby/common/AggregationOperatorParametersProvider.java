@@ -75,8 +75,8 @@ import org.knime.node.parameters.updates.ParameterReference;
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-@SuppressWarnings({"restriction", "javadoc"})
-public abstract class AggregationOperatorParametersProvider
+@SuppressWarnings({"restriction"})
+abstract class AggregationOperatorParametersProvider
     implements DynamicParameters.DynamicParametersWithFallbackProvider<AggregationOperatorParameters> {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(AggregationOperatorParametersProvider.class);
@@ -85,9 +85,9 @@ public abstract class AggregationOperatorParametersProvider
 
     private Supplier<String> m_aggregationMethodSupplier;
 
-    protected abstract Class<? extends ParameterReference<AggregationOperatorParameters>> getParameterRefClass();
+    abstract Class<? extends ParameterReference<AggregationOperatorParameters>> getParameterRefClass();
 
-    protected abstract Class<? extends AggregationMethodRef> getMethodParameterRefClass();
+    abstract Class<? extends AggregationMethodRef> getMethodParameterRefClass();
 
     public interface AggregationMethodRef extends ParameterReference<String> {
     } //
