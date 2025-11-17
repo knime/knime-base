@@ -49,7 +49,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
 
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.webui.node.dialog.SettingsType;
@@ -78,22 +79,20 @@ final class ReadSysPropertyNodeParametersTest extends DefaultNodeSettingsSnapsho
             .build();
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @Test
-    protected void testSnapshot() throws IOException {
-        var props = System.getProperties();
-        var propsBackup = (Properties) props.clone();
+    private Properties m_originalProperties;
+
+    @BeforeEach
+    void addProperties() {
+        final var props = System.getProperties();
+        m_originalProperties = (Properties) props.clone();
         props.clear();
         System.setProperty("prop1", "val1");
         System.setProperty("prop2", "val2");
-        try {
-            super.testSnapshot();
-        } finally {
-            System.setProperties(propsBackup);
-        }
+    }
+
+    @AfterEach
+    void restoreProperties() {
+        System.setProperties(m_originalProperties);
     }
 
     private static ReadSysPropertyNodeParameters readSettings() {
