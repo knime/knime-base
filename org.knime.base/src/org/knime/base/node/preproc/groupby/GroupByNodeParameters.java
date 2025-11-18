@@ -197,4 +197,7 @@ final class GroupByNodeParameters implements NodeParameters {
     @PersistEmbedded
     GroupByPerformanceParameters m_performanceParameters = new GroupByPerformanceParameters();
 
+    @Persist(configKey = GroupByNodeModel.CFG_VALIDATE_AGGREGATION_COLUMNS)
+    boolean m_validateAggregationColumns = true;
+
 }

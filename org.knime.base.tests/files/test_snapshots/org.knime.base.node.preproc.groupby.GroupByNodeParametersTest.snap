@@ -28,7 +28,8 @@
         "enableHiliting" : false,
         "processInMemory" : false,
         "retainOrder" : false
-      }
+      },
+      "validateAggregationColumns" : true
     }
   },
   "schema" : {
@@ -327,6 +328,10 @@
               "processInMemory" : false,
               "retainOrder" : false
             }
+          },
+          "validateAggregationColumns" : {
+            "type" : "boolean",
+            "default" : true
           }
         }
       }
@@ -730,6 +735,9 @@
               }
             },
             "propertiesRoute" : [ ".." ]
+          },
+          "validateAggregationColumns" : {
+            "configKey" : "validateAggregationColumns"
           }
         }
       }

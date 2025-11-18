@@ -46,4 +46,5 @@
     <entry key="enableHilite" type="xboolean" value="false"/>
     <entry key="inMemory" type="xboolean" value="false"/>
     <entry key="retainOrder" type="xboolean" value="false"/>
+    <entry key="validateAggregationColumns" type="xboolean" value="true"/>
 </config>

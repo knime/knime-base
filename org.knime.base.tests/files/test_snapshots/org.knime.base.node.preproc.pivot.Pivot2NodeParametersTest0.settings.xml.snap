@@ -76,4 +76,5 @@
     <entry key="inMemory" type="xboolean" value="true"/>
     <entry key="retainOrder" type="xboolean" value="true"/>
     <entry key="sort_lexicographical" type="xboolean" value="true"/>
+    <entry key="validateAggregationColumns" type="xboolean" value="true"/>
 </config>

@@ -55,7 +55,8 @@
         "processInMemory" : true,
         "retainOrder" : true
       },
-      "sortLexicographically" : true
+      "sortLexicographically" : true,
+      "validateAggregationColumns" : true
     }
   },
   "schema" : {
@@ -317,6 +318,10 @@
             "title" : "Sort lexicographically",
             "description" : "Lexicographically sorts all columns belonging to the same logical group, i.e., pivots (aggregations), groups, and overall totals.",
             "default" : false
+          },
+          "validateAggregationColumns" : {
+            "type" : "boolean",
+            "default" : true
           }
         }
       }
@@ -619,6 +624,9 @@
           },
           "sortLexicographically" : {
             "configKey" : "sort_lexicographical"
+          },
+          "validateAggregationColumns" : {
+            "configKey" : "validateAggregationColumns"
           }
         }
       }

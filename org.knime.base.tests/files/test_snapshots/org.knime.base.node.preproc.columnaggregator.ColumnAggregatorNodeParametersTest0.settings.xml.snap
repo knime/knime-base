@@ -63,4 +63,5 @@
     <entry key="maxNoneNumericalVals" type="xint" value="9000"/>
     <entry key="valueDelimiter" type="xstring" value="; "/>
     <entry key="nodeVersion" type="xint" value="1"/>
+    <entry key="validateAggregationMethods" type="xboolean" value="true"/>
 </config>

@@ -27,7 +27,8 @@
           "delimiter" : ", ",
           "version" : 1
         }
-      }
+      },
+      "validateAggregationColumns" : true
     }
   },
   "schema" : {
@@ -235,6 +236,10 @@
             "title" : "Remove retained columns",
             "description" : "If selected the columns that are not aggregate are filtered\nfrom the output table.\n",
             "default" : false
+          },
+          "validateAggregationColumns" : {
+            "type" : "boolean",
+            "default" : true
           }
         }
       }
@@ -366,6 +371,9 @@
               }
             },
             "propertiesRoute" : [ ".." ]
+          },
+          "validateAggregationColumns" : {
+            "configKey" : "validateAggregationMethods"
           }
         }
       }

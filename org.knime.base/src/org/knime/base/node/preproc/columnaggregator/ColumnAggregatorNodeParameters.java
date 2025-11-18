@@ -61,6 +61,7 @@ import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.array.ArrayWidget;
 import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
+import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.persistence.legacy.LegacyColumnFilterPersistor;
 import org.knime.node.parameters.updates.ParameterReference;
@@ -146,5 +147,8 @@ class ColumnAggregatorNodeParameters implements NodeParameters {
 
     @PersistEmbedded
     GlobalAggregationMethodParameters m_globalAggregationMethodParameters = new GlobalAggregationMethodParameters();
+
+    @Persist(configKey = ColumnAggregatorNodeModel.CFG_VALIDATE_AGGREGATION_METHODS)
+    boolean m_validateAggregationColumns = true;
 
 }

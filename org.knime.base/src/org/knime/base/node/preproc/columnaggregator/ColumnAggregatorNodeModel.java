@@ -52,12 +52,16 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.knime.base.data.aggregation.GlobalSettings;
 import org.knime.base.data.aggregation.GlobalSettings.AggregationContext;
 import org.knime.base.data.aggregation.NamedAggregationOperator;
+import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataType;
 import org.knime.core.data.container.CellFactory;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.filestore.FileStoreFactory;
@@ -98,6 +102,14 @@ public class ColumnAggregatorNodeModel extends NodeModel {
         + "aggregation method is required to perform an aggregation.";
     private static final String ERROR_NO_AGG_COLS_SPECIFIED = "No aggregated column(s) specified. At least one column "
         + "is needed to perform an aggregation.";
+
+    /**
+     * Feature flag key introduced with 5.10 since with the introduction of {@link ColumnAggregatorNodeParameters} it is
+     * possible to apply aggregation methods that are missing if the user has added additional columns to aggregate.
+     */
+    static final String CFG_VALIDATE_AGGREGATION_METHODS = "validateAggregationMethods";
+
+    private boolean m_validateAggregationMethods;
 
     private final SettingsModelColumnFilter2 m_aggregationCols = createAggregationColsModel();
 
@@ -177,12 +189,33 @@ public class ColumnAggregatorNodeModel extends NodeModel {
         if (selectedCols == null || selectedCols.isEmpty()) {
             throw new InvalidSettingsException(ERROR_NO_AGG_COLS_SPECIFIED);
         }
+        validateAggregationMethods(inSpec, selectedCols);
         //configure also all aggregation operators to check if they can be
         //applied to the given input table
         NamedAggregationOperator.configure(inSpec, m_methods);
         final var cellFactory = new AggregationCellFactory(inSpec, selectedCols, GlobalSettings.DEFAULT, m_methods,
             Arrays.asList(getColsToRemove(inSpec)));
         return new DataTableSpec[]{ createRearranger(inSpec, cellFactory).createSpec() };
+    }
+
+    private void validateAggregationMethods(final DataTableSpec inSpec, final List<String> selectedCols)
+        throws InvalidSettingsException {
+        if (m_validateAggregationMethods) {
+            final var selectedColsSet = selectedCols.stream().collect(Collectors.toSet());
+            final var dataTypes = inSpec.stream().filter(col -> selectedColsSet.contains(col.getName()))
+                .map(DataColumnSpec::getType).collect(Collectors.toSet());
+            for (final var method : m_methods) {
+                final var incompatibleDataTypes =
+                    dataTypes.stream().filter(Predicate.not(method::isCompatible)).toList();
+                if (!incompatibleDataTypes.isEmpty()) {
+                    final var dataTypeNames =
+                        incompatibleDataTypes.stream().map(DataType::getName).collect(Collectors.joining(", "));
+                    throw new InvalidSettingsException(String.format(
+                        "The aggregation method '%s' is not compatible with the data types of chosen aggregation columns: %s",
+                        method.getName(), dataTypeNames));
+                }
+            }
+        }
     }
 
     /**
@@ -311,6 +344,7 @@ public class ColumnAggregatorNodeModel extends NodeModel {
             //this flag was introduced in 2.10 to mark the implementation version
             m_version.setIntValue(0);
         }
+        m_validateAggregationMethods = settings.getBoolean(CFG_VALIDATE_AGGREGATION_METHODS, false);
     }
 
     /**

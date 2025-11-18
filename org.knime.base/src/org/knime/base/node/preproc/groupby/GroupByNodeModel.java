@@ -57,6 +57,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.knime.base.data.aggregation.AggregationMethod;
 import org.knime.base.data.aggregation.AggregationMethods;
@@ -90,6 +91,7 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.property.hilite.DefaultHiLiteMapper;
 import org.knime.core.node.property.hilite.HiLiteHandler;
 import org.knime.core.node.property.hilite.HiLiteTranslator;
+import org.knime.node.parameters.NodeParameters;
 
 /**
  * The {@link NodeModel} implementation of the group by node which uses the
@@ -241,6 +243,12 @@ public class GroupByNodeModel extends NodeModel {
 
     /**Configuration key for the pattern based aggregation methods.*/
     static final String CFG_PATTERN_AGGREGATORS = "patternAggregators";
+
+    /**
+     * Config key for a feature flag to validate that columns chosen for manual aggregation are not group-by columns.
+     * This was made possible with the introduction of {@link GroupByNodeParameters} with 5.10
+     */
+    static final String CFG_VALIDATE_AGGREGATION_COLUMNS = "validateAggregationColumns";
 
     private final SettingsModelFilterString m_groupByCols =
         createGroupByColsSettings();
@@ -405,6 +413,7 @@ public class GroupByNodeModel extends NodeModel {
         // with Knime 2.0 as well as the naming policy
         try {
             final List<ColumnAggregator> aggregators = ColumnAggregator.loadColumnAggregators(settings);
+            validateManualColumnAggregators(settings, groupByCols, aggregators);
             final List<DataTypeAggregator> typeAggregators = new LinkedList<>();
             final List<PatternAggregator> patternAggregators = new LinkedList<>();
             try {
@@ -432,6 +441,33 @@ public class GroupByNodeModel extends NodeModel {
         } catch (final IllegalArgumentException e) {
             throw new InvalidSettingsException(e.getMessage());
         }
+
+    }
+
+    /**
+     * Validation of manual column aggregators introduced since with the introduction of {@link NodeParameters} dialogs
+     * it becomes possible to apply manual aggregators with missing columns.
+     *
+     * @param settings the root settings of the node
+     * @param groupByCols list of group by columns (already extracted from settings)
+     * @param aggregators list of manual column aggregators (already extracted from settings)
+     * @throws IllegalArgumentException if a column is selected in the manual aggregators that should not be selected.
+     *
+     * @since 5.9
+     */
+    protected void validateManualColumnAggregators(final NodeSettingsRO settings, final List<String> groupByCols,
+        final List<ColumnAggregator> aggregators) throws IllegalArgumentException {
+        if (settings.getBoolean(CFG_VALIDATE_AGGREGATION_COLUMNS, false)) {
+            final var aggrCols =
+                aggregators.stream().map(ColumnAggregator::getOriginalColName).collect(Collectors.toSet());
+            for (final String groupByCol : groupByCols) {
+                if (aggrCols.contains(groupByCol)) {
+                    throw new IllegalArgumentException(
+                        "Column '" + groupByCol + "' is selected both as group-by column and for aggregation.");
+                }
+            }
+        }
+
     }
 
     /**

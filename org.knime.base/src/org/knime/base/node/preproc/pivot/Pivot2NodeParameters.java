@@ -285,4 +285,7 @@ class Pivot2NodeParameters implements NodeParameters {
     @Layout(Sections.Output.class)
     boolean m_sortLexicographically;
 
+    @Persist(configKey = Pivot2NodeModel.CFG_VALIDATE_AGGREGATION_COLUMNS)
+    boolean m_validateAggregationColumns = true;
+
 }

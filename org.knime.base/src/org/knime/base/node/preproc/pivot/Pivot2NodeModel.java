@@ -57,6 +57,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
+import java.util.stream.Collectors;
 
 import org.knime.base.data.aggregation.AggregationMethods;
 import org.knime.base.data.aggregation.ColumnAggregator;
@@ -281,6 +282,12 @@ public class Pivot2NodeModel extends GroupByNodeModel {
 
     /** The lexicographical sort config key. */
     static final String CFG_LEXICOGRAPHICAL_SORT = "sort_lexicographical";
+
+    /**
+     * Config key for a feature flag to validate that columns chosen for manual aggregation are neither group nor pivot
+     * columns. This was made possible with the introduction of {@link Pivot2NodeParameters} with 5.10
+     */
+    static final String CFG_VALIDATE_AGGREGATION_COLUMNS = "validateAggregationColumns";
 
     /** Configuration key of the selected group by columns. */
     protected static final String CFG_PIVOT_COLUMNS = "pivotColumns";
@@ -883,6 +890,45 @@ public class Pivot2NodeModel extends GroupByNodeModel {
         // Important note! PIV_ONLY valid implies that the selected
         // naming policy is valid too.
         super.validateSettings(settings);
+
+    }
+
+    @Override
+    protected void validateManualColumnAggregators(final NodeSettingsRO settings, final List<String> groupByCols,
+        final List<ColumnAggregator> aggregators) throws IllegalArgumentException {
+        try {
+            if (settings.getBoolean(CFG_VALIDATE_AGGREGATION_COLUMNS, false)) {
+                final var aggrCols =
+                    aggregators.stream().map(ColumnAggregator::getOriginalColName).collect(Collectors.toSet());
+                for (final String groupByCol : groupByCols) {
+                    if (aggrCols.contains(groupByCol)) {
+                        throw new InvalidSettingsException(
+                            "Column '" + groupByCol + "' is selected both as group-by column and for aggregation.");
+                    }
+                }
+                final List<String> pivotCols = loadTmpPivotSettings(settings);
+                for (final String pivotCol : pivotCols) {
+                    if (aggrCols.contains(pivotCol)) {
+                        throw new InvalidSettingsException(
+                            "Column '" + pivotCol + "' is selected both as pivot column and for aggregation.");
+                    }
+                }
+            }
+        } catch (final InvalidSettingsException e) {
+            throw new IllegalArgumentException(e.getMessage(), e);
+        }
+
+    }
+
+    private static List<String> loadTmpPivotSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+        return loadTmpColSettings(settings, CFG_PIVOT_COLUMNS);
+    }
+
+    private static List<String> loadTmpColSettings(final NodeSettingsRO settings, final String configKey)
+        throws InvalidSettingsException {
+        final SettingsModelFilterString tmpColSettings = new SettingsModelFilterString(configKey);
+        tmpColSettings.loadSettingsFrom(settings);
+        return tmpColSettings.getIncludeList();
     }
 
     /** {@inheritDoc} */
