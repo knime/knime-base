@@ -46,39 +46,51 @@
  * History
  *   27 Aug 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.filter.row3.operators.legacy.predicates;
+package org.knime.base.node.preproc.filter.row3.operators.legacy;
 
+import java.util.Optional;
 import java.util.OptionalInt;
 
 import org.knime.base.data.filter.row.v2.IndexedRowReadPredicate;
-import org.knime.base.node.preproc.filter.row3.operators.legacy.DynamicValuesInput;
-import org.knime.core.data.v2.RowRead;
+import org.knime.core.data.BooleanValue;
+import org.knime.core.data.DataType;
 import org.knime.core.node.InvalidSettingsException;
 
 /**
- * Factory for predicates that can be used to filter indexed {@link RowRead rows}.
+ * Predicate factory for {@link BooleanValue} columns, i.e. column data types that have
+ * {@link BooleanValue} as preferred value class.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-@FunctionalInterface
-public interface PredicateFactory {
+@SuppressWarnings("deprecation") // legacy DynamicValuesInput
+final class BooleanPredicateFactory extends AbstractPredicateFactory {
+
+    private final boolean m_matchTrue;
+
+    private BooleanPredicateFactory(final boolean matchTrue) {
+        m_matchTrue = matchTrue;
+    }
 
     /**
-     * Creates a filter predicate given a column index and a reference value input. In case the predicate does not
-     * operate on a column, an empty optional should be passed.
+     * Creates a factory for boolean predicates, if the column data type prefers {@link BooleanValue}.
      *
-     * <br><b>Note:</b>
-     * Implementations may throw {@link IllegalArgumentException} if the column index is <i>invalid</i>.
-     * Invalid means that it is provided but not used by the predicate factory or if it is not provided but required by
-     * the factory.
-     *
-     * @param columnIndex column index to filter on, or empty optional if not operating on a column
-     * @param inputValues input values to use as reference
-     * @return predicate predicate that can be used to filter rows
-     * @throws InvalidSettingsException in case the input values are missing or invalid
-     * @throws IllegalArgumentException in case the column index argument is invalid
+     * @param columnDataType the data type of the column
+     * @param matchTrue whether to match true or false
+     * @return an optional predicate factory
      */
-    IndexedRowReadPredicate createPredicate(OptionalInt columnIndex, final DynamicValuesInput inputValues) // NOSONAR make usage of column/no-column explicit
-        throws InvalidSettingsException;
+    static Optional<PredicateFactory> create(final DataType columnDataType, final boolean matchTrue) {
+        if (BooleanValue.class.equals(columnDataType.getPreferredValueClass())) {
+            return Optional.of(new BooleanPredicateFactory(matchTrue));
+        }
+        return Optional.empty();
+    }
+
+    @Override
+    public IndexedRowReadPredicate createPredicate(final OptionalInt colIdx, final DynamicValuesInput ignored)
+        throws InvalidSettingsException {
+        final var columnIndex = colIdx.orElseThrow(
+            () -> new IllegalStateException("Boolean predicate operates on column but did not get a column index"));
+        return (i, rowRead) -> rowRead.<BooleanValue> getValue(columnIndex).getBooleanValue() == m_matchTrue;
+    }
 
 }

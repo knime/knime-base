@@ -62,6 +62,7 @@ import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinVa
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
+@SuppressWarnings("restriction") // webui
 public final class RowNumberParameters implements SingleCellValueParameters<LongCell> {
 
     @Widget(title = "Row number", description = "The positive row number to compare with.")
@@ -107,5 +108,4 @@ public final class RowNumberParameters implements SingleCellValueParameters<Long
     public void validate() throws InvalidSettingsException {
         CheckUtils.checkSetting(m_value >= 1, "Row number value must be positive: %d", m_value);
     }
-
 }

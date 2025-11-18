@@ -56,6 +56,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extension
  *
  * @author Paul Bärnreuther
  */
+@SuppressWarnings("restriction") // webui
 public interface WildcardOperator extends FilterOperatorBase {
 
     /**

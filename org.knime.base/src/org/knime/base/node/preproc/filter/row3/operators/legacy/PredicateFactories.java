@@ -46,14 +46,13 @@
  * History
  *   26 Aug 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.filter.row3.operators.legacy.predicates;
+package org.knime.base.node.preproc.filter.row3.operators.legacy;
 
 import java.util.Optional;
 import java.util.function.IntFunction;
 
 import org.knime.base.data.filter.row.v2.IndexedRowReadPredicate;
 import org.knime.base.data.filter.row.v2.OffsetFilter;
-import org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterOperator;
 import org.knime.core.data.DataType;
 import org.knime.core.data.v2.RowRead;
 
@@ -64,6 +63,7 @@ import org.knime.core.data.v2.RowRead;
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
+@SuppressWarnings("deprecation")
 public final class PredicateFactories {
 
     /**

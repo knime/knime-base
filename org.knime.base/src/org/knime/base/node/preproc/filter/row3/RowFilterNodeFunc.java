@@ -87,14 +87,13 @@ abstract class RowFilterNodeFunc implements NodeFunc {
     @Override
     public void saveSettings(final NodeSettingsRO arguments, final PortObjectSpec[] inputSpecs,
         final NodeSettingsWO settings) throws InvalidSettingsException {
-        boolean include = arguments.getBoolean(INCLUDE);
         var tableSpec = (DataTableSpec)inputSpecs[0];
         var criteria = getFilterCriteria(arguments, tableSpec);
 
         // NodeFunc will always create a row filter with exactly one filter criterion
         var rowFilterSettings = new RowFilterNodeSettings();
         rowFilterSettings.m_predicates = criteria;
-        rowFilterSettings.m_outputMode = include ? FilterMode.MATCHING : FilterMode.NON_MATCHING;
+        rowFilterSettings.m_outputMode = arguments.getBoolean(INCLUDE) ? FilterMode.MATCHING : FilterMode.NON_MATCHING;
 
         NodeParametersUtil.saveSettings(RowFilterNodeSettings.class, rowFilterSettings, settings);
     }
@@ -317,7 +316,6 @@ abstract class RowFilterNodeFunc implements NodeFunc {
         FilterCriterion[] getFilterCriteria(final NodeSettingsRO arguments, final DataTableSpec tableSpec)
             throws InvalidSettingsException {
 
-            var operatorName = arguments.getString(OPERATOR);
             var rowNumber = arguments.getLong(ROW_NUMBER);
             if (rowNumber <= 0) {
                 throw new InvalidSettingsException("Row number must be larger than 0.");
@@ -325,7 +323,7 @@ abstract class RowFilterNodeFunc implements NodeFunc {
 
             var criterion = new FilterCriterion();
             criterion.m_column = new StringOrEnum<>(RowIdentifiers.ROW_NUMBER);
-            criterion.m_operator = getOperator(operatorName).name();
+            criterion.m_operator = getOperator(arguments.getString(OPERATOR)).name();
             criterion.m_filterValueParameters = new RowNumberParameters(rowNumber);
 
             return new FilterCriterion[]{criterion};
@@ -349,17 +347,19 @@ abstract class RowFilterNodeFunc implements NodeFunc {
         void extendApi(final Builder builder) {
             builder
                 .withDescription(
-                    "Creates a new table by filtering the range of rows by row number. The first row has row number 1.")//
+                    "Creates a new table by filtering the range of rows by row number. The first row has row number 1."
+                    )//
                 .withStringArgument(OPERATOR,
-                    String.format("The operator which will be used to filter the row numbers on:\n"
-                        + "%s: Returns the row number which equals the specified number.\n"
-                        + "%s: Returns the rows with row number not matching the specified number.\n"
-                        + "%s: Returns the rows with row number which are strictly smaller than specified number\n"
-                        + "%s: Returns the rows with row number which are smaller than or equal to specified number\n"
-                        + "%s: Returns the rows with row number which are strictly larger than specified number\n"
-                        + "%s: Returns the rows with row number which are larger than or equal than specified number\n"
-                        + "%s: Returns the first n rows from the start of the table.\n"
-                        + "%s: Returns the last n rows from the end of the table.", EQUALS, NEQUALS, LESSTHAN,
+                    String.format("""
+                        The operator which will be used to filter the row numbers on:
+                        %s: Returns the row number which equals the specified number.
+                        %s: Returns the rows with row number not matching the specified number.
+                        %s: Returns the rows with row number which are strictly smaller than specified number
+                        %s: Returns the rows with row number which are smaller than or equal to specified number
+                        %s: Returns the rows with row number which are strictly larger than specified number
+                        %s: Returns the rows with row number which are larger than or equal than specified number
+                        %s: Returns the first n rows from the start of the table.
+                        %s: Returns the last n rows from the end of the table.""", EQUALS, NEQUALS, LESSTHAN,
                         LESSTHANEQUALS, GREATERTHAN, GREATERTHANEQUALS, FIRSTN, LASTN))
                 .withOptionalLongArgument(ROW_NUMBER,
                     "The row number which filters rows of the table in combination with an operator.");

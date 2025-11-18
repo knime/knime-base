@@ -46,7 +46,7 @@
  * History
  *   27 Aug 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.filter.row3.operators.legacy.predicates;
+package org.knime.base.node.preproc.filter.row3.operators.legacy;
 
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
@@ -78,7 +78,7 @@ public final class StringPredicate implements Predicate<String> {
      * @param isCaseSensitive whether the comparison should be case-sensitive or not
      * @return equality string predicate
      */
-    public static StringPredicate equality(final String referenceValue, final boolean isCaseSensitive) {
+    public static StringPredicate equality(final String referenceValue, final boolean isCaseSensitive) { // NOSONAR legacy implementation
         final Predicate<String> predicate = isCaseSensitive ? referenceValue::equals : referenceValue::equalsIgnoreCase;
         return new StringPredicate(predicate);
     }
@@ -91,7 +91,7 @@ public final class StringPredicate implements Predicate<String> {
      * @param isCaseSensitive whether the match should be case-sensitive or not
      * @return pattern string predicate
      */
-    public static StringPredicate pattern(final String pattern, final boolean isRegex, final boolean isCaseSensitive) {
+    public static StringPredicate pattern(final String pattern, final boolean isRegex, final boolean isCaseSensitive) { // NOSONAR legacy implementation
         final var regexPattern = isRegex ? pattern : WildcardToRegexUtil.wildcardToRegex(pattern);
         var flags = Pattern.DOTALL | Pattern.MULTILINE;
         flags |= isCaseSensitive ? 0 : Pattern.CASE_INSENSITIVE;

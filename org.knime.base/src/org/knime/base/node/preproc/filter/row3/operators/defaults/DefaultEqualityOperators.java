@@ -80,7 +80,10 @@ public final class DefaultEqualityOperators {
      * @param dataType the data type to get the operators for
      * @return default implementations for testing equality
      */
-    @SuppressWarnings("restriction")
+    @SuppressWarnings({
+        "restriction", // webui
+        "java:S1452" // we don't have one concrete params type here for all of the returned operators
+    })
     public static List<FilterOperator<? extends FilterValueParameters>> getOperators(final DataType dataType) {
         return List.of( //
             new EqualDefault(), //

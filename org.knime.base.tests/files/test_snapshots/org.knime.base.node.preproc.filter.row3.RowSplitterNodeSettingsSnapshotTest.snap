@@ -92,6 +92,7 @@
                 "operator" : {
                   "type" : "string",
                   "title" : "Operator",
+                  "description" : "Select the filter operator to apply.",
                   "default" : "IS_TRUE"
                 }
               }
@@ -326,7 +327,7 @@
     },
     "dependencies" : [ "#/properties/model/properties/predicates/items/properties/column", "#/properties/model/properties/predicates/items/properties/columnType", "#/properties/model/properties/predicates/items/properties/filterValueParameters", "#/properties/model/properties/predicates/items/properties/operator" ]
   } ]
-}   "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.vector.bytevector.DenseByteVectorCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+}pe\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.vector.bytevector.DenseByteVectorCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
         "text" : "Byte Vector",
         "type" : {
           "id" : "org.knime.core.data.vector.bytevector.ByteVectorValue",

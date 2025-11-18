@@ -51,6 +51,7 @@ package org.knime.base.node.preproc.filter.row3;
 import static org.knime.base.node.preproc.filter.row3.RowIdentifiers.ROW_ID;
 import static org.knime.base.node.preproc.filter.row3.RowIdentifiers.ROW_NUMBER;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -153,18 +154,20 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
     static class FilterCriterion implements NodeParameters {
 
         interface Condition {
+            /** Section for column+operator */
             @HorizontalLayout
             interface ColumnOperator {
+                /** Section for column */
                 interface Column {
                 }
-
+                /** Section for operator */
                 interface Operator {
                 }
             }
-
+            /** Any modifiers to the operator go here, e.g. case-sensitivity*/
             interface Modifier {
             }
-
+            /** Actual value input */
             interface ValueInput {
             }
         }
@@ -253,7 +256,7 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
                 }
                 final var stringChoice = selectedColumn.getStringChoice();
                 return context.getInTableSpec(0).flatMap(s -> Optional.ofNullable(s.getColumnSpec(stringChoice)))
-                    .map(DataColumnSpec::getType).orElseThrow(() -> new StateComputationFailureException());
+                    .map(DataColumnSpec::getType).orElseThrow(StateComputationFailureException::new);
             }
         }
 
@@ -277,6 +280,7 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
                     .map(op -> new StringChoice(op.getId(), op.getLabel())).toList();
             }
 
+            @SuppressWarnings("java:S1452") // not all of the operators have the same concrete type
             static Stream<FilterOperatorDefinition<?>> getOperators(final StringOrEnum<RowIdentifiers> selectedColumn,
                 final NodeParametersInput context, final Supplier<DataType> previousDataType) {
                 return getOperatorsWithFallback(selectedColumn, context, () -> {
@@ -288,18 +292,20 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
                 });
             }
 
+            @SuppressWarnings("java:S1452") // not all of the operators have the same concrete type
             static Stream<FilterOperatorDefinition<?>> getOperators(final StringOrEnum<RowIdentifiers> selectedColumn,
                 final NodeParametersInput context) {
-                return getOperatorsWithFallback(selectedColumn, context, () -> Stream.of());
+                return getOperatorsWithFallback(selectedColumn, context, Stream::of);
             }
 
+            @SuppressWarnings("java:S1166") // we want to intercept the update and offer the fallback
             private static Stream<FilterOperatorDefinition<?>> getOperatorsWithFallback(
                 final StringOrEnum<RowIdentifiers> selectedColumn, final NodeParametersInput context,
                 final Supplier<Stream<FilterOperatorDefinition<?>>> fallback) {
                 try {
                     return getOperatorsOrThrow(selectedColumn, context);
                 } catch (final StateComputationFailureException e) {
-                    return fallback.get(); // NOSONAR
+                    return fallback.get();
                 }
             }
 
@@ -324,16 +330,16 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
                 return getOperators(dataType);
             }
 
+            @SuppressWarnings("java:S1452") // we don't know the concrete type
             static Stream<FilterOperatorDefinition<?>> getOperators(final DataType dataType) {
                 return FilterOperatorsUtil.getOperators(dataType).stream().map(FilterOperatorDefinition.class::cast);
             }
-
         }
 
         // We explicitly do not "reset" the current operator to one applicable for the current column data type,
         // in order to allow the user to switch between columns without resetting their operator selection.
         @ChoicesProvider(OperatorsProvider.class)
-        @Widget(title = "Operator", description = "") // TODO
+        @Widget(title = "Operator", description = "Select the filter operator to apply.")
         @Layout(Condition.ColumnOperator.Operator.class)
         @ValueReference(OperatorIdRef.class)
         String m_operator = EqualsOperator.ID;
@@ -383,14 +389,13 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
         }
 
         @Override
-        public void validate() throws InvalidSettingsException { // TODO: Use
+        public void validate() throws InvalidSettingsException {
             if (m_filterValueParameters != null) {
                 m_filterValueParameters.validate();
             }
         }
 
         void validate(final DataTableSpec spec) throws InvalidSettingsException {
-
             // check table slicing (filter on numeric row number values)
             final var isSlicingOperator = m_column.getEnumChoice().map(ROW_NUMBER::equals).orElse(false)
                 && FilterOperatorsUtil.findMatchingRowNumberOperator(m_operator)
@@ -402,7 +407,6 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
 
             // validate using filter on row read (i.e. values)
             toPredicate(spec, -1);
-
         }
 
         IndexedRowReadPredicate toPredicate(final DataTableSpec spec, final long optionalTableSize)
@@ -427,7 +431,6 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
             }
 
             return columnPredicate(spec, columnIndex);
-
         }
 
         private IndexedRowReadPredicate rowKeyPredicate() throws InvalidSettingsException {
@@ -442,7 +445,6 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
             @SuppressWarnings("unchecked")
             final var predicate = rowKeyFilterOperator.createPredicate((P)m_filterValueParameters);
             return (index, read) -> predicate.test(read.getRowKey());
-
         }
 
         private IndexedRowReadPredicate rowNumberPredicate(final long optionalTableSize)
@@ -450,7 +452,6 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
             final var operator = FilterOperatorsUtil.findMatchingRowNumberOperator(m_operator)
                 .orElseThrow(() -> new InvalidSettingsException("No row number operator found for ID \"%s\""));
             return toRowNumberBasedPredicate(operator, optionalTableSize);
-
         }
 
         private <P extends FilterValueParameters> IndexedRowReadPredicate toRowNumberBasedPredicate(
@@ -494,26 +495,22 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
         @DynamicParameters(value = FilterValueParametersProvider.class,
             widgetAppearingInNodeDescription = @Widget(title = "Filter value",
                 description = """
-                        The value for the filter criterion.
-                        <br/><br />
-
+                        The value for the filter criterion.<br/><br/>
                         <i>Note:</i> Currently, comparison values for non-numeric and non-string data types, e.g.
                         date&amp;time-based types, must be entered as its string representation like in the <a href="
                         """ + ExternalLinks.HUB_TABLE_CREATOR
                     + """
-                            "><i>Table Creator</i></a> node.
-                            <br/>
-
-                            The format for date&amp;time-based values is "ISO-8601 extended". For example, a "Local Date" must be
-                            entered in the format "2006-07-28". More information can be obtained from the ISO patterns in the
-                            "Predefined Formatters" table of the <a href="
-                            """
+                        "><i>Table Creator</i></a> node.<br/>
+                        The format for date&amp;time-based values is "ISO-8601 extended". For example, a "Local Date"
+                        must be entered in the format "2006-07-28". More information can be obtained from the ISO
+                        patterns in the "Predefined Formatters" table of the <a href="
+                        """
                     + ExternalLinks.ISO_DATETIME_PATTERNS + """
                             ">Java SE 17 documentation</a>.
-                                    """))
+                    """))
         @ValueReference(CurrentFilterValueParametersRef.class)
         @Migration(LegacyFilterParametersMigration.class)
-        FilterValueParameters m_filterValueParameters;// = new EqualsStringParameters("");
+        FilterValueParameters m_filterValueParameters;
 
         static final class CurrentFilterValueParametersRef implements ParameterReference<FilterValueParameters> {
         }
@@ -582,18 +579,20 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
                 if (currentValue != null && targetClass.equals(currentValue.getClass())) {
                     return currentValue;
                 }
+                FilterValueParameters newInstance;
                 try {
                     final var constructor = targetClass.getDeclaredConstructor();
-                    constructor.setAccessible(true);
-                    final var newInstance = constructor.newInstance();
-                    if (currentValue != null) {
-                        newInstance.applyStash(currentValue.stash());
-                    }
-                    return newInstance;
-                } catch (Exception e) {
+                    constructor.setAccessible(true); // NOSONAR
+                    newInstance = constructor.newInstance();
+                } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException
+                        | IllegalArgumentException | InvocationTargetException e) {
                     throw new IllegalStateException(
                         "Could not instantiate FilterValueParameters of type " + targetClass, e);
                 }
+                if (currentValue != null) {
+                    newInstance.applyStash(currentValue.stash());
+                }
+                return newInstance;
             }
 
         }
@@ -650,15 +649,15 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
     enum ColumnDomains {
             @Label(value = "Retain",
                 description = """
-                        Retain input domains on output columns, i.e. the upper and lower bounds or possible values in the table
-                        spec are not changed, even if one of the bounds or one value is fully filtered out from the output
-                        table. If the input does not contain domain information, so will the output.
-                            """)
+                Retain input domains on output columns, i.e. the upper and lower bounds or possible values in the table
+                spec are not changed, even if one of the bounds or one value is fully filtered out from the output
+                table. If the input does not contain domain information, so will the output.
+                    """)
             RETAIN, @Label(value = "Compute",
                 description = """
-                        Compute column domains on output columns, i.e. upper and lower bounds and possible values are computed
-                        only on the rows output by the node.
-                            """)
+                Compute column domains on output columns, i.e. upper and lower bounds and possible values are computed
+                only on the rows output by the node.
+                    """)
             COMPUTE;
     }
 
@@ -692,9 +691,7 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
 
         @Override
         public FilterCriterion computeState(final NodeParametersInput context) {
-            final var filterCriterion = new FilterCriterion(context);
-
-            return filterCriterion;
+            return new FilterCriterion(context);
         }
     }
 
@@ -707,21 +704,26 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
     // SECTIONS
 
     interface DialogSections {
+        /** Section for filter criteria */
         @Section(title = "Filter")
         interface Filter {
+            /** Section for switch "All"/"Any" */
             interface AllAny {
             }
-
+            /** Section for actual filter criteria */
             interface Conditions {
             }
         }
 
+        /** Section for configuring the output */
         @Section(title = "Output")
         @After(Filter.class)
         interface Output {
+            /** Section for the filter mode: retain/remove matches */
             interface OutputMode {
             }
 
+            /** Domain calculation for output table */
             interface Domain {
             }
         }
@@ -730,8 +732,8 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
     static IndexedRowReadPredicate createFilterPredicate(final boolean isAnd,
         final List<FilterCriterion> rowNumberCriteria, final List<FilterCriterion> dataCriteria,
         final DataTableSpec spec, final long tableSize) throws InvalidSettingsException {
-        // TODO(performance): use domain bounds to derive whether predicates are always true or always false
-        // TODO(performance): propagate ALWAYS_TRUE and ALWAYS_FALSE predicates
+        // [performance optimization]: use domain bounds to derive whether predicates are always true or always false
+        // [performance optimization]: propagate ALWAYS_TRUE and ALWAYS_FALSE predicates
         final var optRowNumbers = mergeRowNumberPredicates(isAnd, mapToPredicates(rowNumberCriteria, spec, tableSize));
         final var data = mergeValuePredicates(isAnd, mapToPredicates(dataCriteria, spec, tableSize)).orElseThrow(
             () -> new IllegalStateException("Row number predicate without data predicate, should have used slicing"));

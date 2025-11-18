@@ -51,7 +51,6 @@ package org.knime.base.node.preproc.filter.row3.operators.legacy;
 import java.util.OptionalInt;
 
 import org.knime.base.data.filter.row.v2.IndexedRowReadPredicate;
-import org.knime.base.node.preproc.filter.row3.operators.legacy.predicates.PredicateFactories;
 import org.knime.core.data.DataType;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.data.v2.RowRead;
@@ -64,7 +63,10 @@ import org.knime.node.parameters.widget.choices.Label;
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  * @author Jasper Krauter, KNIME GmbH, Konstanz, Germany
+ *
+ * @deprecated list of operators is generated via default and extension point operators now
  */
+@Deprecated(since = "5.10", forRemoval = false) // handling legacy settings
 public enum LegacyFilterOperator {
 
         /** Operator checking equality between values. */

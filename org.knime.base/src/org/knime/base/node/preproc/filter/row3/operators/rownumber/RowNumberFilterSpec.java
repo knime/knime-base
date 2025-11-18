@@ -48,7 +48,7 @@
  */
 package org.knime.base.node.preproc.filter.row3.operators.rownumber;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.function.LongFunction;
 
 import org.knime.base.data.filter.row.v2.FilterPartition;
@@ -64,6 +64,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extension
 /**
  * Subset of filter operators that represent a numeric filter on the row number.
  */
+@SuppressWarnings("restriction") // webui
 public final class RowNumberFilterSpec {
 
     /**
@@ -105,11 +106,13 @@ public final class RowNumberFilterSpec {
      * @param value 1-based row number value or number of last/first rows
      * @throws InvalidSettingsException in case the legacy operator is not supported for row number filtering
      */
+    @SuppressWarnings("deprecation") // for now we still use the legacy class
     public RowNumberFilterSpec(final LegacyFilterOperator operator, final long value) throws InvalidSettingsException {
         // map subset of supported legacy operators to offset-based filter
         this(fromLegacy(operator), value);
     }
 
+    @SuppressWarnings("deprecation") // for now we still use the legacy class
     private static Operator fromLegacy(final LegacyFilterOperator operator) throws InvalidSettingsException {
         return switch (operator) {
             case EQ -> Operator.EQ;
@@ -171,7 +174,7 @@ public final class RowNumberFilterSpec {
      * @return combined filter partition
      */
     public static FilterPartition computeRowPartition(final boolean isAnd,
-        final List<LongFunction<FilterPartition>> rowNumberFilters, final FilterMode outputMode,
+        final Collection<LongFunction<FilterPartition>> rowNumberFilters, final FilterMode outputMode,
         final long optionalTableSize) {
         final var matchedNonMatchedPartition = rowNumberFilters.stream() //
             .map(createPartition -> createPartition.apply(optionalTableSize)) //

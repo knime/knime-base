@@ -55,7 +55,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extension
 import org.knime.node.parameters.Widget;
 
 /**
- *
+ * Parameters for filtering {@link LocalDateCell} values.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */

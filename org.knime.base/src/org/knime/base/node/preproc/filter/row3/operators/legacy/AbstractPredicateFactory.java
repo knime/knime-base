@@ -46,13 +46,12 @@
  * History
  *   27 Aug 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.filter.row3.operators.legacy.predicates;
+package org.knime.base.node.preproc.filter.row3.operators.legacy;
 
 import java.util.OptionalInt;
 import java.util.function.UnaryOperator;
 
 import org.knime.base.data.filter.row.v2.IndexedRowReadPredicate;
-import org.knime.base.node.preproc.filter.row3.operators.legacy.DynamicValuesInput;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;
 import org.knime.core.node.InvalidSettingsException;
@@ -67,6 +66,7 @@ import org.knime.core.node.util.CheckUtils;
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
+@SuppressWarnings("deprecation") // legacy DynamicValuesInput
 abstract class AbstractPredicateFactory implements PredicateFactory {
 
     protected static final NodeLogger LOGGER = NodeLogger.getLogger(AbstractPredicateFactory.class);

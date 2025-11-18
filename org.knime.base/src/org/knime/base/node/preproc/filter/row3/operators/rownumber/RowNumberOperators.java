@@ -55,7 +55,6 @@ import java.util.function.LongPredicate;
 import org.knime.base.data.filter.row.v2.FilterPartition;
 import org.knime.base.node.preproc.filter.row3.operators.rownumber.RowNumberFilterSpec.Operator;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.builtin.EqualsOperator;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.builtin.GreaterThanOperator;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.builtin.GreaterThanOrEqualOperator;
@@ -68,6 +67,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extension
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
+@SuppressWarnings("restriction") // webui
 public final class RowNumberOperators {
 
     private RowNumberOperators() {
@@ -79,7 +79,7 @@ public final class RowNumberOperators {
      *
      * @return equality operators for row numbers
      */
-    public static List<RowNumberFilterOperator<? extends FilterValueParameters>> getOperators() {
+    public static List<RowNumberFilterOperator<RowNumberParameters>> getOperators() {
         return List.of( //
             new RowNumberEquals(), //
             new RowNumberNotEquals(), //
@@ -203,5 +203,4 @@ public final class RowNumberOperators {
             return "Last n rows";
         }
     }
-
 }

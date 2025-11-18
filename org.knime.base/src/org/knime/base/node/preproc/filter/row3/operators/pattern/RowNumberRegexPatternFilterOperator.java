@@ -50,7 +50,7 @@ package org.knime.base.node.preproc.filter.row3.operators.pattern;
 
 import java.util.function.LongPredicate;
 
-import org.knime.base.node.preproc.filter.row3.operators.legacy.predicates.StringPredicate;
+import org.knime.base.node.preproc.filter.row3.operators.legacy.StringPredicate;
 import org.knime.base.node.preproc.filter.row3.operators.rownumber.RowNumberFilterOperator;
 import org.knime.core.node.InvalidSettingsException;
 

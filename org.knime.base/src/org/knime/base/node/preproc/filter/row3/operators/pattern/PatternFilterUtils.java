@@ -51,8 +51,9 @@ package org.knime.base.node.preproc.filter.row3.operators.pattern;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-import org.knime.base.node.preproc.filter.row3.operators.legacy.predicates.StringPredicate;
+import org.knime.base.node.preproc.filter.row3.operators.legacy.StringPredicate;
 import org.knime.core.data.BooleanValue;
+import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.IntValue;
@@ -63,7 +64,6 @@ import org.knime.core.data.def.LongCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.valuefilter.ValueFilterValidationUtil;
-import org.knime.core.data.DataColumnSpec;
 
 /**
  * Utility class for creating pattern filter predicates that test whether a string representation of a value matches a
@@ -71,6 +71,7 @@ import org.knime.core.data.DataColumnSpec;
  *
  * @author Paul Bärnreuther
  */
+@SuppressWarnings("restriction") // webui
 public final class PatternFilterUtils {
 
     private PatternFilterUtils() {
@@ -125,10 +126,9 @@ public final class PatternFilterUtils {
      *
      * @param columnDataType column data type
      * @return method that returns a string from a given data value
-     * @throws InvalidSettingsException if the data type is not supported because it cannot produce a string value
      */
-    private static Function<DataValue, String> toStringFunction(final DataType columnDataType)
-        throws InvalidSettingsException {
+    private static Function<DataValue, String> toStringFunction(final DataType columnDataType) {
+        // function is only called if `isSupported` returned true, otherwise the InSE is thrown already
         final var preferredValueClass = columnDataType.getPreferredValueClass();
         if (preferredValueClass.equals(LongValue.class)) {
             return value -> Long.toString(((LongValue)value).getLongValue());
@@ -137,5 +137,4 @@ public final class PatternFilterUtils {
         }
         return value -> ((StringValue)value).getStringValue();
     }
-
 }

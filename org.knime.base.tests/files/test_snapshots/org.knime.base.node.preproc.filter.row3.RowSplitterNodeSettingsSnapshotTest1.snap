@@ -140,6 +140,7 @@
                 "operator" : {
                   "type" : "string",
                   "title" : "Operator",
+                  "description" : "Select the filter operator to apply.",
                   "default" : "IS_TRUE"
                 }
               }

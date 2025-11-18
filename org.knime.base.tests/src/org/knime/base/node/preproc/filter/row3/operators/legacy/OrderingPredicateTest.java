@@ -46,7 +46,7 @@
  * History
  *   15 Jul 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.filter.row3.operators.legacy.predicates;
+package org.knime.base.node.preproc.filter.row3.operators.legacy;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -56,6 +56,7 @@ import java.util.OptionalInt;
 import org.junit.jupiter.api.Test;
 import org.knime.base.node.preproc.filter.row3.operators.legacy.DynamicValuesInput;
 import org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterOperator;
+import org.knime.base.node.preproc.filter.row3.operators.legacy.OrderingPredicateFactory;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.RowKey;

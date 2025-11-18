@@ -59,6 +59,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extension
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.builtin.EqualsOperatorFamily;
 
 /**
+ * Provides operators for filtering {@link LocalDateCell} values.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */

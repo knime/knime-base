@@ -198,7 +198,7 @@ final class RowFilterNodeModel<S extends AbstractRowFilterNodeSettings> extends 
              */
             if (c.m_column.getEnumChoice().filter(RowIdentifiers.ROW_NUMBER::equals).isPresent()
                 && availableRowNumberOperators.stream().filter(o -> o.getId().equals(c.m_operator))
-                    .filter(RowNumberFilterOperator::supportsSlicing).findFirst().isPresent()) {
+                    .anyMatch(RowNumberFilterOperator::supportsSlicing)) {
                 rowNumberCriteria.add(c);
             } else {
                 dataCriteria.add(c);

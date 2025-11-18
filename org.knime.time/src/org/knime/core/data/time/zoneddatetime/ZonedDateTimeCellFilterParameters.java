@@ -55,12 +55,13 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extension
 import org.knime.node.parameters.Widget;
 
 /**
- *
+ * Parameters class for filtering {@link ZonedDateTimeCell} values.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-public class ZonedDateTimeCellFilterParameters implements FilterValueParameters.SingleCellValueParameters<ZonedDateTimeCell> {
+public class ZonedDateTimeCellFilterParameters
+        implements FilterValueParameters.SingleCellValueParameters<ZonedDateTimeCell> {
 
     @Widget(title = "Date & Time", description = "The date and time (with time zone) to compare against")
     ZonedDateTime m_dateTime = ZonedDateTime.now();

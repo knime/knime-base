@@ -48,7 +48,7 @@
  */
 package org.knime.base.node.preproc.filter.row3.operators.defaults;
 
-import org.knime.base.node.preproc.filter.row3.operators.legacy.predicates.StringPredicate;
+import org.knime.base.node.preproc.filter.row3.operators.legacy.StringPredicate;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
@@ -85,5 +85,4 @@ public final class StringWithCaseParameters extends SingleStringParameters {
     public StringPredicate toStringPredicate() {
         return StringPredicate.equality(m_value, m_caseSensitivity == CaseSensitivity.CASE_SENSITIVE);
     }
-
 }

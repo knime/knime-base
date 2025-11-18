@@ -89,6 +89,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extension
  *
  * @author Paul Bärnreuther
  */
+@SuppressWarnings("restriction") // webui
 public final class FilterOperatorsUtil {
 
     private FilterOperatorsUtil() {
@@ -108,10 +109,11 @@ public final class FilterOperatorsUtil {
     /**
      * Interface for grouping operators with their applicability logic.
      */
+    @SuppressWarnings("java:S1452") // at this point we don't know the concrete class
     private interface OperatorGroup {
         List<FilterOperator<? extends FilterValueParameters>> getOperators(final DataType dataType);
 
-        default boolean isApplicable(final DataType dataType) {
+        default boolean isApplicable(@SuppressWarnings("unused") final DataType dataType) {
             return true;
         }
     }
@@ -176,7 +178,6 @@ public final class FilterOperatorsUtil {
     private static final List<RowKeyFilterOperator<? extends FilterValueParameters>> DEFAULT_ROW_KEY_OPERATORS =
         createRowKeyOperatorsList();
 
-    @SuppressWarnings("unchecked")
     private static List<RowKeyFilterOperator<? extends FilterValueParameters>> createRowKeyOperatorsList() {
         final List<RowKeyFilterOperator<? extends FilterValueParameters>> operators = new ArrayList<>();
         RowKeyEqualityOperators.getOperators().forEach(operators::add);
@@ -191,10 +192,9 @@ public final class FilterOperatorsUtil {
     private static final List<RowNumberFilterOperator<? extends FilterValueParameters>> DEFAULT_ROW_NUMBER_OPERATORS =
         createRowNumberOperatorsList();
 
-    @SuppressWarnings("unchecked")
     private static List<RowNumberFilterOperator<? extends FilterValueParameters>> createRowNumberOperatorsList() {
         final List<RowNumberFilterOperator<? extends FilterValueParameters>> operators = new ArrayList<>();
-        RowNumberOperators.getOperators().forEach(op -> operators.add(op));
+        RowNumberOperators.getOperators().forEach(operators::add);
         operators.add(RowNumberRegexPatternFilterOperator.getInstance());
         operators.add(RowNumberWildcardPatternFilterOperator.getInstance());
         return operators;
@@ -220,6 +220,7 @@ public final class FilterOperatorsUtil {
      * @param dataType the data type to get operators for
      * @return list of all applicable filter operators including duplicates
      */
+    @SuppressWarnings("unchecked")
     public static List<FilterOperator<FilterValueParameters>> getAllColumnOperators(final DataType dataType) {
         final var registryOperators = FilterOperatorsRegistry.getInstance().getOperators(dataType);
         final var topDefaultOperators = getDefaultOperators(TOP_DEFAULT_COLUMN_OPERATOR_GROUPS, dataType);
@@ -240,6 +241,11 @@ public final class FilterOperatorsUtil {
      * compatibility by checking both operator ID and parameter class. Multiple operators may have the same ID (e.g.,
      * registry operators and pattern operators both providing "REGEX"), so we use the parameter class to disambiguate
      * and find the exact operator that was used when the workflow was saved.
+     *
+     * @param columnType the column data type
+     * @param operatorId the operator ID
+     * @param parameters the parameters to disambiguate the operator
+     * @return optional containing the matching operator, or {@link Optional#empty()} if none found
      */
     public static Optional<FilterOperator<FilterValueParameters>> findMatchingColumnOperator(final DataType columnType,
         final String operatorId, final FilterValueParameters parameters) {
@@ -273,23 +279,49 @@ public final class FilterOperatorsUtil {
         return Stream.concat(registryClasses.stream(), defaultClasses).distinct().filter(Objects::nonNull).toList();
     }
 
+    /**
+     * Returns default operators for row number filtering.
+     *
+     * @return operators
+     */
+    @SuppressWarnings("java:S1452") // at this point we don't know the concrete class
     public static List<RowNumberFilterOperator<? extends FilterValueParameters>> getRowNumberOperators() {
         return DEFAULT_ROW_NUMBER_OPERATORS;
     }
 
+    /**
+     * Returns default operators for row key filtering.
+     *
+     * @return operators
+     */
+    @SuppressWarnings("java:S1452") // at this point we don't know the concrete class
     public static List<RowKeyFilterOperator<? extends FilterValueParameters>> getRowKeyOperators() {
         return DEFAULT_ROW_KEY_OPERATORS;
     }
 
+    /**
+     * Returns the row number operator matching the given operator ID.
+     *
+     * @param operatorId operator id to search
+     * @return optional containing the matching operator, or {@link Optional#empty()} if none found
+     */
+    @SuppressWarnings("java:S1452") // at this point we don't know the concrete class
     public static Optional<RowNumberFilterOperator<? extends FilterValueParameters>>
-        findMatchingRowNumberOperator(final String operatorId) {
+            findMatchingRowNumberOperator(final String operatorId) {
         return DEFAULT_ROW_NUMBER_OPERATORS.stream() //
             .filter(op -> op.getId().equals(operatorId)) //
             .findFirst();
     }
 
+    /**
+     * Returns the row key operator matching the given operator ID.
+     *
+     * @param operatorId operator id to search
+     * @return optional containing the matching operator, or {@link Optional#empty()} if none found
+     */
+    @SuppressWarnings("java:S1452") // at this point we don't know the concrete class
     public static Optional<RowKeyFilterOperator<? extends FilterValueParameters>>
-        findMatchingRowKeyOperator(final String operatorId) {
+            findMatchingRowKeyOperator(final String operatorId) {
         return DEFAULT_ROW_KEY_OPERATORS.stream() //
             .filter(op -> op.getId().equals(operatorId)) //
             .findFirst();
@@ -308,7 +340,7 @@ public final class FilterOperatorsUtil {
         getDisplayedOperators(final List<FilterOperator<FilterValueParameters>> operators) {
         final Map<String, Integer> idToIndex = new HashMap<>();
         final List<FilterOperator<FilterValueParameters>> uniqueOperators = new ArrayList<>();
-        for (int i = 0; i < operators.size(); i++) {
+        for (var i = 0; i < operators.size(); i++) {
             final var operator = operators.get(i);
             if (operator.isDeprecated()) {
                 continue;

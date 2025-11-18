@@ -51,7 +51,7 @@ package org.knime.base.node.preproc.filter.row3.operators.rowkey;
 import java.util.function.Predicate;
 
 import org.knime.base.node.preproc.filter.row3.operators.defaults.CaseSensitivity;
-import org.knime.base.node.preproc.filter.row3.operators.legacy.predicates.StringPredicate;
+import org.knime.base.node.preproc.filter.row3.operators.legacy.StringPredicate;
 import org.knime.core.data.DataType;
 import org.knime.core.data.RowKeyValue;
 import org.knime.core.data.def.StringCell;
@@ -64,6 +64,7 @@ import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
+@SuppressWarnings("restriction") // webui
 public final class RowKeyEqualsParameters implements SingleCellValueParameters<StringCell> {
 
     @ValueSwitchWidget
@@ -115,5 +116,4 @@ public final class RowKeyEqualsParameters implements SingleCellValueParameters<S
     public DataType getSpecificType() {
         return StringCell.TYPE;
     }
-
 }

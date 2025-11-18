@@ -61,7 +61,7 @@ import org.knime.node.parameters.Widget;
 /**
  * Parameters for Long data type filter operators.
  *
- * @author Generated
+ * @author Paul Bärnreuther
  */
 @SuppressWarnings("restriction")
 public final class LongParameters implements SingleCellValueParameters<LongCell> {
@@ -86,6 +86,9 @@ public final class LongParameters implements SingleCellValueParameters<LongCell>
 
     @Override
     public void applyStash(final DataValue[] stashedValues) {
+        if (stashedValues.length == 0) {
+            return;
+        }
         final var first = stashedValues[0];
         if (first instanceof LongCell longCell) {
             loadFrom(longCell);

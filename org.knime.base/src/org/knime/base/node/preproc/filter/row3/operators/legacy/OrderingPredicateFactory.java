@@ -46,7 +46,7 @@
  * History
  *   27 Aug 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.filter.row3.operators.legacy.predicates;
+package org.knime.base.node.preproc.filter.row3.operators.legacy;
 
 import java.util.Optional;
 import java.util.OptionalInt;
@@ -54,8 +54,7 @@ import java.util.function.BiPredicate;
 
 import org.knime.base.data.filter.row.v2.IndexedRowReadPredicate;
 import org.knime.base.data.filter.row.v2.OffsetFilter;
-import org.knime.base.node.preproc.filter.row3.operators.legacy.DynamicValuesInput;
-import org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterOperator;
+import org.knime.base.node.preproc.filter.row3.operators.rownumber.RowNumberFilterSpec;
 import org.knime.core.data.BooleanValue;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
@@ -76,6 +75,8 @@ import org.knime.core.node.InvalidSettingsException;
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
+
+@SuppressWarnings("deprecation")
 abstract class OrderingPredicateFactory extends AbstractPredicateFactory {
 
     enum Ordering {
@@ -348,7 +349,7 @@ abstract class OrderingPredicateFactory extends AbstractPredicateFactory {
 
     }
 
-    interface IntOrderingPredicate {
+    private interface IntOrderingPredicate {
         /**
          * @param value the value to test
          * @return {@code true} if the value satisfies the ordering predicate, {@code false} otherwise
@@ -372,7 +373,7 @@ abstract class OrderingPredicateFactory extends AbstractPredicateFactory {
         }
     }
 
-    interface LongOrderingPredicate {
+    private interface LongOrderingPredicate {
         /**
          * @param value the value to test
          * @return {@code true} if the value satisfies the ordering predicate, {@code false} otherwise
@@ -396,7 +397,7 @@ abstract class OrderingPredicateFactory extends AbstractPredicateFactory {
         }
     }
 
-    interface DoubleOrderingPredicate {
+    private interface DoubleOrderingPredicate {
         /**
          * @param value the value to test
          * @return {@code true} if the value satisfies the ordering predicate, {@code false} otherwise

@@ -61,7 +61,7 @@ import org.knime.node.parameters.Widget;
 /**
  * Parameters for Double data type filter operators.
  *
- * @author Generated
+ * @author Paul Bärnreuther
  */
 @SuppressWarnings("restriction")
 public final class DoubleParameters implements SingleCellValueParameters<DoubleCell> {
@@ -85,9 +85,11 @@ public final class DoubleParameters implements SingleCellValueParameters<DoubleC
     }
 
     @Override
+    @SuppressWarnings("java:S1244")
+        // we specifically want to test for doubles that can be interpreted as integers without losing precision
     public DataValue[] stash() {
         // avoid stashing as double if it is an integer value, because that can be unstashed as Int or Long easily
-        if (m_value % 1 == 0.0) {
+        if (Math.rint(m_value) == m_value) {
             return new DataValue[]{new IntCell((int)m_value)};
         }
         return new DataValue[]{new DoubleCell(m_value)};
@@ -95,6 +97,9 @@ public final class DoubleParameters implements SingleCellValueParameters<DoubleC
 
     @Override
     public void applyStash(final DataValue[] stashedValues) {
+        if (stashedValues.length == 0) {
+            return;
+        }
         final var first = stashedValues[0];
         if (first instanceof DoubleCell doubleCell) {
             loadFrom(doubleCell);
@@ -110,5 +115,4 @@ public final class DoubleParameters implements SingleCellValueParameters<DoubleC
             }
         }
     }
-
 }

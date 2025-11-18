@@ -55,7 +55,6 @@ import java.util.OptionalInt;
 
 import org.knime.base.data.filter.row.v2.IndexedRowReadPredicate;
 import org.knime.base.node.preproc.filter.row3.RowIdentifiers;
-import org.knime.base.node.preproc.filter.row3.operators.legacy.predicates.PredicateFactories;
 import org.knime.base.node.preproc.filter.row3.operators.rownumber.RowNumberFilterSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataValue;
@@ -72,10 +71,11 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.St
 import org.knime.node.parameters.NodeParameters;
 
 /**
+ * Parameters class to handle legacy filter settings (from first webui migration using DynamicValuesInput).
  *
  * @author Paul Bärnreuther
  */
-@SuppressWarnings("restriction")
+@SuppressWarnings({ "restriction", "deprecation" })
 public class LegacyFilterParameters implements FilterValueParameters {
 
     String m_legacySettings; // string since it needs to be serializable
@@ -149,7 +149,6 @@ public class LegacyFilterParameters implements FilterValueParameters {
      */
     public IndexedRowReadPredicate toPredicate(final StringOrEnum<RowIdentifiers> column, final DataTableSpec spec,
         final long optionalTableSize) throws InvalidSettingsException {
-        final var loaded = getLoaded();
 
         final var rowIdentifierChoice = column.getEnumChoice();
         if (rowIdentifierChoice.isPresent()) {
@@ -162,6 +161,7 @@ public class LegacyFilterParameters implements FilterValueParameters {
         if (columnIndex < 0) {
             throw new InvalidSettingsException("Column \"%s\" could not be found in input table".formatted(column));
         }
+        final var loaded = getLoaded();
         return loaded.m_operator.translateToPredicate(loaded.m_predicateValues, columnIndex,
             spec.getColumnSpec(columnIndex).getType());
 

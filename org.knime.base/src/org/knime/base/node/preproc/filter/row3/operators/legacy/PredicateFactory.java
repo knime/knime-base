@@ -44,20 +44,43 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   16 Dec 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   27 Aug 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
+package org.knime.base.node.preproc.filter.row3.operators.legacy;
+
+import java.util.OptionalInt;
+
+import org.knime.base.data.filter.row.v2.IndexedRowReadPredicate;
+import org.knime.core.data.v2.RowRead;
+import org.knime.core.node.InvalidSettingsException;
+
 /**
- * <p>
- * This package contains all predicate implementations for the Row Filter and Row Splitter nodes. The primary entrypoint
- * is the {@link org.knime.base.node.preproc.filter.row3.operators.legacy.predicates.PredicateFactories} utility. All predicate factories
- * implement the common interface {@link org.knime.base.node.preproc.filter.row3.operators.legacy.predicates.PredicateFactory} that
- * creates predicates of the {@link org.knime.base.data.filter.row.v2.IndexedRowReadPredicate} interface required by the
- * {@link org.knime.base.data.filter.row.v2.RowFilter row filter implementation}.
- * </p>
+ * Factory for predicates that can be used to filter indexed {@link RowRead rows}.
  *
- * Predicate implementations should make sure that they are as specialized as possible to allow for an efficient
- * evaluation, e.g. by creating specialized predicate functions based on the given data type in the factory and not only
- * in the {@link org.knime.base.data.filter.row.v2.IndexedRowReadPredicate#test(long, org.knime.core.data.v2.RowRead)
- * predicate test} method.
+ * @deprecated This interface is part of the legacy row filter implementation used for backwards-compatibility.
+ *
+ * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-package org.knime.base.node.preproc.filter.row3.operators.legacy.predicates;
+@FunctionalInterface
+@Deprecated(since = "5.10", forRemoval = false)
+public interface PredicateFactory {
+
+    /**
+     * Creates a filter predicate given a column index and a reference value input. In case the predicate does not
+     * operate on a column, an empty optional should be passed.
+     *
+     * <br><b>Note:</b>
+     * Implementations may throw {@link IllegalArgumentException} if the column index is <i>invalid</i>.
+     * Invalid means that it is provided but not used by the predicate factory or if it is not provided but required by
+     * the factory.
+     *
+     * @param columnIndex column index to filter on, or empty optional if not operating on a column
+     * @param inputValues input values to use as reference
+     * @return predicate predicate that can be used to filter rows
+     * @throws InvalidSettingsException in case the input values are missing or invalid
+     * @throws IllegalArgumentException in case the column index argument is invalid
+     */
+    IndexedRowReadPredicate createPredicate(OptionalInt columnIndex, final DynamicValuesInput inputValues) // NOSONAR make usage of column/no-column explicit
+        throws InvalidSettingsException;
+
+}

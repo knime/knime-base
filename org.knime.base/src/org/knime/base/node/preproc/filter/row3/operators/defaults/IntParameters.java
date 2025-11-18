@@ -61,7 +61,7 @@ import org.knime.node.parameters.Widget;
 /**
  * Parameters for Int data type filter operators.
  *
- * @author Generated
+ * @author Paul Bärnreuther
  */
 @SuppressWarnings("restriction")
 public final class IntParameters implements SingleCellValueParameters<IntCell> {
@@ -86,7 +86,10 @@ public final class IntParameters implements SingleCellValueParameters<IntCell> {
 
     @Override
     public void applyStash(final DataValue[] stashedValues) {
-        final var first = stashedValues[0]; // TODO handle no values?
+        if (stashedValues.length == 0) {
+            return;
+        }
+        final var first = stashedValues[0];
         if (first instanceof IntCell intCell) {
             loadFrom(intCell);
         } else if (first instanceof DoubleCell doubleCell) {
@@ -96,10 +99,9 @@ public final class IntParameters implements SingleCellValueParameters<IntCell> {
         } else if (first instanceof StringValue stringValue) {
             try {
                 m_value = Integer.parseInt(stringValue.getStringValue());
-            } catch (final NumberFormatException e) {// NOSONAR
+            } catch (final NumberFormatException e) { // NOSONAR stashing is best-effort and should never fail
                 // ignore stash
             }
         }
     }
-
 }

@@ -111,7 +111,7 @@ public class SingleStringParameters implements FilterValueParameters.SingleCellV
         } catch (final ConverterException e) {
             final var isEmpty = StringUtils.isEmpty(m_value);
             final var content = isEmpty ? "An empty string" : "The string \"%s\"".formatted(m_value);
-            throw ValueFilterValidationUtil.createInvalidSettingsException(builder -> {
+            throw ValueFilterValidationUtil.createInvalidSettingsException(builder -> { // NOSONAR
                 builder.withSummary(
                     String.format("%s does not represent a valid \"%s\"", content, dataType.toPrettyString()));
                 if (e.getMessage() != null && !e.getMessage().isBlank()) {
@@ -150,5 +150,4 @@ public class SingleStringParameters implements FilterValueParameters.SingleCellV
         }
 
     }
-
 }

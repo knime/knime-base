@@ -46,7 +46,7 @@
  * History
  *   27 Aug 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.filter.row3.operators.legacy.predicates;
+package org.knime.base.node.preproc.filter.row3.operators.legacy;
 
 import java.util.Optional;
 import java.util.OptionalInt;
@@ -57,7 +57,7 @@ import java.util.function.LongPredicate;
 
 import org.knime.base.data.filter.row.v2.IndexedRowReadPredicate;
 import org.knime.base.data.filter.row.v2.OffsetFilter;
-import org.knime.base.node.preproc.filter.row3.operators.legacy.DynamicValuesInput;
+import org.knime.base.node.preproc.filter.row3.operators.rownumber.RowNumberFilterSpec;
 import org.knime.core.data.BooleanValue;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DoubleValue;
@@ -80,6 +80,7 @@ import org.knime.core.node.util.CheckUtils;
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
+@SuppressWarnings("deprecation") // legacy DynamicValuesInput
 abstract class EqualityPredicateFactory extends AbstractPredicateFactory {
 
     /**

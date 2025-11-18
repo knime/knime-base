@@ -73,7 +73,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extension
 /**
  * Operators for the Long data type.
  *
- * @author Generated
+ * @author Paul Bärnreuther
  */
 @SuppressWarnings("restriction")
 public final class LongFilterOperators implements FilterOperators {

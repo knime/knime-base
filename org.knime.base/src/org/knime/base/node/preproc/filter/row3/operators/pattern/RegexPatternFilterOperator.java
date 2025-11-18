@@ -62,6 +62,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extension
  *
  * @author Paul Bärnreuther
  */
+@SuppressWarnings("restriction") // webui
 public final class RegexPatternFilterOperator implements FilterOperator<PatternFilterParameters>, RegexOperator {
 
     private static final RegexPatternFilterOperator INSTANCE = new RegexPatternFilterOperator();
@@ -90,5 +91,4 @@ public final class RegexPatternFilterOperator implements FilterOperator<PatternF
     public Class<PatternFilterParameters> getNodeParametersClass() {
         return PatternFilterParameters.class;
     }
-
 }

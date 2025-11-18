@@ -62,6 +62,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extension
  *
  * @author Paul Bärnreuther
  */
+@SuppressWarnings("restriction") // webui
 public final class WildcardPatternFilterOperator implements FilterOperator<PatternFilterParameters>, WildcardOperator {
 
     private static final WildcardPatternFilterOperator INSTANCE = new WildcardPatternFilterOperator();
@@ -90,5 +91,4 @@ public final class WildcardPatternFilterOperator implements FilterOperator<Patte
     public Class<PatternFilterParameters> getNodeParametersClass() {
         return PatternFilterParameters.class;
     }
-
 }

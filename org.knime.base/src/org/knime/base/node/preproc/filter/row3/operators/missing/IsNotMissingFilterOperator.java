@@ -63,6 +63,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extension
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
+@SuppressWarnings("restriction") // webui
 public final class IsNotMissingFilterOperator implements FilterOperator<FilterValueParameters> {
 
     /** Singleton instance of the IsNotMissingFilterOperator. */

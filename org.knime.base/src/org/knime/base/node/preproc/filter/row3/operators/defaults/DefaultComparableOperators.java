@@ -49,6 +49,7 @@
 package org.knime.base.node.preproc.filter.row3.operators.defaults;
 
 import java.util.List;
+import java.util.function.IntPredicate;
 import java.util.function.Predicate;
 
 import org.knime.core.data.BoundedValue;
@@ -70,12 +71,19 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extension
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
+@SuppressWarnings("restriction") // webui
 public final class DefaultComparableOperators {
 
     private DefaultComparableOperators() {
     }
 
-    @SuppressWarnings("restriction")
+    /**
+     * Gets the default comparable operators for the given data type.
+     *
+     * @param dataType data type to get the operators for
+     * @return list of filter operators
+     */
+    @SuppressWarnings("java:S1452") // at this point we don't know the concrete class
     public static List<FilterOperator<? extends FilterValueParameters>> getOperators(final DataType dataType) {
         return List.of( //
             new LessThanDefault(), //
@@ -85,46 +93,42 @@ public final class DefaultComparableOperators {
         );
     }
 
-    private static final class LessThanDefault extends ComparableOperator implements LessThanOperator {
+    private static final class LessThanDefault extends ComparatorOperator implements LessThanOperator {
 
         @Override
-        Comparison compare() {
-            return (cmp, zero) -> cmp < zero;
+        IntPredicate compareAgainst0() {
+            return cmp -> cmp < 0;
         }
     }
 
-    private static final class LessThanOrEqualDefault extends ComparableOperator implements LessThanOrEqualOperator {
+    private static final class LessThanOrEqualDefault extends ComparatorOperator implements LessThanOrEqualOperator {
 
         @Override
-        Comparison compare() {
-            return (cmp, zero) -> cmp <= zero;
+        IntPredicate compareAgainst0() {
+            return cmp -> cmp <= 0;
         }
     }
 
-    private static final class GreaterThanDefault extends ComparableOperator implements GreaterThanOperator {
+    private static final class GreaterThanDefault extends ComparatorOperator implements GreaterThanOperator {
 
         @Override
-        Comparison compare() {
-            return (cmp, zero) -> cmp > zero;
+        IntPredicate compareAgainst0() {
+            return cmp -> cmp > 0;
         }
     }
 
-    private static final class GreaterThanOrEqualDefault extends ComparableOperator
+    private static final class GreaterThanOrEqualDefault extends ComparatorOperator
         implements GreaterThanOrEqualOperator {
 
         @Override
-        Comparison compare() {
-            return (cmp, zero) -> cmp >= zero;
+        IntPredicate compareAgainst0() {
+            return cmp -> cmp >= 0;
         }
     }
 
-    interface Comparison {
-        boolean test(final int comparisonResult, final int zero);
-    }
+    private abstract static class ComparatorOperator implements FilterOperator<SingleStringParameters> {
 
-    abstract static class ComparableOperator implements FilterOperator<SingleStringParameters> {
-
-        abstract Comparison compare();
+        abstract IntPredicate compareAgainst0();
 
         @Override
         public Class<SingleStringParameters> getNodeParametersClass() {
@@ -137,7 +141,8 @@ public final class DefaultComparableOperators {
             throws InvalidSettingsException {
             final var comparator = new DataValueComparatorDelegator<>(runtimeColumnSpec.getType().getComparator());
             final var reference = filterParameters.createCellAs(runtimeColumnSpec.getType());
-            return dv -> compare().test(comparator.compare(dv, reference), 0);
+            final var operator = compareAgainst0();
+            return dv -> operator.test(comparator.compare(dv, reference));
         }
 
     }
@@ -166,6 +171,7 @@ public final class DefaultComparableOperators {
      */
     public static boolean isApplicable(final DataType dataType) {
         // we handle Boolean with IS_TRUE/IS_FALSE operators
-        return !BooleanCell.TYPE.equals(dataType) && TypeMappingUtils.supportsDataType(dataType) && dataType.isCompatible(BoundedValue.class);
+        return !BooleanCell.TYPE.equals(dataType) && TypeMappingUtils.supportsDataType(dataType)
+            && dataType.isCompatible(BoundedValue.class);
     }
 }

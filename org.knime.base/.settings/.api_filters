@@ -23,6 +23,226 @@
             </message_arguments>
         </filter>
     </resource>
+    <resource path="src/org/knime/base/node/preproc/filter/row3/AbstractRowFilterNodeSettings.java" type="org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings$FilterCriterion">
+        <filter comment="Using our own API" id="640712815">
+            <message_arguments>
+                <message_argument value="RowRead"/>
+                <message_argument value="FilterCriterion"/>
+                <message_argument value="getRowKey()"/>
+            </message_arguments>
+        </filter>
+        <filter comment="Using our own API" id="640712815">
+            <message_arguments>
+                <message_argument value="RowValueRead"/>
+                <message_argument value="FilterCriterion"/>
+                <message_argument value="getValue(int)"/>
+            </message_arguments>
+        </filter>
+        <filter comment="Using our own API" id="640712815">
+            <message_arguments>
+                <message_argument value="RowValueRead"/>
+                <message_argument value="FilterCriterion"/>
+                <message_argument value="isMissing(int)"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/filter/row3/operators/defaults/DefaultComparableOperators.java" type="org.knime.base.node.preproc.filter.row3.operators.defaults.DefaultComparableOperators$ComparatorOperator">
+        <filter comment="Using our own API" id="640708718">
+            <message_arguments>
+                <message_argument value="DataValueComparatorDelegator(DataValueComparator)"/>
+                <message_argument value="ComparatorOperator"/>
+            </message_arguments>
+        </filter>
+        <filter comment="Using our own API" id="640712815">
+            <message_arguments>
+                <message_argument value="DataValueComparatorDelegator&lt;D&gt;"/>
+                <message_argument value="ComparatorOperator"/>
+                <message_argument value="compare(D, D)"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/filter/row3/operators/defaults/TypeMappingUtils.java" type="org.knime.base.node.preproc.filter.row3.operators.defaults.TypeMappingUtils">
+        <filter comment="Using our own API" id="640712815">
+            <message_arguments>
+                <message_argument value="DataTypeRegistry"/>
+                <message_argument value="TypeMappingUtils"/>
+                <message_argument value="getImplementationSubDataTypes(DataType)"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/filter/row3/operators/legacy/AbstractPredicateFactory.java" type="org.knime.base.node.preproc.filter.row3.operators.legacy.AbstractPredicateFactory">
+        <filter comment="Using our own API" id="640712815">
+            <message_arguments>
+                <message_argument value="Message"/>
+                <message_argument value="AbstractPredicateFactory"/>
+                <message_argument value="builder()"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/filter/row3/operators/legacy/BooleanPredicateFactory.java" type="org.knime.base.node.preproc.filter.row3.operators.legacy.BooleanPredicateFactory">
+        <filter comment="Using our own API" id="640712815">
+            <message_arguments>
+                <message_argument value="RowValueRead"/>
+                <message_argument value="BooleanPredicateFactory"/>
+                <message_argument value="getValue(int)"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/filter/row3/operators/legacy/DynamicValuesInput.java" type="org.knime.base.node.preproc.filter.row3.operators.legacy.DynamicValuesInput">
+        <filter comment="Using our own API" id="640712815">
+            <message_arguments>
+                <message_argument value="DataTypeRegistry"/>
+                <message_argument value="DynamicValuesInput"/>
+                <message_argument value="getImplementationSubDataTypes(DataType)"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/filter/row3/operators/legacy/DynamicValuesInput.java" type="org.knime.base.node.preproc.filter.row3.operators.legacy.DynamicValuesInput$DynamicValue">
+        <filter comment="Using our own API" id="640712815">
+            <message_arguments>
+                <message_argument value="Message"/>
+                <message_argument value="DynamicValue"/>
+                <message_argument value="builder()"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/filter/row3/operators/legacy/EqualityPredicateFactory.java" type="org.knime.base.node.preproc.filter.row3.operators.legacy.EqualityPredicateFactory$EqualityDataCellPredicateFactory">
+        <filter comment="Using our own API" id="640712815">
+            <message_arguments>
+                <message_argument value="RowValueRead"/>
+                <message_argument value="EqualityDataCellPredicateFactory"/>
+                <message_argument value="getValue(int)"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/filter/row3/operators/legacy/EqualityPredicateFactory.java" type="org.knime.base.node.preproc.filter.row3.operators.legacy.EqualityPredicateFactory$EqualityDoublePredicateFactory">
+        <filter comment="Using our own API" id="640712815">
+            <message_arguments>
+                <message_argument value="RowValueRead"/>
+                <message_argument value="EqualityDoublePredicateFactory"/>
+                <message_argument value="getValue(int)"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/filter/row3/operators/legacy/EqualityPredicateFactory.java" type="org.knime.base.node.preproc.filter.row3.operators.legacy.EqualityPredicateFactory$EqualityIntPredicateFactory">
+        <filter comment="Using our own API" id="640712815">
+            <message_arguments>
+                <message_argument value="RowValueRead"/>
+                <message_argument value="EqualityIntPredicateFactory"/>
+                <message_argument value="getValue(int)"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/filter/row3/operators/legacy/EqualityPredicateFactory.java" type="org.knime.base.node.preproc.filter.row3.operators.legacy.EqualityPredicateFactory$EqualityLongPredicateFactory">
+        <filter comment="Using our own API" id="640712815">
+            <message_arguments>
+                <message_argument value="RowValueRead"/>
+                <message_argument value="EqualityLongPredicateFactory"/>
+                <message_argument value="getValue(int)"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/filter/row3/operators/legacy/EqualityPredicateFactory.java" type="org.knime.base.node.preproc.filter.row3.operators.legacy.EqualityPredicateFactory$EqualityRowKeyPredicateFactory">
+        <filter comment="Using our own API" id="640712815">
+            <message_arguments>
+                <message_argument value="RowRead"/>
+                <message_argument value="EqualityRowKeyPredicateFactory"/>
+                <message_argument value="getRowKey()"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/filter/row3/operators/legacy/EqualityPredicateFactory.java" type="org.knime.base.node.preproc.filter.row3.operators.legacy.EqualityPredicateFactory$EqualityStringPredicateFactory">
+        <filter comment="Using our own API" id="640712815">
+            <message_arguments>
+                <message_argument value="RowValueRead"/>
+                <message_argument value="EqualityStringPredicateFactory"/>
+                <message_argument value="getValue(int)"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/filter/row3/operators/legacy/LegacyFilterOperator.java" type="org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterOperator">
+        <filter comment="Using our own API" id="640712815">
+            <message_arguments>
+                <message_argument value="RowValueRead"/>
+                <message_argument value="LegacyFilterOperator"/>
+                <message_argument value="isMissing(int)"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/filter/row3/operators/legacy/OrderingPredicateFactory.java" type="org.knime.base.node.preproc.filter.row3.operators.legacy.OrderingPredicateFactory$OrderingDataValuePredicateFactory">
+        <filter comment="Using our own API" id="640708718">
+            <message_arguments>
+                <message_argument value="DataValueComparatorDelegator(DataValueComparator)"/>
+                <message_argument value="OrderingDataValuePredicateFactory"/>
+            </message_arguments>
+        </filter>
+        <filter comment="Using our own API" id="640712815">
+            <message_arguments>
+                <message_argument value="DataValueComparatorDelegator&lt;D&gt;"/>
+                <message_argument value="OrderingDataValuePredicateFactory"/>
+                <message_argument value="compare(D, D)"/>
+            </message_arguments>
+        </filter>
+        <filter comment="Using our own API" id="640712815">
+            <message_arguments>
+                <message_argument value="RowValueRead"/>
+                <message_argument value="OrderingDataValuePredicateFactory"/>
+                <message_argument value="getValue(int)"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/filter/row3/operators/legacy/OrderingPredicateFactory.java" type="org.knime.base.node.preproc.filter.row3.operators.legacy.OrderingPredicateFactory$OrderingDoublePredicateFactory">
+        <filter comment="Using our own API" id="640712815">
+            <message_arguments>
+                <message_argument value="RowValueRead"/>
+                <message_argument value="OrderingDoublePredicateFactory"/>
+                <message_argument value="getValue(int)"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/filter/row3/operators/legacy/OrderingPredicateFactory.java" type="org.knime.base.node.preproc.filter.row3.operators.legacy.OrderingPredicateFactory$OrderingIntPredicateFactory">
+        <filter comment="Using our own API" id="640712815">
+            <message_arguments>
+                <message_argument value="RowValueRead"/>
+                <message_argument value="OrderingIntPredicateFactory"/>
+                <message_argument value="getValue(int)"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/filter/row3/operators/legacy/OrderingPredicateFactory.java" type="org.knime.base.node.preproc.filter.row3.operators.legacy.OrderingPredicateFactory$OrderingLongPredicateFactory">
+        <filter comment="Using our own API" id="640712815">
+            <message_arguments>
+                <message_argument value="RowValueRead"/>
+                <message_argument value="OrderingLongPredicateFactory"/>
+                <message_argument value="getValue(int)"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/filter/row3/operators/legacy/PatternMatchingPredicateFactory.java" type="org.knime.base.node.preproc.filter.row3.operators.legacy.PatternMatchingPredicateFactory">
+        <filter comment="Using our own API" id="640712815">
+            <message_arguments>
+                <message_argument value="RowRead"/>
+                <message_argument value="PatternMatchingPredicateFactory"/>
+                <message_argument value="getRowKey()"/>
+            </message_arguments>
+        </filter>
+        <filter comment="Using our own API" id="640712815">
+            <message_arguments>
+                <message_argument value="RowValueRead"/>
+                <message_argument value="PatternMatchingPredicateFactory"/>
+                <message_argument value="getValue(int)"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/node/preproc/filter/row3/operators/legacy/PredicateFactories.java" type="org.knime.base.node.preproc.filter.row3.operators.legacy.PredicateFactories">
+        <filter comment="Using our own API" id="640712815">
+            <message_arguments>
+                <message_argument value="RowValueRead"/>
+                <message_argument value="PredicateFactories"/>
+                <message_argument value="isMissing(int)"/>
+            </message_arguments>
+        </filter>
+    </resource>
     <resource path="src/org/knime/base/node/preproc/groupby/GroupByNodeFactory.java" type="org.knime.base.node.preproc.groupby.GroupByNodeFactory">
         <filter comment="We implement our own preview API" id="576725006">
             <message_arguments>

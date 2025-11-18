@@ -5,15 +5,15 @@
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
  *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License, Version 3, as
+ *  it under the terms of the GNU General License, Version 3, as
  *  published by the Free Software Foundation.
  *
  *  This program is distributed in the hope that it will be useful, but
  *  WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- *  GNU General Public License for more details.
+ *  GNU General License for more details.
  *
- *  You should have received a copy of the GNU General Public License
+ *  You should have received a copy of the GNU General License
  *  along with this program; if not, see <http://www.gnu.org/licenses>.
  *
  *  Additional permission under GNU GPL version 3 section 7:
@@ -57,7 +57,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
-import org.apache.commons.lang3.function.FailableConsumer;
 import org.apache.commons.lang3.function.FailableSupplier;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;
@@ -90,10 +89,14 @@ import org.knime.node.parameters.persistence.Persistor;
 /**
  * A settings class for a "dynamic widget" where the concrete input widget(s) depend on the selected data type.
  *
+ * @deprecated Use dynamic parameters, which are more flexible
+ *
  * @author Paul Bärnreuther
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-public final class DynamicValuesInput implements Persistable {
+@SuppressWarnings("restriction") // webui
+@Deprecated(since = "5.10", forRemoval = false) // we want to keep it around for handling legacy settings
+final class DynamicValuesInput implements Persistable {
 
     private static final JavaToDataCellConverterRegistry TO_DATACELL = JavaToDataCellConverterRegistry.getInstance();
 
@@ -136,7 +139,7 @@ public final class DynamicValuesInput implements Persistable {
      *
      * @return new input
      */
-    public static DynamicValuesInput emptySingle() {
+    static DynamicValuesInput emptySingle() {
         return new DynamicValuesInput(new DynamicValue[]{}, InputKind.SINGLE);
     }
 
@@ -148,7 +151,7 @@ public final class DynamicValuesInput implements Persistable {
      * @param dataType data type of input value
      * @return dynamic widget
      */
-    public static DynamicValuesInput singleValueWithCaseMatchingForStringWithDefault(final DataType dataType) {
+    static DynamicValuesInput singleValueWithCaseMatchingForStringWithDefault(final DataType dataType) {
         final DataCell defaultValue;
         // we need to provide some default value such that correct types show up int the settings XML and the
         // flow variable popup can infer which flow variables to show
@@ -168,10 +171,13 @@ public final class DynamicValuesInput implements Persistable {
 
     /**
      * Creates a configured single-value input. Used within K-AI
+     * @param dataType  data type of input value
+     * @param defaultValue default value for the input
+     * @return (legacy) dynamic values input widget
      *
      * @noreference This method is not intended to be referenced by clients.
      **/
-    public static DynamicValuesInput singleValueWithInitialValue(final DataType dataType, final DataCell defaultValue) {
+    static DynamicValuesInput singleValueWithInitialValue(final DataType dataType, final DataCell defaultValue) {
         // temporary method for K-AI to instantiate e.g. a row filter from model side
         return new DynamicValuesInput(dataType, defaultValue, true);
     }
@@ -179,7 +185,7 @@ public final class DynamicValuesInput implements Persistable {
     /**
      * @return a dynamic values input for a single value of RowID.
      */
-    public static DynamicValuesInput forRowID() {
+    static DynamicValuesInput forRowID() {
         return new DynamicValuesInput(StringCell.TYPE, new StringCell(""), true);
     }
 
@@ -188,7 +194,7 @@ public final class DynamicValuesInput implements Persistable {
      *            {@link LongCell#TYPE}
      * @return a dynamic values input for a single value of Row Number.
      */
-    public static DynamicValuesInput forRowNumber(final DataType dataType) {
+    static DynamicValuesInput forRowNumber(final DataType dataType) {
         if (StringCell.TYPE.equals(dataType)) {
             return new DynamicValuesInput(dataType, new StringCell("1"), false);
         } else if (LongCell.TYPE.equals(dataType)) {
@@ -232,9 +238,9 @@ public final class DynamicValuesInput implements Persistable {
      *
      * @param name name of the input to compare against, e.g. column name, "Row Number", etc.
      * @param type current type to validate against
-     * @throws InvalidSettingsException
+     * @throws InvalidSettingsException on validation error
      */
-    public void validate(final String name, final DataType type) throws InvalidSettingsException {
+    void validate(final String name, final DataType type) throws InvalidSettingsException {
         for (final var value : m_values) {
             value.validate(name, type);
         }
@@ -243,9 +249,9 @@ public final class DynamicValuesInput implements Persistable {
     /**
      * Checks if values are not missing and can be converted to their expected type.
      *
-     * @throws InvalidSettingsException ...
+     * @throws InvalidSettingsException on parse error
      */
-    public void checkParseError() throws InvalidSettingsException {
+    void checkParseError() throws InvalidSettingsException {
         for (final var value : m_values) {
             value.checkParseError();
         }
@@ -266,7 +272,7 @@ public final class DynamicValuesInput implements Persistable {
      * @param type type to check
      * @return {@code true} if the given type is supported, {@code false} otherwise
      */
-    public static boolean supportsDataType(final DataType type) {
+    static boolean supportsDataType(final DataType type) {
         return isOfNonCollectionType(type) && supportsSerialization(type);
     }
 
@@ -451,29 +457,6 @@ public final class DynamicValuesInput implements Persistable {
             }
         }
 
-        private static <E extends Exception> void writeDataCell(final DataCell dataCell,
-            final FailableConsumer<Double, E> writeDouble, //
-            final FailableConsumer<Integer, E> writeInteger, //
-            final FailableConsumer<Long, E> writeLong, //
-            final FailableConsumer<Boolean, E> writeBoolean, //
-            final FailableConsumer<String, E> writeString //
-        ) throws ConverterException, E {
-            if (dataCell.isMissing()) {
-                throw new IllegalArgumentException("Cannot write MissingCell");
-            }
-            if (dataCell instanceof DoubleCell doubleCell) {
-                writeDouble.accept(doubleCell.getDoubleValue());
-            } else if (dataCell instanceof IntCell intCell) {
-                writeInteger.accept(intCell.getIntValue());
-            } else if (dataCell instanceof LongCell longCell) {
-                writeLong.accept(longCell.getLongValue());
-            } else if (dataCell instanceof BooleanCell booleanCell) {
-                writeBoolean.accept(booleanCell.getBooleanValue());
-            } else {
-                writeString.accept(getStringFromDataCell(dataCell));
-            }
-        }
-
         private static <E extends Throwable> DataCell readDataCell(final DataType dataType,
             final FailableSupplier<Double, E> readDouble, //
             final FailableSupplier<Integer, E> readInteger, //
@@ -541,7 +524,7 @@ public final class DynamicValuesInput implements Persistable {
                 .create((ExecutionContext)null);
             try {
                 return converter.convert(value);
-            } catch (final Exception e) {
+            } catch (final Exception e) { // NOSONAR legacy behavior
                 final var isEmpty = StringUtils.isEmpty(value);
                 final var content = isEmpty ? "empty input" : "input \"%s\"".formatted(value);
                 final var message = "Could not convert %s to \"%s\"".formatted(content, dataType);
@@ -554,14 +537,11 @@ public final class DynamicValuesInput implements Persistable {
                 return readDataCellFromString(dataType, value);
                 // We keep the user-entered value in a StringCell (the m_type remains of another type),
                 // in order to parse it again for error reporting
-            } catch (final ConverterException e) {
+            } catch (final ConverterException e) { // NOSONAR legacy behavior
                 return new StringCell(value);
             }
         }
     }
-
-    // used in frontend to show custom string case matching settings
-    private static final String USE_STRING_CASE_MATCHING = "useStringCaseMatchingSettings";
 
     // this contains the actual data for case matching of strings
     private static final String MATCHING_KEY = "stringCaseMatching";
@@ -632,7 +612,7 @@ public final class DynamicValuesInput implements Persistable {
      * @return value or empty optional if no value exists at the specified index
      * @throws ArrayIndexOutOfBoundsException
      */
-    public Optional<DataCell> getCellAt(final int index) {
+    Optional<DataCell> getCellAt(final int index) {
         return Optional.ofNullable(m_values[index].m_value);
     }
 
@@ -645,7 +625,7 @@ public final class DynamicValuesInput implements Persistable {
      * @return {@code true} if the value at the given index should be matched case-sensitive, {@code false} otherwise
      * @throws IllegalArgumentException If the value at the specified index does not use the case-matching setting
      */
-    public boolean isStringMatchCaseSensitive(final int index) {
+    boolean isStringMatchCaseSensitive(final int index) {
         CheckUtils.checkArgument(m_values[index].m_caseMatching != null,
             "Value at index %d does not use case-matching settings".formatted(index));
         return m_values[index].m_caseMatching.isCaseSensitive();
@@ -663,7 +643,7 @@ public final class DynamicValuesInput implements Persistable {
      * @return {@code true} if the current input values can be used in place of the given input values, {@code false}
      *         otherwise
      */
-    public boolean isConfigurableFrom(final DynamicValuesInput newInput) {
+    boolean isConfigurableFrom(final DynamicValuesInput newInput) {
         if (newInput.m_values.length != m_values.length) {
             return false;
         }
@@ -694,7 +674,7 @@ public final class DynamicValuesInput implements Persistable {
      *         does not represent a valid value in the target type, or {@link Optional#empty()} if conversion is not
      *         possible due to arity mismatch, input kind mismatch, or missing string representation of source value
      */
-    public Optional<DynamicValuesInput> convertToType(final DynamicValuesInput template) {
+    Optional<DynamicValuesInput> convertToType(final DynamicValuesInput template) {
         if (m_values.length != template.m_values.length || m_inputKind != template.m_inputKind) {
             return Optional.empty();
         }

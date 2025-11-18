@@ -61,6 +61,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extension
  * @param <T> type of the parameters
  * @author Paul Bärnreuther
  */
+@SuppressWarnings("restriction") // webui
 public interface RowKeyFilterOperator<T extends FilterValueParameters> extends FilterOperatorDefinition<T> {
 
     /**

@@ -53,7 +53,6 @@ import java.util.function.Predicate;
 
 import org.knime.core.data.RowKeyValue;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.builtin.EqualsOperator;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.builtin.NotEqualsOperator;
 
@@ -62,13 +61,19 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extension
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
+@SuppressWarnings("restriction") // webui
 public final class RowKeyEqualityOperators {
 
     private RowKeyEqualityOperators() {
         // utility class
     }
 
-    public static List<RowKeyFilterOperator<? extends FilterValueParameters>> getOperators() {
+    /**
+     * Gets the default row key equality operators.
+     *
+     * @return operators
+     */
+    public static List<RowKeyFilterOperator<RowKeyEqualsParameters>> getOperators() {
         return List.of(new RowKeyEquals(), //
             new RowKeyNotEquals() //
         );
@@ -109,5 +114,4 @@ public final class RowKeyEqualityOperators {
         }
 
     }
-
 }

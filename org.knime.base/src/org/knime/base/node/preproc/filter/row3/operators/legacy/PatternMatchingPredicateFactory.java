@@ -46,7 +46,7 @@
  * History
  *   27 Aug 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.filter.row3.operators.legacy.predicates;
+package org.knime.base.node.preproc.filter.row3.operators.legacy;
 
 import java.util.Optional;
 import java.util.OptionalInt;
@@ -54,7 +54,6 @@ import java.util.function.Function;
 
 import org.knime.base.data.filter.row.v2.IndexedRowReadFunction;
 import org.knime.base.data.filter.row.v2.IndexedRowReadPredicate;
-import org.knime.base.node.preproc.filter.row3.operators.legacy.DynamicValuesInput;
 import org.knime.core.data.BooleanValue;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
@@ -73,8 +72,10 @@ import org.knime.core.node.util.CheckUtils;
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
+@SuppressWarnings("deprecation")
 public abstract class PatternMatchingPredicateFactory extends AbstractPredicateFactory {
 
+    /** If the pattern match is a regex match, otherwise wildcard. */
     protected final boolean m_isRegex;
 
     private PatternMatchingPredicateFactory(final boolean isRegex) {
@@ -123,7 +124,6 @@ public abstract class PatternMatchingPredicateFactory extends AbstractPredicateF
     /**
      * Creates a factory for pattern matching predicates on a column.
      *
-     * @param columnIndex column index
      * @param columnDataType column data type
      * @param isRegex whether the pattern is a regex or a wildcard
      * @return predicate factory for pattern matching on the specified column
@@ -203,7 +203,7 @@ public abstract class PatternMatchingPredicateFactory extends AbstractPredicateF
         }
     }
 
-    public static boolean isSupported(final DataType type) {
+    private static boolean isSupported(final DataType type) {
         final var preferredValueClass = type.getPreferredValueClass();
         return !BooleanValue.class.equals(preferredValueClass) // booleans have only IS_TRUE and IS_FALSE operators
             && (type.isCompatible(StringValue.class) //

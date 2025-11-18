@@ -55,12 +55,13 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extension
 import org.knime.node.parameters.Widget;
 
 /**
- *
+ * Parameters class for filtering {@link LocalDateTimeCell} values.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-public class LocalDateTimeCellFilterParameters implements FilterValueParameters.SingleCellValueParameters<LocalDateTimeCell> {
+public class LocalDateTimeCellFilterParameters
+        implements FilterValueParameters.SingleCellValueParameters<LocalDateTimeCell> {
 
     @Widget(title = "Date & Time", description = "The date and time to compare against")
     LocalDateTime m_dateTime = LocalDateTime.now();

@@ -56,8 +56,12 @@ import org.knime.node.parameters.Widget;
  *
  * @author Paul Bärnreuther
  */
+@SuppressWarnings("restriction") // webui
 public final class RowNumberPatternFilterParameters implements FilterValueParameters {
 
+    /**
+     * Pattern to filter for.
+     */
     @Widget(title = "Pattern",
         description = "The pattern to filter for. Format depends on the operator (regex or wildcard).")
     public String m_pattern = "";
