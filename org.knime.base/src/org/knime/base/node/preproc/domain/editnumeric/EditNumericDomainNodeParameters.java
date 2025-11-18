@@ -46,7 +46,6 @@
 
 package org.knime.base.node.preproc.domain.editnumeric;
 
-import java.util.List;
 import java.util.function.Supplier;
 
 import org.knime.base.node.preproc.domain.editnumeric.EditNumericDomainNodeModel.DomainOverflowPolicy;
@@ -69,7 +68,6 @@ import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.StateProvider;
 import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
-import org.knime.node.parameters.widget.choices.EnumChoicesProvider;
 import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
 import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
 import org.knime.node.parameters.widget.choices.util.FilteredInputTableColumnsProvider;
@@ -113,7 +111,6 @@ class EditNumericDomainNodeParameters implements NodeParameters {
         description = "Defines the behavior if the actual content of a selected column"
             + " does not fit in the given bounds.")
     @RadioButtonsWidget
-    @ChoicesProvider(DomainOverflowPolicyChoicesProvider.class)
     @Persist(configKey = EditNumericDomainConfiguration.DOMAIN_OVERFLOW_POLICY_KEY)
     DomainOverflowPolicy m_domainOverflowPolicy = EditNumericDomainConfiguration.DEFAULT_DOMAIN_OVERFLOW_POLICY;
 
@@ -170,16 +167,6 @@ class EditNumericDomainNodeParameters implements NodeParameters {
         public boolean isIncluded(final DataColumnSpec col) {
             return LongCell.TYPE.equals(col.getType()) || IntCell.TYPE.equals(col.getType())
                 || DoubleCell.TYPE.equals(col.getType());
-        }
-
-    }
-
-    private static final class DomainOverflowPolicyChoicesProvider
-        implements EnumChoicesProvider<DomainOverflowPolicy> {
-
-        @Override
-        public List<DomainOverflowPolicy> choices(final NodeParametersInput context) {
-            return List.of(DomainOverflowPolicy.values());
         }
 
     }

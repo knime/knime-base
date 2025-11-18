@@ -197,10 +197,9 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/domainOverflowPolicy",
         "options" : {
-          "format" : "dropDown",
+          "format" : "radio",
           "radioLayout" : "vertical"
-        },
-        "providedOptions" : [ "possibleValues" ]
+        }
       } ]
     } ]
   },
@@ -227,22 +226,6 @@
     }
   },
   "initialUpdates" : [ {
-    "scope" : "#/properties/model/properties/domainOverflowPolicy",
-    "providedOptionName" : "possibleValues",
-    "values" : [ {
-      "indices" : [ ],
-      "value" : [ {
-        "id" : "THROW_EXCEPTION",
-        "text" : "Fail"
-      }, {
-        "id" : "CALCULATE_BOUNDS",
-        "text" : "Calculate bounds"
-      }, {
-        "id" : "USE_EXISTING_BOUNDS",
-        "text" : "Use existing bounds"
-      } ]
-    } ]
-  }, {
     "scope" : "#/properties/model/properties/lowerBound",
     "providedOptionName" : "validation.max",
     "values" : [ {
