@@ -85,7 +85,7 @@ public final class CredentialsPropertiesExtractorNodeFactory
                 CredentialsPropertiesExtractorNodeModel.PASSWORD_COLUMN.getName(),
                 CredentialsPropertiesExtractorNodeModel.FACTOR_COLUMN.getName()))//
         .sinceVersion(5, 3, 0) //
-        .keywords("credentials", "password", "login", "flow variable") //
+        .keywords("credentials", "password", "login", "flow variable", "secret") //
         .build();
 
     /** Set the node description */
