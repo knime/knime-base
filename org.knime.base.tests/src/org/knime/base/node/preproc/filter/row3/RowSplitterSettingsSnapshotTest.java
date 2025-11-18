@@ -48,19 +48,19 @@
  */
 package org.knime.base.node.preproc.filter.row3;
 
-import java.util.Map;
-
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.def.BooleanCell;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.StringCell;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
+import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 
 /**
- * Snapshot test for {@code RowFilter3NodeSettingsSnapshotTest}.
+ * Snapshot test for the webui-based Row Splitter.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
@@ -68,8 +68,25 @@ import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
 class RowSplitterNodeSettingsSnapshotTest extends DefaultNodeSettingsSnapshotTest {
 
     protected RowSplitterNodeSettingsSnapshotTest() {
-        super(Map.of(SettingsType.MODEL, RowSplitterNodeSettings.class),
-            new DataTableSpec(new String[]{"DoubleCol", "StringCol", "IntCol", "BoolCol"},
-                new DataType[]{DoubleCell.TYPE, StringCell.TYPE, IntCell.TYPE, BooleanCell.TYPE}));
+        super(getConfig());
+    }
+
+    private static SnapshotTestConfiguration getConfig() {
+        return SnapshotTestConfiguration.builder() //
+            .withInputPortObjectSpecs(
+                new PortObjectSpec[]{new DataTableSpec(new String[]{"DoubleCol", "StringCol", "IntCol", "BoolCol"},
+                    new DataType[]{DoubleCell.TYPE, StringCell.TYPE, IntCell.TYPE, BooleanCell.TYPE})})
+            .testJsonFormsForModel("Default RowFilterNodeSettings instance", RowFilterNodeSettings.class) //
+            // TODO
+            // new settings file after UIEXT-2923 (dynamic parameters)
+            // .testJsonFormsWithInstance("Loading new version of settings", SettingsType.MODEL,
+            //    () -> RowFilterNodeSettingsSnapshotTest.readNodeSettings("RowSplitterNodeSettings1.xml")) //
+            // .testNodeSettingsStructure("Can load parameters from new XML",
+            //     () -> RowFilterNodeSettingsSnapshotTest.readNodeSettings("RowSplitterNodeSettings1.xml")) //
+            // Backwards-compatibility with a pre-UIEXT-2923 settings file (original webui migration)
+            .testJsonFormsWithInstance("Loading legacy version of settings", SettingsType.MODEL,
+                () -> RowFilterNodeSettingsSnapshotTest.readNodeSettings("RowSplitterNodeSettings0.xml")) //
+            // no save supported: .testNodeSettingsStructure(() -> readNodeSettings("RowFilterNodeSettings0.xml"))
+            .build();
     }
 }

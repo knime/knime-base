@@ -46,13 +46,13 @@
           "outputMode" : {
             "oneOf" : [ {
               "const" : "MATCHING",
-              "title" : "Matching rows at first output, non-matching at second output"
+              "title" : "Output matching rows"
             }, {
               "const" : "NON_MATCHING",
-              "title" : "Non-matching rows at first output, matching at second output"
+              "title" : "Output non-matching rows"
             } ],
-            "title" : "Splitting behavior",
-            "description" : "Determines whether matching rows are output at the first port and non-matching rows are output at the second port, or vice-versa.",
+            "title" : "Filter behavior",
+            "description" : "Determines whether only matching or non-matching rows are output.",
             "default" : "MATCHING"
           },
           "predicates" : {
@@ -184,8 +184,7 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/outputMode",
         "options" : {
-          "format" : "radio",
-          "radioLayout" : "vertical"
+          "format" : "valueSwitch"
         }
       } ]
     } ]
@@ -277,40 +276,57 @@
       "value" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}"
     } ]
   }, {
-    "scope" : "#/properties/model/properties/predicates/items/properties/columnType",
+    "scope" : "#/properties/model/properties/predicates/items/properties/filterValueParameters",
+    "providedOptionName" : "dynamicSettings",
+    "values" : [ {
+      "indices" : [ 0 ],
+      "value" : null
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/predicates/items/properties/operator",
     "providedOptionName" : "possibleValues",
     "values" : [ {
-      "indices" : [ ],
+      "indices" : [ 0 ],
       "value" : [ {
-        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.blob.BinaryObjectDataCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-        "text" : "Binary Object",
-        "type" : {
-          "id" : "org.knime.core.data.blob.BinaryObjectDataValue",
-          "text" : "Binary Object"
-        }
+        "id" : "IS_TRUE",
+        "text" : "Is true"
       }, {
-        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.vector.bitvector.DenseBitVectorCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-        "text" : "Bit Vector",
-        "type" : {
-          "id" : "org.knime.core.data.vector.bitvector.BitVectorValue",
-          "text" : "Bit Vector"
-        }
+        "id" : "IS_FALSE",
+        "text" : "Is false"
       }, {
-        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.vector.bitvector.SparseBitVectorCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-        "text" : "Bit Vector (Sparse)",
-        "type" : {
-          "id" : "org.knime.core.data.vector.bitvector.SparseBitVectorValue",
-          "text" : "Bit Vector (Sparse)"
-        }
+        "id" : "IS_MISSING",
+        "text" : "Is missing"
       }, {
-        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-        "text" : "Boolean",
-        "type" : {
-          "id" : "org.knime.core.data.BooleanValue",
-          "text" : "Boolean"
-        }
-      }, {
-        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.vector.bytevector.DenseByteVectorCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "id" : "IS_NOT_MISSING",
+        "text" : "Is not missing"
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/predicates",
+    "providedOptionName" : "elementDefaultValue",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : {
+        "column" : {
+          "regularChoice" : "BoolCol"
+        },
+        "columnType" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "operator" : "IS_TRUE"
+      }
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/predicates/items/properties/column"
+    },
+    "dependencies" : [ "#/properties/model/properties/predicates/items/properties/column", "#/properties/model/properties/predicates/items/properties/columnType", "#/properties/model/properties/predicates/items/properties/filterValueParameters", "#/properties/model/properties/predicates/items/properties/operator" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/predicates/items/properties/operator"
+    },
+    "dependencies" : [ "#/properties/model/properties/predicates/items/properties/column", "#/properties/model/properties/predicates/items/properties/columnType", "#/properties/model/properties/predicates/items/properties/filterValueParameters", "#/properties/model/properties/predicates/items/properties/operator" ]
+  } ]
+}   "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.vector.bytevector.DenseByteVectorCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
         "text" : "Byte Vector",
         "type" : {
           "id" : "org.knime.core.data.vector.bytevector.ByteVectorValue",

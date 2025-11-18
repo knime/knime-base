@@ -4,39 +4,61 @@
       "matchCriteria" : "OR",
       "predicates" : [ {
         "column" : {
-          "specialChoice" : "ROW_ID"
+          "regularChoice" : "BoolCol"
         },
-        "operator" : "NEQ",
+        "operator" : "IS_FALSE",
         "filterValueParameters" : {
-          "@class" : "org.knime.base.node.preproc.filter.row3.operators.rowkey.RowKeyEqualsParameters",
-          "caseSensitivity" : "CASE_SENSITIVE",
-          "value" : "RowXXX"
+          "@class" : "org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterParameters",
+          "legacySettings" : "{\"name\":\"0\",\"value\":{\"columnV2\":{\"type\":\"tree\",\"value\":{\"regularChoice\":{\"type\":\"string\",\"value\":\"BoolCol\"},\"specialChoice_Internals\":{\"type\":\"string\",\"value\":null}}},\"predicateValues\":{\"type\":\"tree\",\"value\":{\"inputKind\":{\"type\":\"string\",\"value\":\"SINGLE\"},\"values\":{\"type\":\"tree\",\"value\":{}}}},\"operator\":{\"type\":\"string\",\"value\":\"IS_FALSE\"}}}"
+        }
+      }, {
+        "column" : {
+          "regularChoice" : "DoubleCol"
+        },
+        "operator" : "GT",
+        "filterValueParameters" : {
+          "@class" : "org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterParameters",
+          "legacySettings" : "{\"name\":\"1\",\"value\":{\"columnV2\":{\"type\":\"tree\",\"value\":{\"regularChoice\":{\"type\":\"string\",\"value\":\"DoubleCol\"},\"specialChoice_Internals\":{\"type\":\"string\",\"value\":null}}},\"predicateValues\":{\"type\":\"tree\",\"value\":{\"inputKind\":{\"type\":\"string\",\"value\":\"SINGLE\"},\"values\":{\"type\":\"tree\",\"value\":{\"0\":{\"type\":\"tree\",\"value\":{\"typeIdentifier\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.DoubleCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}},\"value\":{\"type\":\"double\",\"value\":0.1}}}}}}},\"operator\":{\"type\":\"string\",\"value\":\"GT\"}}}"
         }
       }, {
         "column" : {
           "regularChoice" : "StringCol"
         },
-        "columnType" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.StringCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-        "operator" : "WILDCARD",
+        "operator" : "REGEX",
         "filterValueParameters" : {
-          "@class" : "org.knime.base.node.preproc.filter.row3.operators.pattern.PatternFilterParameters",
-          "caseSensitivity" : "CASE_SENSITIVE",
-          "pattern" : "Foo*Foo*"
+          "@class" : "org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterParameters",
+          "legacySettings" : "{\"name\":\"2\",\"value\":{\"columnV2\":{\"type\":\"tree\",\"value\":{\"regularChoice\":{\"type\":\"string\",\"value\":\"StringCol\"},\"specialChoice_Internals\":{\"type\":\"string\",\"value\":null}}},\"predicateValues\":{\"type\":\"tree\",\"value\":{\"inputKind\":{\"type\":\"string\",\"value\":\"SINGLE\"},\"values\":{\"type\":\"tree\",\"value\":{\"0\":{\"type\":\"tree\",\"value\":{\"stringCaseMatching\":{\"type\":\"tree\",\"value\":{\"caseMatching\":{\"type\":\"string\",\"value\":\"CASEINSENSITIVE\"}}},\"typeIdentifier\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.StringCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}},\"value\":{\"type\":\"string\",\"value\":\"A.*\"}}}}}}},\"operator\":{\"type\":\"string\",\"value\":\"REGEX\"}}}"
         }
       }, {
         "column" : {
-          "regularChoice" : "LongCol"
+          "regularChoice" : "IntCol"
         },
-        "columnType" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.LongCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
         "operator" : "WILDCARD",
         "filterValueParameters" : {
-          "@class" : "org.knime.base.node.preproc.filter.row3.operators.pattern.PatternFilterParameters",
-          "caseSensitivity" : "CASE_INSENSITIVE",
-          "pattern" : "100*"
+          "@class" : "org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterParameters",
+          "legacySettings" : "{\"name\":\"3\",\"value\":{\"columnV2\":{\"type\":\"tree\",\"value\":{\"regularChoice\":{\"type\":\"string\",\"value\":\"IntCol\"},\"specialChoice_Internals\":{\"type\":\"string\",\"value\":null}}},\"predicateValues\":{\"type\":\"tree\",\"value\":{\"inputKind\":{\"type\":\"string\",\"value\":\"SINGLE\"},\"values\":{\"type\":\"tree\",\"value\":{\"0\":{\"type\":\"tree\",\"value\":{\"stringCaseMatching\":{\"type\":\"tree\",\"value\":{\"caseMatching\":{\"type\":\"string\",\"value\":\"CASEINSENSITIVE\"}}},\"typeIdentifier\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.StringCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}},\"value\":{\"type\":\"string\",\"value\":\"*1\"}}}}}}},\"operator\":{\"type\":\"string\",\"value\":\"WILDCARD\"}}}"
+        }
+      }, {
+        "column" : {
+          "specialChoice" : "ROW_NUMBER"
+        },
+        "operator" : "GT",
+        "filterValueParameters" : {
+          "@class" : "org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterParameters",
+          "legacySettings" : "{\"name\":\"4\",\"value\":{\"columnV2\":{\"type\":\"tree\",\"value\":{\"regularChoice\":{\"type\":\"string\",\"value\":null},\"specialChoice_Internals\":{\"type\":\"string\",\"value\":\"ROW_NUMBER\"}}},\"predicateValues\":{\"type\":\"tree\",\"value\":{\"inputKind\":{\"type\":\"string\",\"value\":\"SINGLE\"},\"values\":{\"type\":\"tree\",\"value\":{\"0\":{\"type\":\"tree\",\"value\":{\"typeIdentifier\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.LongCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}},\"value\":{\"type\":\"long\",\"value\":2}}}}}}},\"operator\":{\"type\":\"string\",\"value\":\"GT\"}}}"
+        }
+      }, {
+        "column" : {
+          "specialChoice" : "ROW_ID"
+        },
+        "operator" : "NEQ",
+        "filterValueParameters" : {
+          "@class" : "org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterParameters",
+          "legacySettings" : "{\"name\":\"5\",\"value\":{\"columnV2\":{\"type\":\"tree\",\"value\":{\"regularChoice\":{\"type\":\"string\",\"value\":null},\"specialChoice_Internals\":{\"type\":\"string\",\"value\":\"ROW_ID\"}}},\"predicateValues\":{\"type\":\"tree\",\"value\":{\"inputKind\":{\"type\":\"string\",\"value\":\"SINGLE\"},\"values\":{\"type\":\"tree\",\"value\":{\"0\":{\"type\":\"tree\",\"value\":{\"stringCaseMatching\":{\"type\":\"tree\",\"value\":{\"caseMatching\":{\"type\":\"string\",\"value\":\"CASEINSENSITIVE\"}}},\"typeIdentifier\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.StringCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}},\"value\":{\"type\":\"string\",\"value\":\"Row0\"}}}}}}},\"operator\":{\"type\":\"string\",\"value\":\"NEQ\"}}}"
         }
       } ],
-      "domains" : "RETAIN",
-      "outputMode" : "MATCHING"
+      "domains" : "COMPUTE",
+      "outputMode" : "NON_MATCHING"
     }
   },
   "schema" : {
@@ -299,21 +321,90 @@
     "scope" : "#/properties/model/properties/predicates/items/properties/columnType",
     "values" : [ {
       "indices" : [ 0 ],
-      "value" : null
+      "value" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}"
     }, {
       "indices" : [ 1 ],
+      "value" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.DoubleCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}"
+    }, {
+      "indices" : [ 2 ],
       "value" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.StringCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}"
+    }, {
+      "indices" : [ 3 ],
+      "value" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.IntCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}"
+    }, {
+      "indices" : [ 4 ],
+      "value" : null
+    }, {
+      "indices" : [ 5 ],
+      "value" : null
     } ]
   }, {
     "scope" : "#/properties/model/properties/predicates/items/properties/filterValueParameters",
     "providedOptionName" : "dynamicSettings",
     "values" : [ {
       "indices" : [ 0 ],
+      "value" : null
+    }, {
+      "indices" : [ 1 ],
+      "value" : {
+        "data" : {
+          "@class" : "org.knime.base.node.preproc.filter.row3.operators.defaults.DoubleParameters",
+          "value" : 0.1
+        },
+        "schema" : "{\"type\":\"object\",\"properties\":{\"value\":{\"type\":\"number\",\"format\":\"double\",\"title\":\"Value\",\"description\":\"The value to compare to.\",\"default\":0.0}}}",
+        "uiSchema" : "{\"elements\":[{\"type\":\"Control\",\"scope\":\"#/properties/value\"}]}",
+        "persist" : "{\"type\":\"object\",\"properties\":{\"value\":{}}}",
+        "updates" : "{}",
+        "settingsId" : null
+      }
+    }, {
+      "indices" : [ 2 ],
+      "value" : {
+        "data" : {
+          "@class" : "org.knime.base.node.preproc.filter.row3.operators.pattern.PatternFilterParameters",
+          "caseSensitivity" : "CASE_INSENSITIVE",
+          "pattern" : ""
+        },
+        "schema" : "{\"type\":\"object\",\"properties\":{\"caseSensitivity\":{\"oneOf\":[{\"const\":\"CASE_SENSITIVE\",\"title\":\"Case sensitive\"},{\"const\":\"CASE_INSENSITIVE\",\"title\":\"Case insensitive\"}],\"title\":\"Case matching\",\"description\":\"Whether to consider case when matching the pattern.\",\"default\":\"CASE_INSENSITIVE\"},\"pattern\":{\"type\":\"string\",\"title\":\"Pattern\",\"description\":\"The pattern to filter for.\",\"default\":\"\"}}}",
+        "uiSchema" : "{\"elements\":[{\"type\":\"Control\",\"scope\":\"#/properties/caseSensitivity\",\"options\":{\"format\":\"valueSwitch\"}},{\"type\":\"Control\",\"scope\":\"#/properties/pattern\"}]}",
+        "persist" : "{\"type\":\"object\",\"properties\":{\"caseSensitivity\":{},\"pattern\":{}}}",
+        "updates" : "{}",
+        "settingsId" : null
+      }
+    }, {
+      "indices" : [ 3 ],
+      "value" : {
+        "data" : {
+          "@class" : "org.knime.base.node.preproc.filter.row3.operators.pattern.PatternFilterParameters",
+          "caseSensitivity" : "CASE_INSENSITIVE",
+          "pattern" : ""
+        },
+        "schema" : "{\"type\":\"object\",\"properties\":{\"caseSensitivity\":{\"oneOf\":[{\"const\":\"CASE_SENSITIVE\",\"title\":\"Case sensitive\"},{\"const\":\"CASE_INSENSITIVE\",\"title\":\"Case insensitive\"}],\"title\":\"Case matching\",\"description\":\"Whether to consider case when matching the pattern.\",\"default\":\"CASE_INSENSITIVE\"},\"pattern\":{\"type\":\"string\",\"title\":\"Pattern\",\"description\":\"The pattern to filter for.\",\"default\":\"\"}}}",
+        "uiSchema" : "{\"elements\":[{\"type\":\"Control\",\"scope\":\"#/properties/caseSensitivity\",\"options\":{\"format\":\"valueSwitch\"}},{\"type\":\"Control\",\"scope\":\"#/properties/pattern\"}]}",
+        "persist" : "{\"type\":\"object\",\"properties\":{\"caseSensitivity\":{},\"pattern\":{}}}",
+        "updates" : "{}",
+        "settingsId" : null
+      }
+    }, {
+      "indices" : [ 4 ],
+      "value" : {
+        "data" : {
+          "@class" : "org.knime.base.node.preproc.filter.row3.operators.rownumber.RowNumberParameters",
+          "value" : 2
+        },
+        "schema" : "{\"type\":\"object\",\"properties\":{\"value\":{\"type\":\"integer\",\"format\":\"int64\",\"title\":\"Row number\",\"description\":\"The positive row number to compare with.\",\"default\":1}}}",
+        "uiSchema" : "{\"elements\":[{\"type\":\"Control\",\"scope\":\"#/properties/value\",\"options\":{\"validation\":{\"max\":{\"errorMessage\":\"Value too large to process without risking precision loss (> 9007199254740991).\",\"parameters\":{\"isExclusive\":false,\"max\":9.007199254740991E15}},\"min\":{\"errorMessage\":\"The value must be at least 1.\",\"parameters\":{\"isExclusive\":false,\"min\":1.0}}}}}]}",
+        "persist" : "{\"type\":\"object\",\"properties\":{\"value\":{}}}",
+        "updates" : "{}",
+        "settingsId" : null
+      }
+    }, {
+      "indices" : [ 5 ],
       "value" : {
         "data" : {
           "@class" : "org.knime.base.node.preproc.filter.row3.operators.rowkey.RowKeyEqualsParameters",
           "caseSensitivity" : "CASE_SENSITIVE",
-          "value" : "RowXXX"
+          "value" : "Row0"
         },
         "schema" : "{\"type\":\"object\",\"properties\":{\"caseSensitivity\":{\"oneOf\":[{\"const\":\"CASE_SENSITIVE\",\"title\":\"Case sensitive\"},{\"const\":\"CASE_INSENSITIVE\",\"title\":\"Case insensitive\"}],\"title\":\"Case matching\",\"description\":\"Whether the comparison should be case sensitive or not.\",\"default\":\"CASE_SENSITIVE\"},\"value\":{\"type\":\"string\",\"title\":\"RowID\",\"description\":\"The RowID to compare with.\",\"default\":\"\"}}}",
         "uiSchema" : "{\"elements\":[{\"type\":\"Control\",\"scope\":\"#/properties/caseSensitivity\",\"options\":{\"format\":\"valueSwitch\"}},{\"type\":\"Control\",\"scope\":\"#/properties/value\"}]}",
@@ -321,34 +412,6 @@
         "updates" : "{}",
         "settingsId" : null
       }
-    }, {
-      "indices" : [ 1 ],
-      "value" : {
-        "data" : {
-          "@class" : "org.knime.base.node.preproc.filter.row3.operators.pattern.PatternFilterParameters",
-          "caseSensitivity" : "CASE_SENSITIVE",
-          "pattern" : "Foo*Foo*"
-        },
-        "schema" : "{\"type\":\"object\",\"properties\":{\"caseSensitivity\":{\"oneOf\":[{\"const\":\"CASE_SENSITIVE\",\"title\":\"Case sensitive\"},{\"const\":\"CASE_INSENSITIVE\",\"title\":\"Case insensitive\"}],\"title\":\"Case matching\",\"description\":\"Whether to consider case when matching the pattern.\",\"default\":\"CASE_INSENSITIVE\"},\"pattern\":{\"type\":\"string\",\"title\":\"Pattern\",\"description\":\"The pattern to filter for.\",\"default\":\"\"}}}",
-        "uiSchema" : "{\"elements\":[{\"type\":\"Control\",\"scope\":\"#/properties/caseSensitivity\",\"options\":{\"format\":\"valueSwitch\"}},{\"type\":\"Control\",\"scope\":\"#/properties/pattern\"}]}",
-        "persist" : "{\"type\":\"object\",\"properties\":{\"caseSensitivity\":{},\"pattern\":{}}}",
-        "updates" : "{}",
-        "settingsId" : null
-      }
-    }, {
-      "indices" : [ 2 ],
-      "value" : {
-        "data" : {
-          "@class" : "org.knime.base.node.preproc.filter.row3.operators.pattern.PatternFilterParameters",
-          "caseSensitivity" : "CASE_INSENSITIVE",
-          "pattern" : "100*"
-        },
-        "schema" : "{\"type\":\"object\",\"properties\":{\"caseSensitivity\":{\"oneOf\":[{\"const\":\"CASE_SENSITIVE\",\"title\":\"Case sensitive\"},{\"const\":\"CASE_INSENSITIVE\",\"title\":\"Case insensitive\"}],\"title\":\"Case matching\",\"description\":\"Whether to consider case when matching the pattern.\",\"default\":\"CASE_INSENSITIVE\"},\"pattern\":{\"type\":\"string\",\"title\":\"Pattern\",\"description\":\"The pattern to filter for.\",\"default\":\"\"}}}",
-        "uiSchema" : "{\"elements\":[{\"type\":\"Control\",\"scope\":\"#/properties/caseSensitivity\",\"options\":{\"format\":\"valueSwitch\"}},{\"type\":\"Control\",\"scope\":\"#/properties/pattern\"}]}",
-        "persist" : "{\"type\":\"object\",\"properties\":{\"caseSensitivity\":{},\"pattern\":{}}}",
-        "updates" : "{}",
-        "settingsId" : null
-      }
     } ]
   }, {
     "scope" : "#/properties/model/properties/predicates/items/properties/operator",
@@ -356,20 +419,50 @@
     "values" : [ {
       "indices" : [ 0 ],
       "value" : [ {
+        "id" : "IS_TRUE",
+        "text" : "Is true"
+      }, {
+        "id" : "IS_FALSE",
+        "text" : "Is false"
+      }, {
+        "id" : "IS_MISSING",
+        "text" : "Is missing"
+      }, {
+        "id" : "IS_NOT_MISSING",
+        "text" : "Is not missing"
+      } ]
+    }, {
+      "indices" : [ 1 ],
+      "value" : [ {
         "id" : "EQ",
         "text" : "Equals"
       }, {
         "id" : "NEQ",
-        "text" : "Not equal"
+        "text" : "Is not equal"
       }, {
-        "id" : "REGEX",
-        "text" : "Matches regex"
+        "id" : "NEQ_MISS",
+        "text" : "Is not equal (nor missing)"
       }, {
-        "id" : "WILDCARD",
-        "text" : "Matches wildcard"
+        "id" : "LT",
+        "text" : "Less than"
+      }, {
+        "id" : "LTE",
+        "text" : "Less than or equal"
+      }, {
+        "id" : "GT",
+        "text" : "Greater than"
+      }, {
+        "id" : "GTE",
+        "text" : "Greater than or equal"
+      }, {
+        "id" : "IS_MISSING",
+        "text" : "Is missing"
+      }, {
+        "id" : "IS_NOT_MISSING",
+        "text" : "Is not missing"
       } ]
     }, {
-      "indices" : [ 1 ],
+      "indices" : [ 2 ],
       "value" : [ {
         "id" : "EQ",
         "text" : "Equals"
@@ -393,7 +486,7 @@
         "text" : "Is not missing"
       } ]
     }, {
-      "indices" : [ 2 ],
+      "indices" : [ 3 ],
       "value" : [ {
         "id" : "EQ",
         "text" : "Equals"
@@ -428,256 +521,14 @@
         "id" : "IS_NOT_MISSING",
         "text" : "Is not missing"
       } ]
-    } ]
-  }, {
-    "scope" : "#/properties/model/properties/predicates",
-    "providedOptionName" : "elementDefaultValue",
-    "values" : [ {
-      "indices" : [ ],
-      "value" : {
-        "column" : {
-          "regularChoice" : "BoolCol"
-        },
-        "columnType" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-        "operator" : "IS_TRUE"
-      }
-    } ]
-  } ],
-  "globalUpdates" : [ {
-    "trigger" : {
-      "scope" : "#/properties/model/properties/predicates/items/properties/column"
-    },
-    "dependencies" : [ "#/properties/model/properties/predicates/items/properties/column", "#/properties/model/properties/predicates/items/properties/columnType", "#/properties/model/properties/predicates/items/properties/filterValueParameters", "#/properties/model/properties/predicates/items/properties/operator" ]
-  }, {
-    "trigger" : {
-      "scope" : "#/properties/model/properties/predicates/items/properties/operator"
-    },
-    "dependencies" : [ "#/properties/model/properties/predicates/items/properties/column", "#/properties/model/properties/predicates/items/properties/columnType", "#/properties/model/properties/predicates/items/properties/filterValueParameters", "#/properties/model/properties/predicates/items/properties/operator" ]
-  } ]
-}},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-        "text" : "HELM",
-        "type" : {
-          "id" : "org.knime.chem.types.helm.HELMValue",
-          "text" : "HELM"
-        }
-      }, {
-        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.image.png.PNGImageCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-        "text" : "Image (PNG)",
-        "type" : {
-          "id" : "org.knime.core.data.image.png.PNGImageValue",
-          "text" : "Image (PNG)"
-        }
-      }, {
-        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.chem.types.InchiCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-        "text" : "InChI",
-        "type" : {
-          "id" : "org.knime.chem.types.InchiValue",
-          "text" : "InChI"
-        }
-      }, {
-        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.xml.PMMLCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-        "text" : "Model (PMML)",
-        "type" : {
-          "id" : "org.knime.core.data.xml.PMMLValue",
-          "text" : "Model (PMML)"
-        }
-      }, {
-        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.chem.types.Mol2Cell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-        "text" : "Mol2",
-        "type" : {
-          "id" : "org.knime.chem.types.Mol2Value",
-          "text" : "Mol2"
-        }
-      }, {
-        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.chem.types.MolCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-        "text" : "Molfile",
-        "type" : {
-          "id" : "org.knime.chem.types.MolValue",
-          "text" : "Molfile"
-        }
-      }, {
-        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.DoubleCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-        "text" : "Number (Float)",
-        "type" : {
-          "id" : "org.knime.core.data.DoubleValue",
-          "text" : "Number (Float)"
-        }
-      }, {
-        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.IntCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-        "text" : "Number (Integer)",
-        "type" : {
-          "id" : "org.knime.core.data.IntValue",
-          "text" : "Number (Integer)"
-        }
-      }, {
-        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.LongCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-        "text" : "Number (Long Integer)",
-        "type" : {
-          "id" : "org.knime.core.data.LongValue",
-          "text" : "Number (Long Integer)"
-        }
-      }, {
-        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.filehandling.core.data.location.cell.SimpleFSLocationCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-        "text" : "Path",
-        "type" : {
-          "id" : "org.knime.filehandling.core.data.location.FSLocationValue",
-          "text" : "Path"
-        }
-      }, {
-        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.chem.types.RxnCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-        "text" : "Rxn",
-        "type" : {
-          "id" : "org.knime.chem.types.RxnValue",
-          "text" : "Rxn"
-        }
-      }, {
-        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.chem.types.SdfCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-        "text" : "SDF",
-        "type" : {
-          "id" : "org.knime.chem.types.SdfValue",
-          "text" : "SDF"
-        }
-      }, {
-        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.chem.types.SmartsCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-        "text" : "SMARTS",
-        "type" : {
-          "id" : "org.knime.chem.types.SmartsValue",
-          "text" : "SMARTS"
-        }
-      }, {
-        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.chem.types.SmilesCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-        "text" : "SMILES",
-        "type" : {
-          "id" : "org.knime.chem.types.SmilesValue",
-          "text" : "SMILES"
-        }
-      }, {
-        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.StringCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-        "text" : "String",
-        "type" : {
-          "id" : "org.knime.core.data.StringValue",
-          "text" : "String"
-        }
-      }, {
-        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"collection_element_type\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.StringCell\"}}},\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.vector.stringvector.DenseStringVectorCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-        "text" : "String Vector (Collection of: String)",
-        "type" : {
-          "id" : "org.knime.core.data.vector.stringvector.StringVectorValue",
-          "text" : "String Vector"
-        }
-      }, {
-        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.time.localtime.LocalTimeCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-        "text" : "Time",
-        "type" : {
-          "id" : "org.knime.core.data.time.localtime.LocalTimeValue",
-          "text" : "Time"
-        }
-      }, {
-        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.uri.URIDataCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-        "text" : "URI",
-        "type" : {
-          "id" : "org.knime.core.data.uri.URIDataValue",
-          "text" : "URI"
-        }
-      }, {
-        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.xml.XMLCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-        "text" : "XML",
-        "type" : {
-          "id" : "org.knime.core.data.xml.XMLValue",
-          "text" : "XML"
-        }
-      } ]
-    } ]
-  }, {
-    "scope" : "#/properties/model/properties/predicates/items/properties/filterValueParameters",
-    "providedOptionName" : "dynamicSettings",
-    "values" : [ {
-      "indices" : [ 0 ],
-      "value" : {
-        "data" : {
-          "@class" : "org.knime.base.node.preproc.filter.row3.operators.rowkey.RowKeyEqualsParameters",
-          "caseSensitivity" : "CASE_SENSITIVE",
-          "value" : "RowXXX"
-        },
-        "schema" : "{\"type\":\"object\",\"properties\":{\"caseSensitivity\":{\"oneOf\":[{\"const\":\"CASE_SENSITIVE\",\"title\":\"Case sensitive\"},{\"const\":\"CASE_INSENSITIVE\",\"title\":\"Case insensitive\"}],\"title\":\"Case matching\",\"description\":\"Whether the comparison should be case sensitive or not.\",\"default\":\"CASE_SENSITIVE\"},\"value\":{\"type\":\"string\",\"title\":\"RowID\",\"description\":\"The RowID to compare with.\",\"default\":\"\"}}}",
-        "uiSchema" : "{\"elements\":[{\"type\":\"Control\",\"scope\":\"#/properties/caseSensitivity\",\"options\":{\"format\":\"valueSwitch\"}},{\"type\":\"Control\",\"scope\":\"#/properties/value\"}]}"
-      }
     }, {
-      "indices" : [ 1 ],
-      "value" : {
-        "data" : {
-          "@class" : "org.knime.base.node.preproc.filter.row3.operators.pattern.PatternFilterParameters",
-          "caseSensitivity" : "CASE_SENSITIVE",
-          "pattern" : "Foo*Foo*"
-        },
-        "schema" : "{\"type\":\"object\",\"properties\":{\"caseSensitivity\":{\"oneOf\":[{\"const\":\"CASE_SENSITIVE\",\"title\":\"Case sensitive\"},{\"const\":\"CASE_INSENSITIVE\",\"title\":\"Case insensitive\"}],\"title\":\"Case matching\",\"description\":\"Whether to consider case when matching the pattern.\",\"default\":\"CASE_INSENSITIVE\"},\"pattern\":{\"type\":\"string\",\"title\":\"Pattern\",\"description\":\"The pattern to filter for.\",\"default\":\"\"}}}",
-        "uiSchema" : "{\"elements\":[{\"type\":\"Control\",\"scope\":\"#/properties/caseSensitivity\",\"options\":{\"format\":\"valueSwitch\"}},{\"type\":\"Control\",\"scope\":\"#/properties/pattern\"}]}"
-      }
-    }, {
-      "indices" : [ 2 ],
-      "value" : {
-        "data" : {
-          "@class" : "org.knime.base.node.preproc.filter.row3.operators.pattern.PatternFilterParameters",
-          "caseSensitivity" : "CASE_INSENSITIVE",
-          "pattern" : "100*"
-        },
-        "schema" : "{\"type\":\"object\",\"properties\":{\"caseSensitivity\":{\"oneOf\":[{\"const\":\"CASE_SENSITIVE\",\"title\":\"Case sensitive\"},{\"const\":\"CASE_INSENSITIVE\",\"title\":\"Case insensitive\"}],\"title\":\"Case matching\",\"description\":\"Whether to consider case when matching the pattern.\",\"default\":\"CASE_INSENSITIVE\"},\"pattern\":{\"type\":\"string\",\"title\":\"Pattern\",\"description\":\"The pattern to filter for.\",\"default\":\"\"}}}",
-        "uiSchema" : "{\"elements\":[{\"type\":\"Control\",\"scope\":\"#/properties/caseSensitivity\",\"options\":{\"format\":\"valueSwitch\"}},{\"type\":\"Control\",\"scope\":\"#/properties/pattern\"}]}"
-      }
-    } ]
-  }, {
-    "scope" : "#/properties/model/properties/predicates/items/properties/operator",
-    "providedOptionName" : "possibleValues",
-    "values" : [ {
-      "indices" : [ 0 ],
-      "value" : [ {
-        "id" : "EQ",
-        "text" : "Equals"
-      }, {
-        "id" : "NEQ",
-        "text" : "Not equal"
-      }, {
-        "id" : "REGEX",
-        "text" : "Matches regex"
-      }, {
-        "id" : "WILDCARD",
-        "text" : "Matches wildcard"
-      } ]
-    }, {
-      "indices" : [ 1 ],
+      "indices" : [ 4 ],
       "value" : [ {
         "id" : "EQ",
         "text" : "Equals"
       }, {
         "id" : "NEQ",
         "text" : "Is not equal"
-      }, {
-        "id" : "NEQ_MISS",
-        "text" : "Is not equal (nor missing)"
-      }, {
-        "id" : "REGEX",
-        "text" : "Matches regex"
-      }, {
-        "id" : "WILDCARD",
-        "text" : "Matches wildcard"
-      }, {
-        "id" : "IS_MISSING",
-        "text" : "Is missing"
-      }, {
-        "id" : "IS_NOT_MISSING",
-        "text" : "Is not missing"
-      } ]
-    }, {
-      "indices" : [ 2 ],
-      "value" : [ {
-        "id" : "EQ",
-        "text" : "Equals"
-      }, {
-        "id" : "NEQ",
-        "text" : "Is not equal"
-      }, {
-        "id" : "NEQ_MISS",
-        "text" : "Is not equal (nor missing)"
       }, {
         "id" : "LT",
         "text" : "Less than"
@@ -691,17 +542,32 @@
         "id" : "GTE",
         "text" : "Greater than or equal"
       }, {
+        "id" : "FIRST_N_ROWS",
+        "text" : "First n rows"
+      }, {
+        "id" : "LAST_N_ROWS",
+        "text" : "Last n rows"
+      }, {
         "id" : "REGEX",
         "text" : "Matches regex"
       }, {
         "id" : "WILDCARD",
         "text" : "Matches wildcard"
+      } ]
+    }, {
+      "indices" : [ 5 ],
+      "value" : [ {
+        "id" : "EQ",
+        "text" : "Equals"
       }, {
-        "id" : "IS_MISSING",
-        "text" : "Is missing"
+        "id" : "NEQ",
+        "text" : "Not equal"
       }, {
-        "id" : "IS_NOT_MISSING",
-        "text" : "Is not missing"
+        "id" : "REGEX",
+        "text" : "Matches regex"
+      }, {
+        "id" : "WILDCARD",
+        "text" : "Matches wildcard"
       } ]
     } ]
   }, {

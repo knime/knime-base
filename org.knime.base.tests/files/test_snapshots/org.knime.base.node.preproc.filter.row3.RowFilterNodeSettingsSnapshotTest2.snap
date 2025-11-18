@@ -318,89 +318,124 @@
       "value" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.StringCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}"
     } ]
   }, {
-    "scope" : "#/properties/model/properties/predicates/items/properties/columnType",
+    "scope" : "#/properties/model/properties/predicates/items/properties/filterValueParameters",
+    "providedOptionName" : "dynamicSettings",
+    "values" : [ {
+      "indices" : [ 0 ],
+      "value" : {
+        "data" : {
+          "@class" : "org.knime.base.node.preproc.filter.row3.operators.rowkey.RowKeyEqualsParameters",
+          "caseSensitivity" : "CASE_SENSITIVE",
+          "value" : "RowXXX"
+        },
+        "schema" : "{\"type\":\"object\",\"properties\":{\"caseSensitivity\":{\"oneOf\":[{\"const\":\"CASE_SENSITIVE\",\"title\":\"Case sensitive\"},{\"const\":\"CASE_INSENSITIVE\",\"title\":\"Case insensitive\"}],\"title\":\"Case matching\",\"description\":\"Whether the comparison should be case sensitive or not.\",\"default\":\"CASE_SENSITIVE\"},\"value\":{\"type\":\"string\",\"title\":\"RowID\",\"description\":\"The RowID to compare with.\",\"default\":\"\"}}}",
+        "uiSchema" : "{\"elements\":[{\"type\":\"Control\",\"scope\":\"#/properties/caseSensitivity\",\"options\":{\"format\":\"valueSwitch\"}},{\"type\":\"Control\",\"scope\":\"#/properties/value\"}]}",
+        "persist" : "{\"type\":\"object\",\"properties\":{\"caseSensitivity\":{},\"value\":{}}}",
+        "updates" : "{}",
+        "settingsId" : null
+      }
+    }, {
+      "indices" : [ 1 ],
+      "value" : {
+        "data" : {
+          "@class" : "org.knime.base.node.preproc.filter.row3.operators.pattern.PatternFilterParameters",
+          "caseSensitivity" : "CASE_INSENSITIVE",
+          "pattern" : ""
+        },
+        "schema" : "{\"type\":\"object\",\"properties\":{\"caseSensitivity\":{\"oneOf\":[{\"const\":\"CASE_SENSITIVE\",\"title\":\"Case sensitive\"},{\"const\":\"CASE_INSENSITIVE\",\"title\":\"Case insensitive\"}],\"title\":\"Case matching\",\"description\":\"Whether to consider case when matching the pattern.\",\"default\":\"CASE_INSENSITIVE\"},\"pattern\":{\"type\":\"string\",\"title\":\"Pattern\",\"description\":\"The pattern to filter for.\",\"default\":\"\"}}}",
+        "uiSchema" : "{\"elements\":[{\"type\":\"Control\",\"scope\":\"#/properties/caseSensitivity\",\"options\":{\"format\":\"valueSwitch\"}},{\"type\":\"Control\",\"scope\":\"#/properties/pattern\"}]}",
+        "persist" : "{\"type\":\"object\",\"properties\":{\"caseSensitivity\":{},\"pattern\":{}}}",
+        "updates" : "{}",
+        "settingsId" : null
+      }
+    }, {
+      "indices" : [ 2 ],
+      "value" : null
+    }, {
+      "indices" : [ 3 ],
+      "value" : null
+    }, {
+      "indices" : [ 4 ],
+      "value" : null
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/predicates/items/properties/operator",
     "providedOptionName" : "possibleValues",
     "values" : [ {
-      "indices" : [ ],
+      "indices" : [ 0 ],
       "value" : [ {
-        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.blob.BinaryObjectDataCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-        "text" : "Binary Object",
-        "type" : {
-          "id" : "org.knime.core.data.blob.BinaryObjectDataValue",
-          "text" : "Binary Object"
-        }
+        "id" : "EQ",
+        "text" : "Equals"
       }, {
-        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.vector.bitvector.DenseBitVectorCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-        "text" : "Bit Vector",
-        "type" : {
-          "id" : "org.knime.core.data.vector.bitvector.BitVectorValue",
-          "text" : "Bit Vector"
-        }
+        "id" : "NEQ",
+        "text" : "Not equal"
       }, {
-        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.vector.bitvector.SparseBitVectorCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-        "text" : "Bit Vector (Sparse)",
-        "type" : {
-          "id" : "org.knime.core.data.vector.bitvector.SparseBitVectorValue",
-          "text" : "Bit Vector (Sparse)"
-        }
+        "id" : "REGEX",
+        "text" : "Matches regex"
       }, {
-        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-        "text" : "Boolean",
-        "type" : {
-          "id" : "org.knime.core.data.BooleanValue",
-          "text" : "Boolean"
-        }
+        "id" : "WILDCARD",
+        "text" : "Matches wildcard"
+      } ]
+    }, {
+      "indices" : [ 1 ],
+      "value" : [ {
+        "id" : "EQ",
+        "text" : "Equals"
       }, {
-        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.vector.bytevector.DenseByteVectorCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-        "text" : "Byte Vector",
-        "type" : {
-          "id" : "org.knime.core.data.vector.bytevector.ByteVectorValue",
-          "text" : "Byte Vector"
-        }
+        "id" : "NEQ",
+        "text" : "Is not equal"
       }, {
-        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.chem.types.cdx.CDXMLCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-        "text" : "CDXML",
-        "type" : {
-          "id" : "org.knime.chem.types.cdx.CDXMLValue",
-          "text" : "CDXML"
-        }
+        "id" : "NEQ_MISS",
+        "text" : "Is not equal (nor missing)"
       }, {
-        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.chem.types.CMLCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-        "text" : "CML",
-        "type" : {
-          "id" : "org.knime.chem.types.CMLValue",
-          "text" : "CML"
-        }
+        "id" : "REGEX",
+        "text" : "Matches regex"
       }, {
-        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.chem.types.CtabCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-        "text" : "CTab",
-        "type" : {
-          "id" : "org.knime.chem.types.CtabValue",
-          "text" : "CTab"
-        }
+        "id" : "WILDCARD",
+        "text" : "Matches wildcard"
       }, {
-        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.time.localdate.LocalDateCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-        "text" : "Date",
-        "type" : {
-          "id" : "org.knime.core.data.time.localdate.LocalDateValue",
-          "text" : "Date"
-        }
+        "id" : "IS_MISSING",
+        "text" : "Is missing"
       }, {
-        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.time.localdatetime.LocalDateTimeCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-        "text" : "Date&time (Local)",
-        "type" : {
-          "id" : "org.knime.core.data.time.localdatetime.LocalDateTimeValue",
-          "text" : "Date&time (Local)"
-        }
-      }, {
-        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.time.zoneddatetime.ZonedDateTimeCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-        "text" : "Date&time (Zoned)",
-        "type" : {
-          "id" : "org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue",
-          "text" : "Date&time (Zoned)"
-        }
-      }, {
-        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"collection_element_type\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.DoubleCell\"}}},\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.vector.doublevector.DenseDoubleVectorCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "id" : "IS_NOT_MISSING",
+        "text" : "Is not missing"
+      } ]
+    }, {
+      "indices" : [ 2 ],
+      "value" : [ ]
+    }, {
+      "indices" : [ 3 ],
+      "value" : [ ]
+    }, {
+      "indices" : [ 4 ],
+      "value" : [ ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/predicates",
+    "providedOptionName" : "elementDefaultValue",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : {
+        "column" : {
+          "regularChoice" : "BoolCol"
+        },
+        "columnType" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "operator" : "IS_TRUE"
+      }
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/predicates/items/properties/column"
+    },
+    "dependencies" : [ "#/properties/model/properties/predicates/items/properties/column", "#/properties/model/properties/predicates/items/properties/columnType", "#/properties/model/properties/predicates/items/properties/filterValueParameters", "#/properties/model/properties/predicates/items/properties/operator" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/predicates/items/properties/operator"
+    },
+    "dependencies" : [ "#/properties/model/properties/predicates/items/properties/column", "#/properties/model/properties/predicates/items/properties/columnType", "#/properties/model/properties/predicates/items/properties/filterValueParameters", "#/properties/model/properties/predicates/items/properties/operator" ]
+  } ]
+}e\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.DoubleCell\"}}},\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.vector.doublevector.DenseDoubleVectorCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
         "text" : "Double Vector (Collection of: Number (Float))",
         "type" : {
           "id" : "org.knime.core.data.vector.doublevector.DoubleVectorValue",
