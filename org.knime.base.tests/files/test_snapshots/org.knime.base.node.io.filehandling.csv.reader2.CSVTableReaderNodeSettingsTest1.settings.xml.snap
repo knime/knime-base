@@ -90,12 +90,48 @@
     </config>
     <config key="table_spec_config_Internals">
         <entry key="version" type="xstring" value="V4_4"/>
-        <config key="individual_specs"/>
+        <config key="individual_specs">
+            <config key="../test3.csv">
+                <entry key="num_columns" type="xint" value="1"/>
+                <config key="0">
+                    <entry key="name" type="xstring" value="column1"/>
+                    <entry key="has_type" type="xboolean" value="true"/>
+                    <config key="type">
+                        <entry key="class" type="xstring" value="java.lang.String"/>
+                    </config>
+                </config>
+            </config>
+        </config>
         <config key="table_transformation">
             <config key="columns">
-                <entry key="num_columns" type="xint" value="0"/>
+                <config key="0">
+                    <config key="external_spec">
+                        <entry key="name" type="xstring" value="column1"/>
+                        <entry key="has_type" type="xboolean" value="true"/>
+                        <config key="type">
+                            <entry key="class" type="xstring" value="java.lang.String"/>
+                        </config>
+                    </config>
+                    <entry key="name" type="xstring" value="new name"/>
+                    <entry key="keep" type="xboolean" value="true"/>
+                    <entry key="position" type="xint" value="0"/>
+                    <config key="production_path">
+                        <entry key="_converter" type="xstring" value="org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)"/>
+                        <entry key="_converter_src" type="xstring" value="java.lang.String"/>
+                        <entry key="_converter_dst" type="xstring" value="String"/>
+                        <entry key="_converter_name" type="xstring" value="String"/>
+                        <config key="_converter_config"/>
+                        <entry key="_producer" type="xstring" value="class java.lang.String-&gt;java.lang.String"/>
+                        <entry key="_producer_src" type="xstring" value="java.lang.String"/>
+                        <entry key="_producer_dst" type="xstring" value="java.lang.String"/>
+                        <entry key="_producer_name" type="xstring" value="java.lang.String"/>
+                        <config key="_producer_config"/>
+                    </config>
+                </config>
+                <entry key="num_columns" type="xint" value="1"/>
                 <config key="intersection_indices">
-                    <entry key="array-size" type="xint" value="0"/>
+                    <entry key="array-size" type="xint" value="1"/>
+                    <entry key="0" type="xint" value="0"/>
                 </config>
             </config>
             <entry key="skip_empty_columns" type="xboolean" value="false"/>
@@ -107,7 +143,7 @@
                 <entry key="force_type" type="xboolean" value="false"/>
             </config>
         </config>
-        <entry key="source_group_id" type="xstring" value=""/>
+        <entry key="source_group_id" type="xstring" value="../test3.csv"/>
         <config key="config_id">
             <config key="multi_table_read">
                 <config key="settings">

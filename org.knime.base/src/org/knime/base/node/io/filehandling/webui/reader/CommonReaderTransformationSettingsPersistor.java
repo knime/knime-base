@@ -55,10 +55,13 @@ import static org.knime.base.node.io.filehandling.webui.reader.ReaderSpecific.to
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.ColumnSpecSettings;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.ConfigIdSettings;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.PersistorSettings;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.TableSpecSettings;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.TransformationElementSettings;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.TypeChoicesProvider;
 import org.knime.base.node.io.filehandling.webui.reader.ReaderSpecific.ConfigAndReader;
@@ -71,6 +74,7 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.util.Pair;
+import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.data.location.FSLocationValueMetaData;
 import org.knime.filehandling.core.data.location.cell.SimpleFSLocationCellFactory;
 import org.knime.filehandling.core.node.table.reader.DefaultTableTransformation;
@@ -143,11 +147,34 @@ public abstract class CommonReaderTransformationSettingsPersistor<C extends Read
     public R load(final NodeSettingsRO settings) throws InvalidSettingsException {
         final var transformationSettings = createDefaultTransformationSettings();
         if (settings.containsKey(ROOT_CFG_KEY)) {
-            // TODO NOSONAR We do not need to load the PersistorSettings here since they are not needed in the frontend.
-            // This will change once we tackle UIEXT-1740 and this code will be used by the node model.
-
             final var tableSpecConfigSerializer = createTableSpecConfigSerializer();
             final var tableSpecConfig = tableSpecConfigSerializer.load(settings.getNodeSettings(ROOT_CFG_KEY));
+
+            try {
+                transformationSettings.m_persistorSettings.m_sourceId = tableSpecConfig.getSourceGroupID();
+                final var items = tableSpecConfig.getItems();
+                final var specs = items.stream().map(key -> {
+                    final var spec = tableSpecConfig.getSpec(key);
+                    final var colSpecs = spec.stream().map(colSpec -> new ColumnSpecSettings<>(colSpec.getName().get(),
+                        toSerializableType(colSpec.getType()))).toList();
+                    return new TableSpecSettings<>(key, colSpecs);
+                }).toList();
+                transformationSettings.m_persistorSettings.m_specs = specs;
+                tableSpecConfig.getItemIdentifierColumn().ifPresent(colSpec -> {
+                    transformationSettings.m_persistorSettings.m_appendPathColumn = true;
+                    transformationSettings.m_persistorSettings.m_filePathColumnName = colSpec.getName();
+                    // read metadata and set first fs location with empty path as placeholder
+                    transformationSettings.m_persistorSettings.m_fsLocations =
+                        colSpec.getMetaDataOfType(FSLocationValueMetaData.class)
+                            .map(FSLocationValueMetaData::getFSLocationSpecs).stream()//
+                            .flatMap(Set::stream)//
+                            .map(locSpec -> new FSLocation(locSpec.getFileSystemCategory(),
+                                locSpec.getFileSystemSpecifier().orElse(null), ""))
+                            .toArray(FSLocation[]::new);
+                });
+            } catch (final Exception e) { // NOSONAR The dialog can still work even if loading persistor settings fails
+                LOGGER.error("Error while loading persistor settings from table spec config.", e);
+            }
 
             final var transformationElements =
                 tableSpecConfig.getTableTransformation().stream().map(this::getTransformationElement).toList();
