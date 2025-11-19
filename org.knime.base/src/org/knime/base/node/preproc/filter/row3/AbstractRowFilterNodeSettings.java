@@ -70,6 +70,7 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.RowKey;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.util.CheckUtils;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.ClassIdStrategy;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DefaultClassIdStrategy;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
@@ -475,8 +476,10 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
             final FilterOperator<P> selectedOperator, final DataTableSpec spec, final int columnIndex)
             throws InvalidSettingsException {
             @SuppressWarnings("unchecked")
-            final var predicate = selectedOperator.createPredicate(spec.getColumnSpec(columnIndex), m_columnType,
-                (P)m_filterValueParameters);
+            final var predicate = CheckUtils.checkSettingNotNull(
+                selectedOperator.createPredicate(spec.getColumnSpec(columnIndex), m_columnType,
+                    (P)m_filterValueParameters),
+                "Operator \"%s\" returned 'null' predicate", selectedOperator.getLabel());
             final var returnTrueForMissingCells = selectedOperator.returnTrueForMissingCells();
             return (index, read) -> {
                 if (read.isMissing(columnIndex)) {
