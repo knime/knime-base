@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -40,41 +41,66 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * -------------------------------------------------------------------
+ * ---------------------------------------------------------------------
  *
+ * History
+ *   19 Nov 2025 (crundallt): created
  */
 package org.knime.time.node.convert.newtoold;
 
-import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
-import org.knime.core.node.defaultnodesettings.DialogComponentButtonGroup;
-import org.knime.core.node.defaultnodesettings.DialogComponentColumnFilter2;
-import org.knime.core.node.defaultnodesettings.DialogComponentString;
-import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import java.io.FileInputStream;
+import java.io.IOException;
+
+import org.knime.core.data.DataColumnSpecCreator;
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.def.StringCell;
+import org.knime.core.data.time.zoneddatetime.ZonedDateTimeCellFactory;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettings;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
+import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
+import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 
 /**
- * The node dialog of the node which converts new to old date&time types.
  *
- * @author Simon Schmid, KNIME.com, Konstanz, Germany
+ * @author Tim Crundall, TNG Technology Consulting GmbH
  */
-final class NewToOldTimeNodeDialog extends DefaultNodeSettingsPane {
+@SuppressWarnings("restriction")
+public class NewToOldTimeNodeParametersTest extends DefaultNodeSettingsSnapshotTest {
 
-    /** Setting up all DialogComponents. */
-    NewToOldTimeNodeDialog() {
-
-        createNewGroup("Column Selection");
-        addDialogComponent(new DialogComponentColumnFilter2(NewToOldTimeNodeModel.createColSelectModel(), 0));
-
-        createNewGroup("Replace/Append Selection");
-        setHorizontalPlacement(true);
-        final SettingsModelString replaceOrAppendModel = NewToOldTimeNodeModel.createReplaceAppendStringBool();
-        addDialogComponent(new DialogComponentButtonGroup(replaceOrAppendModel, true, null,
-            NewToOldTimeNodeModel.OPTION_APPEND, NewToOldTimeNodeModel.OPTION_REPLACE));
-        final SettingsModelString suffixModel = NewToOldTimeNodeModel.createSuffixModel(replaceOrAppendModel);
-        addDialogComponent(new DialogComponentString(suffixModel, "Suffix of appended columns: "));
-
-        createNewGroup("Time Zone Handling");
-        addDialogComponent(new DialogComponentButtonGroup(NewToOldTimeNodeModel.createStringModel(), true, null,
-            NewToOldTimeNodeModel.TIME_ZONE_OPT1, NewToOldTimeNodeModel.TIME_ZONE_OPT2));
+    NewToOldTimeNodeParametersTest() {
+        super(getConfig());
     }
 
+    private static final DataTableSpec[] TEST_TABLE_SPECS = new DataTableSpec[]{ //
+        new DataTableSpec( //
+            new DataColumnSpecCreator("Date", ZonedDateTimeCellFactory.TYPE).createSpec(), //
+            new DataColumnSpecCreator("StringColumn", StringCell.TYPE).createSpec() //
+        )};
+
+    private static SnapshotTestConfiguration getConfig() {
+        return SnapshotTestConfiguration.builder() //
+            .withInputPortObjectSpecs(TEST_TABLE_SPECS) //
+            .testJsonFormsForModel(NewToOldTimeNodeParameters.class) //
+            .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings()) //
+            .testNodeSettingsStructure(() -> readSettings()) //
+            .build();
+    }
+
+    private static NewToOldTimeNodeParameters readSettings() {
+        try {
+            var path = getSnapshotPath(NewToOldTimeNodeParameters.class).getParent().resolve("node_settings")
+                .resolve("NewToOldTimeNodeParameters.xml");
+            try (var fis = new FileInputStream(path.toFile())) {
+                var nodeSettings = NodeSettings.loadFromXML(fis);
+                return NodeParametersUtil.loadSettings( //
+                    nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()), //
+                    NewToOldTimeNodeParameters.class //
+                );
+            }
+        } catch (IOException | InvalidSettingsException e) {
+            throw new IllegalStateException(e);
+        }
+    }
 }

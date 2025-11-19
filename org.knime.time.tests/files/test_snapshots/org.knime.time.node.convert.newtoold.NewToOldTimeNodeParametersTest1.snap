@@ -1,0 +1,260 @@
+{
+  "data" : {
+    "model" : {
+      "columnSelection" : {
+        "mode" : "MANUAL",
+        "patternFilter" : {
+          "pattern" : "",
+          "isCaseSensitive" : true,
+          "isInverted" : false
+        },
+        "manualFilter" : {
+          "manuallySelected" : [ "Date" ],
+          "manuallyDeselected" : [ ],
+          "includeUnknownColumns" : true
+        },
+        "typeFilter" : {
+          "selectedTypes" : [ ],
+          "typeDisplays" : [ ]
+        }
+      },
+      "addOffsetOfTimeZone" : "DROP",
+      "replaceOrAppend" : "APPEND",
+      "suffix" : " (old Date&Time)"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "addOffsetOfTimeZone" : {
+            "oneOf" : [ {
+              "const" : "ADD_AS_OFFSET",
+              "title" : "Add as offset"
+            }, {
+              "const" : "DROP",
+              "title" : "Drop"
+            } ],
+            "title" : "Time zone handling",
+            "description" : "The legacy <b>Date&amp;Time</b> type does not support time zones. When converting values,\nyou can choose how the time zone information should be handled:\n\n<ul>\n<li><b>Add as offset</b>: Uses the provided time zone to convert the value to a UTC-based timestamp.\n<ul>\n    <li><i>Input</i>: 2015-07-09T13:00:00+02:00[Europe/Berlin]</li>\n    <li><i>Output</i>: 09.Jul.2015 15:00:00</li>\n</ul>\n</li>\n<li><b>Drop</b>: Removes any time zone information from the value.\n<ul>\n    <li><i>Input</i>: 2015-07-09T13:00:00+02:00[Europe/Berlin]</li>\n    <li><i>Output</i>: 09.Jul.2015 13:00:00</li>\n</ul>\n</li>\n</ul>",
+            "default" : "DROP"
+          },
+          "columnSelection" : {
+            "type" : "object",
+            "properties" : {
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "includeUnknownColumns" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "manuallyDeselected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "manuallySelected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "manuallySelected" : [ ],
+                  "manuallyDeselected" : [ ],
+                  "includeUnknownColumns" : false
+                }
+              },
+              "mode" : {
+                "oneOf" : [ {
+                  "const" : "MANUAL",
+                  "title" : "Manual"
+                }, {
+                  "const" : "REGEX",
+                  "title" : "Regex"
+                }, {
+                  "const" : "WILDCARD",
+                  "title" : "Wildcard"
+                }, {
+                  "const" : "TYPE",
+                  "title" : "Type"
+                } ],
+                "default" : "MANUAL"
+              },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "isCaseSensitive" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "isInverted" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "pattern" : {
+                    "type" : "string",
+                    "default" : ""
+                  }
+                },
+                "default" : {
+                  "pattern" : "",
+                  "isCaseSensitive" : false,
+                  "isInverted" : false
+                }
+              },
+              "selected" : {
+                "type" : "array",
+                "items" : {
+                  "type" : "string"
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "selectedTypes" : [ ],
+                  "typeDisplays" : [ ]
+                }
+              }
+            },
+            "title" : "Column selection",
+            "description" : "Only the included columns will be converted.",
+            "default" : {
+              "mode" : "MANUAL",
+              "patternFilter" : {
+                "pattern" : "",
+                "isCaseSensitive" : false,
+                "isInverted" : false
+              },
+              "manualFilter" : {
+                "manuallySelected" : [ ],
+                "manuallyDeselected" : [ ],
+                "includeUnknownColumns" : false
+              },
+              "typeFilter" : {
+                "selectedTypes" : [ ],
+                "typeDisplays" : [ ]
+              }
+            }
+          },
+          "replaceOrAppend" : {
+            "oneOf" : [ {
+              "const" : "REPLACE",
+              "title" : "Replace"
+            }, {
+              "const" : "APPEND",
+              "title" : "Append with suffix"
+            } ],
+            "title" : "Output columns",
+            "description" : "Whether to replace the original columns with the converted columns, or to append the\nconverted columns with new names created by appending the specified suffix to the\noriginal column names.\n\n<ul>\n<li><b>Replace</b>: Replace each input column with the converted dates.</li>\n<li><b>Append with suffix</b>: For each input column append a new column with the converted dates.\n</li>\n</ul>",
+            "default" : "REPLACE"
+          },
+          "suffix" : {
+            "type" : "string",
+            "title" : "Suffix",
+            "description" : "Text appended to column names when new columns are created using the Append option.",
+            "default" : "(old Date&Time)"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/columnSelection",
+      "options" : {
+        "format" : "typedStringFilter",
+        "unknownValuesText" : "Any unknown column",
+        "emptyStateLabel" : "No columns in this list.",
+        "hideTypeFilter" : true
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/addOffsetOfTimeZone",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/replaceOrAppend",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/suffix",
+      "options" : {
+        "validation" : {
+          "pattern" : {
+            "errorMessage" : "The field cannot be blank (it must contain at least one non-whitespace character).",
+            "parameters" : {
+              "pattern" : ".*\\S.*"
+            }
+          }
+        }
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/replaceOrAppend",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "APPEND"
+            } ]
+          }
+        }
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columnSelection" : {
+            "configPaths" : [ [ "col_select", "filter-type" ], [ "col_select", "included_names" ], [ "col_select", "excluded_names" ], [ "col_select", "enforce_option" ], [ "col_select", "name_pattern", "pattern" ], [ "col_select", "name_pattern", "type" ], [ "col_select", "name_pattern", "caseSensitive" ], [ "col_select", "name_pattern", "excludeMatching" ] ]
+          },
+          "addOffsetOfTimeZone" : {
+            "configPaths" : [ [ "time_zone_select" ] ]
+          },
+          "replaceOrAppend" : {
+            "configPaths" : [ [ "replace_or_append" ] ]
+          },
+          "suffix" : { }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/columnSelection",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Date",
+        "text" : "Date",
+        "type" : {
+          "id" : "org.knime.core.data.time.zoneddatetime.ZonedDateTimeValue",
+          "text" : "Date&time (Zoned)"
+        }
+      } ]
+    } ]
+  } ]
+}

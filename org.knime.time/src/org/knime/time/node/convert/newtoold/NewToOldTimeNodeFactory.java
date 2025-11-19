@@ -44,24 +44,40 @@
  */
 package org.knime.time.node.convert.newtoold;
 
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
 
 /**
  * The factory class of the node which converts new to old date&time types.
  *
  * @author Simon Schmid, KNIME.com, Konstanz, Germany
+ * @author Tim Crundall, TNG Technology Consulting GmbH
+ * @author AI Migration Pipeline v1.2
  */
-public final class NewToOldTimeNodeFactory extends NodeFactory<NewToOldTimeNodeModel> {
+@SuppressWarnings("restriction")
+public final class NewToOldTimeNodeFactory extends NodeFactory<NewToOldTimeNodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     /**
      * {@inheritDoc}
      */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new NewToOldTimeNodeDialog();
-    }
 
     /**
      * {@inheritDoc}
@@ -93,6 +109,60 @@ public final class NewToOldTimeNodeFactory extends NodeFactory<NewToOldTimeNodeM
     @Override
     protected boolean hasDialog() {
         return true;
+    }
+
+    private static final String NODE_NAME = "Date&Time to legacy Date&Time";
+
+    private static final String NODE_ICON = "new_to_old.png";
+
+    private static final String SHORT_DESCRIPTION = """
+            Converts new Date&amp;Time to old.
+            """;
+
+    private static final String FULL_DESCRIPTION = """
+            <p> This node converts columns from the new Date&amp;Time data types to the legacy type. It is only
+                useful if you have to use nodes that have not been adapted to the new Date&amp;Time type yet. </p>
+            """;
+
+    private static final List<PortDescription> INPUT_PORTS = List.of(fixedPort("Table to be converted", """
+            Input table
+            """));
+
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(fixedPort("Converted table", """
+            Output table containing the converted columns.
+            """));
+
+    @Override
+    public NodeDialogPane createNodeDialogPane() {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, NewToOldTimeNodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription( //
+            NODE_NAME, //
+            NODE_ICON, //
+            INPUT_PORTS, //
+            OUTPUT_PORTS, //
+            SHORT_DESCRIPTION, //
+            FULL_DESCRIPTION, //
+            List.of(), //
+            NewToOldTimeNodeParameters.class, //
+            null, //
+            NodeType.Manipulator, //
+            List.of(), //
+            null //
+        );
+    }
+
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, NewToOldTimeNodeParameters.class));
     }
 
 }

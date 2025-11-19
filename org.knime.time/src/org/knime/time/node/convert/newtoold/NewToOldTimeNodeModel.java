@@ -106,6 +106,12 @@ final class NewToOldTimeNodeModel extends NodeModel {
 
     static final String TIME_ZONE_OPT2 = "Drop time zone information";
 
+    static final String CFG_COLUMN_FILTER_KEY = "col_select";
+
+    static final String CFG_OUTPUT_COLUMN_KEY = "replace_or_append";
+
+    static final String CFG_TIME_ZONE_POLICY_KEY = "time_zone_select";
+
     private final SettingsModelColumnFilter2 m_colSelect = createColSelectModel();
 
     private final SettingsModelString m_isReplaceOrAppend = createReplaceAppendStringBool();
@@ -119,13 +125,13 @@ final class NewToOldTimeNodeModel extends NodeModel {
     /** @return the column select model, used in both dialog and model. */
     @SuppressWarnings("unchecked")
     static SettingsModelColumnFilter2 createColSelectModel() {
-        return new SettingsModelColumnFilter2("col_select", LocalDateTimeValue.class, ZonedDateTimeValue.class,
+        return new SettingsModelColumnFilter2(CFG_COLUMN_FILTER_KEY, LocalDateTimeValue.class, ZonedDateTimeValue.class,
             LocalDateValue.class, LocalTimeValue.class);
     }
 
     /** @return the string model, used in both dialog and model. */
     static SettingsModelString createReplaceAppendStringBool() {
-        return new SettingsModelString("replace_or_append", OPTION_REPLACE);
+        return new SettingsModelString(CFG_OUTPUT_COLUMN_KEY, OPTION_REPLACE);
     }
 
     /**
@@ -142,7 +148,7 @@ final class NewToOldTimeNodeModel extends NodeModel {
 
     /** @return the string model, used in both dialog and model. */
     static SettingsModelString createStringModel() {
-        return new SettingsModelString("time_zone_select", TIME_ZONE_OPT1);
+        return new SettingsModelString(CFG_TIME_ZONE_POLICY_KEY, TIME_ZONE_OPT1);
     }
 
     /** One in, one out. */
@@ -221,7 +227,7 @@ final class NewToOldTimeNodeModel extends NodeModel {
                     Arrays.stream(includeList).mapToInt(s -> inSpec.findColumnIndex(s)).toArray();
 
                 DataRow row;
-                for (var r = 0L;(row = in.poll()) != null; r++) {
+                for (var r = 0L; (row = in.poll()) != null; r++) {
                     exec.checkCanceled();
                     DataCell[] datacells = new DataCell[includeIndeces.length];
                     for (int i = 0; i < includeIndeces.length; i++) {
