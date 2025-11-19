@@ -47,6 +47,9 @@
  */
 package org.knime.base.node.meta.looper;
 
+import static org.knime.node.impl.description.PortDescription.dynamicPort;
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
@@ -126,11 +129,11 @@ public final class LoopEndDynamicNodeFactory extends ConfigurableNodeFactory<Loo
     @Override
     protected NodeDescription createNodeDescription() throws SAXException, IOException, XmlException {
         Collection<PortDescription> inPortDescriptions = List.of(//
-            new PortDescription("inId", "Input table", "Any data table", false), //
-            new PortDescription("Collector", "Input table", "Any data table", true));
+            fixedPort("Input table", "Any data table"), //
+            dynamicPort("Collector", "Input table", "Any data table"));
         Collection<PortDescription> outPortDescriptions = List.of(//
-            new PortDescription("outId", "Collected results", "Collected results from the loop body", false), //
-            new PortDescription("Collector", "Collected results", "Collected results from the loop body", true));
+            fixedPort("Collected results", "Collected results from the loop body"), //
+            dynamicPort("Collector", "Collected results", "Collected results from the loop body"));
 
         return DefaultNodeDescriptionUtil.createNodeDescription("Loop End", //
             "loop_end.png", //

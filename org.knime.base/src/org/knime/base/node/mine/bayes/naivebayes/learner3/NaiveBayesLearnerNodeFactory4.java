@@ -48,6 +48,8 @@
  */
 package org.knime.base.node.mine.bayes.naivebayes.learner3;
 
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
@@ -132,17 +134,13 @@ public final class NaiveBayesLearnerNodeFactory4 extends NodeFactory<NaiveBayesL
     @Override
     protected NodeDescription createNodeDescription() throws SAXException, IOException, XmlException {
 
-        Collection<PortDescription> inPortDescriptions =
-            List.of(new PortDescription("id", "The training data", "Training data", false));
+        Collection<PortDescription> inPortDescriptions = List.of(fixedPort("The training data", "Training data"));
         Collection<PortDescription> outPortDescriptions = List.of(//
-            new PortDescription("id2", "PMML Naive Bayes Model",
+            fixedPort("PMML Naive Bayes Model",
                 "Learned naive Bayes model. The model can be used to classify data with unknown target (class) "
-                    + "attribute. To do so, connect the model out port to the \"Naive Bayes Predictor\" node.",
-                false), //
-            new PortDescription("id3", "Statistics table",
-                "Data table with attribute statistics e.g. counts per attribute class pair, "
-                    + "mean and standard deviation.",
-                false) //
+                    + "attribute. To do so, connect the model out port to the \"Naive Bayes Predictor\" node."), //
+            fixedPort("Statistics table", "Data table with attribute statistics e.g. counts per attribute class pair, "
+                + "mean and standard deviation.") //
         );
 
         return DefaultNodeDescriptionUtil.createNodeDescription("Naive Bayes Learner", //
@@ -163,8 +161,7 @@ public final class NaiveBayesLearnerNodeFactory4 extends NodeFactory<NaiveBayesL
                     For example Bit Vector columns are ignored when the PMML compatibility flag is enabled since they
                     are not supported by the PMML standard.
                     </p>
-                    """,
-            List.of(), //
+                    """, List.of(), //
             NaiveBayesLearnerNodeParameters.class, //
             List.of(new ViewDescription("Naive Bayes Learner View", """
                     The view displays the learned model with the number of rows per class

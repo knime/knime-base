@@ -48,6 +48,8 @@
  */
 package org.knime.base.node.mine.bayes.naivebayes.predictor4;
 
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
@@ -132,14 +134,12 @@ public final class NaiveBayesPredictorNodeFactory3 extends NodeFactory<NaiveBaye
     @Override
     protected NodeDescription createNodeDescription() throws SAXException, IOException, XmlException {
         Collection<PortDescription> inPortDescriptions = List.of(//
-            new PortDescription("modelId", "The naive Bayes model to use", "A previously learned naive Bayes model",
-                false), //
-            new PortDescription("tableId", "Input data to classify", "Input data to classify", false));
+            fixedPort("The naive Bayes model to use", "A previously learned naive Bayes model"), //
+            fixedPort("Input data to classify", "Input data to classify"));
         Collection<PortDescription> outPortDescriptions = List.of(//
-            new PortDescription("outId", "The classified data", //
+            fixedPort("The classified data", //
                 "The input table with one column added containing the \n"//
-                    + "        classification and the probabilities depending on the options.", //
-                false));
+                    + "        classification and the probabilities depending on the options."));
 
         return DefaultNodeDescriptionUtil.createNodeDescription("Naive Bayes Predictor", //
             "./naiveBayesPredictor.png", //
