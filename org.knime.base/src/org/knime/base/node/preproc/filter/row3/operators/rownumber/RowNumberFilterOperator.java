@@ -69,18 +69,26 @@ public interface RowNumberFilterOperator<T extends FilterValueParameters> extend
      * Creates an efficient slice filter if the operator supports slicing optimization. This is used for performance
      * optimization when possible.
      *
+     * To get the framework to call this method, {@link #supportsSlicing()} must return {@code true}.
+     *
      * @param params the filter parameters
-     * @return function from table size to filter partition. Not null in case {@link #supportsSlicing()} returns true.
+     * @return function from table size to {@link FilterPartition}
+     *
      * @throws InvalidSettingsException if the parameters are invalid
      */
     default LongFunction<FilterPartition> createSliceFilter(final T params) throws InvalidSettingsException {
+        if (supportsSlicing()) {
+            throw new UnsupportedOperationException(
+                "This operator claims to support slicing, but does not implement createSliceFilter.");
+        }
         return null;
     }
 
     /**
-     * Only in case all current operators support slicing, the slice filters are created.
+     * Return {@code true} if this operator supports slicing, i.e. provides a non-null provider of a
+     * {@link FilterPartition}.
      *
-     * @return whether {@link #createSliceFilter} will return a non-null filter spec.
+     * @return whether {@link #createSliceFilter} will return a non-null filter partition
      */
     default boolean supportsSlicing() {
         return false;
