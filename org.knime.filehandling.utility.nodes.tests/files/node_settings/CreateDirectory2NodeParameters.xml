@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="settings.xml">
+    <entry key="node_file" type="xstring" value="settings.xml"/>
+    <config key="flow_stack"/>
+    <config key="internal_node_subsettings">
+        <entry key="memory_policy" type="xstring" value="CacheSmallInMemory"/>
+    </config>
+    <config key="model">
+        <config key="dir_location_Internals">
+            <entry key="SettingsModelID" type="xstring" value="SMID_WriterFileChooser"/>
+            <entry key="EnabledStatus" type="xboolean" value="true"/>
+        </config>
+        <config key="dir_location">
+            <config key="file_system_chooser__Internals">
+                <entry key="has_fs_port" type="xboolean" value="false"/>
+                <entry key="overwritten_by_variable" type="xboolean" value="false"/>
+                <entry key="convenience_fs_category" type="xstring" value="RELATIVE"/>
+                <entry key="relative_to" type="xstring" value="knime.workflow.data"/>
+                <entry key="mountpoint" type="xstring" value="knime-temp-space"/>
+                <entry key="spaceId" type="xstring" value=""/>
+                <entry key="spaceName" type="xstring" value=""/>
+                <entry key="connected_fs" type="xboolean" value="true"/>
+            </config>
+            <config key="path">
+                <entry key="location_present" type="xboolean" value="true"/>
+                <entry key="file_system_type" type="xstring" value="RELATIVE"/>
+                <entry key="file_system_specifier" type="xstring" value="knime.workflow.data"/>
+                <entry key="path" type="xstring" value="New Folder"/>
+            </config>
+            <config key="filter_mode_Internals">
+                <entry key="SettingsModelID" type="xstring" value="SMID_FilterMode"/>
+                <entry key="EnabledStatus" type="xboolean" value="true"/>
+            </config>
+            <entry key="create_missing_folders" type="xboolean" value="false"/>
+        </config>
+        <entry key="dir_path_variable_name" type="xstring" value="folder_path"/>
+        <config key="additional_path_variables">
+            <config key="variable_names">
+                <entry key="array-size" type="xint" value="1"/>
+                <entry key="0" type="xstring" value="ALPHA"/>
+            </config>
+            <config key="path_values">
+                <entry key="array-size" type="xint" value="1"/>
+                <entry key="0" type="xstring" value="BRAVO"/>
+            </config>
+            <config key="file_extensions">
+                <entry key="array-size" type="xint" value="1"/>
+                <entry key="0" type="xstring" value=""/>
+            </config>
+        </config>
+    </config>
+    <entry key="customDescription" type="xstring" isnull="true" value=""/>
+    <entry key="state" type="xstring" value="CONFIGURED"/>
+    <entry key="factory" type="xstring" value="org.knime.filehandling.utility.nodes.dir.CreateDirectory2NodeFactory"/>
+    <entry key="node-name" type="xstring" value="Create Folder"/>
+    <entry key="node-bundle-name" type="xstring" value="KNIME Filehandling Nodes"/>
+    <entry key="node-bundle-symbolic-name" type="xstring" value="org.knime.filehandling.utility.nodes"/>
+    <entry key="node-bundle-vendor" type="xstring" value="KNIME AG, Zurich, Switzerland"/>
+    <entry key="node-bundle-version" type="xstring" value="5.8.0.v202510021208"/>
+    <entry key="node-feature-name" type="xstring" value="KNIME Base nodes"/>
+    <entry key="node-feature-symbolic-name" type="xstring" value="org.knime.features.base.feature.group"/>
+    <entry key="node-feature-vendor" type="xstring" value="KNIME AG, Zurich, Switzerland"/>
+    <entry key="node-feature-version" type="xstring" value="5.8.0.v202510021208"/>
+    <config key="factory_settings"/>
+    <config key="node_creation_config">
+        <config key="File System Connection"/>
+        <config key="Variable Input Port"/>
+        <config key="Variable Output Ports"/>
+    </config>
+    <entry key="name" type="xstring" value="Create Folder"/>
+    <entry key="hasContent" type="xboolean" value="false"/>
+    <entry key="isInactive" type="xboolean" value="false"/>
+    <config key="ports">
+        <config key="port_1">
+            <entry key="index" type="xint" value="1"/>
+            <entry key="port_dir_location" type="xstring" isnull="true" value=""/>
+        </config>
+    </config>
+    <config key="filestores">
+        <entry key="file_store_location" type="xstring" isnull="true" value=""/>
+        <entry key="file_store_id" type="xstring" isnull="true" value=""/>
+    </config>
+</config>
