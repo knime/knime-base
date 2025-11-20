@@ -65,17 +65,17 @@ import org.knime.filehandling.utility.nodes.dialog.variables.FSLocationVariableT
 /**
  * Settings configuration for "Create Directory" node
  *
- * @author Timmo Waller-Ehrat, KNIME GmbH, Konstanz, Germany
+ * @author Tim Crundall, TNG Technology Consulting GmbH
  */
 final class CreateDirectory2NodeConfig {
 
-    private static final String DEFAULT_DIR_PATH_VAR_NAME = "folder_path";
+    static final String DEFAULT_DIR_PATH_VAR_NAME = "folder_path";
 
-    private static final String CFG_DIR_PARENT = "dir_location";
+    static final String CFG_DIR_PARENT = "dir_location";
 
-    private static final String CFG_DIR_PATH_VARIABLE_NAME = "dir_path_variable_name";
+    static final String CFG_DIR_PATH_VARIABLE_NAME = "dir_path_variable_name";
 
-    private static final String CFG_ADDITIONAL_PATH_VARIABLES = "additional_path_variables";
+    static final String CFG_ADDITIONAL_PATH_VARIABLES = "additional_path_variables";
 
     private final SettingsModelWriterFileChooser m_parentDirChooserModel;
 
