@@ -66,14 +66,14 @@ public abstract class AbstractPathVariableArrayPersistor implements NodeParamete
 
     private String m_configKey;
 
-    private boolean m_allowBackwardsCompatibility = false;
+    private boolean m_allowBackwardsCompatibility;
 
     /**
      * Constructor.
      *
      * @param configKey Config key of nested configuration entries
      */
-    public AbstractPathVariableArrayPersistor(final String configKey) {
+    protected AbstractPathVariableArrayPersistor(final String configKey) {
         this.m_configKey = configKey;
     }
 
@@ -84,7 +84,7 @@ public abstract class AbstractPathVariableArrayPersistor implements NodeParamete
      * @param allowBackwardsCompatibility Whether to allow loading from legacy settings `additional_variable_names` and
      *            `additional_variable_values`
      */
-    public AbstractPathVariableArrayPersistor(final String configKey, final boolean allowBackwardsCompatibility) {
+    protected AbstractPathVariableArrayPersistor(final String configKey, final boolean allowBackwardsCompatibility) {
         this.m_configKey = configKey;
         this.m_allowBackwardsCompatibility = allowBackwardsCompatibility;
     }
