@@ -1,0 +1,471 @@
+{
+  "data" : {
+    "model" : {
+      "failIfSourceDoesNotExist" : false,
+      "deleteSourceFilesAndFolders" : false,
+      "failOnUnsuccessfulDeletion" : false,
+      "detailedOutput" : false,
+      "fromTable" : "FROM_TABLE",
+      "targetFolder" : {
+        "file" : {
+          "path" : {
+            "fsCategory" : "LOCAL",
+            "path" : "",
+            "timeout" : 10000,
+            "context" : {
+              "fsToString" : "(LOCAL, )"
+            }
+          }
+        },
+        "createMissingFolders" : false
+      }
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "deleteSourceFilesAndFolders" : {
+            "type" : "boolean",
+            "title" : "Delete source files / folders",
+            "description" : "Delete all files/folders that have been successfully copied from the source folder. The\noutput contains an additional column indicating if the file has been deleted (true) or\nnot (false).\n",
+            "default" : false
+          },
+          "destinationColumn" : {
+            "type" : "string",
+            "title" : "Destination column",
+            "description" : "Select the column containing the destination, i.e., the new location and names of the\nfiles/folders to be copied/moved. <br /> <i>Note:</i> If the source references a file/folder the\ndestination also has to be a file/folder.\n"
+          },
+          "destinationFileSystemManagedByPortMessage" : {
+            "type" : "object"
+          },
+          "destinationPath" : {
+            "oneOf" : [ {
+              "const" : "RELATIVE",
+              "title" : "File/folder only"
+            }, {
+              "const" : "KEEP",
+              "title" : "Full path"
+            }, {
+              "const" : "REMOVE_FOLDER_PREFIX",
+              "title" : "Path after prefix"
+            } ],
+            "title" : "Destination file path",
+            "description" : "Depending on the selected mode the location of the files/folders to be copied to the destination\nfolder will differ.\n\n<ul>\n<li><b>File/folder only</b>: Copy only the selected file/folder itself into the destination folder, without recreating any\nparent directories from the source path.\n</li>\n<li><b>Full path</b>: Recreate the full directory structure from the source path inside the destination folder.\nFor example, if the source is <i>src_folder/src_subfolder</i> and the destination is\n<i>dest_folder</i>, the content will be copied to <i>dest_folder/src_folder/src_subfolder</i>.\n</li>\n<li><b>Path after prefix</b>: Recreate the directory structure from the source path, but ignore the specified folder prefix.\nFor example, if the prefix is <i>src_folder</i> and the source path is\n<i>src_folder/src_subfolder</i>, the content will be copied to <i>dest_folder/src_subfolder</i>.\n<b>Note:</b> In special cases this option may attempt to copy the source to a location outside\nthe specified destination, in which case the node will fail.\n</li>\n</ul>"
+          },
+          "detailedOutput" : {
+            "type" : "boolean",
+            "title" : "Detailed output",
+            "description" : "If selected the output will not only show the folder that has been copied/moved but also all the\nfiles/folders it contains.\n",
+            "default" : false
+          },
+          "failIfSourceDoesNotExist" : {
+            "type" : "boolean",
+            "title" : "Fail if source does not exist",
+            "description" : "    If the source file/folder to copy/move does not exit the node will fail.\n",
+            "default" : false
+          },
+          "failOnUnsuccessfulDeletion" : {
+            "type" : "boolean",
+            "title" : "Fail on unsuccessful deletion",
+            "description" : "If the 'Delete source files / folders' option is activated and something goes wrong during the\ndeletion process the node will fail.\n",
+            "default" : false
+          },
+          "folderPrefix" : {
+            "type" : "string",
+            "title" : "Folder prefix",
+            "description" : "The folder prefix (the beginning of the path) to be ignored when using 'Path after prefix' mode.\n"
+          },
+          "fromTable" : {
+            "oneOf" : [ {
+              "const" : "FILE_CHOOSER",
+              "title" : "From file chooser"
+            }, {
+              "const" : "FROM_TABLE",
+              "title" : "From table"
+            } ],
+            "title" : "Choose destination",
+            "description" : "Select a method with which to set the destination.\n<ul>\n<li><b>From file chooser</b>: Specify a folder where you want to copy/move the (source) files/folders to.\n</li>\n<li><b>From table</b>: Select the column containing the destination, i.e., the new location and names of\nthe files/folders to be copied/moved. <br /> <i>Note:</i> If the source references a\nfile/folder the destination also has to be a file/folder.\n</li>\n</ul>",
+            "default" : "FROM_TABLE"
+          },
+          "sourceColumn" : {
+            "type" : "string",
+            "title" : "Source column",
+            "description" : "    Select the column containing the paths to the files/folders that must be copied/moved.\n"
+          },
+          "sourceFileSystemManagedByPortMessage" : {
+            "type" : "object"
+          },
+          "targetFolder" : {
+            "type" : "object",
+            "properties" : {
+              "createMissingFolders" : {
+                "type" : "boolean",
+                "title" : "Create missing folders",
+                "description" : "If enabled, missing folders in the specified path will be created automatically.",
+                "default" : false
+              },
+              "file" : {
+                "type" : "object",
+                "properties" : {
+                  "path" : {
+                    "type" : "object",
+                    "default" : {
+                      "fsCategory" : "LOCAL",
+                      "path" : "",
+                      "timeout" : 10000,
+                      "context" : {
+                        "fsToString" : "(LOCAL, )"
+                      }
+                    }
+                  }
+                },
+                "title" : "Destination path",
+                "description" : "Select a file system and destination to copy/move files/folders to.",
+                "default" : {
+                  "path" : {
+                    "fsCategory" : "LOCAL",
+                    "path" : "",
+                    "timeout" : 10000,
+                    "context" : {
+                      "fsToString" : "(LOCAL, )"
+                    }
+                  }
+                }
+              }
+            },
+            "default" : {
+              "file" : {
+                "path" : {
+                  "fsCategory" : "LOCAL",
+                  "path" : "",
+                  "timeout" : 10000,
+                  "context" : {
+                    "fsToString" : "(LOCAL, )"
+                  }
+                }
+              },
+              "createMissingFolders" : false
+            }
+          },
+          "transferPolicy" : {
+            "oneOf" : [ {
+              "const" : "FAIL",
+              "title" : "Fail"
+            }, {
+              "const" : "IGNORE",
+              "title" : "Ignore"
+            }, {
+              "const" : "OVERWRITE",
+              "title" : "Overwrite"
+            }, {
+              "const" : "OVERWRITE_IF_NEWER",
+              "title" : "Overwrite if newer"
+            } ],
+            "title" : "Overwrite policy",
+            "description" : "    How to handle files to be copied already existing in destination folder\n\n<ul>\n<li><b>Fail</b>: Will issue an error during the node's execution (to prevent unintentional overwrite).\n</li>\n<li><b>Ignore</b>: Will ignore if a file already exists and continue the copying process.\n</li>\n<li><b>Overwrite</b>: Will replace any existing file.</li>\n<li><b>Overwrite if newer</b>: Will replace any existing file if the source file's last modified date is after the\ndestination file's last modified date, otherwise the file will not be overwritten and the\ncopy process will continue.\n</li>\n</ul>"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "label" : "Source",
+      "type" : "Section",
+      "description" : "Configure the source file/folder to be copied/moved",
+      "elements" : [ {
+        "type" : "Control",
+        "id" : "#/properties/model/properties/sourceFileSystemManagedByPortMessage",
+        "options" : {
+          "format" : "textMessage"
+        },
+        "providedOptions" : [ "message" ]
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/sourceColumn",
+        "options" : {
+          "format" : "dropDown"
+        },
+        "providedOptions" : [ "possibleValues" ]
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/failIfSourceDoesNotExist",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/deleteSourceFilesAndFolders",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/failOnUnsuccessfulDeletion",
+        "options" : {
+          "format" : "checkbox"
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/deleteSourceFilesAndFolders",
+            "schema" : {
+              "const" : true
+            }
+          }
+        }
+      } ]
+    }, {
+      "label" : "Destination",
+      "type" : "Section",
+      "description" : "Configure the destination file/folder to be copied/moved to",
+      "elements" : [ {
+        "type" : "Control",
+        "id" : "#/properties/model/properties/destinationFileSystemManagedByPortMessage",
+        "options" : {
+          "format" : "textMessage"
+        },
+        "providedOptions" : [ "message" ]
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/transferPolicy",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/detailedOutput",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/fromTable",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/destinationColumn",
+        "options" : {
+          "format" : "dropDown"
+        },
+        "providedOptions" : [ "possibleValues" ],
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/fromTable",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "FROM_TABLE"
+              } ]
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/targetFolder/properties/file",
+        "options" : {
+          "fileSystems" : [ "LOCAL", "SPACE", "EMBEDDED", "CONNECTED" ],
+          "isLocal" : true,
+          "isWriter" : true,
+          "spaceFSOptions" : {
+            "mountId" : "Local space"
+          },
+          "format" : "fileChooser"
+        },
+        "providedOptions" : [ "connectedFSOptions" ],
+        "rule" : {
+          "effect" : "HIDE",
+          "condition" : {
+            "scope" : "#/properties/model/properties/fromTable",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "FROM_TABLE"
+              } ]
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/targetFolder/properties/createMissingFolders",
+        "options" : {
+          "format" : "checkbox"
+        },
+        "rule" : {
+          "effect" : "HIDE",
+          "condition" : {
+            "scope" : "#/properties/model/properties/fromTable",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "FROM_TABLE"
+              } ]
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/destinationPath",
+        "options" : {
+          "format" : "valueSwitch"
+        },
+        "rule" : {
+          "effect" : "HIDE",
+          "condition" : {
+            "scope" : "#/properties/model/properties/fromTable",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "FROM_TABLE"
+              } ]
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/folderPrefix",
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "type" : "AND",
+            "conditions" : [ {
+              "scope" : "#/properties/model/properties/fromTable",
+              "schema" : {
+                "oneOf" : [ {
+                  "const" : "FILE_CHOOSER"
+                } ]
+              }
+            }, {
+              "scope" : "#/properties/model/properties/destinationPath",
+              "schema" : {
+                "oneOf" : [ {
+                  "const" : "REMOVE_FOLDER_PREFIX"
+                } ]
+              }
+            } ]
+          }
+        }
+      } ]
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "sourceFileSystemManagedByPortMessage" : { },
+          "sourceColumn" : {
+            "configKey" : "source_column"
+          },
+          "failIfSourceDoesNotExist" : {
+            "configKey" : "fail_if_source_does_not_exist"
+          },
+          "deleteSourceFilesAndFolders" : {
+            "configKey" : "delete_source_files_folders"
+          },
+          "failOnUnsuccessfulDeletion" : {
+            "configKey" : "fail_on_unsuccessful_deletion"
+          },
+          "destinationFileSystemManagedByPortMessage" : { },
+          "transferPolicy" : {
+            "configKey" : "transfer_policy"
+          },
+          "detailedOutput" : {
+            "configKey" : "detailed_output"
+          },
+          "fromTable" : {
+            "configPaths" : [ [ "from_table" ] ]
+          },
+          "destinationColumn" : {
+            "configKey" : "destination_column"
+          },
+          "targetFolder" : {
+            "type" : "object",
+            "properties" : {
+              "file" : {
+                "configPaths" : [ [ "path" ] ]
+              },
+              "createMissingFolders" : {
+                "configKey" : "create_missing_folders"
+              }
+            },
+            "configKey" : "destination_location"
+          },
+          "destinationPath" : {
+            "configKey" : "destination_file_path"
+          },
+          "folderPrefix" : {
+            "configKey" : "folder_prefix"
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/destinationColumn",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "PathCol1",
+        "text" : "PathCol1",
+        "type" : {
+          "id" : "org.knime.filehandling.core.data.location.FSLocationValue",
+          "text" : "Path"
+        }
+      }, {
+        "id" : "PathCol2",
+        "text" : "PathCol2",
+        "type" : {
+          "id" : "org.knime.filehandling.core.data.location.FSLocationValue",
+          "text" : "Path"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/sourceColumn",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "PathCol1",
+        "text" : "PathCol1",
+        "type" : {
+          "id" : "org.knime.filehandling.core.data.location.FSLocationValue",
+          "text" : "Path"
+        }
+      }, {
+        "id" : "PathCol2",
+        "text" : "PathCol2",
+        "type" : {
+          "id" : "org.knime.filehandling.core.data.location.FSLocationValue",
+          "text" : "Path"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/targetFolder/properties/file",
+    "providedOptionName" : "connectedFSOptions",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : null
+    } ]
+  }, {
+    "id" : "#/properties/model/properties/destinationFileSystemManagedByPortMessage",
+    "providedOptionName" : "message",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : null
+    } ]
+  }, {
+    "id" : "#/properties/model/properties/sourceFileSystemManagedByPortMessage",
+    "providedOptionName" : "message",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : null
+    } ]
+  } ]
+}

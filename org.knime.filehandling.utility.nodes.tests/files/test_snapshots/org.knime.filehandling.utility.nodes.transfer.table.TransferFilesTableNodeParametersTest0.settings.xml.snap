@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
+    <entry key="source_column" type="xstring" value="ALPHABETA"/>
+    <entry key="fail_if_source_does_not_exist" type="xboolean" value="true"/>
+    <entry key="delete_source_files_folders" type="xboolean" value="false"/>
+    <entry key="fail_on_unsuccessful_deletion" type="xboolean" value="true"/>
+    <entry key="transfer_policy" type="xstring" value="OVERWRITE_IF_NEWER"/>
+    <entry key="detailed_output" type="xboolean" value="true"/>
+    <entry key="from_table" type="xboolean" value="true"/>
+    <entry key="destination_column" type="xstring" value="dir1"/>
+    <config key="destination_location">
+        <config key="path">
+            <entry key="location_present" type="xboolean" value="true"/>
+            <entry key="file_system_type" type="xstring" value="LOCAL"/>
+            <entry key="path" type="xstring" value="/home/crundallt/tmp/tmp2"/>
+        </config>
+        <config key="file_system_chooser__Internals">
+            <entry key="has_fs_port" type="xboolean" value="false"/>
+            <entry key="overwritten_by_variable" type="xboolean" value="false"/>
+            <entry key="convenience_fs_category" type="xstring" value="LOCAL"/>
+            <entry key="relative_to" type="xstring" value="knime.workflow"/>
+            <entry key="mountpoint" type="xstring" value="LOCAL"/>
+            <entry key="spaceId" type="xstring" value=""/>
+            <entry key="spaceName" type="xstring" value=""/>
+            <entry key="custom_url_timeout" type="xint" value="1000"/>
+            <entry key="connected_fs" type="xboolean" value="true"/>
+        </config>
+        <entry key="create_missing_folders" type="xboolean" value="false"/>
+    </config>
+    <entry key="destination_file_path" type="xstring" value="REMOVE_FOLDER_PREFIX"/>
+    <entry key="folder_prefix" type="xstring" value="&lt;folder prefix&gt;"/>
+</config>

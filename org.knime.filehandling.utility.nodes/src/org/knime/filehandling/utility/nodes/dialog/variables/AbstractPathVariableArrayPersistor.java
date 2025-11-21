@@ -45,7 +45,7 @@
  *
  * History
  *   Created on Nov 3, 2025 by Martin Horn, KNIME GmbH, Berlin, Germany
- *   Udpated on Nov 20, 2025 by Thomas Reifenberger, TNG Technology Consulting GmbH, Germany
+ *   Updated on Nov 20, 2025 by Thomas Reifenberger, TNG Technology Consulting GmbH, Germany
  */
 package org.knime.filehandling.utility.nodes.dialog.variables;
 
