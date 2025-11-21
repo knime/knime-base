@@ -188,7 +188,17 @@
         "options" : {
           "detail" : [ {
             "type" : "Control",
-            "scope" : "#/properties/variableName"
+            "scope" : "#/properties/variableName",
+            "options" : {
+              "validation" : {
+                "pattern" : {
+                  "errorMessage" : "The field cannot be blank (it must contain at least one non-whitespace character).",
+                  "parameters" : {
+                    "pattern" : ".*\\S.*"
+                  }
+                }
+              }
+            }
           }, {
             "type" : "Control",
             "scope" : "#/properties/path"

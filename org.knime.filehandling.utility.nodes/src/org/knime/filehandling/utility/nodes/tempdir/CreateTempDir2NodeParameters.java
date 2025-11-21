@@ -48,13 +48,16 @@ package org.knime.filehandling.utility.nodes.tempdir;
 
 import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelectionWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSystemOption;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.SingleFileSelectionMode;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.WithFileSystem;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification.WidgetGroupModifier;
+import org.knime.filehandling.utility.nodes.dialog.variables.AbstractPathVariableArrayPersistor;
+import org.knime.filehandling.utility.nodes.dialog.variables.PathVariable;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
-import org.knime.node.parameters.WidgetGroup;
 import org.knime.node.parameters.array.ArrayWidget;
 import org.knime.node.parameters.layout.After;
 import org.knime.node.parameters.layout.Layout;
@@ -173,16 +176,9 @@ class CreateTempDir2NodeParameters implements NodeParameters {
     @Persistor(PathVariableArrayPersistor.class)
     PathVariable[] m_additionalPathVariables = {};
 
-    static class PathVariable implements WidgetGroup {
-
-        @Widget(title = "Variable name", description = "The name of the path variable.")
-        String m_variableName = "";
-
-        @Widget(title = "Path", description = "The path relative to the temporary directory.")
-        String m_path = "";
-
-        @Widget(title = "File extension",
-            description = "Optional file extension (e.g., .txt, .csv). Leave empty for folder variables.")
-        String m_extension = "";
+    private static final class PathVariableArrayPersistor extends AbstractPathVariableArrayPersistor {
+        public PathVariableArrayPersistor() {
+            super(CreateTempDir2NodeConfig.CFG_ADDITIONAL_PATH_VARIABLES, true);
+        }
     }
 }
