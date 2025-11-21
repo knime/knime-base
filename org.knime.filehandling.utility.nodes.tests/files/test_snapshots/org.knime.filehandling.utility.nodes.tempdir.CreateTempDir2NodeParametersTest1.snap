@@ -163,7 +163,8 @@
             "mountId" : "Local space"
           },
           "format" : "fileChooser"
-        }
+        },
+        "providedOptions" : [ "connectedFSOptions" ]
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/targetFolder/properties/createMissingFolders",
