@@ -156,6 +156,7 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/targetFolder/properties/file",
         "options" : {
+          "fileSystems" : [ "LOCAL", "SPACE", "EMBEDDED" ],
           "isLocal" : true,
           "isWriter" : true,
           "selectionMode" : "FOLDER",

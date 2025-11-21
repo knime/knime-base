@@ -142,6 +142,9 @@ class CreateTempDir2NodeParameters implements NodeParameters {
                 .modify();
             fileSelection.addAnnotation(FileSelectionWidget.class).withProperty("value", SingleFileSelectionMode.FOLDER)
                 .modify();
+            fileSelection.addAnnotation(WithFileSystem.class).withProperty("value",
+                    new FileSystemOption[]{FileSystemOption.LOCAL, FileSystemOption.SPACE, FileSystemOption.EMBEDDED})
+                .modify();
         }
 
     }
