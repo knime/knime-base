@@ -55,6 +55,7 @@ import org.knime.base.node.preproc.filter.row3.operators.legacy.StringPredicate;
 import org.knime.core.data.DataType;
 import org.knime.core.data.RowKeyValue;
 import org.knime.core.data.def.StringCell;
+import org.knime.core.node.util.CheckUtils;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters.SingleCellValueParameters;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
@@ -80,20 +81,22 @@ public final class RowKeyEqualsParameters implements SingleCellValueParameters<S
     }
 
     /**
-     * Constructs the parameters with the given string value.
+     * Constructs the parameters with the given non-{@code null} string value.
      *
-     * @param value the string value
+     * @param value the non-{@code null} string value
      */
     public RowKeyEqualsParameters(final String value) {
-        m_value = value;
+        m_value = CheckUtils.checkNotNull(value);
     }
 
     /**
      * Gets the parameters as a predicate on row keys.
+     *
      * @return the predicate to test row keys for equality
      */
     Predicate<RowKeyValue> toPredicate() {
-        final var pred = StringPredicate.equality(m_value, m_caseSensitivity == CaseSensitivity.CASE_SENSITIVE);
+        final var pred = StringPredicate.equality(CheckUtils.checkNotNull(m_value),
+            m_caseSensitivity == CaseSensitivity.CASE_SENSITIVE);
         return key -> pred.test(key.getString());
     }
 
@@ -104,12 +107,12 @@ public final class RowKeyEqualsParameters implements SingleCellValueParameters<S
      */
     @Override
     public StringCell createCell() {
-        return new StringCell(m_value);
+        return new StringCell(CheckUtils.checkNotNull(m_value));
     }
 
     @Override
     public void loadFrom(final StringCell valueFromStash) {
-        m_value = valueFromStash.getStringValue();
+        m_value = CheckUtils.checkNotNull(valueFromStash.getStringValue());
     }
 
     @Override
