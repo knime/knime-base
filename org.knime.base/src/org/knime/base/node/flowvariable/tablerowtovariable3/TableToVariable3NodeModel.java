@@ -196,9 +196,14 @@ public class TableToVariable3NodeModel extends NodeModel {
     }
 
     private DataCell[] createDefaultCells(final DataTableSpec spec) {
-        final DataCell[] cells = new DataCell[spec.getNumColumns()];
-        for (int i = 0; i < cells.length; i++) {
+        final var cells = new DataCell[spec.getNumColumns()];
+        for (var i = 0; i < cells.length; i++) {
             final DataType type = spec.getColumnSpec(i).getType();
+            if (type.isMissingValueType()) {
+                cells[i] = DataType.getMissingCell();
+                continue;
+            }
+
             final DataCell cell;
             if (type.isCollectionType()) {
                 cell = getDefaultCollectionCell(type);
