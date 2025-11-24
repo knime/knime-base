@@ -116,7 +116,7 @@ class CreatePathVariablesNodeParameters implements NodeParameters {
     @Persistor(PathVariableArrayPersistor.class)
     PathVariable[] m_additionalPathVariables = {};
 
-    static final class LegacyFileWriterModifier implements LegacyFileWriter.Modifier {
+    private static final class LegacyFileWriterModifier implements LegacyFileWriter.Modifier {
         @Override
         public void modify(final Modification.WidgetGroupModifier group) {
             final var fileSelection = findFileSelection(group);
@@ -132,7 +132,7 @@ class CreatePathVariablesNodeParameters implements NodeParameters {
         }
     }
 
-    static final class FileSystemManagedByPortMessage implements SimpleTextMessageProvider {
+    private static final class FileSystemManagedByPortMessage implements SimpleTextMessageProvider {
 
         @Override
         public boolean showMessage(final NodeParametersInput context) {
@@ -157,7 +157,7 @@ class CreatePathVariablesNodeParameters implements NodeParameters {
 
     }
 
-    static final class PathVariableArrayPersistor extends AbstractPathVariableArrayPersistor {
+    private static final class PathVariableArrayPersistor extends AbstractPathVariableArrayPersistor {
 
         PathVariableArrayPersistor() {
             super(CFG_FILE_FOLDER_VARIABLES);
