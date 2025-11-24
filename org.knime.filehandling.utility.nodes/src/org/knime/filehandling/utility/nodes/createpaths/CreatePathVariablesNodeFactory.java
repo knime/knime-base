@@ -48,21 +48,41 @@
  */
 package org.knime.filehandling.utility.nodes.createpaths;
 
+import static org.knime.node.impl.description.PortDescription.dynamicPort;
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.knime.core.node.ConfigurableNodeFactory;
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeView;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
 import org.knime.filehandling.core.port.FileSystemPortObject;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.ExternalResource;
+import org.knime.node.impl.description.PortDescription;
 
 /**
  * The NodeFactory for the "Create File/Folder Variables" node.
  *
  * @author Timmo Waller-Ehrat, KNIME GmbH, Konstanz, Germany
+ * @author Thomas Reifenberger, TNG Technology Consulting GmbH
+ * @author AI Migration Pipeline v1.2
  */
-public final class CreatePathVariablesNodeFactory extends ConfigurableNodeFactory<CreatePathVariablesNodeModel> {
+@SuppressWarnings("restriction")
+public final class CreatePathVariablesNodeFactory extends ConfigurableNodeFactory<CreatePathVariablesNodeModel> implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     private static final String VARIABLE_INPUT_PORT_GRP_NAME = "Variable Input Port";
 
@@ -86,11 +106,6 @@ public final class CreatePathVariablesNodeFactory extends ConfigurableNodeFactor
             (creationConfig.getPortConfig().orElseThrow(IllegalStateException::new)));
     }
 
-    @Override
-    protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
-        return new CreatePathVariablesNodeDialog(
-            creationConfig.getPortConfig().orElseThrow(IllegalStateException::new));
-    }
 
     @Override
     public NodeView<CreatePathVariablesNodeModel> createNodeView(final int viewIndex,
@@ -106,5 +121,79 @@ public final class CreatePathVariablesNodeFactory extends ConfigurableNodeFactor
     @Override
     protected boolean hasDialog() {
         return true;
+    }
+    private static final String NODE_NAME = "Create File/Folder Variables";
+    private static final String NODE_ICON = "createpathvariables.png";
+    private static final String SHORT_DESCRIPTION = """
+            Creates paths to files/folders and exposes them as flow variables.
+            """;
+    private static final String FULL_DESCRIPTION = """
+            <p> This node allows to create <a
+                href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html#path">path flow
+                variables.</a> This is done by selecting a base folder and then defining a list of paths pointing to
+                files/folders relative to the base folder. After executing the node the specified list of paths is
+                accessible for subsequent nodes via flow variables. </p> <p> <i>Note:</i> The default base folder is the
+                <a
+                href="https://docs.knime.com/2021-06/analytics_platform_file_handling_guide/index.html#working-directory">
+                working directory</a> of the <a
+                href="https://docs.knime.com/2021-06/analytics_platform_file_handling_guide/index.html#relative-to">
+                workflow data area</a>, as defined by “.“ in the Folder field. </p> <p> <i>This node can access a
+                variety of different</i> <a
+                href="https://docs.knime.com/2021-06/analytics_platform_file_handling_guide/index.html#analytics-platform-file-systems"><i>file
+                systems.</i></a> <i>More information about file handling in KNIME can be found in the official</i> <a
+                href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html"><i>File Handling
+                Guide.</i></a> </p>
+            """;
+    private static final List<PortDescription> INPUT_PORTS = List.of(
+            dynamicPort("File System Connection", "File system connection", """
+                The file system connection.
+                """),
+            fixedPort("Input variables (optional)", """
+                Input variables (optional).
+                """)
+    );
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(
+            fixedPort("Flow Variables with path information", """
+                Flow Variables with path information.
+                """)
+    );
+    private static final List<ExternalResource> LINKS = List.of(
+         new ExternalResource(
+            "https://www.knime.com/knime-introductory-course/chapter7/section1/creation-and-usage-of-flow-variables", """
+                KNIME E-Learning Course: Creation and usage of Flow Variables in a KNIME workflow
+                """)
+    );
+
+    @Override
+    public NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, CreatePathVariablesNodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription(
+            NODE_NAME,
+            NODE_ICON,
+            INPUT_PORTS,
+            OUTPUT_PORTS,
+            SHORT_DESCRIPTION,
+            FULL_DESCRIPTION,
+            LINKS,
+            CreatePathVariablesNodeParameters.class,
+            null,
+            NodeType.Other,
+            List.of(),
+            null
+        );
+    }
+
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, CreatePathVariablesNodeParameters.class));
     }
 }
