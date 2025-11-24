@@ -66,9 +66,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.knime.base.node.io.filehandling.csv.reader.CSVMultiTableReadConfig;
 import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderParameters.FileEncodingOption;
+import org.knime.base.node.io.filehandling.csv.reader2.FileEncodingParameters.FileEncodingOption;
 import org.knime.base.node.io.filehandling.webui.LocalWorkflowContextTest;
-import org.knime.base.node.io.filehandling.webui.reader2.FileSelectionPath;
+import org.knime.base.node.io.filehandling.webui.reader2.MultiFileSelectionPath;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ConfigurableNodeFactory;
 import org.knime.core.node.InvalidSettingsException;
@@ -82,7 +82,9 @@ import org.knime.core.node.workflow.NativeNodeContainer;
 import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.core.webui.node.dialog.NodeDialogFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.DefaultFileChooserFilters;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelection;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelectionMode;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSPath;
@@ -108,7 +110,9 @@ class CSVTableReaderNodeModel2Test extends LocalWorkflowContextTest {
         final var file = createCsvFile();
 
         final var settings = new CSVTableReaderNodeParameters();
-        settings.m_readerParameters.m_source = new FileSelection(new FSLocation(FSCategory.LOCAL, file.toString()));
+        settings.m_csvReaderParameters.m_multiFileSelectionParams.m_source =
+            new MultiFileSelection<>(MultiFileSelectionMode.FILE, new DefaultFileChooserFilters(),
+                new FSLocation(FSCategory.LOCAL, file.toString()));
         setSettings(settings);
 
         m_wfm.executeAllAndWaitUntilDone();
@@ -138,7 +142,9 @@ class CSVTableReaderNodeModel2Test extends LocalWorkflowContextTest {
     void testReadMissingFile() throws InvalidSettingsException {
         final var settings = new CSVTableReaderNodeParameters();
         final var missingFile = "foo";
-        settings.m_readerParameters.m_source = new FileSelection(new FSLocation(FSCategory.LOCAL, missingFile));
+        settings.m_csvReaderParameters.m_multiFileSelectionParams.m_source =
+            new MultiFileSelection<>(MultiFileSelectionMode.FILE, new DefaultFileChooserFilters(),
+                new FSLocation(FSCategory.LOCAL, missingFile));
         setSettings(settings);
 
         assertTrue(m_csvReader.getNodeContainerState().isConfigured());
@@ -151,8 +157,8 @@ class CSVTableReaderNodeModel2Test extends LocalWorkflowContextTest {
     @Test
     void testThrowInvalidSettingsExceptionOnBlankCustomEncoding() throws IOException, InvalidSettingsException {
         final var settings = new CSVTableReaderNodeParameters();
-        settings.m_csvReaderParameters.m_fileEncoding = FileEncodingOption.OTHER;
-        settings.m_csvReaderParameters.m_customEncoding = " ";
+        settings.m_csvReaderParameters.m_fileEncodingParams.m_fileEncoding = FileEncodingOption.OTHER;
+        settings.m_csvReaderParameters.m_fileEncodingParams.m_customEncoding = " ";
         assertThrows(InvalidSettingsException.class, () -> setSettings(settings));
     }
 
@@ -200,8 +206,8 @@ class CSVTableReaderNodeModel2Test extends LocalWorkflowContextTest {
         m_wfm.loadNodeSettings(m_csvReader.getID(), nodeSettings);
     }
 
-    private static class TestCSVTableReaderNodeFactory2
-        extends ConfigurableNodeFactory<TableReaderNodeModel<FSPath, FileSelectionPath, CSVTableReaderConfig, Class<?>, //
+    private static class TestCSVTableReaderNodeFactory2 extends
+        ConfigurableNodeFactory<TableReaderNodeModel<FSPath, MultiFileSelectionPath, CSVTableReaderConfig, Class<?>, //
                 CSVMultiTableReadConfig>>
         implements NodeDialogFactory {
 
@@ -225,7 +231,8 @@ class CSVTableReaderNodeModel2Test extends LocalWorkflowContextTest {
         }
 
         @Override
-        protected TableReaderNodeModel<FSPath, FileSelectionPath, CSVTableReaderConfig, Class<?>, CSVMultiTableReadConfig>
+        protected
+            TableReaderNodeModel<FSPath, MultiFileSelectionPath, CSVTableReaderConfig, Class<?>, CSVMultiTableReadConfig>
             createNodeModel(final NodeCreationConfiguration creationConfig) {
             final var modifiableCreationConfig = (ModifiableNodeCreationConfiguration)creationConfig;
             modifiableCreationConfig.setURLConfiguration(m_url);
@@ -245,9 +252,9 @@ class CSVTableReaderNodeModel2Test extends LocalWorkflowContextTest {
         @Deprecated
         @Override
         public
-            NodeView<TableReaderNodeModel<FSPath, FileSelectionPath, CSVTableReaderConfig, Class<?>, CSVMultiTableReadConfig>>
+            NodeView<TableReaderNodeModel<FSPath, MultiFileSelectionPath, CSVTableReaderConfig, Class<?>, CSVMultiTableReadConfig>>
             createNodeView(final int viewIndex,
-                final TableReaderNodeModel<FSPath, FileSelectionPath, CSVTableReaderConfig, Class<?>, //
+                final TableReaderNodeModel<FSPath, MultiFileSelectionPath, CSVTableReaderConfig, Class<?>, //
                         CSVMultiTableReadConfig> nodeModel) {
             return m_delegate.createNodeView(viewIndex, nodeModel);
         }

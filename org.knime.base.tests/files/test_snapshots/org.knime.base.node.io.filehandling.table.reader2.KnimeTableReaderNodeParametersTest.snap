@@ -1,26 +1,58 @@
 {
   "data" : {
     "model" : {
-      "readerParameters" : {
-        "source" : {
-          "path" : {
-            "fsCategory" : "LOCAL",
-            "path" : "",
-            "timeout" : 10000,
-            "context" : {
-              "fsToString" : "(LOCAL, )"
+      "knimeTableReaderParameters" : {
+        "multiFileSelectionParams" : {
+          "source" : {
+            "filterMode" : "FILE",
+            "path" : {
+              "fsCategory" : "LOCAL",
+              "path" : "",
+              "timeout" : 10000,
+              "context" : {
+                "fsToString" : "(LOCAL, )"
+              }
+            },
+            "includeSubfolders" : false,
+            "filters" : {
+              "filterMode" : "FILE",
+              "filterFilesExtension" : false,
+              "filesExtensionExpression" : "",
+              "filesExtensionCaseSensitive" : false,
+              "filterFilesName" : false,
+              "filesNameExpression" : "*",
+              "filesNameFilterType" : "WILDCARD",
+              "filesNameCaseSensitive" : false,
+              "includeHiddenFiles" : true,
+              "includeSpecialFiles" : true,
+              "filterFoldersName" : false,
+              "foldersNameExpression" : "*",
+              "foldersNameFilterType" : "WILDCARD",
+              "foldersNameCaseSensitive" : false,
+              "includeHiddenFolders" : true,
+              "followSymlinks" : false
             }
           }
         },
-        "skipFirstDataRows" : 0,
-        "maximumNumberOfRows" : null,
-        "firstColumnContainsRowIds" : false,
-        "ifSchemaChangesOption" : "FAIL",
-        "howToCombineColumns" : "FAIL",
-        "appendPathColumn" : null
-      },
-      "knimeTableReaderParameters" : {
-        "prependTableIndexToRowId" : false
+        "skipFirstDataRowsParams" : {
+          "skipFirstDataRows" : 0
+        },
+        "maxNumberOfRowsParams" : {
+          "maximumNumberOfRows" : null
+        },
+        "ifSchemaChangesParams" : {
+          "ifSchemaChangesOption" : "FAIL"
+        },
+        "multiFileReaderParams" : {
+          "howToCombineColumns" : "FAIL",
+          "appendPathColumn" : null
+        },
+        "useExistingRowIdParams" : {
+          "useExistingRowId" : false
+        },
+        "prependTableIndexParams" : {
+          "prependTableIndexToRowId" : false
+        }
       },
       "transformationParameters" : {
         "enforceTypes" : true,
@@ -44,94 +76,358 @@
           "knimeTableReaderParameters" : {
             "type" : "object",
             "properties" : {
-              "prependTableIndexToRowId" : {
-                "type" : "boolean",
-                "title" : "Prepend file index to RowID",
-                "description" : "Only enabled if the existing RowIDs are used. If checked, a prefix is\nprepended to the RowIDs that indicates which table the row came\nfrom.\nThe format of the prefix is “File_0_“, “File_1_” and so on.\n",
-                "default" : false
-              }
-            },
-            "default" : {
-              "prependTableIndexToRowId" : false
-            }
-          },
-          "readerParameters" : {
-            "type" : "object",
-            "properties" : {
-              "appendPathColumn" : {
-                "type" : [ "string", "null" ],
-                "title" : "Append file path column",
-                "description" : "Select this box if you want to add a column containing the path of the file from which the row is read.\nThe node will fail if adding the column with the provided name causes a name collision with any of the\ncolumns in the read table.\n",
-                "default" : null
-              },
-              "fileSystemFromPortNotAvailableMessage" : {
-                "type" : "object"
-              },
-              "firstColumnContainsRowIds" : {
-                "type" : "boolean",
-                "title" : "Use existing RowID",
-                "description" : "Check this box if the RowIDs from the input tables should be used for\nthe output tables. If unchecked, a new RowID is generated.\nThe generated RowID follows the schema \"Row0\", \"Row1\" and so on.\n",
-                "default" : false
-              },
-              "howToCombineColumns" : {
-                "oneOf" : [ {
-                  "const" : "FAIL",
-                  "title" : "Fail if different"
-                }, {
-                  "const" : "UNION",
-                  "title" : "Union"
-                }, {
-                  "const" : "INTERSECTION",
-                  "title" : "Intersection"
-                } ],
-                "title" : "How to combine columns",
-                "description" : "Specifies how to deal with reading multiple files in which not all column names are identical.\n<ul>\n<li><b>Fail if different</b>: The node will fail if multiple files are read and not all files have the same column names.</li>\n<li><b>Union</b>: Any column that is part of any input file is considered. If a file is missing a column, it is filled\nup with missing values.\n</li>\n<li><b>Intersection</b>: Only columns that appear in all files are considered for the output table.</li>\n</ul>",
-                "default" : "FAIL"
-              },
-              "ifSchemaChangesOption" : {
-                "oneOf" : [ {
-                  "const" : "FAIL",
-                  "title" : "Fail"
-                }, {
-                  "const" : "USE_NEW_SCHEMA",
-                  "title" : "Use new schema"
-                } ],
-                "title" : "If schema changes",
-                "description" : "Specifies the node behavior if the content of the configured file/folder changes between executions,\ni.e., columns are added/removed to/from the file(s) or their types change. The following options are\navailable:\n\n<ul>\n<li><b>Fail</b>: If set, the node fails if the column names in the file have changed. Changes in column types will not be\ndetected.\n</li>\n<li><b>Use new schema</b>: If set, the node will compute a new table specification for the current schema of the file at the time\nwhen the node is executed. Note that the node will not output a table specification before execution and\nthat it will not apply transformations, therefore the transformation tab is disabled.\n</li>\n</ul>",
-                "default" : "FAIL"
-              },
-              "maximumNumberOfRows" : {
-                "type" : [ "integer", "null" ],
-                "format" : "int64",
-                "title" : "Limit number of rows",
-                "description" : "If enabled, only the specified number of data rows are read. The column header row (if selected) is not\ntaken into account. Limiting rows prevents parallel reading of individual files.\n",
-                "default" : null
-              },
-              "skipFirstDataRows" : {
-                "type" : "integer",
-                "format" : "int64",
-                "title" : "Skip first data rows",
-                "description" : "Use this option to skip the specified number of valid data rows. This has no effect on which row will be\nchosen as a column header. Skipping rows prevents parallel reading of individual files.\n",
-                "default" : 0
-              },
-              "source" : {
+              "ifSchemaChangesParams" : {
                 "type" : "object",
                 "properties" : {
-                  "path" : {
+                  "ifSchemaChangesOption" : {
+                    "oneOf" : [ {
+                      "const" : "FAIL",
+                      "title" : "Fail"
+                    }, {
+                      "const" : "USE_NEW_SCHEMA",
+                      "title" : "Use new schema"
+                    } ],
+                    "title" : "If schema changes",
+                    "description" : "Specifies the node behavior if the content of the configured file/folder changes between executions,\ni.e., columns are added/removed to/from the file(s) or their types change. The following options are\navailable:\n\n<ul>\n<li><b>Fail</b>: If set, the node fails if the column names in the file have changed. Changes in column types will not be\ndetected.\n</li>\n<li><b>Use new schema</b>: If set, the node will compute a new table specification for the current schema of the file at the time\nwhen the node is executed. Note that the node will not output a table specification before execution and\nthat it will not apply transformations, therefore the transformation tab is disabled.\n</li>\n</ul>",
+                    "default" : "FAIL"
+                  }
+                },
+                "default" : {
+                  "ifSchemaChangesOption" : "FAIL"
+                }
+              },
+              "maxNumberOfRowsParams" : {
+                "type" : "object",
+                "properties" : {
+                  "maximumNumberOfRows" : {
+                    "type" : [ "integer", "null" ],
+                    "format" : "int64",
+                    "title" : "Limit number of rows",
+                    "description" : "If enabled, only the specified number of data rows are read. The column header row (if selected) is not\ntaken into account. Limiting rows prevents parallel reading of individual files.\n",
+                    "default" : null
+                  }
+                },
+                "default" : {
+                  "maximumNumberOfRows" : null
+                }
+              },
+              "multiFileReaderParams" : {
+                "type" : "object",
+                "properties" : {
+                  "appendPathColumn" : {
+                    "type" : [ "string", "null" ],
+                    "title" : "Append file path column",
+                    "description" : "Select this box if you want to add a column containing the path of the file from which the row is read.\nThe node will fail if adding the column with the provided name causes a name collision with any of the\ncolumns in the read table.\n",
+                    "default" : null
+                  },
+                  "howToCombineColumns" : {
+                    "oneOf" : [ {
+                      "const" : "FAIL",
+                      "title" : "Fail if different"
+                    }, {
+                      "const" : "UNION",
+                      "title" : "Union"
+                    }, {
+                      "const" : "INTERSECTION",
+                      "title" : "Intersection"
+                    } ],
+                    "title" : "How to combine columns",
+                    "description" : "Specifies how to deal with reading multiple files in which not all column names are identical.\n<ul>\n<li><b>Fail if different</b>: The node will fail if multiple files are read and not all files have the same column names.</li>\n<li><b>Union</b>: Any column that is part of any input file is considered. If a file is missing a column, it is filled\nup with missing values.\n</li>\n<li><b>Intersection</b>: Only columns that appear in all files are considered for the output table.</li>\n</ul>",
+                    "default" : "FAIL"
+                  }
+                },
+                "default" : {
+                  "howToCombineColumns" : "FAIL",
+                  "appendPathColumn" : null
+                }
+              },
+              "multiFileSelectionParams" : {
+                "type" : "object",
+                "properties" : {
+                  "fileSystemFromPortNotAvailableMessage" : {
+                    "type" : "object"
+                  },
+                  "source" : {
                     "type" : "object",
+                    "properties" : {
+                      "filterMode" : {
+                        "oneOf" : [ {
+                          "const" : "FILE",
+                          "title" : "File"
+                        }, {
+                          "const" : "FOLDER",
+                          "title" : "Folder"
+                        }, {
+                          "const" : "FILES_IN_FOLDERS",
+                          "title" : "Files in folders"
+                        }, {
+                          "const" : "FOLDERS",
+                          "title" : "Folders"
+                        }, {
+                          "const" : "FILES_AND_FOLDERS",
+                          "title" : "Files and folders"
+                        }, {
+                          "const" : "WORKFLOW",
+                          "title" : "Workflow"
+                        } ],
+                        "title" : "Mode",
+                        "description" : "Determine the mode how to select one or multiple files.\n<ul>\n<li><b>File</b>: Select a single file.</li>\n<li><b>Files in folders</b>: Select a folder and apply filters to select files within it.</li>\n</ul>",
+                        "default" : "FILE"
+                      },
+                      "filters" : {
+                        "type" : "object",
+                        "properties" : {
+                          "filesExtensionCaseSensitive" : {
+                            "type" : "boolean",
+                            "title" : "Case sensitive (extensions)",
+                            "description" : "Treat the entered extensions as case sensitive when matching.",
+                            "default" : false
+                          },
+                          "filesExtensionExpression" : {
+                            "type" : "string",
+                            "title" : "File extensions",
+                            "description" : "Semicolon-separated list of file extensions to include (e.g. 'xlsx;xlsm;xls').\nCase-insensitive unless 'Case sensitive (extensions)' is enabled.\n",
+                            "default" : ""
+                          },
+                          "filesNameCaseSensitive" : {
+                            "type" : "boolean",
+                            "title" : "Case sensitive (names)",
+                            "description" : "Make file name filtering case sensitive.",
+                            "default" : false
+                          },
+                          "filesNameExpression" : {
+                            "type" : "string",
+                            "title" : "File name filter pattern",
+                            "description" : "Pattern for file name filtering. With type 'Wildcard', use '*' and '?'.\nWith type 'Regex', enter a Java regular expression.\n",
+                            "default" : "*"
+                          },
+                          "filesNameFilterType" : {
+                            "oneOf" : [ {
+                              "const" : "WILDCARD",
+                              "title" : "Wildcard"
+                            }, {
+                              "const" : "REGEX",
+                              "title" : "Regular Expression"
+                            } ],
+                            "title" : "File name filter type",
+                            "description" : "Choose how to interpret the file name pattern.\n<ul>\n<li><b>Wildcard</b>: Enable using '*' and '?' as wildcards.</li>\n<li><b>Regular Expression</b>: Enable using a Java regular expression.</li>\n</ul>",
+                            "default" : "WILDCARD"
+                          },
+                          "filterFilesExtension" : {
+                            "type" : "boolean",
+                            "title" : "Filter by file extension",
+                            "description" : "Enable filtering files by their extension (e.g. 'xlsx;xlsm').",
+                            "default" : false
+                          },
+                          "filterFilesName" : {
+                            "type" : "boolean",
+                            "title" : "Filter by file name",
+                            "description" : "Enable filtering by file name pattern with wildcards or regular expression.",
+                            "default" : false
+                          },
+                          "filterFoldersName" : {
+                            "type" : "boolean",
+                            "title" : "Filter by folder name",
+                            "description" : "Enable filtering of folders by name pattern before descending into them.",
+                            "default" : false
+                          },
+                          "filterMode" : {
+                            "oneOf" : [ {
+                              "const" : "FILE",
+                              "title" : "File"
+                            }, {
+                              "const" : "FOLDER",
+                              "title" : "Folder"
+                            }, {
+                              "const" : "FILES_IN_FOLDERS",
+                              "title" : "Files in folders"
+                            }, {
+                              "const" : "FOLDERS",
+                              "title" : "Folders"
+                            }, {
+                              "const" : "FILES_AND_FOLDERS",
+                              "title" : "Files and folders"
+                            }, {
+                              "const" : "WORKFLOW",
+                              "title" : "Workflow"
+                            } ],
+                            "default" : "FILE"
+                          },
+                          "foldersNameCaseSensitive" : {
+                            "type" : "boolean",
+                            "title" : "Case sensitive (folders)",
+                            "description" : "Make folder name filtering case sensitive.",
+                            "default" : false
+                          },
+                          "foldersNameExpression" : {
+                            "type" : "string",
+                            "title" : "Folder name pattern",
+                            "description" : "Pattern for folder name filtering.\nNote that the pattern is applied to the path relative to the specified root folder.\nUse '*' and '?' with filter type 'Wildcard'.\nWith type 'Regex', enter a Java regular expression.\n",
+                            "default" : "*"
+                          },
+                          "foldersNameFilterType" : {
+                            "oneOf" : [ {
+                              "const" : "WILDCARD",
+                              "title" : "Wildcard"
+                            }, {
+                              "const" : "REGEX",
+                              "title" : "Regular Expression"
+                            } ],
+                            "title" : "Folder name filter type",
+                            "description" : "Choose how to interpret the folder name pattern.\n<ul>\n<li><b>Wildcard</b>: Enable using '*' and '?' as wildcards.</li>\n<li><b>Regular Expression</b>: Enable using a Java regular expression.</li>\n</ul>",
+                            "default" : "WILDCARD"
+                          },
+                          "followSymlinks" : {
+                            "type" : "boolean",
+                            "title" : "Follow symlinks",
+                            "description" : "Follow symbolic links while traversing folders (only relevant when selecting a folder).",
+                            "default" : false
+                          },
+                          "includeHiddenFiles" : {
+                            "type" : "boolean",
+                            "title" : "Include hidden files",
+                            "description" : "Include hidden files in the selection.",
+                            "default" : true
+                          },
+                          "includeHiddenFolders" : {
+                            "type" : "boolean",
+                            "title" : "Include hidden folders",
+                            "description" : "Descend into folders that are hidden (if they otherwise pass filters).",
+                            "default" : true
+                          },
+                          "includeSpecialFiles" : {
+                            "type" : "boolean",
+                            "title" : "Include special files",
+                            "description" : "Include special file types (workflows etc).",
+                            "default" : true
+                          }
+                        }
+                      },
+                      "includeSubfolders" : {
+                        "type" : "boolean",
+                        "title" : "Include Subfolders",
+                        "description" : "Whether to include subfolders when selecting multiple files within a folder.",
+                        "default" : false
+                      },
+                      "path" : {
+                        "type" : "object",
+                        "title" : "Source",
+                        "description" : "The path to the file or folder to select."
+                      }
+                    },
                     "default" : {
+                      "filterMode" : "FILE",
+                      "path" : {
+                        "fsCategory" : "LOCAL",
+                        "path" : "",
+                        "timeout" : 10000,
+                        "context" : {
+                          "fsToString" : "(LOCAL, )"
+                        }
+                      },
+                      "includeSubfolders" : false,
+                      "filters" : {
+                        "filterMode" : "FILE",
+                        "filterFilesExtension" : false,
+                        "filesExtensionExpression" : "",
+                        "filesExtensionCaseSensitive" : false,
+                        "filterFilesName" : false,
+                        "filesNameExpression" : "*",
+                        "filesNameFilterType" : "WILDCARD",
+                        "filesNameCaseSensitive" : false,
+                        "includeHiddenFiles" : true,
+                        "includeSpecialFiles" : true,
+                        "filterFoldersName" : false,
+                        "foldersNameExpression" : "*",
+                        "foldersNameFilterType" : "WILDCARD",
+                        "foldersNameCaseSensitive" : false,
+                        "includeHiddenFolders" : true,
+                        "followSymlinks" : false
+                      }
+                    }
+                  }
+                },
+                "default" : {
+                  "source" : {
+                    "filterMode" : "FILE",
+                    "path" : {
                       "fsCategory" : "LOCAL",
                       "path" : "",
                       "timeout" : 10000,
                       "context" : {
                         "fsToString" : "(LOCAL, )"
                       }
+                    },
+                    "includeSubfolders" : false,
+                    "filters" : {
+                      "filterMode" : "FILE",
+                      "filterFilesExtension" : false,
+                      "filesExtensionExpression" : "",
+                      "filesExtensionCaseSensitive" : false,
+                      "filterFilesName" : false,
+                      "filesNameExpression" : "*",
+                      "filesNameFilterType" : "WILDCARD",
+                      "filesNameCaseSensitive" : false,
+                      "includeHiddenFiles" : true,
+                      "includeSpecialFiles" : true,
+                      "filterFoldersName" : false,
+                      "foldersNameExpression" : "*",
+                      "foldersNameFilterType" : "WILDCARD",
+                      "foldersNameCaseSensitive" : false,
+                      "includeHiddenFolders" : true,
+                      "followSymlinks" : false
                     }
                   }
+                }
+              },
+              "prependTableIndexParams" : {
+                "type" : "object",
+                "properties" : {
+                  "prependTableIndexToRowId" : {
+                    "type" : "boolean",
+                    "title" : "Prepend table index to RowID",
+                    "description" : "Only enabled if the existing RowIDs are used. If checked, a prefix is\nprepended to the RowIDs that indicates which table the row came\nfrom.\nThe format of the prefix is \"File_0_\", \"File_1_\" and so on.\n",
+                    "default" : false
+                  }
                 },
-                "title" : "Source",
-                "description" : "Select a file location which stores the data you want to read. When clicking on the browse button,\nthere are two default file system options to choose from:\n<br/>\n<ul>\n    <li><b>The current Hub space</b>: Allows to select a file relative to the Hub space on which the\n        workflow is run.</li>\n    <li><b>URL</b>: Allows to specify a URL (e.g. file://, http:// or knime:// protocol).</li>\n</ul>\n",
                 "default" : {
+                  "prependTableIndexToRowId" : false
+                }
+              },
+              "skipFirstDataRowsParams" : {
+                "type" : "object",
+                "properties" : {
+                  "skipFirstDataRows" : {
+                    "type" : "integer",
+                    "format" : "int64",
+                    "title" : "Skip first data rows",
+                    "description" : "Use this option to skip the specified number of valid data rows. This has no effect on which row will be\nchosen as a column header. Skipping rows prevents parallel reading of individual files.\n",
+                    "default" : 0
+                  }
+                },
+                "default" : {
+                  "skipFirstDataRows" : 0
+                }
+              },
+              "useExistingRowIdParams" : {
+                "type" : "object",
+                "properties" : {
+                  "useExistingRowId" : {
+                    "type" : "boolean",
+                    "title" : "Use existing RowID",
+                    "description" : "Check this box if the RowIDs from the input tables should be used for\nthe output tables. If unchecked, a new RowID is generated.\nThe generated RowID follows the schema \"Row0\", \"Row1\" and so on.\n",
+                    "default" : false
+                  }
+                },
+                "default" : {
+                  "useExistingRowId" : false
+                }
+              }
+            },
+            "default" : {
+              "multiFileSelectionParams" : {
+                "source" : {
+                  "filterMode" : "FILE",
                   "path" : {
                     "fsCategory" : "LOCAL",
                     "path" : "",
@@ -139,27 +435,47 @@
                     "context" : {
                       "fsToString" : "(LOCAL, )"
                     }
-                  }
-                }
-              }
-            },
-            "default" : {
-              "source" : {
-                "path" : {
-                  "fsCategory" : "LOCAL",
-                  "path" : "",
-                  "timeout" : 10000,
-                  "context" : {
-                    "fsToString" : "(LOCAL, )"
+                  },
+                  "includeSubfolders" : false,
+                  "filters" : {
+                    "filterMode" : "FILE",
+                    "filterFilesExtension" : false,
+                    "filesExtensionExpression" : "",
+                    "filesExtensionCaseSensitive" : false,
+                    "filterFilesName" : false,
+                    "filesNameExpression" : "*",
+                    "filesNameFilterType" : "WILDCARD",
+                    "filesNameCaseSensitive" : false,
+                    "includeHiddenFiles" : true,
+                    "includeSpecialFiles" : true,
+                    "filterFoldersName" : false,
+                    "foldersNameExpression" : "*",
+                    "foldersNameFilterType" : "WILDCARD",
+                    "foldersNameCaseSensitive" : false,
+                    "includeHiddenFolders" : true,
+                    "followSymlinks" : false
                   }
                 }
               },
-              "skipFirstDataRows" : 0,
-              "maximumNumberOfRows" : null,
-              "firstColumnContainsRowIds" : false,
-              "ifSchemaChangesOption" : "FAIL",
-              "howToCombineColumns" : "FAIL",
-              "appendPathColumn" : null
+              "skipFirstDataRowsParams" : {
+                "skipFirstDataRows" : 0
+              },
+              "maxNumberOfRowsParams" : {
+                "maximumNumberOfRows" : null
+              },
+              "ifSchemaChangesParams" : {
+                "ifSchemaChangesOption" : "FAIL"
+              },
+              "multiFileReaderParams" : {
+                "howToCombineColumns" : "FAIL",
+                "appendPathColumn" : null
+              },
+              "useExistingRowIdParams" : {
+                "useExistingRowId" : false
+              },
+              "prependTableIndexParams" : {
+                "prependTableIndexToRowId" : false
+              }
             }
           },
           "transformationParameters" : {
@@ -259,21 +575,204 @@
       "type" : "Section",
       "elements" : [ {
         "type" : "Control",
-        "id" : "#/properties/model/properties/readerParameters/properties/fileSystemFromPortNotAvailableMessage",
+        "id" : "#/properties/model/properties/knimeTableReaderParameters/properties/multiFileSelectionParams/properties/fileSystemFromPortNotAvailableMessage",
         "options" : {
           "format" : "textMessage"
         },
         "providedOptions" : [ "message" ]
       }, {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/readerParameters/properties/source",
+        "scope" : "#/properties/model/properties/knimeTableReaderParameters/properties/multiFileSelectionParams/properties/source",
         "options" : {
           "fileExtensions" : [ "table" ],
+          "filters" : {
+            "classId" : "org.knime.core.webui.node.dialog.defaultdialog.internal.file.DefaultFileChooserFilters",
+            "uiSchema" : {
+              "elements" : [ {
+                "label" : "File filter options",
+                "type" : "Section",
+                "rule" : {
+                  "effect" : "HIDE",
+                  "condition" : {
+                    "scope" : "#/properties/filterMode",
+                    "schema" : {
+                      "oneOf" : [ {
+                        "const" : "FOLDERS"
+                      } ]
+                    }
+                  }
+                },
+                "elements" : [ {
+                  "type" : "Control",
+                  "scope" : "#/properties/filterFilesExtension",
+                  "options" : {
+                    "format" : "checkbox"
+                  }
+                }, {
+                  "type" : "Control",
+                  "scope" : "#/properties/filesExtensionExpression",
+                  "rule" : {
+                    "effect" : "SHOW",
+                    "condition" : {
+                      "scope" : "#/properties/filterFilesExtension",
+                      "schema" : {
+                        "const" : true
+                      }
+                    }
+                  }
+                }, {
+                  "type" : "Control",
+                  "scope" : "#/properties/filesExtensionCaseSensitive",
+                  "options" : {
+                    "format" : "checkbox"
+                  },
+                  "rule" : {
+                    "effect" : "SHOW",
+                    "condition" : {
+                      "scope" : "#/properties/filterFilesExtension",
+                      "schema" : {
+                        "const" : true
+                      }
+                    }
+                  }
+                }, {
+                  "type" : "Control",
+                  "scope" : "#/properties/filterFilesName",
+                  "options" : {
+                    "format" : "checkbox"
+                  }
+                }, {
+                  "type" : "Control",
+                  "scope" : "#/properties/filesNameExpression",
+                  "rule" : {
+                    "effect" : "SHOW",
+                    "condition" : {
+                      "scope" : "#/properties/filterFilesName",
+                      "schema" : {
+                        "const" : true
+                      }
+                    }
+                  }
+                }, {
+                  "type" : "Control",
+                  "scope" : "#/properties/filesNameFilterType",
+                  "options" : {
+                    "format" : "valueSwitch"
+                  },
+                  "rule" : {
+                    "effect" : "SHOW",
+                    "condition" : {
+                      "scope" : "#/properties/filterFilesName",
+                      "schema" : {
+                        "const" : true
+                      }
+                    }
+                  }
+                }, {
+                  "type" : "Control",
+                  "scope" : "#/properties/filesNameCaseSensitive",
+                  "options" : {
+                    "format" : "checkbox"
+                  },
+                  "rule" : {
+                    "effect" : "SHOW",
+                    "condition" : {
+                      "scope" : "#/properties/filterFilesName",
+                      "schema" : {
+                        "const" : true
+                      }
+                    }
+                  }
+                }, {
+                  "type" : "Control",
+                  "scope" : "#/properties/includeHiddenFiles",
+                  "options" : {
+                    "format" : "checkbox"
+                  }
+                }, {
+                  "type" : "Control",
+                  "scope" : "#/properties/includeSpecialFiles",
+                  "options" : {
+                    "format" : "checkbox"
+                  }
+                } ]
+              }, {
+                "label" : "Folder filter options",
+                "type" : "Section",
+                "elements" : [ {
+                  "type" : "Control",
+                  "scope" : "#/properties/filterFoldersName",
+                  "options" : {
+                    "format" : "checkbox"
+                  }
+                }, {
+                  "type" : "Control",
+                  "scope" : "#/properties/foldersNameExpression",
+                  "rule" : {
+                    "effect" : "ENABLE",
+                    "condition" : {
+                      "scope" : "#/properties/filterFoldersName",
+                      "schema" : {
+                        "const" : true
+                      }
+                    }
+                  }
+                }, {
+                  "type" : "Control",
+                  "scope" : "#/properties/foldersNameFilterType",
+                  "options" : {
+                    "format" : "valueSwitch"
+                  },
+                  "rule" : {
+                    "effect" : "ENABLE",
+                    "condition" : {
+                      "scope" : "#/properties/filterFoldersName",
+                      "schema" : {
+                        "const" : true
+                      }
+                    }
+                  }
+                }, {
+                  "type" : "Control",
+                  "scope" : "#/properties/foldersNameCaseSensitive",
+                  "options" : {
+                    "format" : "checkbox"
+                  },
+                  "rule" : {
+                    "effect" : "ENABLE",
+                    "condition" : {
+                      "scope" : "#/properties/filterFoldersName",
+                      "schema" : {
+                        "const" : true
+                      }
+                    }
+                  }
+                }, {
+                  "type" : "Control",
+                  "scope" : "#/properties/includeHiddenFolders",
+                  "options" : {
+                    "format" : "checkbox"
+                  }
+                } ]
+              }, {
+                "label" : "Link options",
+                "type" : "Section",
+                "elements" : [ {
+                  "type" : "Control",
+                  "scope" : "#/properties/followSymlinks",
+                  "options" : {
+                    "format" : "checkbox"
+                  }
+                } ]
+              } ]
+            }
+          },
           "isLocal" : true,
+          "possibleFilterModes" : [ "FILE", "FILES_IN_FOLDERS" ],
           "spaceFSOptions" : {
             "mountId" : "Local space"
           },
-          "format" : "fileChooser"
+          "format" : "multiFileChooser"
         }
       } ]
     }, {
@@ -281,7 +780,7 @@
       "type" : "Section",
       "elements" : [ {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/readerParameters/properties/skipFirstDataRows",
+        "scope" : "#/properties/model/properties/knimeTableReaderParameters/properties/skipFirstDataRowsParams/properties/skipFirstDataRows",
         "options" : {
           "validation" : {
             "max" : {
@@ -302,7 +801,7 @@
         }
       }, {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/readerParameters/properties/maximumNumberOfRows",
+        "scope" : "#/properties/model/properties/knimeTableReaderParameters/properties/maxNumberOfRowsParams/properties/maximumNumberOfRows",
         "options" : {
           "validation" : {
             "max" : {
@@ -326,7 +825,7 @@
         "providedOptions" : [ "default" ]
       }, {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/readerParameters/properties/firstColumnContainsRowIds",
+        "scope" : "#/properties/model/properties/knimeTableReaderParameters/properties/useExistingRowIdParams/properties/useExistingRowId",
         "options" : {
           "format" : "checkbox"
         }
@@ -339,7 +838,7 @@
       },
       "elements" : [ {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/readerParameters/properties/ifSchemaChangesOption",
+        "scope" : "#/properties/model/properties/knimeTableReaderParameters/properties/ifSchemaChangesParams/properties/ifSchemaChangesOption",
         "options" : {
           "format" : "valueSwitch"
         }
@@ -350,22 +849,42 @@
       "options" : {
         "isAdvanced" : true
       },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/knimeTableReaderParameters/properties/multiFileSelectionParams/properties/source",
+          "schema" : {
+            "properties" : {
+              "filterMode" : {
+                "oneOf" : [ {
+                  "const" : "FILES_IN_FOLDERS"
+                }, {
+                  "const" : "FOLDERS"
+                }, {
+                  "const" : "FILES_AND_FOLDERS"
+                } ]
+              }
+            },
+            "required" : [ "filterMode" ]
+          }
+        }
+      },
       "elements" : [ {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/readerParameters/properties/howToCombineColumns",
+        "scope" : "#/properties/model/properties/knimeTableReaderParameters/properties/multiFileReaderParams/properties/howToCombineColumns",
         "options" : {
           "format" : "valueSwitch"
         }
       }, {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/knimeTableReaderParameters/properties/prependTableIndexToRowId",
+        "scope" : "#/properties/model/properties/knimeTableReaderParameters/properties/prependTableIndexParams/properties/prependTableIndexToRowId",
         "options" : {
           "format" : "checkbox"
         },
         "rule" : {
           "effect" : "ENABLE",
           "condition" : {
-            "scope" : "#/properties/model/properties/readerParameters/properties/firstColumnContainsRowIds",
+            "scope" : "#/properties/model/properties/knimeTableReaderParameters/properties/useExistingRowIdParams/properties/useExistingRowId",
             "schema" : {
               "const" : true
             }
@@ -373,7 +892,7 @@
         }
       }, {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/readerParameters/properties/appendPathColumn",
+        "scope" : "#/properties/model/properties/knimeTableReaderParameters/properties/multiFileReaderParams/properties/appendPathColumn",
         "options" : {
           "validation" : {
             "pattern" : {
@@ -397,7 +916,7 @@
       "rule" : {
         "effect" : "HIDE",
         "condition" : {
-          "scope" : "#/properties/model/properties/readerParameters/properties/ifSchemaChangesOption",
+          "scope" : "#/properties/model/properties/knimeTableReaderParameters/properties/ifSchemaChangesParams/properties/ifSchemaChangesOption",
           "schema" : {
             "oneOf" : [ {
               "const" : "USE_NEW_SCHEMA"
@@ -490,32 +1009,87 @@
       "model" : {
         "type" : "object",
         "properties" : {
-          "readerParameters" : {
-            "type" : "object",
-            "properties" : {
-              "fileSystemFromPortNotAvailableMessage" : { },
-              "source" : {
-                "type" : "object",
-                "properties" : {
-                  "path" : { }
-                }
-              },
-              "skipFirstDataRows" : { },
-              "maximumNumberOfRows" : {
-                "configPaths" : [ [ "maximumNumberOfRows_is_present" ], [ "maximumNumberOfRows" ] ]
-              },
-              "firstColumnContainsRowIds" : { },
-              "ifSchemaChangesOption" : { },
-              "howToCombineColumns" : { },
-              "appendPathColumn" : {
-                "configPaths" : [ [ "appendPathColumn_is_present" ], [ "appendPathColumn" ] ]
-              }
-            }
-          },
           "knimeTableReaderParameters" : {
             "type" : "object",
             "properties" : {
-              "prependTableIndexToRowId" : { }
+              "multiFileSelectionParams" : {
+                "type" : "object",
+                "properties" : {
+                  "fileSystemFromPortNotAvailableMessage" : { },
+                  "source" : {
+                    "type" : "object",
+                    "properties" : {
+                      "filterMode" : { },
+                      "path" : { },
+                      "includeSubfolders" : { },
+                      "filters" : {
+                        "type" : "object",
+                        "properties" : {
+                          "filterMode" : {
+                            "configPaths" : [ ]
+                          },
+                          "filterFilesExtension" : { },
+                          "filesExtensionExpression" : { },
+                          "filesExtensionCaseSensitive" : { },
+                          "filterFilesName" : { },
+                          "filesNameExpression" : { },
+                          "filesNameFilterType" : { },
+                          "filesNameCaseSensitive" : { },
+                          "includeHiddenFiles" : { },
+                          "includeSpecialFiles" : { },
+                          "filterFoldersName" : { },
+                          "foldersNameExpression" : { },
+                          "foldersNameFilterType" : { },
+                          "foldersNameCaseSensitive" : { },
+                          "includeHiddenFolders" : { },
+                          "followSymlinks" : { }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "skipFirstDataRowsParams" : {
+                "type" : "object",
+                "properties" : {
+                  "skipFirstDataRows" : { }
+                }
+              },
+              "maxNumberOfRowsParams" : {
+                "type" : "object",
+                "properties" : {
+                  "maximumNumberOfRows" : {
+                    "configPaths" : [ [ "maximumNumberOfRows_is_present" ], [ "maximumNumberOfRows" ] ]
+                  }
+                }
+              },
+              "ifSchemaChangesParams" : {
+                "type" : "object",
+                "properties" : {
+                  "ifSchemaChangesOption" : { }
+                }
+              },
+              "multiFileReaderParams" : {
+                "type" : "object",
+                "properties" : {
+                  "howToCombineColumns" : { },
+                  "appendPathColumn" : {
+                    "configPaths" : [ [ "appendPathColumn_is_present" ], [ "appendPathColumn" ] ]
+                  }
+                }
+              },
+              "useExistingRowIdParams" : {
+                "type" : "object",
+                "properties" : {
+                  "useExistingRowId" : { }
+                }
+              },
+              "prependTableIndexParams" : {
+                "type" : "object",
+                "properties" : {
+                  "prependTableIndexToRowId" : { }
+                }
+              }
             }
           },
           "transformationParameters" : {
@@ -562,21 +1136,21 @@
     }
   },
   "initialUpdates" : [ {
-    "scope" : "#/properties/model/properties/readerParameters/properties/appendPathColumn",
-    "providedOptionName" : "default",
-    "values" : [ {
-      "indices" : [ ],
-      "value" : "File Path"
-    } ]
-  }, {
-    "scope" : "#/properties/model/properties/readerParameters/properties/maximumNumberOfRows",
+    "scope" : "#/properties/model/properties/knimeTableReaderParameters/properties/maxNumberOfRowsParams/properties/maximumNumberOfRows",
     "providedOptionName" : "default",
     "values" : [ {
       "indices" : [ ],
       "value" : 50
     } ]
   }, {
-    "id" : "#/properties/model/properties/readerParameters/properties/fileSystemFromPortNotAvailableMessage",
+    "scope" : "#/properties/model/properties/knimeTableReaderParameters/properties/multiFileReaderParams/properties/appendPathColumn",
+    "providedOptionName" : "default",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : "File Path"
+    } ]
+  }, {
+    "id" : "#/properties/model/properties/knimeTableReaderParameters/properties/multiFileSelectionParams/properties/fileSystemFromPortNotAvailableMessage",
     "providedOptionName" : "message",
     "values" : [ {
       "indices" : [ ],
@@ -593,31 +1167,21 @@
       "id" : "after-open-dialog"
     },
     "triggerInitially" : true,
-    "dependencies" : [ "#/properties/model/properties/knimeTableReaderParameters", "#/properties/model/properties/readerParameters", "#/properties/model/properties/readerParameters/properties/howToCombineColumns", "#/properties/model/properties/readerParameters/properties/source", "#/properties/model/properties/transformationParameters/properties/columnTransformation", "#/properties/model/properties/transformationParameters/properties/specs" ]
+    "dependencies" : [ "#/properties/model/properties/knimeTableReaderParameters", "#/properties/model/properties/knimeTableReaderParameters/properties/multiFileReaderParams/properties/howToCombineColumns", "#/properties/model/properties/knimeTableReaderParameters/properties/multiFileSelectionParams/properties/source", "#/properties/model/properties/transformationParameters/properties/columnTransformation", "#/properties/model/properties/transformationParameters/properties/specs" ]
   }, {
     "trigger" : {
-      "scope" : "#/properties/model/properties/readerParameters/properties/firstColumnContainsRowIds"
+      "scope" : "#/properties/model/properties/knimeTableReaderParameters/properties/multiFileReaderParams/properties/howToCombineColumns"
     },
-    "dependencies" : [ "#/properties/model/properties/knimeTableReaderParameters", "#/properties/model/properties/readerParameters", "#/properties/model/properties/readerParameters/properties/howToCombineColumns", "#/properties/model/properties/readerParameters/properties/source", "#/properties/model/properties/transformationParameters/properties/columnTransformation", "#/properties/model/properties/transformationParameters/properties/specs" ]
+    "dependencies" : [ "#/properties/model/properties/knimeTableReaderParameters", "#/properties/model/properties/knimeTableReaderParameters/properties/multiFileReaderParams/properties/howToCombineColumns", "#/properties/model/properties/knimeTableReaderParameters/properties/multiFileSelectionParams/properties/source", "#/properties/model/properties/transformationParameters/properties/columnTransformation", "#/properties/model/properties/transformationParameters/properties/specs" ]
   }, {
     "trigger" : {
-      "scope" : "#/properties/model/properties/readerParameters/properties/howToCombineColumns"
+      "scope" : "#/properties/model/properties/knimeTableReaderParameters/properties/multiFileSelectionParams/properties/source"
     },
-    "dependencies" : [ "#/properties/model/properties/knimeTableReaderParameters", "#/properties/model/properties/readerParameters", "#/properties/model/properties/readerParameters/properties/howToCombineColumns", "#/properties/model/properties/readerParameters/properties/source", "#/properties/model/properties/transformationParameters/properties/columnTransformation", "#/properties/model/properties/transformationParameters/properties/specs" ]
-  }, {
-    "trigger" : {
-      "scope" : "#/properties/model/properties/readerParameters/properties/skipFirstDataRows"
-    },
-    "dependencies" : [ "#/properties/model/properties/knimeTableReaderParameters", "#/properties/model/properties/readerParameters", "#/properties/model/properties/readerParameters/properties/howToCombineColumns", "#/properties/model/properties/readerParameters/properties/source", "#/properties/model/properties/transformationParameters/properties/columnTransformation", "#/properties/model/properties/transformationParameters/properties/specs" ]
-  }, {
-    "trigger" : {
-      "scope" : "#/properties/model/properties/readerParameters/properties/source"
-    },
-    "dependencies" : [ "#/properties/model/properties/knimeTableReaderParameters", "#/properties/model/properties/readerParameters", "#/properties/model/properties/readerParameters/properties/howToCombineColumns", "#/properties/model/properties/readerParameters/properties/source", "#/properties/model/properties/transformationParameters/properties/columnTransformation", "#/properties/model/properties/transformationParameters/properties/specs" ]
+    "dependencies" : [ "#/properties/model/properties/knimeTableReaderParameters", "#/properties/model/properties/knimeTableReaderParameters/properties/multiFileReaderParams/properties/howToCombineColumns", "#/properties/model/properties/knimeTableReaderParameters/properties/multiFileSelectionParams/properties/source", "#/properties/model/properties/transformationParameters/properties/columnTransformation", "#/properties/model/properties/transformationParameters/properties/specs" ]
   }, {
     "trigger" : {
       "scope" : "#/properties/model/properties/transformationParameters/properties/specs"
     },
-    "dependencies" : [ "#/properties/model/properties/knimeTableReaderParameters", "#/properties/model/properties/readerParameters", "#/properties/model/properties/readerParameters/properties/source", "#/properties/model/properties/transformationParameters/properties/columnTransformation/items/properties/columnName", "#/properties/model/properties/transformationParameters/properties/columnTransformation/items/properties/originalTypeLabel" ]
+    "dependencies" : [ "#/properties/model/properties/knimeTableReaderParameters", "#/properties/model/properties/knimeTableReaderParameters/properties/multiFileSelectionParams/properties/source", "#/properties/model/properties/transformationParameters/properties/columnTransformation/items/properties/columnName", "#/properties/model/properties/transformationParameters/properties/columnTransformation/items/properties/originalTypeLabel" ]
   } ]
 }

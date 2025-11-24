@@ -50,9 +50,8 @@ import static org.knime.node.impl.description.PortDescription.dynamicPort;
 import static org.knime.node.impl.description.PortDescription.fixedPort;
 
 import java.util.List;
-import java.util.Optional;
 
-import org.knime.base.node.io.filehandling.webui.reader2.FileSelectionPath;
+import org.knime.base.node.io.filehandling.webui.reader2.MultiFileSelectionPath;
 import org.knime.base.node.io.filehandling.webui.reader2.NodeParametersConfigAndSourceSerializer;
 import org.knime.base.node.io.filehandling.webui.reader2.WebUITableReaderNodeFactory;
 import org.knime.core.node.NodeDescription;
@@ -65,21 +64,17 @@ import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarch
 import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
 
 /**
+ * See README.md for instructions on how to use this tutorial class to create your own Table Reader node.
+ *
  * @author KNIME AG, Zurich, Switzerland
  */
-@SuppressWarnings("restriction")
 // TODO (#4): Adjust Class<?> (T) and String (V) to match your TableReader's type parameters if needed
-public class TutorialReaderNodeFactory extends
-    WebUITableReaderNodeFactory<TutorialReaderNodeParameters, FSPath, FileSelectionPath, DummyTableReaderConfig, Class<?>, String, DummyMultiTableReadConfig> {
+public class TutorialReaderNodeFactory extends WebUITableReaderNodeFactory<TutorialReaderNodeParameters, FSPath, //
+        MultiFileSelectionPath, DummyTableReaderConfig, Class<?>, String, DummyMultiTableReadConfig> {
 
     @SuppressWarnings("javadoc")
     public TutorialReaderNodeFactory() {
         super(TutorialReaderNodeParameters.class);
-    }
-
-    @Override
-    protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
-        return super.createPortsConfigBuilder();
     }
 
     // TODO (#5): Complete the node description
@@ -130,23 +125,24 @@ public class TutorialReaderNodeFactory extends
         return new TutorialConfigAndSourceSerializer();
     }
 
-    private final class TutorialConfigAndSourceSerializer extends
-        NodeParametersConfigAndSourceSerializer<TutorialReaderNodeParameters, FSPath, FileSelectionPath, DummyTableReaderConfig, Class<?>, DummyMultiTableReadConfig> {
+    private final class TutorialConfigAndSourceSerializer
+        extends NodeParametersConfigAndSourceSerializer<TutorialReaderNodeParameters, FSPath, MultiFileSelectionPath, //
+                DummyTableReaderConfig, Class<?>, DummyMultiTableReadConfig> {
         protected TutorialConfigAndSourceSerializer() {
             super(TutorialReaderNodeParameters.class);
         }
 
         @Override
         protected void saveToSourceAndConfig(final TutorialReaderNodeParameters params,
-            final FileSelectionPath sourceSettings, final DummyMultiTableReadConfig config) {
+            final MultiFileSelectionPath sourceSettings, final DummyMultiTableReadConfig config) {
             params.saveToSource(sourceSettings);
             params.saveToConfig(config);
         }
     }
 
     @Override
-    protected FileSelectionPath createPathSettings(final NodeCreationConfiguration nodeCreationConfig) {
-        final var source = new FileSelectionPath();
+    protected MultiFileSelectionPath createPathSettings(final NodeCreationConfiguration nodeCreationConfig) {
+        final var source = new MultiFileSelectionPath();
         final var defaultParams = new TutorialReaderNodeParameters(nodeCreationConfig);
         defaultParams.saveToSource(source);
         return source;

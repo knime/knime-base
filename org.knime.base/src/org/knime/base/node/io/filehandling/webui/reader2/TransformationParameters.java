@@ -51,12 +51,13 @@ package org.knime.base.node.io.filehandling.webui.reader2;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Supplier;
 
 import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.ConfigIdSettings;
-import org.knime.base.node.io.filehandling.webui.reader2.ReaderParameters.HowToCombineColumnsOption;
+import org.knime.base.node.io.filehandling.webui.reader2.IfSchemaChangesParameters.UseNewSchema;
+import org.knime.base.node.io.filehandling.webui.reader2.MultiFileReaderParameters.HowToCombineColumnsOption;
+import org.knime.base.node.io.filehandling.webui.reader2.ReaderLayout.MultipleFileHandling;
 import org.knime.base.node.io.filehandling.webui.reader2.ReaderSpecific.ExternalDataTypeParseException;
 import org.knime.base.node.io.filehandling.webui.reader2.ReaderSpecific.ExternalDataTypeSerializer;
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParametersStateProviders.TransformationSettingsWidgetModification;
@@ -69,14 +70,14 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.WidgetInternal;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.data.location.FSLocationValueMetaData;
 import org.knime.filehandling.core.data.location.cell.SimpleFSLocationCellFactory;
 import org.knime.filehandling.core.node.table.reader.DefaultTableTransformation;
 import org.knime.filehandling.core.node.table.reader.ImmutableColumnTransformation;
-import org.knime.filehandling.core.node.table.reader.config.AbstractMultiTableReadConfig;
-import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
+import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigID;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.DefaultTableSpecConfig;
@@ -86,12 +87,15 @@ import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
 import org.knime.filehandling.core.node.table.reader.selector.UnknownColumnsTransformation;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
+import org.knime.node.parameters.Advanced;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.WidgetGroup;
 import org.knime.node.parameters.array.ArrayWidget;
+import org.knime.node.parameters.layout.After;
 import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.layout.Section;
 import org.knime.node.parameters.persistence.Persistable;
 import org.knime.node.parameters.updates.Effect;
 import org.knime.node.parameters.updates.Effect.EffectType;
@@ -115,11 +119,43 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
  *
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  * @param <T> the type used to represent external data [T]ypes
+ * @since 5.10
  */
 @SuppressWarnings("restriction")
-@Layout(ReaderLayout.Transformation.class)
 public abstract class TransformationParameters<T>
     implements NodeParameters, ReaderSpecific.ProductionPathProviderAndTypeHierarchy<T>, ExternalDataTypeSerializer<T> {
+
+    /**
+     * For adjusting inclusion, naming and types of the read columns and any unknown columns.
+     */
+    @Section(title = "Table Transformation", description = Transformation.DESCRIPTION)
+    @Advanced
+    @Effect(predicate = UseNewSchema.class, type = EffectType.HIDE)
+    @After(MultipleFileHandling.class)
+    interface Transformation {
+        String DESCRIPTION = """
+            Use this option to modify the structure of the table. You can deselect each column to filter it out of the
+            output table, use the arrows to reorder the columns, or change the column name or column type of each
+            column. Note that the positions of columns are reset in the dialog if a new file or folder is selected.
+            Whether and where to add unknown columns during execution is specified via the special row &lt;any unknown
+            new column&gt;. It is also possible to select the type new columns should be converted to. Note that the
+            node will fail if this conversion is not possible e.g. if the selected type is Integer but the new column is
+            of type Double.
+            """;
+
+        /**
+         * Enforce type mappings as configured in the dialog.
+         */
+        interface EnforceTypes {
+        }
+
+        /**
+         * The actual per-column transformations.
+         */
+        @After(EnforceTypes.class)
+        interface ColumnTransformation {
+        }
+    }
 
     /**
      * The serializable and persistable equivalent of the {@link TypedReaderColumnSpec}
@@ -166,7 +202,13 @@ public abstract class TransformationParameters<T>
     // Note that this field remains `null` until it is updated by the state provider when specs could be computed.
     TableSpecSettings[] m_specs;
 
-    @Widget(title = "Enforce types", description = ReaderLayout.Transformation.EnforceTypes.DESCRIPTION)
+    @Widget(title = "Enforce types", description = """
+            Controls how columns whose type changes are dealt with.
+            If selected, the mapping to the KNIME type you configured is attempted.
+            The node will fail if that is not possible.
+            If unselected, the KNIME type corresponding to the new type is used.
+            """)
+    @Layout(Transformation.EnforceTypes.class)
     boolean m_enforceTypes = true;
 
     static class TransformationElementSettings implements WidgetGroup, Persistable {
@@ -244,7 +286,7 @@ public abstract class TransformationParameters<T>
             }
 
             @Override
-            public String computeState(final NodeParametersInput context) {
+            public String computeState(final NodeParametersInput context) throws StateComputationFailureException {
                 final var originalName = m_originalColumnNameSupplier.get();
                 return originalName == null ? "Any unknown column" : originalName;
             }
@@ -312,7 +354,7 @@ public abstract class TransformationParameters<T>
     static final class TransformationElementSettingsRef implements ParameterReference<TransformationElementSettings[]> {
     }
 
-    @Widget(title = "Transformations", description = ReaderLayout.Transformation.DESCRIPTION)
+    @Widget(title = "Transformations", description = Transformation.DESCRIPTION)
     @ArrayWidget(elementTitle = "Column", showSortButtons = true, hasFixedSize = true)
     @ArrayWidgetInternal(withEditAndReset = true, withElementCheckboxes = true,
         titleProvider = TransformationElementSettings.TitleProvider.class,
@@ -322,6 +364,7 @@ public abstract class TransformationParameters<T>
     @Modification.WidgetReference(TransformationSettingsWidgetModification.//
             TransformationElementSettingsArrayWidgetRef.class)
     @Effect(predicate = FileSystemPortConnectionUtil.ConnectedWithoutFileSystemSpec.class, type = EffectType.HIDE)
+    @Layout(Transformation.ColumnTransformation.class)
     TransformationElementSettings[] m_columnTransformation =
         new TransformationElementSettings[]{TransformationElementSettings.createUnknownElement()};
 
@@ -333,17 +376,12 @@ public abstract class TransformationParameters<T>
      * @param config the config to save the transformation settings to.
      * @param sourcePath the path of the currently selected source.
      * @param configId the config ID to use for the table spec config
-     * @param howToCombineColumnsOption how to combine columns option (when multi file selection is enabled, this should
-     *            be a parameter, otherwise hardcode it to use the union).
-     * @param appendPathColumn optional name of the column to append the file path to (when multi file selection is
-     *            enabled, this should be a parameter, otherwise use an empty optional.
+     * @param multiFileReaderParameters for determining how to combine columns and whether a path column is appended.
      */
-    public <C extends ReaderSpecificConfig<C>> void saveToConfig(
-        final AbstractMultiTableReadConfig<C, ? extends DefaultTableReadConfig<C>, T, ?> config,
+    public <C extends ReaderSpecificConfig<C>> void saveToConfig(final MultiTableReadConfig<C, T> config,
         final String sourcePath, //
         final ConfigID configId, //
-        final HowToCombineColumnsOption howToCombineColumnsOption, //
-        final Optional<String> appendPathColumn//
+        final MultiFileReaderParameters multiFileReaderParameters//
     ) {
 
         if (m_specs == null) {
@@ -352,11 +390,14 @@ public abstract class TransformationParameters<T>
 
         final var individualSpecs = toSpecMap(this, m_specs);
         final var rawSpec = toRawSpec(individualSpecs);
-        final var transformations = determineTransformations(rawSpec);
+        final var transformations = determineTransformations(rawSpec, multiFileReaderParameters.m_howToCombineColumns);
         final var tableTransformation = new DefaultTableTransformation<T>(rawSpec, transformations.getFirst(),
-            howToCombineColumnsOption.toColumnFilterMode(), transformations.getSecond(), m_enforceTypes, false);
+            multiFileReaderParameters.m_howToCombineColumns.toColumnFilterMode(), transformations.getSecond(),
+            m_enforceTypes, false);
 
-        DataColumnSpec itemIdentifierColumnSpec = determineAppendPathColumnSpec(appendPathColumn);
+        final var appendPathColumnOpt = multiFileReaderParameters.m_appendPathColumn;
+        DataColumnSpec itemIdentifierColumnSpec =
+            appendPathColumnOpt.isPresent() ? determineAppendPathColumnSpec(appendPathColumnOpt.get()) : null;
 
         final var tableSpecConfig = DefaultTableSpecConfig.createFromTransformationModel(sourcePath,
             config.getConfigID(), individualSpecs, tableTransformation, itemIdentifierColumnSpec);
@@ -366,7 +407,7 @@ public abstract class TransformationParameters<T>
     }
 
     private Pair<ArrayList<ColumnTransformation<T>>, UnknownColumnsTransformation>
-        determineTransformations(final RawSpec<T> rawSpec) {
+        determineTransformations(final RawSpec<T> rawSpec, final HowToCombineColumnsOption howToCombineColumns) {
         final Map<String, Integer> transformationIndexByColumnName = new HashMap<>();
         int unknownColumnsTransformationPosition = -1;
         for (int i = 0; i < m_columnTransformation.length; i++) {
@@ -378,7 +419,7 @@ public abstract class TransformationParameters<T>
             }
         }
         final var transformations = new ArrayList<ColumnTransformation<T>>();
-        for (var column : rawSpec.getUnion()) {
+        for (var column : howToCombineColumns.toColumnFilterMode().getRelevantSpec(rawSpec)) {
 
             final var columnName = column.getName().get(); // NOSONAR in the TypedReaderTableSpecsProvider we make sure that names are always present
             if (columnName == null) {
@@ -415,27 +456,26 @@ public abstract class TransformationParameters<T>
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(TransformationParameters.class);
 
-    private DataColumnSpec determineAppendPathColumnSpec(final Optional<String> appendPathColumn) {
+    private DataColumnSpec determineAppendPathColumnSpec(final String appendPathColumn) {
         // code taken from DefaultMultiTableReadFactory.createItemIdentifierColumn
-        if (appendPathColumn.isPresent()) {
-            DataColumnSpecCreator itemIdColCreator = null;
-            for (var spec : m_specs) {
-                final var path = spec.m_fsLocation;
-                // code taken from TableReader.createIdentifierColumnSpec
-                final DataColumnSpecCreator creator =
-                    new DataColumnSpecCreator(appendPathColumn.get(), SimpleFSLocationCellFactory.TYPE);
-                creator.addMetaData(new FSLocationValueMetaData(path.getFileSystemCategory(),
-                    path.getFileSystemSpecifier().orElse(null)), true);
-                final var itemIdCol = creator.createSpec();
-                if (itemIdColCreator == null) {
-                    itemIdColCreator = new DataColumnSpecCreator(itemIdCol);
-                } else {
-                    itemIdColCreator.merge(itemIdCol);
-                }
+        DataColumnSpecCreator itemIdColCreator = null;
+        for (var spec : m_specs) {
+            final var path = spec.m_fsLocation;
+            // code taken from TableReader.createIdentifierColumnSpec
+            final DataColumnSpecCreator creator =
+                new DataColumnSpecCreator(appendPathColumn, SimpleFSLocationCellFactory.TYPE);
+            creator.addMetaData(
+                new FSLocationValueMetaData(path.getFileSystemCategory(), path.getFileSystemSpecifier().orElse(null)),
+                true);
+            final var itemIdCol = creator.createSpec();
+            if (itemIdColCreator == null) {
+                itemIdColCreator = new DataColumnSpecCreator(itemIdCol);
+            } else {
+                itemIdColCreator.merge(itemIdCol);
             }
-            if (itemIdColCreator != null) {
-                return itemIdColCreator.createSpec();
-            }
+        }
+        if (itemIdColCreator != null) {
+            return itemIdColCreator.createSpec();
         }
         return null;
     }
@@ -464,7 +504,7 @@ public abstract class TransformationParameters<T>
     private void validateColumnTransformations() throws InvalidSettingsException {
         for (TransformationElementSettings elem : m_columnTransformation) {
             if (elem.m_columnRename != null && !elem.m_columnRename.equals(elem.m_columnName)) {
-                ColumnNameValidationUtils.validateColumnName(elem.m_columnRename, state -> {
+                ColumnNameValidationUtils.validateColumnName(elem.m_columnRename, state -> { // NOSONAR complexity is OK
                     switch (state) {
                         case EMPTY:
                             return String.format("The new name for column '%s' is empty.", elem.m_columnName);

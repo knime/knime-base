@@ -72,6 +72,7 @@ import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarch
  * by ones that overwrite the methods with default implementations and extend those by the respective classes.
  *
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
+ * @since 5.10
  */
 public final class ReaderSpecific {
 
@@ -86,7 +87,8 @@ public final class ReaderSpecific {
      * @param <T> the type used to represent external data [T]ypes
      * @param <M> the type of the [M]ulti table read config
      */
-    public interface ConfigAndReader<C extends ReaderSpecificConfig<C>, T, M extends AbstractMultiTableReadConfig<C, DefaultTableReadConfig<C>, T, M>> {
+    public interface ConfigAndReader<C extends ReaderSpecificConfig<C>, T, M extends AbstractMultiTableReadConfig<C, //
+            DefaultTableReadConfig<C>, T, M>> {
 
         /**
          * We need to use the AbstractMultiTableReadConfig as a type here because the MultiTableReadConfig does not
@@ -107,16 +109,29 @@ public final class ReaderSpecific {
      * <ul>
      * <li>For <T> being {@link Class}, use the {@link ClassSerializer}.</li>
      * <li>For <T> being {@link DataType}, use the {@link DataTypeSerializer}.</li>
+     * </ul>
      *
      * Replicates {@link org.knime.filehandling.core.node.table.reader.config.tablespec.NodeSettingsSerializer}
      *
-     * @param <S> the type used to [S]erialize external data types
      * @param <T> the type used to represent external data [T]ypes
      */
-    interface ExternalDataTypeSerializer<T> {
+    public interface ExternalDataTypeSerializer<T> {
 
+        /**
+         * Serializes the external type to a string.
+         *
+         * @param externalType the external type to serialize
+         * @return the serialized type
+         */
         String toSerializableType(T externalType);
 
+        /**
+         * De-serializes the string back to the external type.
+         *
+         * @param serializedType the serialized type to deserialize
+         * @return the external type
+         * @throws ExternalDataTypeParseException if de-serialization fails
+         */
         T toExternalType(String serializedType) throws ExternalDataTypeParseException;
 
     }

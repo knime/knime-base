@@ -85,6 +85,7 @@ final class TutorialReaderSpecific {
             return new DummyMultiTableReadConfig(); // TODO (#3): Replace with your MultiTableReadConfig
         }
 
+        @SuppressWarnings("unchecked")
         @Override
         default DummyTableReader createTableReader() {
             return new DummyTableReader(); // TODO (#3): Replace with your TableReader

@@ -62,7 +62,7 @@ import org.knime.node.parameters.updates.Effect.EffectType;
  */
 @SuppressWarnings({"restriction", "java:S1214", "java:S103"})
 @Deprecated(since = "5.10")
-public interface CommonReaderLayout {
+public interface CommonReaderLayout { // NOSONAR
 
     /**
      * The first section in the dialog containing the file selection.

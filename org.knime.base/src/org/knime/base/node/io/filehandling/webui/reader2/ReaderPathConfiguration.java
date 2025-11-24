@@ -74,6 +74,7 @@ import org.knime.filehandling.core.util.CheckNodeContextUtil;
  * types and provides error/warning messages for various configuration states.
  *
  * @author Paul Bärnreuther
+ * @since 5.10
  */
 @SuppressWarnings("restriction")
 public class ReaderPathConfiguration {
@@ -85,13 +86,13 @@ public class ReaderPathConfiguration {
 
     private static final String FILE_SYSTEM_NOT_SUPPORTED_ERROR = "The file system '%s' is not supported by this node.";
 
-    private static final String NODES_IN_A_SHARED_COMPONENT_DON_T_HAVE_ACCESS_TO_WORKFLOW_RELATIVE_LOCATIONS_ERROR =
+    private static final String WORKFLOW_RELATIVE_LOCATIONS_IN_SHARED_COMPONENT_ERROR =
         "Nodes in a shared component don't have access to workflow-relative locations";
 
-    private static final String THE_CONNECTED_FILE_SYSTEM_IS_NOT_COMPATIBLE_WITH_THIS_NODE_BECAUSE_IT_DOESN_T_SUPPORT_FOLDERS_ERROR =
+    private static final String CONNECTED_FILE_SYSTEM_DOES_NOT_SUPPORT_FOLDERS_ERROR =
         "The connected file system is not compatible with this node because it doesn't support folders.";
 
-    private static final String THE_CONNECTED_FILE_SYSTEM_S_IS_NOT_COMPATIBLE_WITH_THIS_NODE_BECAUSE_IT_DOESN_T_SUPPORT_FOLDERS_ERROR =
+    private static final String CONNECTED_NAMED_FILE_SYSTEM_DOES_NOT_SUPPORT_FOLDERS_ERROR =
         "The connected file system '%s' is not compatible with this node because it doesn't support folders.";
 
     private static final String NO_FILE_SYSTEM_CONNECTED_ERROR = "No file system connected at port %s.";
@@ -139,13 +140,12 @@ public class ReaderPathConfiguration {
         return new ReaderPathConfigResult(portFSConnection);
     }
 
-    private FSLocation adjustAndGetFSLocation(final PortObjectSpec[] specs) throws InvalidSettingsException {
+    private FSLocation adjustAndGetFSLocation(final PortObjectSpec[] specs) {
         getNewFSLocationSpec(specs).ifPresent(m_changeFSLocationSpec::accept);
         return m_fsLocationSupplier.get();
     }
 
-    private Optional<FSLocationSpec> getNewFSLocationSpec(final PortObjectSpec[] specs)
-        throws InvalidSettingsException {
+    private Optional<FSLocationSpec> getNewFSLocationSpec(final PortObjectSpec[] specs) {
         if (m_portIdx != -1 && specs.length > m_portIdx && specs[m_portIdx] != null) {
             return Optional.of(((FileSystemPortObjectSpec)specs[m_portIdx]).getFSLocationSpec());
         }
@@ -182,7 +182,7 @@ public class ReaderPathConfiguration {
      */
     private void checkFileSystemAvailable(final FileSystemOption option, final String fsCategoryForErrorMessage)
         throws InvalidSettingsException {
-        if (!m_fileSystemAvailability.getOrDefault(option, false)) {
+        if (!m_fileSystemAvailability.getOrDefault(option, false).booleanValue()) {
             throw new InvalidSettingsException(
                 String.format(FILE_SYSTEM_NOT_SUPPORTED_ERROR, fsCategoryForErrorMessage));
         }
@@ -214,17 +214,13 @@ public class ReaderPathConfiguration {
                 "No connection available. Execute the connector node first."));
             return Optional.empty();
         }
-        if (m_locationIsDirectorySupplier.get()) {
-            if (!connection.get().supportsBrowsing()) {
-                Optional<String> fsName = FileSystemPortObjectSpec.getFileSystemType(specs, m_portIdx);
-                if (fsName.isPresent()) {
-                    throw new InvalidSettingsException(String.format(
-                        THE_CONNECTED_FILE_SYSTEM_S_IS_NOT_COMPATIBLE_WITH_THIS_NODE_BECAUSE_IT_DOESN_T_SUPPORT_FOLDERS_ERROR,
-                        fsName.get()));
-                } else {
-                    throw new InvalidSettingsException(
-                        THE_CONNECTED_FILE_SYSTEM_IS_NOT_COMPATIBLE_WITH_THIS_NODE_BECAUSE_IT_DOESN_T_SUPPORT_FOLDERS_ERROR);
-                }
+        if (m_locationIsDirectorySupplier.get().booleanValue() && !connection.get().supportsBrowsing()) {
+            Optional<String> fsName = FileSystemPortObjectSpec.getFileSystemType(specs, m_portIdx);
+            if (fsName.isPresent()) {
+                throw new InvalidSettingsException(
+                    String.format(CONNECTED_NAMED_FILE_SYSTEM_DOES_NOT_SUPPORT_FOLDERS_ERROR, fsName.get()));
+            } else {
+                throw new InvalidSettingsException(CONNECTED_FILE_SYSTEM_DOES_NOT_SUPPORT_FOLDERS_ERROR);
             }
         }
         return connection;
@@ -234,7 +230,7 @@ public class ReaderPathConfiguration {
         final Optional<String> specifier = fsLocation.getFileSystemSpecifier();
         CheckUtils.checkSetting(specifier.isPresent(), "No relative option provided.");
 
-        final RelativeTo relativeTo = RelativeTo.fromSettingsValue(specifier.get());
+        final RelativeTo relativeTo = RelativeTo.fromSettingsValue(specifier.get()); // NOSONAR isPresent checked above
         switch (relativeTo) {
             case SPACE:
                 // FileSystemOption.SPACE maps to RELATIVE/SPACE
@@ -252,14 +248,14 @@ public class ReaderPathConfiguration {
 
         // Validate component project restrictions
         CheckUtils.checkSetting(relativeTo == RelativeTo.MOUNTPOINT || !CheckNodeContextUtil.isInComponentProject(),
-            NODES_IN_A_SHARED_COMPONENT_DON_T_HAVE_ACCESS_TO_WORKFLOW_RELATIVE_LOCATIONS_ERROR);
+            WORKFLOW_RELATIVE_LOCATIONS_IN_SHARED_COMPONENT_ERROR);
     }
 
     private void checkLocation(final FSLocation toBeCheckedFSLocation) throws InvalidSettingsException {
         final String path = toBeCheckedFSLocation.getPath();
 
         if (path == null || path.isEmpty()) {
-            final String locationLabel = m_locationIsDirectorySupplier.get() ? "folder" : "file";
+            final String locationLabel = m_locationIsDirectorySupplier.get().booleanValue() ? "folder" : "file";
             throw new InvalidSettingsException(String.format(NO_LOCATION_ERROR, locationLabel));
         }
 

@@ -55,13 +55,14 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.knime.base.node.io.filehandling.webui.reader2.ReaderParameters;
+import org.knime.base.node.io.filehandling.webui.reader2.MultiFileReaderParameters.HowToCombineColumnsOption;
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters;
 // TODO (#4): If your T is not Class<?>, extend TransformationParametersUpdatesTest<T, ...> instead of TransformationParametersUpdatesTestClassBased
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParametersStateProviderTestUtils.TransformationParametersUpdatesTestClassBased;
 import org.knime.core.data.DataType;
 import org.knime.core.data.def.LongCell;
 import org.knime.core.util.Pair;
+import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 
 /**
@@ -69,19 +70,26 @@ import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
  * @author KNIME AG, Zurich, Switzerland
  */
 @Disabled("TODO (#7): Enable this test class when you have implemented the required methods")
-final class TutorialTransformationParametersStateProvidersTest
+final class TutorialReaderTransformationParametersStateProvidersTest
     extends TransformationParametersUpdatesTestClassBased<TutorialReaderNodeParameters> {
 
     // TODO (#6): Add trigger paths for your reader-specific parameters
-    // e.g., List.of("tutorialReaderParameters", "myReaderSpecificSetting")
+    // e.g., List.of("tutorialReaderParameters", "myTutorialSpecificParams", "myReaderSpecificSetting")
     static final List<List<String>> TRIGGER_PATHS = List.of( //
-        List.of("readerParameters", "firstColumnContainsRowIds"), //
-        List.of("readerParameters", "skipFirstDataRows") //
+        List.of("tutorialReaderParameters", "skipFirstDataRowsParams", "skipFirstDataRows"), //
+        List.of("tutorialReaderParameters", "myTutorialSpecificParameters", "myParameterAfterSource") // TODO (#6): Example path - adjust to your actual parameters
     );
 
     @Override
-    protected ReaderParameters getReaderParameters(final TutorialReaderNodeParameters params) {
-        return params.m_readerParameters;
+    protected void setSourcePath(final TutorialReaderNodeParameters settings, final FSLocation fsLocation) {
+        settings.m_tutorialReaderParameters.m_multiFileSelectionParams.m_source.m_path = fsLocation;
+    }
+
+    @Override
+    protected void setHowToCombineColumns(final TutorialReaderNodeParameters settings,
+        final HowToCombineColumnsOption howToCombineColumns) {
+        settings.m_tutorialReaderParameters.m_multiFileReaderParams.m_howToCombineColumns = howToCombineColumns;
+
     }
 
     @Override

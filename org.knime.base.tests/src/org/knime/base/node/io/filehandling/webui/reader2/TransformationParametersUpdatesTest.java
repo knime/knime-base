@@ -73,7 +73,7 @@ import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.knime.base.node.io.filehandling.webui.LocalWorkflowContextTest;
 import org.knime.base.node.io.filehandling.webui.reader.DataTypeStringSerializer;
-import org.knime.base.node.io.filehandling.webui.reader2.ReaderParameters.HowToCombineColumnsOption;
+import org.knime.base.node.io.filehandling.webui.reader2.MultiFileReaderParameters.HowToCombineColumnsOption;
 import org.knime.base.node.io.filehandling.webui.reader2.ReaderSpecific.ExternalDataTypeSerializer;
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.TableSpecSettings;
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.TransformationElementSettings;
@@ -127,15 +127,9 @@ abstract class TransformationParametersUpdatesTest<R extends WidgetGroup, T> ext
      */
     protected abstract R constructNewSettings();
 
-    /**
-     * @param settings
-     * @return the common reader settings within the settings
-     */
-    protected abstract ReaderParameters getReaderParameters(R settings);
+    protected abstract void setSourcePath(R settings, FSLocation fsLocation);
 
-    private ReaderParameters getReaderParameters() {
-        return getReaderParameters(m_settings);
-    }
+    protected abstract void setHowToCombineColumns(R settings, HowToCombineColumnsOption howToCombineColumns);
 
     /**
      * @param settings
@@ -176,8 +170,12 @@ abstract class TransformationParametersUpdatesTest<R extends WidgetGroup, T> ext
     void setUpSettingsAndFile() {
         m_settings = constructNewSettings();
         m_filePath = m_tempFolder.resolve(getFileName()).toAbsolutePath().toString();
-        getReaderParameters().m_source.m_path = new FSLocation(FSCategory.LOCAL, m_filePath);
+        setSourcePath(new FSLocation(FSCategory.LOCAL, m_filePath));
         m_simulator = new DialogUpdateSimulator(m_settings, null);
+    }
+
+    private void setSourcePath(final FSLocation fsLocation) {
+        setSourcePath(m_settings, fsLocation);
     }
 
     @Test
@@ -230,8 +228,12 @@ abstract class TransformationParametersUpdatesTest<R extends WidgetGroup, T> ext
     @ArgumentsSource(HowToCombineColumnsOptionArgumentsProvider.class)
     void testTransformationElementSettingsProviderHowToCombineColumnsOption(
         final HowToCombineColumnsOption howToCombineColumns) throws IOException {
-        getReaderParameters().m_howToCombineColumns = howToCombineColumns;
+        setHowToCombineColumns(howToCombineColumns);
         testTransformationElementSettingsProvider(UpdateSimulator::simulateAfterOpenDialog);
+    }
+
+    private void setHowToCombineColumns(final HowToCombineColumnsOption howToCombineColumns) {
+        setHowToCombineColumns(m_settings, howToCombineColumns);
     }
 
     static final class HowToCombineColumnsOptionArgumentsProvider implements ArgumentsProvider {

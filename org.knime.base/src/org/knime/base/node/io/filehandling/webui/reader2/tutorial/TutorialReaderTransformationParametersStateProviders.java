@@ -49,11 +49,8 @@ package org.knime.base.node.io.filehandling.webui.reader2.tutorial;
 import java.util.function.Supplier;
 
 import org.knime.base.node.io.filehandling.webui.reader2.ClassSerializer;
-import org.knime.base.node.io.filehandling.webui.reader2.ReaderParameters;
-import org.knime.base.node.io.filehandling.webui.reader2.ReaderParameters.FirstColumnContainsRowIdsRef;
-import org.knime.base.node.io.filehandling.webui.reader2.ReaderParameters.SkipFirstDataRowsRef;
+import org.knime.base.node.io.filehandling.webui.reader2.SkipFirstDataRowsParameters;
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParametersStateProviders;
-import org.knime.base.node.io.filehandling.webui.reader2.tutorial.TutorialReaderNodeParameters.ReaderParametersRef;
 import org.knime.base.node.io.filehandling.webui.reader2.tutorial.TutorialReaderNodeParameters.TutorialReaderParametersRef;
 import org.knime.base.node.io.filehandling.webui.reader2.tutorial.TutorialReaderSpecific.ConfigAndReader;
 import org.knime.base.node.io.filehandling.webui.reader2.tutorial.TutorialReaderSpecific.ProductionPathProviderAndTypeHierarchy;
@@ -70,21 +67,17 @@ final class TutorialReaderTransformationParametersStateProviders {
                 DummyTableReaderConfig, Class<?>, DummyMultiTableReadConfig>
         implements ConfigAndReader {
 
-        private Supplier<ReaderParameters> m_commonReaderNodeParamsSupplier;
-
-        private Supplier<TutorialReaderParameters> m_readerSpecificNodeParamsSupplier;
+        private Supplier<TutorialReaderParameters> m_readerNodeParamsSupplier;
 
         @Override
         protected void applyParametersToConfig(final DummyMultiTableReadConfig config) {
-            m_commonReaderNodeParamsSupplier.get().saveToConfig(config);
-            m_readerSpecificNodeParamsSupplier.get().saveToConfig(config);
+            m_readerNodeParamsSupplier.get().saveToConfig(config);
         }
 
         @Override
         public void init(final StateProviderInitializer initializer) {
             super.init(initializer);
-            m_commonReaderNodeParamsSupplier = initializer.getValueSupplier(ReaderParametersRef.class);
-            m_readerSpecificNodeParamsSupplier = initializer.getValueSupplier(TutorialReaderParametersRef.class);
+            m_readerNodeParamsSupplier = initializer.getValueSupplier(TutorialReaderParametersRef.class);
         }
 
         interface Dependent
@@ -98,8 +91,7 @@ final class TutorialReaderTransformationParametersStateProviders {
             @Override
             default void initConfigIdTriggers(final StateProviderInitializer initializer) {
                 // Register triggers for all reader-specific parameters that affect table spec detection
-                initializer.computeOnValueChange(FirstColumnContainsRowIdsRef.class);
-                initializer.computeOnValueChange(SkipFirstDataRowsRef.class);
+                initializer.computeOnValueChange(SkipFirstDataRowsParameters.SkipFirstDataRowsRef.class);
                 /**
                  * TODO (#6): Add triggers for your reader-specific parameters here. Note that not every setting is
                  * relevant for table spec detection! The existing framework calls settings that affect table spec
@@ -107,6 +99,8 @@ final class TutorialReaderTransformationParametersStateProviders {
                  * be listed here is the ConfigIdFactory#createFromConfig method within the factory passed to the
                  * super-constructor of your specific implementation of AbstractMultiTableReadConfig.
                  */
+                // Example:
+                initializer.computeOnValueChange(MyTutorialSpecificParameters.MyParameterAfterSourceRef.class);
             }
         }
     }

@@ -54,7 +54,6 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.node.parameters.persistence.NodeParametersPersistor;
 
-@SuppressWarnings("restriction")
 abstract class StringEscapePersistor implements NodeParametersPersistor<String> {
 
     private final String m_configKey;

@@ -44,23 +44,50 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 21, 2025: created
+ *   Nov 24, 2025 (Paul Bärnreuther): created
  */
 package org.knime.base.node.io.filehandling.table.reader2;
 
-import org.knime.base.node.io.filehandling.webui.reader2.ReaderLayout;
+import org.knime.base.node.io.filehandling.table.reader2.UseExistingRowIdParameters.UseExistingRowIdLayout;
+import org.knime.base.node.io.filehandling.webui.reader2.MaxNumberOfRowsParameters;
+import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.layout.After;
-import org.knime.node.parameters.layout.Before;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.updates.util.BooleanReference;
 
-interface KnimeTableReaderLayoutAdditions {
+/**
+ * Parameters for specifying whether to use existing RowIDs (KnimeTable-specific).
+ *
+ * @author Paul Bärnreuther
+ */
+@Layout(UseExistingRowIdLayout.class)
+final class UseExistingRowIdParameters implements NodeParameters {
 
-    interface MultipleFileHandling {
-        @After(ReaderLayout.MultipleFileHandling.HowToCombineColumns.class)
-        @Before(ReaderLayout.MultipleFileHandling.AppendFilePathColumn.class)
-        interface FirstRowContainsColumnNames {
-
-        }
-
+    @After(MaxNumberOfRowsParameters.LimitNumberOfRows.class)
+    interface UseExistingRowIdLayout {
     }
 
+    static class UseExistingRowIdRef implements BooleanReference {
+    }
+
+    @Widget(title = "Use existing RowID", description = """
+            Check this box if the RowIDs from the input tables should be used for
+            the output tables. If unchecked, a new RowID is generated.
+            The generated RowID follows the schema "Row0", "Row1" and so on.
+            """)
+    @ValueReference(UseExistingRowIdRef.class)
+    boolean m_useExistingRowId;
+
+    /**
+     * Save the settings to the given config.
+     *
+     * @param tableReadConfig the config to save to
+     */
+    void saveToConfig(final DefaultTableReadConfig<?> tableReadConfig) {
+        tableReadConfig.setRowIDIdx(0);
+        tableReadConfig.setUseRowIDIdx(m_useExistingRowId);
+    }
 }

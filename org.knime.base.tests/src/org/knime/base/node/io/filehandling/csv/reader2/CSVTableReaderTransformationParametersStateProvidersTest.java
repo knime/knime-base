@@ -59,12 +59,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.knime.base.node.io.filehandling.webui.reader2.ReaderParameters;
+import org.knime.base.node.io.filehandling.webui.reader2.MultiFileReaderParameters.HowToCombineColumnsOption;
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters;
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParametersStateProviderTestUtils.TransformationParametersUpdatesTestClassBased;
 import org.knime.core.data.DataType;
 import org.knime.core.data.def.LongCell;
 import org.knime.core.util.Pair;
+import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 
 /**
@@ -76,31 +77,26 @@ final class CSVTableReaderTransformationParametersStateProvidersTest
     extends TransformationParametersUpdatesTestClassBased<CSVTableReaderNodeParameters> {
 
     static final List<List<String>> TRIGGER_PATHS = List.of( //
-        List.of("csvReaderParameters", "firstRowContainsColumnNames"), //
-        List.of("readerParameters", "firstColumnContainsRowIds"), //
-        List.of("csvReaderParameters", "commentLineCharacter"), //
-        List.of("csvReaderParameters", "columnDelimiter"), //
-        List.of("csvReaderParameters", "quoteCharacter"), //
-        List.of("csvReaderParameters", "quoteEscapeCharacter"), //
-        List.of("csvReaderParameters", "rowDelimiterOption"), //
-        List.of("csvReaderParameters", "customRowDelimiter"), //
-        List.of("csvReaderParameters", "quotedStringsOption"), //
-        List.of("csvReaderParameters", "replaceEmptyQuotedStringsByMissingValues"), //
-        List.of("csvReaderParameters", "maxDataRowsScanned"), //
-        List.of("csvReaderParameters", "thousandsSeparator"), //
-        List.of("csvReaderParameters", "decimalSeparator"), //
-        List.of("csvReaderParameters", "fileEncoding"), //
-        List.of("csvReaderParameters", "customEncoding"), //
-        List.of("csvReaderParameters", "skipFirstLines"), //
-        List.of("readerParameters", "skipFirstDataRows"), //
-        List.of("csvReaderParameters", "limitMemoryPerColumn"), //
-        List.of("csvReaderParameters", "maximumNumberOfColumns") //
+        List.of("csvReaderParameters", "firstRowContainsColumnNamesParams", "firstRowContainsColumnNames"), //
+        List.of("csvReaderParameters", "firstColumnContainsRowIdsParams", "firstColumnContainsRowIds"), //
+        List.of("csvReaderParameters", "csvFormatParams", "commentLineCharacter"), //
+        List.of("csvReaderParameters", "csvFormatParams", "columnDelimiter"), //
+        List.of("csvReaderParameters", "csvFormatParams", "quoteCharacter"), //
+        List.of("csvReaderParameters", "csvFormatParams", "quoteEscapeCharacter"), //
+        List.of("csvReaderParameters", "csvFormatParams", "rowDelimiterOption"), //
+        List.of("csvReaderParameters", "csvFormatParams", "customRowDelimiter"), //
+        List.of("csvReaderParameters", "quotedStringsParams", "quotedStringsOption"), //
+        List.of("csvReaderParameters", "quotedStringsParams", "replaceEmptyQuotedStringsByMissingValues"), //
+        List.of("csvReaderParameters", "limitScannedRowsParams", "maxDataRowsScanned"), //
+        List.of("csvReaderParameters", "csvFormatParams", "thousandsSeparator"), //
+        List.of("csvReaderParameters", "csvFormatParams", "decimalSeparator"), //
+        List.of("csvReaderParameters", "fileEncodingParams", "fileEncoding"), //
+        List.of("csvReaderParameters", "fileEncodingParams", "customEncoding"), //
+        List.of("csvReaderParameters", "skipFirstLinesParams", "skipFirstLines"), //
+        List.of("csvReaderParameters", "skipFirstDataRowsParams", "skipFirstDataRows"), //
+        List.of("csvReaderParameters", "limitMemoryParams", "limitMemoryPerColumn"), //
+        List.of("csvReaderParameters", "maxColumnsParams", "maximumNumberOfColumns") //
     );
-
-    @Override
-    protected ReaderParameters getReaderParameters(final CSVTableReaderNodeParameters settings) {
-        return settings.m_readerParameters;
-    }
 
     @Override
     protected TransformationParameters<Class<?>>
@@ -150,8 +146,8 @@ final class CSVTableReaderTransformationParametersStateProvidersTest
 
     @Test
     void testTableSpecsProviderUnescapeDelimiters() throws IOException {
-        m_settings.m_csvReaderParameters.m_columnDelimiter = "\\t";
-        m_settings.m_csvReaderParameters.m_customRowDelimiter = "\\r\\n";
+        m_settings.m_csvReaderParameters.m_csvFormatParams.m_columnDelimiter = "\\t";
+        m_settings.m_csvReaderParameters.m_csvFormatParams.m_customRowDelimiter = "\\r\\n";
         writeCSV(m_filePath, "intCol\tstringCol\r\n", "1\ttwo\r\n");
 
         final var simulatorResult = m_simulator.simulateAfterOpenDialog();
@@ -168,6 +164,17 @@ final class CSVTableReaderTransformationParametersStateProvidersTest
 
     static Stream<Arguments> getDependencyTriggerReferences() {
         return TRIGGER_PATHS.stream().map(Arguments::of);
+    }
+
+    @Override
+    protected void setSourcePath(final CSVTableReaderNodeParameters settings, final FSLocation fsLocation) {
+        settings.m_csvReaderParameters.m_multiFileSelectionParams.m_source.m_path = fsLocation;
+    }
+
+    @Override
+    protected void setHowToCombineColumns(final CSVTableReaderNodeParameters settings,
+        final HowToCombineColumnsOption howToCombineColumns) {
+        settings.m_csvReaderParameters.m_multiFileReaderParams.m_howToCombineColumns = howToCombineColumns;
     }
 
 }

@@ -52,6 +52,7 @@ package org.knime.base.node.io.filehandling.webui.reader2;
  * The base class for transformation parameters whose external data types are based on Java classes.
  *
  * @author Paul Bärnreuther
+ * @since 5.10
  */
 public abstract class ClassBasedTransformationParameters extends TransformationParameters<Class<?>>
     implements ClassSerializer {

@@ -48,7 +48,15 @@ package org.knime.base.node.io.filehandling.webui.reader2.tutorial;
 
 import java.net.URL;
 
+import org.knime.base.node.io.filehandling.webui.reader2.IfSchemaChangesParameters;
+import org.knime.base.node.io.filehandling.webui.reader2.MaxNumberOfRowsParameters;
+import org.knime.base.node.io.filehandling.webui.reader2.MultiFileReaderParameters;
+import org.knime.base.node.io.filehandling.webui.reader2.MultiFileSelectionParameters;
+import org.knime.base.node.io.filehandling.webui.reader2.MultiFileSelectionPath;
+import org.knime.base.node.io.filehandling.webui.reader2.SkipFirstDataRowsParameters;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigID;
 import org.knime.node.parameters.NodeParameters;
 
 /**
@@ -69,13 +77,82 @@ public class TutorialReaderParameters implements NodeParameters {
         // default constructor
     }
 
-    void saveToConfig(final DummyMultiTableReadConfig config) {
+    ConfigID saveToConfig(final DummyMultiTableReadConfig config) {
         // TODO (#6): Save reader-specific parameters to config here
+        final var tableReadConfig = config.getTableReadConfig();
+        m_skipFirstDataRowsParams.saveToConfig(tableReadConfig);
+        m_maxNumberOfRowsParams.saveToConfig(tableReadConfig);
+        m_ifSchemaChangesParams.saveToConfig(config);
+        m_multiFileReaderParams.saveToConfig(config);
+
+        m_myTutorialSpecificParameters.saveToConfig(config);
+        m_myTutorialSpecificParametersWithinNewSection.saveToConfig(config);
+        return config.getConfigID();
     }
 
     @Override
     public void validate() throws InvalidSettingsException {
         // TODO (#6): Add validation logic for your reader-specific parameters here
+        m_skipFirstDataRowsParams.validate();
+        m_maxNumberOfRowsParams.validate();
+        m_multiFileReaderParams.validate();
+
+        m_myTutorialSpecificParameters.validate();
+        m_myTutorialSpecificParametersWithinNewSection.validate();
+    }
+
+    void saveToSource(final MultiFileSelectionPath sourceSettings) {
+        m_multiFileSelectionParams.saveToSource(sourceSettings);
+    }
+
+    // Common parameters
+    // TODO (#6): Remove any of the following parameters that are not needed for your reader
+
+    // TODO (#6): Set the file extensions for your reader
+    static final class SetTutorialExtensions extends MultiFileSelectionParameters.SetFileReaderWidgetExtensions {
+        @Override
+        protected String[] getExtensions() {
+            return new String[]{"TODO (#6)"};
+        }
+    }
+
+    @Modification(SetTutorialExtensions.class)
+    MultiFileSelectionParameters m_multiFileSelectionParams = new MultiFileSelectionParameters();
+
+    SkipFirstDataRowsParameters m_skipFirstDataRowsParams = new SkipFirstDataRowsParameters();
+
+    MaxNumberOfRowsParameters m_maxNumberOfRowsParams = new MaxNumberOfRowsParameters();
+
+    IfSchemaChangesParameters m_ifSchemaChangesParams = new IfSchemaChangesParameters();
+
+    MultiFileReaderParameters m_multiFileReaderParams = new MultiFileReaderParameters();
+
+    // Tutorial-specific parameters
+
+    /**
+     * TODO (#6): Add your tutorial-specific parameter fields here. There are two to be removed examples given below:
+     * Each new parameter class has to be positioned within the existing layout either relative to other common
+     * parameters or within a new section (that defines its position within the layout).
+     */
+
+    /**
+     * TODO (#6): Example of a tutorial-specific parameter that is positioned relative to other common parameters.
+     */
+    MyTutorialSpecificParameters m_myTutorialSpecificParameters = new MyTutorialSpecificParameters();
+
+    /**
+     * TODO (#6): Example of a tutorial-specific parameter that is positioned within the new section
+     * {@link MyNewSection}.
+     */
+    MyTutorialSpecificWithinNewSectionParameters m_myTutorialSpecificParametersWithinNewSection =
+        new MyTutorialSpecificWithinNewSectionParameters();
+
+    String getSourcePath() {
+        return m_multiFileSelectionParams.getSourcePath();
+    }
+
+    MultiFileReaderParameters getMultiFileParameters() {
+        return m_multiFileReaderParams;
     }
 
 }

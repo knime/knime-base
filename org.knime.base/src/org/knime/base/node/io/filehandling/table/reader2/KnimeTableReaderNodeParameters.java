@@ -51,12 +51,10 @@ package org.knime.base.node.io.filehandling.table.reader2;
 import java.util.Optional;
 
 import org.knime.base.node.io.filehandling.table.reader.KnimeTableMultiTableReadConfig;
-import org.knime.base.node.io.filehandling.webui.reader2.FileSelectionPath;
-import org.knime.base.node.io.filehandling.webui.reader2.ReaderParameters;
+import org.knime.base.node.io.filehandling.webui.reader2.MultiFileSelectionPath;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.context.url.URLConfiguration;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.updates.ParameterReference;
@@ -67,8 +65,6 @@ import org.knime.node.parameters.updates.ValueReference;
  *
  * @author Paul Bärnreuther
  */
-@Modification(KnimeTableReaderNodeParameters.SetKnimeTableExtensions.class)
-@SuppressWarnings("restriction")
 class KnimeTableReaderNodeParameters implements NodeParameters {
 
     KnimeTableReaderNodeParameters(final NodeParametersInput input) {
@@ -79,10 +75,9 @@ class KnimeTableReaderNodeParameters implements NodeParameters {
         this(nodeCreationConfig.getURLConfig());
     }
 
-    private KnimeTableReaderNodeParameters(final Optional<? extends URLConfiguration> urlConfig) {
+    private KnimeTableReaderNodeParameters(final Optional<? extends URLConfiguration> urlConfig) { // NOSONAR
         if (urlConfig.isPresent()) {
-            final var url = urlConfig.get().getUrl();
-            m_readerParameters = new ReaderParameters(url);
+            m_knimeTableReaderParameters = new KnimeTableReaderParameters(urlConfig.get().getUrl());
         }
     }
 
@@ -90,46 +85,30 @@ class KnimeTableReaderNodeParameters implements NodeParameters {
         // default constructor
     }
 
-    static final class SetKnimeTableExtensions extends ReaderParameters.SetFileReaderWidgetExtensions {
-        @Override
-        protected String[] getExtensions() {
-            return new String[]{"table"};
-        }
-    }
-
-    public static final class ReaderParametersRef implements ParameterReference<ReaderParameters> {
-    }
-
-    @ValueReference(ReaderParametersRef.class)
-    ReaderParameters m_readerParameters = new ReaderParameters();
-
-    public static final class KnimeTableReaderParametersRef implements ParameterReference<KnimeTableReaderParameters> {
+    static final class KnimeTableReaderParametersRef implements ParameterReference<KnimeTableReaderParameters> {
     }
 
     @ValueReference(KnimeTableReaderParametersRef.class)
     KnimeTableReaderParameters m_knimeTableReaderParameters = new KnimeTableReaderParameters();
 
-    KnimeTableReaderTransformationParameters m_transformationParameters = new KnimeTableReaderTransformationParameters();
+    KnimeTableReaderTransformationParameters m_transformationParameters =
+        new KnimeTableReaderTransformationParameters();
 
-    void saveToSource(final FileSelectionPath sourceSettings) {
-        m_readerParameters.saveToSource(sourceSettings);
+    void saveToSource(final MultiFileSelectionPath sourceSettings) {
+        m_knimeTableReaderParameters.saveToSource(sourceSettings);
     }
 
     void saveToConfig(final KnimeTableMultiTableReadConfig config) {
-        m_readerParameters.saveToConfig(config);
-        m_knimeTableReaderParameters.saveToConfig(config);
-        final var configID = config.getConfigID();
+        final var configID = m_knimeTableReaderParameters.saveToConfig(config);
         m_transformationParameters.saveToConfig(//
-            config, m_readerParameters.m_source.m_path.getPath(), //
+            config, m_knimeTableReaderParameters.getSourcePath(), //
             configID, //
-            m_readerParameters.m_howToCombineColumns, //
-            m_readerParameters.m_appendPathColumn //
+            m_knimeTableReaderParameters.getMultiFileReaderParameters()//
         );
     }
 
     @Override
     public void validate() throws InvalidSettingsException {
-        m_readerParameters.validate();
         m_knimeTableReaderParameters.validate();
         m_transformationParameters.validate();
     }

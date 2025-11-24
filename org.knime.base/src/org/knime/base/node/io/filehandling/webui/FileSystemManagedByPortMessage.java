@@ -72,7 +72,7 @@ public final class FileSystemManagedByPortMessage implements SimpleTextMessagePr
     public String description() {
         return """
                 No file system is currently connected. To proceed, either connect a file system to the input
-                port and ensure connector node has been executed or remove the port.
+                port and ensure the connector node has been executed or remove the port.
                  """;
     }
 
