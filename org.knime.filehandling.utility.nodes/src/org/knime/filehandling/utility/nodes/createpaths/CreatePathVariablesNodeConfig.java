@@ -48,8 +48,6 @@
  */
 package org.knime.filehandling.utility.nodes.createpaths;
 
-import java.util.EnumSet;
-
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -68,9 +66,9 @@ import org.knime.filehandling.utility.nodes.dialog.variables.FSLocationVariableT
 final class CreatePathVariablesNodeConfig {
 
     // If we change the config key we need to ensure that the DEFAULT_VAR_NAME stays as before
-    private static final String CFG_DIR_PARENT = "base_folder";
+    static final String CFG_DIR_PARENT = "base_folder";
 
-    private static final String CFG_FILE_FOLDER_VARIABLES = "file_folder_variables";
+    static final String CFG_FILE_FOLDER_VARIABLES = "file_folder_variables";
 
     private static final String DEFAULT_VAR_NAME = CFG_DIR_PARENT;
 

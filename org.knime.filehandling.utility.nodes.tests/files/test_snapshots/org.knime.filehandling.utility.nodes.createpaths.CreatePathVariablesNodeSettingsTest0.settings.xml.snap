@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
+    <config key="base_folder">
+        <config key="path">
+            <entry key="location_present" type="xboolean" value="true"/>
+            <entry key="file_system_type" type="xstring" value="LOCAL"/>
+            <entry key="path" type="xstring" value="/tmp"/>
+        </config>
+        <config key="file_system_chooser__Internals">
+            <entry key="has_fs_port" type="xboolean" value="false"/>
+            <entry key="overwritten_by_variable" type="xboolean" value="false"/>
+            <entry key="convenience_fs_category" type="xstring" value="LOCAL"/>
+            <entry key="relative_to" type="xstring" value="knime.workflow"/>
+            <entry key="mountpoint" type="xstring" value="LOCAL"/>
+            <entry key="spaceId" type="xstring" value=""/>
+            <entry key="spaceName" type="xstring" value=""/>
+            <entry key="custom_url_timeout" type="xint" value="1000"/>
+            <entry key="connected_fs" type="xboolean" value="true"/>
+        </config>
+    </config>
+    <config key="file_folder_variables">
+        <config key="variable_names">
+            <entry key="array-size" type="xint" value="2"/>
+            <entry key="0" type="xstring" value="base_folder"/>
+            <entry key="1" type="xstring" value="path_to_some_file"/>
+        </config>
+        <config key="path_values">
+            <entry key="array-size" type="xint" value="2"/>
+            <entry key="0" type="xstring" value=""/>
+            <entry key="1" type="xstring" value="some-file"/>
+        </config>
+        <config key="file_extensions">
+            <entry key="array-size" type="xint" value="2"/>
+            <entry key="0" type="xstring" value=""/>
+            <entry key="1" type="xstring" value=".txt"/>
+        </config>
+    </config>
+</config>

@@ -1,0 +1,194 @@
+{
+  "data" : {
+    "model" : {
+      "baseFolder" : {
+        "file" : {
+          "path" : {
+            "fsCategory" : "LOCAL",
+            "path" : "",
+            "timeout" : 10000,
+            "context" : {
+              "fsToString" : "(LOCAL, )"
+            }
+          }
+        }
+      },
+      "additionalPathVariables" : [ ]
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "additionalPathVariables" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "extension" : {
+                  "type" : "string",
+                  "title" : "File extension",
+                  "description" : "Optional file extension (e.g., .txt, .csv). Leave empty for folder variables.",
+                  "default" : ""
+                },
+                "path" : {
+                  "type" : "string",
+                  "title" : "Path",
+                  "description" : "The path relative to the temporary directory.",
+                  "default" : ""
+                },
+                "variableName" : {
+                  "type" : "string",
+                  "title" : "Variable name",
+                  "description" : "The name of the path variable.",
+                  "default" : ""
+                }
+              }
+            },
+            "title" : "File/Folder variables",
+            "description" : "A list of file/folder locations that will form a path with the selected base folder. Enter the name of the flow variable in the <i>Variable name</i> column and write the name of the file/folder in the <i>Value</i> column. In case of a file also fill in the <i>File extension</i> column. These will be added to the path shown in the <i>Base location</i> column.",
+            "default" : [ ]
+          },
+          "baseFolder" : {
+            "type" : "object",
+            "properties" : {
+              "file" : {
+                "type" : "object",
+                "properties" : {
+                  "path" : {
+                    "type" : "object",
+                    "default" : {
+                      "fsCategory" : "LOCAL",
+                      "path" : "",
+                      "timeout" : 10000,
+                      "context" : {
+                        "fsToString" : "(LOCAL, )"
+                      }
+                    }
+                  }
+                },
+                "title" : "Folder",
+                "description" : "Select a base folder for your paths.",
+                "default" : {
+                  "path" : {
+                    "fsCategory" : "LOCAL",
+                    "path" : "",
+                    "timeout" : 10000,
+                    "context" : {
+                      "fsToString" : "(LOCAL, )"
+                    }
+                  }
+                }
+              }
+            },
+            "default" : {
+              "file" : {
+                "path" : {
+                  "fsCategory" : "LOCAL",
+                  "path" : "",
+                  "timeout" : 10000,
+                  "context" : {
+                    "fsToString" : "(LOCAL, )"
+                  }
+                }
+              }
+            }
+          },
+          "fileSystemManagedByPortMessage" : {
+            "type" : "object"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "label" : "Base Location",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "id" : "#/properties/model/properties/fileSystemManagedByPortMessage",
+        "options" : {
+          "format" : "textMessage"
+        },
+        "providedOptions" : [ "message" ]
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/baseFolder/properties/file",
+        "options" : {
+          "isLocal" : true,
+          "isWriter" : true,
+          "selectionMode" : "FOLDER",
+          "spaceFSOptions" : {
+            "mountId" : "Local space"
+          },
+          "format" : "fileChooser"
+        }
+      } ]
+    }, {
+      "label" : "File/Folder Variables",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/additionalPathVariables",
+        "options" : {
+          "detail" : [ {
+            "type" : "Control",
+            "scope" : "#/properties/variableName",
+            "options" : {
+              "validation" : {
+                "pattern" : {
+                  "errorMessage" : "The field cannot be blank (it must contain at least one non-whitespace character).",
+                  "parameters" : {
+                    "pattern" : ".*\\S.*"
+                  }
+                }
+              }
+            }
+          }, {
+            "type" : "Control",
+            "scope" : "#/properties/path"
+          }, {
+            "type" : "Control",
+            "scope" : "#/properties/extension"
+          } ],
+          "addButtonText" : "Add path variable",
+          "arrayElementTitle" : "Path Variable"
+        }
+      } ]
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "fileSystemManagedByPortMessage" : { },
+          "baseFolder" : {
+            "type" : "object",
+            "properties" : {
+              "file" : {
+                "configPaths" : [ [ "path" ] ]
+              }
+            },
+            "configKey" : "base_folder"
+          },
+          "additionalPathVariables" : {
+            "configPaths" : [ [ "file_folder_variables", "variable_names" ], [ "file_folder_variables", "path_values" ], [ "file_folder_variables", "file_extensions" ] ]
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "id" : "#/properties/model/properties/fileSystemManagedByPortMessage",
+    "providedOptionName" : "message",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : null
+    } ]
+  } ]
+}
