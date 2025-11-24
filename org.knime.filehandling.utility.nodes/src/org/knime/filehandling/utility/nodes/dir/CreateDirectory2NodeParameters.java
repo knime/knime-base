@@ -70,7 +70,7 @@ import org.knime.node.parameters.layout.Section;
 import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
 import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistor;
-import org.knime.node.parameters.persistence.legacy.LegacyFileWriter;
+import org.knime.node.parameters.persistence.legacy.LegacyFileWriterWithCreateMissingFolders;
 import org.knime.node.parameters.widget.message.TextMessage;
 import org.knime.node.parameters.widget.message.TextMessage.MessageType;
 import org.knime.node.parameters.widget.message.TextMessage.SimpleTextMessageProvider;
@@ -103,7 +103,7 @@ final class CreateDirectory2NodeParameters implements NodeParameters {
     @Layout(OutputLocation.class)
     @Modification(LegacyFileWriterModifier.class)
     @Persist(configKey = CFG_DIR_PARENT)
-    LegacyFileWriter m_targetFolder = new LegacyFileWriter();
+    LegacyFileWriterWithCreateMissingFolders m_targetFolder = new LegacyFileWriterWithCreateMissingFolders();
 
     @Layout(OutputLocation.class)
     @Widget(title = "Export path as (variable name)",
@@ -121,11 +121,11 @@ final class CreateDirectory2NodeParameters implements NodeParameters {
     @Persistor(PathVariableArrayPersistor.class)
     PathVariable[] m_additionalPathVariables = {};
 
-    private static final class LegacyFileWriterModifier implements LegacyFileWriter.LegacyFileWriterModifier {
+    private static final class LegacyFileWriterModifier implements LegacyFileWriterWithCreateMissingFolders.Modifier {
 
         @Override
         public void modify(final WidgetGroupModifier group) {
-            final var fileSelection = LegacyFileWriter.LegacyFileWriterModifier.findFileSelection(group);
+            final var fileSelection = findFileSelection(group);
             fileSelection //
                 .modifyAnnotation(Widget.class) //
                 .withProperty("title", "Folder") //
