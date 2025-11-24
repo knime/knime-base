@@ -65,7 +65,7 @@ import org.knime.node.parameters.layout.Section;
 import org.knime.node.parameters.migration.Migrate;
 import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistor;
-import org.knime.node.parameters.persistence.legacy.LegacyFileWriter;
+import org.knime.node.parameters.persistence.legacy.LegacyFileWriterWithCreateMissingFolders;
 import org.knime.node.parameters.widget.message.TextMessage;
 import org.knime.node.parameters.widget.message.TextMessage.MessageType;
 import org.knime.node.parameters.widget.message.TextMessage.SimpleTextMessageProvider;
@@ -129,13 +129,13 @@ class CreateTempDir2NodeParameters implements NodeParameters {
     @Modification(LegacyFileWriterModifier.class)
     @Persist(configKey = CreateTempDir2NodeConfig.CFG_TEMP_DIR_PARENT)
     @Migrate(loadDefaultIfAbsent = true)
-    LegacyFileWriter m_targetFolder = new LegacyFileWriter();
+    LegacyFileWriterWithCreateMissingFolders m_targetFolder = new LegacyFileWriterWithCreateMissingFolders();
 
-    static final class LegacyFileWriterModifier implements LegacyFileWriter.LegacyFileWriterModifier {
+    static final class LegacyFileWriterModifier implements LegacyFileWriterWithCreateMissingFolders.Modifier {
 
         @Override
         public void modify(final WidgetGroupModifier group) {
-            final var fileSelection = LegacyFileWriter.LegacyFileWriterModifier.findFileSelection(group);
+            final var fileSelection = findFileSelection(group);
             fileSelection.modifyAnnotation(Widget.class).withProperty("title", "Folder")//
                 // TODO refine via UIEXT-1764
                 .withProperty("description", "Select a file system and location for creating the temporary folder.")
