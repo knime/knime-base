@@ -95,7 +95,6 @@ class PathToStringVariableNodeParameters implements NodeParameters {
             The suffix that will be added to the name of the Path variables that are converted to create the
             names of the new String variables.
             """)
-    @TextInputWidget
     @Persist(configKey = PathToStringVariableNodeModel.CFG_CREATED_VARIABLE_NAME)
     String m_variableSuffix = "_location";
 
