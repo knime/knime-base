@@ -76,7 +76,8 @@ public final class RowNumberFilterSpec {
 
     static final long UNKNOWN_SIZE = -1;
 
-    private final Operator m_operator;
+    // visible for testing
+    final Operator m_operator;
 
     private final long m_value;
 
