@@ -64,7 +64,6 @@ import org.knime.node.parameters.widget.choices.FlowVariableChoicesProvider;
 import org.knime.node.parameters.widget.choices.Label;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 import org.knime.node.parameters.widget.choices.filter.StringFilter;
-import org.knime.node.parameters.widget.text.TextInputWidget;
 
 /**
  * Node parameters for Path to String (Variable).
@@ -95,7 +94,6 @@ class PathToStringVariableNodeParameters implements NodeParameters {
             The suffix that will be added to the name of the Path variables that are converted to create the
             names of the new String variables.
             """)
-    @TextInputWidget
     @Persist(configKey = PathToStringVariableNodeModel.CFG_CREATED_VARIABLE_NAME)
     String m_variableSuffix = "_location";
 
