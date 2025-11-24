@@ -118,7 +118,7 @@ import org.knime.node.parameters.widget.choices.StringChoicesProvider;
  */
 @Deprecated(since = "5.10")
 @SuppressWarnings("restriction")
-public final class CommonReaderTransformationSettingsStateProviders {
+public final class CommonReaderTransformationSettingsStateProviders { // NOSONAR
 
     static final NodeLogger LOGGER = NodeLogger.getLogger(CommonReaderTransformationSettingsStateProviders.class);
 

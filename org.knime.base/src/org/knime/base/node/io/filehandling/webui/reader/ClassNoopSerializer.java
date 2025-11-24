@@ -58,7 +58,7 @@ import org.knime.base.node.io.filehandling.webui.reader2.WebUITableReaderNodeFac
  * @deprecated use {@link WebUITableReaderNodeFactory} instead
  */
 @Deprecated(since = "5.10")
-public interface ClassNoopSerializer extends ExternalDataTypeSerializer<Class<?>, Class<?>> {
+public interface ClassNoopSerializer extends ExternalDataTypeSerializer<Class<?>, Class<?>> { // NOSONAR
 
     @Override
     default Class<?> toSerializableType(final Class<?> externalType) {

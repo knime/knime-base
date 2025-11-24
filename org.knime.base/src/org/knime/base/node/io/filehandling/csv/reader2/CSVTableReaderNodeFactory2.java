@@ -59,7 +59,7 @@ import org.knime.base.node.io.filehandling.csv.reader.CSVTableReaderNodeFactory;
 import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReader;
 import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
 import org.knime.base.node.io.filehandling.csv.reader.api.StringReadAdapterFactory;
-import org.knime.base.node.io.filehandling.webui.reader2.FileSelectionPath;
+import org.knime.base.node.io.filehandling.webui.reader2.MultiFileSelectionPath;
 import org.knime.base.node.io.filehandling.webui.reader2.NodeParametersConfigAndSourceSerializer;
 import org.knime.base.node.io.filehandling.webui.reader2.WebUITableReaderNodeFactory;
 import org.knime.core.node.NodeDescription;
@@ -79,8 +79,8 @@ import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
 @SuppressWarnings("restriction")
-public class CSVTableReaderNodeFactory2 extends
-    WebUITableReaderNodeFactory<CSVTableReaderNodeParameters, FSPath, FileSelectionPath, CSVTableReaderConfig, Class<?>, String, CSVMultiTableReadConfig> {
+public class CSVTableReaderNodeFactory2 extends WebUITableReaderNodeFactory<CSVTableReaderNodeParameters, FSPath, //
+        MultiFileSelectionPath, CSVTableReaderConfig, Class<?>, String, CSVMultiTableReadConfig> {
 
     @SuppressWarnings("javadoc")
     public CSVTableReaderNodeFactory2() {
@@ -100,7 +100,7 @@ public class CSVTableReaderNodeFactory2 extends
     @Override
     protected NodeDescription createNodeDescription() {
         return DefaultNodeDescriptionUtil.createNodeDescription( //
-            "CSV Reader (Labs)", //
+            "CSV Reader", //
             "csvreader.png", //
             List.of(dynamicPort(FS_CONNECT_GRP_ID, "File System Connection", "The file system connection.")), //
             List.of(fixedPort("File Table",
@@ -141,23 +141,24 @@ public class CSVTableReaderNodeFactory2 extends
         return new CSVConfigAndSourceSerializer();
     }
 
-    private final class CSVConfigAndSourceSerializer extends
-        NodeParametersConfigAndSourceSerializer<CSVTableReaderNodeParameters, FSPath, FileSelectionPath, CSVTableReaderConfig, Class<?>, CSVMultiTableReadConfig> {
+    private final class CSVConfigAndSourceSerializer
+        extends NodeParametersConfigAndSourceSerializer<CSVTableReaderNodeParameters, FSPath, MultiFileSelectionPath, //
+                CSVTableReaderConfig, Class<?>, CSVMultiTableReadConfig> {
         protected CSVConfigAndSourceSerializer() {
             super(CSVTableReaderNodeParameters.class);
         }
 
         @Override
         protected void saveToSourceAndConfig(final CSVTableReaderNodeParameters params,
-            final FileSelectionPath sourceSettings, final CSVMultiTableReadConfig config) {
+            final MultiFileSelectionPath sourceSettings, final CSVMultiTableReadConfig config) {
             params.saveToSource(sourceSettings);
             params.saveToConfig(config);
         }
     }
 
     @Override
-    protected FileSelectionPath createPathSettings(final NodeCreationConfiguration nodeCreationConfig) {
-        final var source = new FileSelectionPath();
+    protected MultiFileSelectionPath createPathSettings(final NodeCreationConfiguration nodeCreationConfig) {
+        final var source = new MultiFileSelectionPath();
         final var defaultParams = new CSVTableReaderNodeParameters(nodeCreationConfig);
         defaultParams.saveToSource(source);
         return source;

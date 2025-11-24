@@ -83,13 +83,15 @@ final class KnimeTableReaderSpecific {
         }
     }
 
-    interface ConfigAndReader extends ReaderSpecific.ConfigAndReader<TableManipulatorConfig, DataType, KnimeTableMultiTableReadConfig> {
+    interface ConfigAndReader
+        extends ReaderSpecific.ConfigAndReader<TableManipulatorConfig, DataType, KnimeTableMultiTableReadConfig> {
 
         @Override
         default KnimeTableMultiTableReadConfig createMultiTableReadConfig() {
             return new KnimeTableMultiTableReadConfig();
         }
 
+        @SuppressWarnings("unchecked")
         @Override
         default KnimeTableReader createTableReader() {
             return new KnimeTableReader();

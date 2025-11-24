@@ -65,9 +65,8 @@ import java.util.stream.Stream;
 
 import org.knime.base.node.io.filehandling.webui.FileChooserPathAccessor;
 import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
-import org.knime.base.node.io.filehandling.webui.reader2.ReaderParameters.FileSelectionRef;
-import org.knime.base.node.io.filehandling.webui.reader2.ReaderParameters.HowToCombineColumnsOption;
-import org.knime.base.node.io.filehandling.webui.reader2.ReaderParameters.HowToCombineColumnsOptionRef;
+import org.knime.base.node.io.filehandling.webui.reader2.MultiFileReaderParameters.HowToCombineColumnsOption;
+import org.knime.base.node.io.filehandling.webui.reader2.MultiFileReaderParameters.HowToCombineColumnsOptionRef;
 import org.knime.base.node.io.filehandling.webui.reader2.ReaderSpecific.ExternalDataTypeSerializer;
 import org.knime.base.node.io.filehandling.webui.reader2.ReaderSpecific.ProductionPathProviderAndTypeHierarchy;
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.ColumnSpecSettings;
@@ -81,12 +80,16 @@ import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.DefaultFileChooserFilters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.filehandling.core.connections.FSCategory;
+import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractFileChooserPathAccessor;
 import org.knime.filehandling.core.node.table.reader.config.AbstractMultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
@@ -108,11 +111,22 @@ import org.knime.node.parameters.widget.choices.StringChoicesProvider;
  *
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  * @author Paul Bärnreuther
+ * @since 5.10
  */
 @SuppressWarnings("restriction")
 public final class TransformationParametersStateProviders {
 
     static final NodeLogger LOGGER = NodeLogger.getLogger(TransformationParametersStateProviders.class);
+
+    private interface SourceParameter {
+
+        boolean isEmpty();
+
+        boolean isConnected();
+
+        AbstractFileChooserPathAccessor getPathAccessor(Optional<FSConnection> fsConnection); // NOSONAR private interface
+
+    }
 
     /**
      * This state provider uses the extracted fs paths and the reader specific dependencies to configure a reader and
@@ -122,15 +136,82 @@ public final class TransformationParametersStateProviders {
      * @param <T> the type used to represent external data [T]ypes
      * @param <M> The [M]ulti-table read configuration
      */
-    public abstract static class TypedReaderTableSpecsProvider<//
-            C extends ReaderSpecificConfig<C>, T, M extends AbstractMultiTableReadConfig<C, DefaultTableReadConfig<C>, T, M>>
+    public abstract static class TypedReaderTableSpecsProvider<C extends ReaderSpecificConfig<C>, T, //
+            M extends AbstractMultiTableReadConfig<C, DefaultTableReadConfig<C>, T, M>>
         implements StateProvider<Map<FSLocation, TypedReaderTableSpec<T>>>, ReaderSpecific.ConfigAndReader<C, T, M> {
 
-        private Supplier<FileSelection> m_fileSelectionSupplier;
+        /**
+         * Set this to false if the implementation is for single file selection only.
+         *
+         * @return true if multi file selection is supported
+         */
+        protected boolean isMultiFileSelection() {
+            return true;
+        }
+
+        private Supplier<SourceParameter> m_fileSelectionSupplier;
 
         @Override
         public void init(final StateProviderInitializer initializer) {
-            m_fileSelectionSupplier = initializer.getValueSupplier(FileSelectionRef.class);
+
+            if (isMultiFileSelection()) {
+                final var multiFileSelectionProvider =
+                    initializer.getValueSupplier(MultiFileSelectionParameters.FileSelectionRef.class);
+                m_fileSelectionSupplier = () -> toSourceParameters(multiFileSelectionProvider.get());
+            } else {
+                final var singleFileSelectionProvider =
+                    initializer.getValueSupplier(SingleFileSelectionParameters.FileSelectionRef.class);
+                m_fileSelectionSupplier = () -> toSourceParameters(singleFileSelectionProvider.get());
+            }
+        }
+
+        private static SourceParameter
+            toSourceParameters(final MultiFileSelection<DefaultFileChooserFilters> fileSelection) {
+            return new SourceParameter() {
+
+                @Override
+                public boolean isEmpty() {
+                    return isEmptyLocalPath(fileSelection.getFSLocation());
+                }
+
+                @Override
+                public boolean isConnected() {
+                    return isConnectedPath(fileSelection.getFSLocation());
+                }
+
+                @Override
+                public AbstractFileChooserPathAccessor getPathAccessor(final Optional<FSConnection> fsConnection) {
+                    return new FileChooserPathAccessor(fileSelection, fsConnection);
+                }
+            };
+        }
+
+        private static SourceParameter toSourceParameters(final FileSelection fileSelection) {
+            return new SourceParameter() {
+
+                @Override
+                public boolean isEmpty() {
+                    return isEmptyLocalPath(fileSelection.getFSLocation());
+                }
+
+                @Override
+                public boolean isConnected() {
+                    return isConnectedPath(fileSelection.getFSLocation());
+                }
+
+                @Override
+                public AbstractFileChooserPathAccessor getPathAccessor(final Optional<FSConnection> fsConnection) {
+                    return new FileChooserPathAccessor(fileSelection, fsConnection);
+                }
+            };
+        }
+
+        private static boolean isEmptyLocalPath(final FSLocation location) {
+            return location.getPath().isEmpty() && location.getFSCategory() == FSCategory.LOCAL;
+        }
+
+        private static boolean isConnectedPath(final FSLocation location) {
+            return location.getFSCategory() == FSCategory.CONNECTED;
         }
 
         @Override
@@ -139,16 +220,16 @@ public final class TransformationParametersStateProviders {
             final var fileSelection = m_fileSelectionSupplier.get();
             if (!WorkflowContextUtil.hasWorkflowContext() // no workflow context available
                 // no file selected (yet)
-                || fileSelection.getFSLocation().equals(new FSLocation(FSCategory.LOCAL, ""))) {
-                return null;
+                || fileSelection.isEmpty()) {
+                return null; // NOSONAR we deliberately return null here to indicate that no computation is possible
             }
 
             var fsConnection = FileSystemPortConnectionUtil.getFileSystemConnection(context);
-            if (fileSelection.getFSLocation().getFSCategory() == FSCategory.CONNECTED && fsConnection.isEmpty()) {
-                return null;
+            if (fileSelection.isConnected() && fsConnection.isEmpty()) {
+                return null; // NOSONAR we deliberately return null here to indicate that no computation is possible
             }
 
-            try (final var accessor = new FileChooserPathAccessor(fileSelection, fsConnection)) {
+            try (final var accessor = fileSelection.getPathAccessor(fsConnection)) {
                 return computeStateFromPaths(accessor.getFSPaths(s -> {
                     switch (s.getType()) {
                         case INFO -> LOGGER.info(s.getMessage());
@@ -158,7 +239,7 @@ public final class TransformationParametersStateProviders {
                 }));
             } catch (IOException | InvalidSettingsException e) {
                 LOGGER.error(e);
-                return null;
+                return null; // NOSONAR we deliberately return null here to indicate that no computation is possible
             }
         }
 
@@ -210,8 +291,9 @@ public final class TransformationParametersStateProviders {
              * @param <C> The reader specific [C]onfiguration
              * @return the class of the reader specific implementation of {@link TypedReaderTableSpecsProvider}
              */
-            <C extends ReaderSpecificConfig<C>, S extends AbstractMultiTableReadConfig<C, DefaultTableReadConfig<C>, T, S>>
-                Class<? extends TypedReaderTableSpecsProvider<C, T, S>> getTypedReaderTableSpecsProvider();
+            <C extends ReaderSpecificConfig<C>, //
+                    S extends AbstractMultiTableReadConfig<C, DefaultTableReadConfig<C>, T, S>>
+                        Class<? extends TypedReaderTableSpecsProvider<C, T, S>> getTypedReaderTableSpecsProvider();
 
             /**
              * List all triggers here (using initializer.computeOnValueChange(...)) that should lead to a recomputation
@@ -227,6 +309,15 @@ public final class TransformationParametersStateProviders {
     abstract static class DependsOnTypedReaderTableSpecProvider<P, T>
         implements StateProvider<P>, TypedReaderTableSpecsProvider.Dependent<T>, ExternalDataTypeSerializer<T> {
 
+        /**
+         * Set this to false if the implementation is for single file selection only.
+         *
+         * @return true if multi file selection is supported
+         */
+        protected boolean isMultiFileSelection() {
+            return true;
+        }
+
         protected Supplier<Map<FSLocation, TypedReaderTableSpec<T>>> m_specSupplier;
 
         @Override
@@ -238,7 +329,12 @@ public final class TransformationParametersStateProviders {
         private void initTriggers(final StateProviderInitializer initializer) {
             initializer.computeAfterOpenDialog();
             initConfigIdTriggers(initializer);
-            initializer.computeOnValueChange(FileSelectionRef.class);
+
+            if (isMultiFileSelection()) {
+                initializer.computeOnValueChange(MultiFileSelectionParameters.FileSelectionRef.class);
+            } else {
+                initializer.computeOnValueChange(SingleFileSelectionParameters.FileSelectionRef.class);
+            }
         }
     }
 
@@ -257,7 +353,7 @@ public final class TransformationParametersStateProviders {
             final var suppliedSpecs = m_specSupplier.get();
 
             if (suppliedSpecs == null) {
-                return null;
+                return null; // NOSONAR we deliberately return null here to indicate that no computation is possible
             }
 
             return suppliedSpecs.entrySet().stream()
@@ -278,7 +374,7 @@ public final class TransformationParametersStateProviders {
         extends DependsOnTypedReaderTableSpecProvider<TransformationElementSettings[], T>
         implements ProductionPathProviderAndTypeHierarchy<T> {
 
-        private Supplier<HowToCombineColumnsOption> m_howToCombineColumnsSup;
+        private Supplier<MultiFileReaderParameters.HowToCombineColumnsOption> m_howToCombineColumnsSup;
 
         private Supplier<TransformationElementSettings[]> m_existingSettings;
 
@@ -323,7 +419,6 @@ public final class TransformationParametersStateProviders {
                 .collect(Collectors.toMap(s -> s.getName().get(), TypedReaderColumnSpec::getType));
             final Collection<String> existingElementNamesWithChangedType = new HashSet<>();
             /**
-             *
              * The existing unknown element.
              */
             TransformationElementSettings foundUnknownElement = null;

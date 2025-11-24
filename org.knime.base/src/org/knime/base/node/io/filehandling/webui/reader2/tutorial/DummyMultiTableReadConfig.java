@@ -54,8 +54,8 @@ import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConf
  *
  * @author KNIME AG, Zurich, Switzerland
  */
-class DummyMultiTableReadConfig extends
-    AbstractMultiTableReadConfig<DummyTableReaderConfig, DefaultTableReadConfig<DummyTableReaderConfig>, Class<?>, DummyMultiTableReadConfig> {
+class DummyMultiTableReadConfig extends AbstractMultiTableReadConfig<DummyTableReaderConfig, //
+        DefaultTableReadConfig<DummyTableReaderConfig>, Class<?>, DummyMultiTableReadConfig> {
 
     DummyMultiTableReadConfig() {
         super(null, null, null);

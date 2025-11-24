@@ -47,12 +47,10 @@ package org.knime.base.node.io.filehandling.webui.reader2.tutorial;
 
 import java.util.Optional;
 
-import org.knime.base.node.io.filehandling.webui.reader2.FileSelectionPath;
-import org.knime.base.node.io.filehandling.webui.reader2.ReaderParameters;
+import org.knime.base.node.io.filehandling.webui.reader2.MultiFileSelectionPath;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.context.url.URLConfiguration;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.updates.ParameterReference;
@@ -62,8 +60,6 @@ import org.knime.node.parameters.updates.ValueReference;
  *
  * @author KNIME AG, Zurich, Switzerland
  */
-@Modification(TutorialReaderNodeParameters.SetTutorialExtensions.class)
-@SuppressWarnings("restriction")
 class TutorialReaderNodeParameters implements NodeParameters {
 
     TutorialReaderNodeParameters(final NodeParametersInput input) {
@@ -74,11 +70,9 @@ class TutorialReaderNodeParameters implements NodeParameters {
         this(nodeCreationConfig.getURLConfig());
     }
 
-    private TutorialReaderNodeParameters(final Optional<? extends URLConfiguration> urlConfig) {
+    private TutorialReaderNodeParameters(final Optional<? extends URLConfiguration> urlConfig) { // NOSONAR
         if (urlConfig.isPresent()) {
-            final var url = urlConfig.get().getUrl();
-            m_readerParameters = new ReaderParameters(url);
-            m_tutorialReaderParameters = new TutorialReaderParameters(url);
+            m_tutorialReaderParameters = new TutorialReaderParameters(urlConfig.get().getUrl());
         }
     }
 
@@ -86,21 +80,7 @@ class TutorialReaderNodeParameters implements NodeParameters {
         // default constructor
     }
 
-    // TODO (#6): Set the file extensions for your reader
-    static final class SetTutorialExtensions extends ReaderParameters.SetFileReaderWidgetExtensions {
-        @Override
-        protected String[] getExtensions() {
-            return new String[]{"TODO (#6)"};
-        }
-    }
-
-    public static final class ReaderParametersRef implements ParameterReference<ReaderParameters> {
-    }
-
-    @ValueReference(ReaderParametersRef.class)
-    ReaderParameters m_readerParameters = new ReaderParameters();
-
-    public static final class TutorialReaderParametersRef implements ParameterReference<TutorialReaderParameters> {
+    static final class TutorialReaderParametersRef implements ParameterReference<TutorialReaderParameters> {
     }
 
     @ValueReference(TutorialReaderParametersRef.class)
@@ -108,25 +88,21 @@ class TutorialReaderNodeParameters implements NodeParameters {
 
     TutorialReaderTransformationParameters m_transformationParameters = new TutorialReaderTransformationParameters();
 
-    void saveToSource(final FileSelectionPath sourceSettings) {
-        m_readerParameters.saveToSource(sourceSettings);
+    void saveToSource(final MultiFileSelectionPath sourceSettings) {
+        m_tutorialReaderParameters.saveToSource(sourceSettings);
     }
 
     void saveToConfig(final DummyMultiTableReadConfig config) {
-        m_readerParameters.saveToConfig(config);
-        m_tutorialReaderParameters.saveToConfig(config);
-        final var configID = config.getConfigID();
+        final var configID = m_tutorialReaderParameters.saveToConfig(config);
         m_transformationParameters.saveToConfig(//
-            config, m_readerParameters.m_source.m_path.getPath(), //
+            config, m_tutorialReaderParameters.getSourcePath(), //
             configID, //
-            m_readerParameters.m_howToCombineColumns, //
-            m_readerParameters.m_appendPathColumn //
+            m_tutorialReaderParameters.getMultiFileParameters() //
         );
     }
 
     @Override
     public void validate() throws InvalidSettingsException {
-        m_readerParameters.validate();
         m_tutorialReaderParameters.validate();
         m_transformationParameters.validate();
     }

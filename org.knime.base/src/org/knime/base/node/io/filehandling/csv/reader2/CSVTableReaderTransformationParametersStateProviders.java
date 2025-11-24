@@ -52,31 +52,29 @@ import java.util.function.Supplier;
 
 import org.knime.base.node.io.filehandling.csv.reader.CSVMultiTableReadConfig;
 import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderParameters.ColumnDelimiterRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderParameters.CommentStartRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderParameters.CustomEncodingRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderParameters.CustomRowDelimiterRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderParameters.DecimalSeparatorRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderParameters.FileEncodingRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderParameters.FirstRowContainsColumnNamesRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderParameters.LimitMemoryPerColumnRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderParameters.MaxDataRowsScannedRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderParameters.MaximumNumberOfColumnsRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderParameters.QuoteCharacterRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderParameters.QuoteEscapeCharacterRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderParameters.QuotedStringsOptionRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderParameters.ReplaceEmptyQuotedStringsByMissingValuesRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderParameters.RowDelimiterOptionRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderParameters.SkipFirstLinesRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderParameters.ThousandsSeparatorRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVFormatParameters.ColumnDelimiterRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVFormatParameters.CommentStartRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVFormatParameters.CustomRowDelimiterRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVFormatParameters.DecimalSeparatorRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVFormatParameters.QuoteCharacterRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVFormatParameters.QuoteEscapeCharacterRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVFormatParameters.RowDelimiterOptionRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVFormatParameters.ThousandsSeparatorRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeParameters.CSVReaderParametersRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderSpecific.ConfigAndReader;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderSpecific.ProductionPathProviderAndTypeHierarchy;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeParameters.CSVReaderParametersRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeParameters.ReaderParametersRef;
+import org.knime.base.node.io.filehandling.csv.reader2.FileEncodingParameters.CustomEncodingRef;
+import org.knime.base.node.io.filehandling.csv.reader2.FileEncodingParameters.FileEncodingRef;
+import org.knime.base.node.io.filehandling.csv.reader2.FirstColumnContainsRowIdsParameters.FirstColumnContainsRowIdsRef;
+import org.knime.base.node.io.filehandling.csv.reader2.FirstRowContainsColumnNamesParameters.FirstRowContainsColumnNamesRef;
+import org.knime.base.node.io.filehandling.csv.reader2.LimitMemoryPerColumnParameters.LimitMemoryPerColumnRef;
+import org.knime.base.node.io.filehandling.csv.reader2.LimitScannedRowsParameters.MaxDataRowsScannedRef;
+import org.knime.base.node.io.filehandling.csv.reader2.MaximumNumberOfColumnsParameters.MaximumNumberOfColumnsRef;
+import org.knime.base.node.io.filehandling.csv.reader2.QuotedStringsParameters.QuotedStringsOptionRef;
+import org.knime.base.node.io.filehandling.csv.reader2.QuotedStringsParameters.ReplaceEmptyQuotedStringsByMissingValuesRef;
+import org.knime.base.node.io.filehandling.csv.reader2.SkipFirstLinesOfFileParameters.SkipFirstLinesRef;
 import org.knime.base.node.io.filehandling.webui.reader2.ClassSerializer;
-import org.knime.base.node.io.filehandling.webui.reader2.ReaderParameters;
-import org.knime.base.node.io.filehandling.webui.reader2.ReaderParameters.FirstColumnContainsRowIdsRef;
-import org.knime.base.node.io.filehandling.webui.reader2.ReaderParameters.SkipFirstDataRowsRef;
+import org.knime.base.node.io.filehandling.webui.reader2.SkipFirstDataRowsParameters.SkipFirstDataRowsRef;
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParametersStateProviders;
 
 /**
@@ -89,21 +87,17 @@ final class CSVTableReaderTransformationParametersStateProviders {
                 CSVTableReaderConfig, Class<?>, CSVMultiTableReadConfig>
         implements ConfigAndReader {
 
-        private Supplier<ReaderParameters> m_commonReaderNodeParamsSupplier;
-
-        private Supplier<CSVTableReaderParameters> m_readerSpecificNodeParamsSupplier;
+        private Supplier<CSVTableReaderParameters> m_readerNodeParamsSupplier;
 
         @Override
         protected void applyParametersToConfig(final CSVMultiTableReadConfig config) {
-            m_commonReaderNodeParamsSupplier.get().saveToConfig(config);
-            m_readerSpecificNodeParamsSupplier.get().saveToConfig(config);
+            m_readerNodeParamsSupplier.get().saveToConfig(config);
         }
 
         @Override
         public void init(final StateProviderInitializer initializer) {
             super.init(initializer);
-            m_commonReaderNodeParamsSupplier = initializer.getValueSupplier(ReaderParametersRef.class);
-            m_readerSpecificNodeParamsSupplier = initializer.getValueSupplier(CSVReaderParametersRef.class);
+            m_readerNodeParamsSupplier = initializer.getValueSupplier(CSVReaderParametersRef.class);
         }
 
         interface Dependent

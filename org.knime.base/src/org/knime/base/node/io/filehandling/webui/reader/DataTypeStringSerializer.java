@@ -66,7 +66,7 @@ import org.knime.core.node.config.base.JSONConfig.WriterConfig;
  * @deprecated use {@link WebUITableReaderNodeFactory} instead
  */
 @Deprecated(since = "5.10")
-public interface DataTypeStringSerializer extends ExternalDataTypeSerializer<String, DataType> {
+public interface DataTypeStringSerializer extends ExternalDataTypeSerializer<String, DataType> { // NOSONAR
 
     @Override
     default String toSerializableType(final DataType externalType) {

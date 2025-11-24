@@ -77,7 +77,7 @@ import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarch
  * @deprecated use {@link WebUITableReaderNodeFactory} instead
  */
 @Deprecated(since = "5.10")
-public final class ReaderSpecific {
+public final class ReaderSpecific { // NOSONAR
 
     /**
      * The reader and respective multi table read config that is to be used for this reader.

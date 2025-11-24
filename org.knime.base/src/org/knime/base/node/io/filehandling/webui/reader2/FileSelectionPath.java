@@ -55,6 +55,12 @@ import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
 
+/**
+ * Path for single file selection.
+ *
+ * @author Marc Bux, KNIME GmbH, Berlin, Germany
+ * @since 5.10
+ */
 @SuppressWarnings("restriction")
 public class FileSelectionPath extends AbstractFileSelectionPath {
 

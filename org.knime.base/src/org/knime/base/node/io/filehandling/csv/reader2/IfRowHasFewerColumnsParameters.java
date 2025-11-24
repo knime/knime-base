@@ -44,88 +44,54 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Mar 6, 2024 (marcbux): created
+ *   Nov 24, 2025 (Paul Bärnreuther): created
  */
 package org.knime.base.node.io.filehandling.csv.reader2;
 
-import org.knime.base.node.io.filehandling.webui.reader2.ReaderLayout;
-import org.knime.base.node.io.filehandling.webui.reader2.ReaderParameters;
+import org.knime.base.node.io.filehandling.csv.reader2.FirstColumnContainsRowIdsParameters.FirstColumnContainsRowIdsLayout;
+import org.knime.base.node.io.filehandling.csv.reader2.IfRowHasFewerColumnsParameters.IfRowHasFewerColumnsLayout;
+import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.layout.After;
-import org.knime.node.parameters.layout.Before;
-import org.knime.node.parameters.layout.HorizontalLayout;
-import org.knime.node.parameters.layout.Section;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.widget.choices.Label;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 
 /**
- * The CSV Reader uses {@link ReaderParameters} wich have to use {@link ReaderLayout} as root layout. For the additional
- * CSV specific parameters this interface defines the additional layouts and their position within the overall layout.
+ * Parameters for handling rows with fewer columns.
  *
- * @author Marc Bux, KNIME GmbH, Berlin, Germany
+ * @author Paul Bärnreuther
  */
-interface CSVTableReaderLayoutAdditions {
+@Layout(IfRowHasFewerColumnsLayout.class)
+final class IfRowHasFewerColumnsParameters implements NodeParameters {
 
-    interface File {
-        @After(ReaderLayout.File.Source.class)
-        interface FileEncoding {
-        }
-
+    @After(FirstColumnContainsRowIdsLayout.class)
+    interface IfRowHasFewerColumnsLayout {
     }
 
-    @Section(title = "File Format")
-    @After(ReaderLayout.File.class)
-    @Before(ReaderLayout.DataArea.class)
-    interface FileFormat {
-
-        @HorizontalLayout
-        interface QuoteCharactersHorizontal {
-            interface QuoteCharacter {
-            }
-
-            @After(QuoteCharacter.class)
-            interface QuoteEscapeCharacter {
-            }
-        }
-
-        @After(QuoteCharactersHorizontal.class)
-        interface AutodetectFormat {
-        }
-
+    /**
+     * Options for handling rows with fewer columns.
+     */
+    enum IfRowHasLessColumnsOption {
+            @Label(value = "Fail",
+                description = "if there are shorter rows in the input file the node execution fails.") //
+            FAIL, //
+            @Label(value = "Insert missing", description = "the shorter rows are completed with missing values.") //
+            INSERT_MISSING; //
     }
 
-    interface DataArea {
+    @Widget(title = "If row has fewer columns",
+        description = "Specifies the behavior in case some rows are shorter than others. ")
+    @ValueSwitchWidget
+    IfRowHasLessColumnsOption m_ifRowHasLessColumnsOption = IfRowHasLessColumnsOption.FAIL;
 
-        @Before(ReaderLayout.DataArea.SkipFirstDataRows.class)
-        interface FirstRowContainsColumnNames {
-        }
-
-        @After(ReaderLayout.DataArea.UseExistingRowId.class)
-        interface IfRowHasLessColumns {
-        }
-
-    }
-
-    @Section(title = "Values")
-    @After(ReaderLayout.DataArea.class)
-    @Before(ReaderLayout.ColumnAndDataTypeDetection.class)
-    interface Values {
-    }
-
-    interface ColumnAndDataTypeDetection {
-
-        @Before(ReaderLayout.ColumnAndDataTypeDetection.IfSchemaChanges.class)
-        interface LimitScannedRows {
-        }
-
-        @After(ReaderLayout.ColumnAndDataTypeDetection.IfSchemaChanges.class)
-        interface MaximumNumberOfColumnsAndLimitMemoryPerColumn {
-
-        }
-
-    }
-
-    interface MulitpleFileHandling {
-        @After(ReaderLayout.MultipleFileHandling.HowToCombineColumns.class)
-        @Before(ReaderLayout.MultipleFileHandling.AppendFilePathColumn.class)
-        interface PrependFileIndexToRowId {
-        }
+    /**
+     * Save the settings to the given config.
+     *
+     * @param tableReadConfig the config to save to
+     */
+    void saveToConfig(final DefaultTableReadConfig<?> tableReadConfig) {
+        tableReadConfig.setAllowShortRows(m_ifRowHasLessColumnsOption == IfRowHasLessColumnsOption.INSERT_MISSING);
     }
 }

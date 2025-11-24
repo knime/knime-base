@@ -74,13 +74,15 @@ final class CSVTableReaderSpecific {
         }
     }
 
-    interface ConfigAndReader extends ReaderSpecific.ConfigAndReader<CSVTableReaderConfig, Class<?>, CSVMultiTableReadConfig> {
+    interface ConfigAndReader extends ReaderSpecific.ConfigAndReader<CSVTableReaderConfig, Class<?>, //
+            CSVMultiTableReadConfig> {
 
         @Override
         default CSVMultiTableReadConfig createMultiTableReadConfig() {
             return new CSVMultiTableReadConfig();
         }
 
+        @SuppressWarnings("unchecked")
         @Override
         default CSVTableReader createTableReader() {
             return new CSVTableReader();

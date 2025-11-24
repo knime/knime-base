@@ -48,31 +48,93 @@
  */
 package org.knime.base.node.io.filehandling.table.reader2;
 
+import java.net.URL;
+
 import org.knime.base.node.io.filehandling.table.reader.KnimeTableMultiTableReadConfig;
-import org.knime.base.node.io.filehandling.webui.reader2.ReaderParameters;
+import org.knime.base.node.io.filehandling.webui.reader2.IfSchemaChangesParameters;
+import org.knime.base.node.io.filehandling.webui.reader2.MaxNumberOfRowsParameters;
+import org.knime.base.node.io.filehandling.webui.reader2.MultiFileReaderParameters;
+import org.knime.base.node.io.filehandling.webui.reader2.MultiFileSelectionParameters;
+import org.knime.base.node.io.filehandling.webui.reader2.MultiFileSelectionPath;
+import org.knime.base.node.io.filehandling.webui.reader2.SkipFirstDataRowsParameters;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigID;
 import org.knime.node.parameters.NodeParameters;
-import org.knime.node.parameters.Widget;
-import org.knime.node.parameters.layout.Layout;
-import org.knime.node.parameters.updates.Effect;
-import org.knime.node.parameters.updates.Effect.EffectType;
 
 /**
+ * KnimeTable-specific parameters for the Table Reader Node.
+ *
  * @author Paul Bärnreuther
  */
+@SuppressWarnings("restriction")
 class KnimeTableReaderParameters implements NodeParameters {
 
-    @Widget(title = "Prepend file index to RowID", description = """
-            Only enabled if the existing RowIDs are used. If checked, a prefix is
-            prepended to the RowIDs that indicates which table the row came
-            from.
-            The format of the prefix is “File_0_“, “File_1_” and so on.
-                """)
-    @Layout(KnimeTableReaderLayoutAdditions.MultipleFileHandling.FirstRowContainsColumnNames.class)
-    @Effect(predicate = ReaderParameters.FirstColumnContainsRowIdsRef.class, type = EffectType.ENABLE)
-    boolean m_prependTableIndexToRowId;
+    KnimeTableReaderParameters() {
+        // default constructor
+    }
 
-    void saveToConfig(final KnimeTableMultiTableReadConfig config) {
-        config.getTableReadConfig().setPrependSourceIdxToRowId(m_prependTableIndexToRowId);
+    KnimeTableReaderParameters(final URL url) {
+        m_multiFileSelectionParams = new MultiFileSelectionParameters(url);
+    }
+
+    // Common parameters
+
+    static final class SetKnimeTableExtensions extends MultiFileSelectionParameters.SetFileReaderWidgetExtensions {
+        @Override
+        protected String[] getExtensions() {
+            return new String[]{"table"};
+        }
+    }
+
+    @Modification(SetKnimeTableExtensions.class)
+    MultiFileSelectionParameters m_multiFileSelectionParams = new MultiFileSelectionParameters();
+
+    SkipFirstDataRowsParameters m_skipFirstDataRowsParams = new SkipFirstDataRowsParameters();
+
+    MaxNumberOfRowsParameters m_maxNumberOfRowsParams = new MaxNumberOfRowsParameters();
+
+    IfSchemaChangesParameters m_ifSchemaChangesParams = new IfSchemaChangesParameters();
+
+    MultiFileReaderParameters m_multiFileReaderParams = new MultiFileReaderParameters();
+
+    // KnimeTable-specific parameters
+
+    UseExistingRowIdParameters m_useExistingRowIdParams = new UseExistingRowIdParameters();
+
+    PrependTableIndexToRowIdParameters m_prependTableIndexParams = new PrependTableIndexToRowIdParameters();
+
+    ConfigID saveToConfig(final KnimeTableMultiTableReadConfig config) {
+        final var tableReadConfig = config.getTableReadConfig();
+
+        m_skipFirstDataRowsParams.saveToConfig(tableReadConfig);
+        m_maxNumberOfRowsParams.saveToConfig(tableReadConfig);
+        m_ifSchemaChangesParams.saveToConfig(config);
+        m_multiFileReaderParams.saveToConfig(config);
+
+        m_useExistingRowIdParams.saveToConfig(tableReadConfig);
+        m_prependTableIndexParams.saveToConfig(tableReadConfig);
+        return config.getConfigID();
+    }
+
+    void saveToSource(final MultiFileSelectionPath sourceSettings) {
+        m_multiFileSelectionParams.saveToSource(sourceSettings);
+    }
+
+    @Override
+    public void validate() throws InvalidSettingsException {
+        m_multiFileSelectionParams.validate();
+        m_skipFirstDataRowsParams.validate();
+        m_maxNumberOfRowsParams.validate();
+        m_multiFileReaderParams.validate();
+    }
+
+    String getSourcePath() {
+        return m_multiFileSelectionParams.m_source.getFSLocation().getPath();
+    }
+
+    MultiFileReaderParameters getMultiFileReaderParameters() {
+        return m_multiFileReaderParams;
     }
 
 }

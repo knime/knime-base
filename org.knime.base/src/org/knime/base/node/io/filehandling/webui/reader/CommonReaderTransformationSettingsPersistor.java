@@ -109,7 +109,7 @@ import org.knime.node.parameters.persistence.NodeParametersPersistor;
  * @deprecated use {@link WebUITableReaderNodeFactory} instead
  */
 @Deprecated(since = "5.10")
-public abstract class CommonReaderTransformationSettingsPersistor<C extends ReaderSpecificConfig<C>, //
+public abstract class CommonReaderTransformationSettingsPersistor<C extends ReaderSpecificConfig<C>, // NOSONAR
         I extends ConfigIdSettings<C>, S, T, R extends CommonReaderTransformationSettings<I, S>>
     implements NodeParametersPersistor<R>, ReaderSpecific.ProductionPathProviderAndTypeHierarchy<T>,
     ExternalDataTypeSerializer<S, T>, ConfigAndReader<C, T> {

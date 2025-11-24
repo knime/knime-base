@@ -51,6 +51,7 @@ package org.knime.base.node.io.filehandling.webui.reader;
 import org.knime.base.node.io.filehandling.webui.FileSystemManagedByPortMessage;
 import org.knime.base.node.io.filehandling.webui.ReferenceStateProvider;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderLayout.DataArea.UseExistingRowId;
+import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.SettingsWithRowId;
 import org.knime.base.node.io.filehandling.webui.reader2.WebUITableReaderNodeFactory;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
@@ -91,7 +92,7 @@ import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils;
  */
 @Deprecated(since = "5.10")
 @SuppressWarnings("restriction")
-public final class CommonReaderNodeSettings {
+public final class CommonReaderNodeSettings { // NOSONAR
 
     /**
      * Main settings for reader nodes: The file source(s). Use {@link SettingsWithRowId.SetFileReaderWidgetExtensions}

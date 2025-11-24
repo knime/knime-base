@@ -50,7 +50,10 @@ package org.knime.base.node.io.filehandling.webui;
 
 import java.util.Optional;
 
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.DefaultFileChooserFilters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelection;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelectionMode;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractFileChooserPathAccessor;
@@ -83,5 +86,41 @@ public final class FileChooserPathAccessor extends AbstractFileChooserPathAccess
                 // FilterOptionsSettings not used at the moment with filter mode FILE.
                 null, false)),
             portObjectConnection);
+    }
+
+    /**
+     * Creates a new FileChooserAccessor for the provided location.</br>
+     * The settings are not validated in this constructor but instead if
+     * {@link ReadPathAccessor#getPaths(java.util.function.Consumer)} is called.
+     *
+     * @param multiFileSelection provided by the user
+     * @param portObjectConnection an optional connection of a connected {@link FileSystemPortObjectSpec}
+     * @since 5.10
+     */
+    public FileChooserPathAccessor(final MultiFileSelection<DefaultFileChooserFilters> multiFileSelection,
+        final Optional<FSConnection> portObjectConnection) { //NOSONAR
+        super(new FileChooserPathAccessorSettings(multiFileSelection.getFSLocation(),
+            new FilterSettings(toFilterMode(multiFileSelection.m_filterMode), multiFileSelection.m_includeSubfolders,
+                multiFileSelection.m_filters.toFilterOptionsSettings(), multiFileSelection.m_filters.followSymlinks())),
+            portObjectConnection);
+    }
+
+    static FilterMode toFilterMode(final MultiFileSelectionMode multiFileSelectionMode) { // NOSONAR 6 returns seem fine
+        switch (multiFileSelectionMode) {
+            case FILE:
+                return FilterMode.FILE;
+            case FOLDER:
+                return FilterMode.FOLDER;
+            case FILES_IN_FOLDERS:
+                return FilterMode.FILES_IN_FOLDERS;
+            case FOLDERS:
+                return FilterMode.FOLDERS;
+            case FILES_AND_FOLDERS:
+                return FilterMode.FILES_AND_FOLDERS;
+            case WORKFLOW:
+                return FilterMode.WORKFLOW;
+            default:
+                throw new IllegalArgumentException("Unsupported MultiFileSelectionMode: " + multiFileSelectionMode);
+        }
     }
 }

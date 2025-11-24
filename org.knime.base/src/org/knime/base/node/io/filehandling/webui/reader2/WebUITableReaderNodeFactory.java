@@ -77,9 +77,11 @@ import org.knime.node.parameters.NodeParameters;
  * @param <V> the type of the [V]alues read from the source
  * @param <M> the type of {@link MultiTableReadConfig [M]ultiTableReadConfig}
  * @author Paul Bärnreuther
+ * @since 5.10
  */
 @SuppressWarnings("restriction")
-public abstract class WebUITableReaderNodeFactory<P extends NodeParameters, I, S extends Source<I>, C extends ReaderSpecificConfig<C>, T, V, //
+public abstract class WebUITableReaderNodeFactory<P extends NodeParameters, I, S extends Source<I>, //
+        C extends ReaderSpecificConfig<C>, T, V, //
         M extends MultiTableReadConfig<C, T>>
     extends CommonTableReaderNodeFactory<I, S, C, T, M, V> implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
@@ -105,10 +107,10 @@ public abstract class WebUITableReaderNodeFactory<P extends NodeParameters, I, S
     }
 
     @Override
-    protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
+    protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) { // NOSONAR
         return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
     }
 
     @Override
-    abstract protected NodeParametersConfigAndSourceSerializer<P, I, S, C, T, M> createSerializer();
+    protected abstract NodeParametersConfigAndSourceSerializer<P, I, S, C, T, M> createSerializer();
 }

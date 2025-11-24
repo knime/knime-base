@@ -63,8 +63,8 @@ import org.knime.filehandling.core.node.table.reader.paths.Path;
 @SuppressWarnings("restriction")
 abstract class AbstractFileSelectionPath implements Path {
 
-    final ReaderPathConfiguration m_configuration =
-        new ReaderPathConfiguration(this::getFSLocation, this::setFSLocationSpec, this::isDirectory, FileSystemOption.values(), 0);
+    final ReaderPathConfiguration m_configuration = new ReaderPathConfiguration(this::getFSLocation,
+        this::setFSLocationSpec, this::isDirectory, FileSystemOption.values(), 0);
 
     private ReaderPathConfigResult m_configureResult;
 

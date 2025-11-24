@@ -70,9 +70,11 @@ import org.knime.node.parameters.NodeParameters;
  * @param <M> the type of {@link MultiTableReadConfig}
  *
  * @author Paul Bärnreuther
+ * @since 5.10
  */
 @SuppressWarnings("restriction")
-public abstract class NodeParametersConfigAndSourceSerializer<P extends NodeParameters, I, S extends Source<I>, C extends ReaderSpecificConfig<C>, T, M extends MultiTableReadConfig<C, T>>
+public abstract class NodeParametersConfigAndSourceSerializer<P extends NodeParameters, I, S extends Source<I>, //
+        C extends ReaderSpecificConfig<C>, T, M extends MultiTableReadConfig<C, T>>
     implements ConfigAndSourceSerializer<I, S, C, T, M> {
 
     private final Class<P> m_paramsClass;
@@ -110,8 +112,7 @@ public abstract class NodeParametersConfigAndSourceSerializer<P extends NodePara
     }
 
     /**
-     * Saves the values from the given parameters to the given source and config. Note that {@link ReaderParameters} and
-     * {@link TransformationParameters} already provide methods to save their values to source and config.
+     * Saves the values from the given parameters to the given source and config.
      *
      * @param params the node parameters
      * @param source the source

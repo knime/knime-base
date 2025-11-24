@@ -678,14 +678,13 @@
       <node
             after="org.knime.base.node.io.arffreader.ARFFReaderNodeFactory"
             category-path="/io/read"
-            deprecated="false"
+            deprecated="true"
             factory-class="org.knime.base.node.io.filehandling.csv.reader.CSVTableReaderNodeFactory"/>
       <node
             after="org.knime.base.node.io.filehandling.csv.reader.CSVTableReaderNodeFactory"
             category-path="/io/read"
             deprecated="false"
-            factory-class="org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeFactory2"
-            hidden="true"/>
+            factory-class="org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeFactory2"/>
       <node
             after="org.knime.base.node.io.filehandling.csv.reader.CSVTableReaderNodeFactory"
             category-path="/io/read"
@@ -872,14 +871,14 @@
         <node
             after="org.knime.base.node.io.arffreader.ARFFReaderNodeFactory"
             category-path="/io/read"
+            deprecated="true"
             factory-class="org.knime.base.node.io.filehandling.table.reader.KnimeTableReaderNodeFactory">
         </node>
         <node
             after="org.knime.base.node.io.filehandling.table.reader.KnimeTableReaderNodeFactory"
             category-path="/io/read"
             deprecated="false"
-            factory-class="org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeFactory2"
-            hidden="true"/>
+            factory-class="org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeFactory2"/>
         <node
               after="org.knime.base.node.io.arffwriter.ARFFWriterNodeFactory"
               category-path="/io/write"

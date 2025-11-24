@@ -43,46 +43,56 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
+ * History
+ *   Nov 24, 2025 (Paul Bärnreuther): created
  */
-package org.knime.base.node.io.filehandling.webui.reader2.tutorial;
+package org.knime.base.node.io.filehandling.csv.reader2;
 
-import org.knime.base.node.io.filehandling.webui.reader2.ReaderLayout;
-import org.knime.node.parameters.layout.After;
-import org.knime.node.parameters.layout.Before;
-import org.knime.node.parameters.layout.Section;
+import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
+import org.knime.base.node.io.filehandling.webui.ReferenceStateProvider;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.widget.number.NumberInputWidget;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsNonNegativeValidation;
 
 /**
- * TODO (#6): Adjust or delete this class based on your layout needs.
+ * Parameters for skipping first lines of file.
  *
- * Uses {@link ReaderLayout} as root layout. Define additional layouts and their position here.
- *
- * Convention: Interfaces that serve as @Layout for parameters to be added to a ReaderLayout section should be nested
- * inside an interface named the same as the ReaderLayout section (e.g., DataArea). This is not required but improves
- * readability.
- *
- * @author KNIME AG, Zurich, Switzerland
+ * @author Paul Bärnreuther
  */
-interface TutorialReaderLayoutAdditions {
+@Layout(FileFormatSection.class)
+final class SkipFirstLinesOfFileParameters implements NodeParameters {
 
-    // TODO (#6): Example - Add a custom section between File and DataArea. Adjust or remove as needed.
-    @Section(title = "File Format")
-    @After(ReaderLayout.File.class)
-    @Before(ReaderLayout.DataArea.class)
-    interface FileFormat {
-        // Add layout elements for file format settings here
+    static final class SkipFirstLinesRef extends ReferenceStateProvider<Long> {
     }
 
-    // TODO (#6): This interface groups layouts for parameters added to the ReaderLayout.DataArea section
-    interface DataArea {
-        // Example: Add "First row contains column names" before SkipFirstDataRows
-        @Before(ReaderLayout.DataArea.SkipFirstDataRows.class)
-        interface FirstRowContainsColumnNames {
-        }
+    @Widget(title = "Skip first lines of file", description = """
+            Use this option to skip lines that do not fit in the table structure (e.g. multi-line comments).
+            <br/>
+            The specified number of lines are skipped in the input file before the parsing starts. Skipping lines
+            prevents parallel reading of individual files.
+            """)
+    @ValueReference(SkipFirstLinesRef.class)
+    @NumberInputWidget(minValidation = IsNonNegativeValidation.class)
+    long m_skipFirstLines;
 
-        // Example: Add "If row has less columns" after UseExistingRowId
-        @After(ReaderLayout.DataArea.UseExistingRowId.class)
-        interface IfRowHasLessColumns {
-        }
+    /**
+     * Save the settings to the given config.
+     *
+     * @param csvConfig the config to save to
+     */
+    void saveToConfig(final CSVTableReaderConfig csvConfig) {
+        csvConfig.setSkipLines(m_skipFirstLines > 0);
+        csvConfig.setNumLinesToSkip(m_skipFirstLines);
     }
 
+    @Override
+    public void validate() throws InvalidSettingsException {
+        if (m_skipFirstLines < 0) {
+            throw new InvalidSettingsException("The number of lines to skip must be non-negative.");
+        }
+    }
 }

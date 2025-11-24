@@ -58,9 +58,9 @@ import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderParameters.AutoDetectButtonRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderParameters.FileEncodingOption;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderParameters.RowDelimiterOption;
+import org.knime.base.node.io.filehandling.csv.reader2.AutoDetectCSVFormatParameters.AutoDetectButtonRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVFormatParameters.RowDelimiterOption;
+import org.knime.base.node.io.filehandling.csv.reader2.FileEncodingParameters.FileEncodingOption;
 import org.knime.base.node.io.filehandling.webui.LocalWorkflowContextTest;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
@@ -126,7 +126,7 @@ class CSVFormatAutoDetectionTest extends LocalWorkflowContextTest {
         setFormatDependencies(settings, testFormatDependencies);
 
         final var simulator = createSimulator(settings);
-        final var result = simulator.simulateButtonClick(AutoDetectButtonRef.class);
+        final var result = simulator.simulateButtonClick(AutoDetectCSVFormatParameters.AutoDetectButtonRef.class);
 
         assertFormat(testFormat, result);
     }
@@ -138,8 +138,8 @@ class CSVFormatAutoDetectionTest extends LocalWorkflowContextTest {
         final var testFormatDependencies = new TestFormatDependencies(file);
         writeCsvFile(testFormat, testFormatDependencies);
         final var settings = new CSVTableReaderNodeParameters();
-        settings.m_csvReaderParameters.m_fileEncoding = FileEncodingOption.OTHER;
-        settings.m_csvReaderParameters.m_customEncoding = "Invalid custom encoding";
+        settings.m_csvReaderParameters.m_fileEncodingParams.m_fileEncoding = FileEncodingOption.OTHER;
+        settings.m_csvReaderParameters.m_fileEncodingParams.m_customEncoding = "Invalid custom encoding";
         setFormatDependencies(settings, testFormatDependencies);
 
         final var simulator = createSimulator(settings);
@@ -148,10 +148,12 @@ class CSVFormatAutoDetectionTest extends LocalWorkflowContextTest {
 
     private static void setFormatDependencies(final CSVTableReaderNodeParameters settings,
         final TestFormatDependencies testFormatDependencies) {
-        settings.m_readerParameters.m_source.m_path =
+        settings.m_csvReaderParameters.m_multiFileSelectionParams.m_source.m_path =
             new FSLocation(FSCategory.LOCAL, testFormatDependencies.m_filePath);
-        settings.m_csvReaderParameters.m_commentLineCharacter = testFormatDependencies.m_commentLineCharacter;
-        settings.m_csvReaderParameters.m_skipFirstLines = testFormatDependencies.m_skipFirstLines;
+        settings.m_csvReaderParameters.m_csvFormatParams.m_commentLineCharacter =
+            testFormatDependencies.m_commentLineCharacter;
+        settings.m_csvReaderParameters.m_skipFirstLinesParams.m_skipFirstLines =
+            testFormatDependencies.m_skipFirstLines;
     }
 
     private static void writeCsvFile(final TestFormat format, final TestFormatDependencies formatDependencies)
@@ -173,27 +175,27 @@ class CSVFormatAutoDetectionTest extends LocalWorkflowContextTest {
         }
     }
 
-    private DialogUpdateSimulator createSimulator(final CSVTableReaderNodeParameters settings) {
-        final var context =
-            NodeParametersInputImpl.createDefaultNodeSettingsContext(new PortType[0], new PortObjectSpec[0], null, null);
+    private static DialogUpdateSimulator createSimulator(final CSVTableReaderNodeParameters settings) {
+        final var context = NodeParametersInputImpl.createDefaultNodeSettingsContext(new PortType[0],
+            new PortObjectSpec[0], null, null);
         return new DialogUpdateSimulator(settings, context);
     }
 
     private static void assertFormat(final TestFormat testFormat,
         final DialogUpdateSimulator.UpdateSimulatorResult result) {
-        assertThat(result.getValueUpdateAt("csvReaderParameters", "columnDelimiter"))
+        assertThat(result.getValueUpdateAt("csvReaderParameters", "csvFormatParams", "columnDelimiter"))
             .isEqualTo(testFormat.m_columnDelimiter);
 
-        assertThat(result.getValueUpdateAt("csvReaderParameters", "customRowDelimiter"))
+        assertThat(result.getValueUpdateAt("csvReaderParameters", "csvFormatParams", "customRowDelimiter"))
             .isEqualTo(testFormat.m_escapedCustomRowDelimiter);
 
-        assertThat(result.getValueUpdateAt("csvReaderParameters", "quoteCharacter"))
+        assertThat(result.getValueUpdateAt("csvReaderParameters", "csvFormatParams", "quoteCharacter"))
             .isEqualTo(testFormat.m_quoteCharacter);
 
-        assertThat(result.getValueUpdateAt("csvReaderParameters", "quoteEscapeCharacter"))
+        assertThat(result.getValueUpdateAt("csvReaderParameters", "csvFormatParams", "quoteEscapeCharacter"))
             .isEqualTo(testFormat.m_quoteEscapeCharacter);
 
-        assertThat(result.getValueUpdateAt("csvReaderParameters", "rowDelimiterOption"))
+        assertThat(result.getValueUpdateAt("csvReaderParameters", "csvFormatParams", "rowDelimiterOption"))
             .isEqualTo(RowDelimiterOption.LINE_BREAK);
     }
 

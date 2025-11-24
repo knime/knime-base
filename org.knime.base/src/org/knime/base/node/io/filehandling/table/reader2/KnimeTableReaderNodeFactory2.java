@@ -52,11 +52,10 @@ import static org.knime.node.impl.description.PortDescription.dynamicPort;
 import static org.knime.node.impl.description.PortDescription.fixedPort;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.knime.base.node.io.filehandling.table.reader.KnimeTableMultiTableReadConfig;
 import org.knime.base.node.io.filehandling.table.reader.KnimeTableReader;
-import org.knime.base.node.io.filehandling.webui.reader2.FileSelectionPath;
+import org.knime.base.node.io.filehandling.webui.reader2.MultiFileSelectionPath;
 import org.knime.base.node.io.filehandling.webui.reader2.NodeParametersConfigAndSourceSerializer;
 import org.knime.base.node.io.filehandling.webui.reader2.WebUITableReaderNodeFactory;
 import org.knime.base.node.preproc.manipulator.TableManipulatorConfig;
@@ -80,17 +79,12 @@ import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
  * @author Paul Bärnreuther
  */
 @SuppressWarnings("restriction")
-public class KnimeTableReaderNodeFactory2 extends
-    WebUITableReaderNodeFactory<KnimeTableReaderNodeParameters, FSPath, FileSelectionPath, TableManipulatorConfig, DataType, DataValue, KnimeTableMultiTableReadConfig> {
+public class KnimeTableReaderNodeFactory2 extends WebUITableReaderNodeFactory<KnimeTableReaderNodeParameters, //
+        FSPath, MultiFileSelectionPath, TableManipulatorConfig, DataType, DataValue, KnimeTableMultiTableReadConfig> {
 
     @SuppressWarnings("javadoc")
     public KnimeTableReaderNodeFactory2() {
         super(KnimeTableReaderNodeParameters.class);
-    }
-
-    @Override
-    protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
-        return super.createPortsConfigBuilder();
     }
 
     @Override
@@ -140,23 +134,24 @@ public class KnimeTableReaderNodeFactory2 extends
         return new KnimeTableConfigAndSourceSerializer();
     }
 
-    private final class KnimeTableConfigAndSourceSerializer extends
-        NodeParametersConfigAndSourceSerializer<KnimeTableReaderNodeParameters, FSPath, FileSelectionPath, TableManipulatorConfig, DataType, KnimeTableMultiTableReadConfig> {
+    private final class KnimeTableConfigAndSourceSerializer
+        extends NodeParametersConfigAndSourceSerializer<KnimeTableReaderNodeParameters, FSPath, //
+                MultiFileSelectionPath, TableManipulatorConfig, DataType, KnimeTableMultiTableReadConfig> {
         protected KnimeTableConfigAndSourceSerializer() {
             super(KnimeTableReaderNodeParameters.class);
         }
 
         @Override
         protected void saveToSourceAndConfig(final KnimeTableReaderNodeParameters params,
-            final FileSelectionPath sourceSettings, final KnimeTableMultiTableReadConfig config) {
+            final MultiFileSelectionPath sourceSettings, final KnimeTableMultiTableReadConfig config) {
             params.saveToSource(sourceSettings);
             params.saveToConfig(config);
         }
     }
 
     @Override
-    protected FileSelectionPath createPathSettings(final NodeCreationConfiguration nodeCreationConfig) {
-        final var source = new FileSelectionPath();
+    protected MultiFileSelectionPath createPathSettings(final NodeCreationConfiguration nodeCreationConfig) {
+        final var source = new MultiFileSelectionPath();
         final var defaultParams = new KnimeTableReaderNodeParameters(nodeCreationConfig);
         defaultParams.saveToSource(source);
         return source;

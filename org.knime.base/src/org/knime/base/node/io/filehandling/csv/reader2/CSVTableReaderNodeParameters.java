@@ -51,16 +51,12 @@ package org.knime.base.node.io.filehandling.csv.reader2;
 import java.util.Optional;
 
 import org.knime.base.node.io.filehandling.csv.reader.CSVMultiTableReadConfig;
-import org.knime.base.node.io.filehandling.webui.reader2.FileSelectionPath;
-import org.knime.base.node.io.filehandling.webui.reader2.ReaderParameters;
-import org.knime.base.node.io.filehandling.webui.reader2.ReaderParameters.UseExistingRowIdWidgetRef;
+import org.knime.base.node.io.filehandling.webui.reader2.MultiFileSelectionPath;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.context.url.URLConfiguration;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
-import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.ValueReference;
 
@@ -69,9 +65,6 @@ import org.knime.node.parameters.updates.ValueReference;
  *
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-@Modification({CSVTableReaderNodeParameters.SetCSVExtensions.class,
-    CSVTableReaderNodeParameters.SetTitleAndDescriptionForUseExistingRowIds.class})
-@SuppressWarnings("restriction")
 class CSVTableReaderNodeParameters implements NodeParameters {
 
     CSVTableReaderNodeParameters(final NodeParametersInput input) {
@@ -82,11 +75,9 @@ class CSVTableReaderNodeParameters implements NodeParameters {
         this(nodeCreationConfig.getURLConfig());
     }
 
-    private CSVTableReaderNodeParameters(final Optional<? extends URLConfiguration> urlConfig) {
+    private CSVTableReaderNodeParameters(final Optional<? extends URLConfiguration> urlConfig) { // NOSONAR
         if (urlConfig.isPresent()) {
-            final var url = urlConfig.get().getUrl();
-            m_readerParameters = new ReaderParameters(url);
-            m_csvReaderParameters = new CSVTableReaderParameters(url);
+            m_csvReaderParameters = new CSVTableReaderParameters(urlConfig.get().getUrl());
         }
     }
 
@@ -94,30 +85,7 @@ class CSVTableReaderNodeParameters implements NodeParameters {
         // default constructor
     }
 
-    static final class SetCSVExtensions extends ReaderParameters.SetFileReaderWidgetExtensions {
-        @Override
-        protected String[] getExtensions() {
-            return new String[]{"csv", "tsv", "txt", "gz"};
-        }
-    }
-
-    static final class SetTitleAndDescriptionForUseExistingRowIds implements Modification.Modifier {
-        @Override
-        public void modify(final Modification.WidgetGroupModifier group) {
-            group.find(UseExistingRowIdWidgetRef.class).modifyAnnotation(Widget.class)
-                .withProperty("title", "First column contains RowIDs").withProperty("description",
-                    "Select this box if the first column contains RowIDs (no duplicates allowed).")
-                .modify();
-        }
-    }
-
-    public static final class ReaderParametersRef implements ParameterReference<ReaderParameters> {
-    }
-
-    @ValueReference(ReaderParametersRef.class)
-    ReaderParameters m_readerParameters = new ReaderParameters();
-
-    public static final class CSVReaderParametersRef implements ParameterReference<CSVTableReaderParameters> {
+    static final class CSVReaderParametersRef implements ParameterReference<CSVTableReaderParameters> {
     }
 
     @ValueReference(CSVReaderParametersRef.class)
@@ -125,25 +93,21 @@ class CSVTableReaderNodeParameters implements NodeParameters {
 
     CSVTableReaderTransformationParameters m_transformationParameters = new CSVTableReaderTransformationParameters();
 
-    void saveToSource(final FileSelectionPath sourceSettings) {
-        m_readerParameters.saveToSource(sourceSettings);
+    void saveToSource(final MultiFileSelectionPath sourceSettings) {
+        m_csvReaderParameters.saveToSource(sourceSettings);
     }
 
     void saveToConfig(final CSVMultiTableReadConfig config) {
-        m_readerParameters.saveToConfig(config);
-        m_csvReaderParameters.saveToConfig(config);
-        final var configID = config.getConfigID();
+        final var configID = m_csvReaderParameters.saveToConfig(config);
         m_transformationParameters.saveToConfig(//
-            config, m_readerParameters.m_source.m_path.getPath(), //
+            config, m_csvReaderParameters.getSourcePath(), //
             configID, //
-            m_readerParameters.m_howToCombineColumns, //
-            m_readerParameters.m_appendPathColumn //
+            m_csvReaderParameters.getMultiFileReaderParameters()//
         );
     }
 
     @Override
     public void validate() throws InvalidSettingsException {
-        m_readerParameters.validate();
         m_csvReaderParameters.validate();
         m_transformationParameters.validate();
     }

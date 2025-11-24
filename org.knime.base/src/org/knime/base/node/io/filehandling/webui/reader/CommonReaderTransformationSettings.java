@@ -107,7 +107,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 @Deprecated(since = "5.10")
 @SuppressWarnings("restriction")
 @Layout(CommonReaderLayout.Transformation.class)
-public abstract class CommonReaderTransformationSettings<I extends ConfigIdSettings<?>, S>
+public abstract class CommonReaderTransformationSettings<I extends ConfigIdSettings<?>, S> // NOSONAR
     implements Persistable, WidgetGroup {
 
     /**

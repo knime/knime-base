@@ -52,12 +52,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Stream;
 
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
-import org.knime.base.node.io.filehandling.webui.reader2.ReaderParameters;
+import org.knime.base.node.io.filehandling.webui.reader2.MultiFileReaderParameters.HowToCombineColumnsOption;
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters;
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParametersStateProviderTestUtils.TransformationParametersUpdatesTestDataTypeBased;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -71,6 +67,7 @@ import org.knime.core.data.def.StringCell;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.util.Pair;
+import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 
 /**
@@ -79,14 +76,15 @@ import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 final class KnimeTableReaderTransformationParametersStateProvidersTest
     extends TransformationParametersUpdatesTestDataTypeBased<KnimeTableReaderNodeParameters> {
 
-    static final List<List<String>> TRIGGER_PATHS = List.of( //
-        List.of("readerParameters", "firstColumnContainsRowIds"), //
-        List.of("readerParameters", "skipFirstDataRows") //
-    );
+    @Override
+    protected void setSourcePath(final KnimeTableReaderNodeParameters settings, final FSLocation fsLocation) {
+        settings.m_knimeTableReaderParameters.m_multiFileSelectionParams.m_source.m_path = fsLocation;
+    }
 
     @Override
-    protected ReaderParameters getReaderParameters(final KnimeTableReaderNodeParameters settings) {
-        return settings.m_readerParameters;
+    protected void setHowToCombineColumns(final KnimeTableReaderNodeParameters settings,
+        final HowToCombineColumnsOption howToCombineColumns) {
+        settings.m_knimeTableReaderParameters.m_multiFileReaderParams.m_howToCombineColumns = howToCombineColumns;
     }
 
     @Override
@@ -140,16 +138,6 @@ final class KnimeTableReaderTransformationParametersStateProvidersTest
     @Override
     protected String getFileName() {
         return "test.table";
-    }
-
-    @ParameterizedTest
-    @MethodSource("getDependencyTriggerReferences")
-    void testTableSpecSettingsProvider(final List<String> triggerPath) throws IOException {
-        testTableSpecSettingsProvider(sim -> sim.simulateValueChange(triggerPath));
-    }
-
-    static Stream<Arguments> getDependencyTriggerReferences() {
-        return TRIGGER_PATHS.stream().map(Arguments::of);
     }
 
 }

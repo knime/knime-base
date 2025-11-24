@@ -62,7 +62,10 @@ import org.knime.core.node.config.base.JSONConfig;
 import org.knime.core.node.config.base.JSONConfig.WriterConfig;
 
 /**
+ * A serializer for {@link DataType DataTypes}.
+ *
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
+ * @since 5.10
  */
 public interface DataTypeSerializer extends ExternalDataTypeSerializer<DataType> {
 
@@ -93,6 +96,7 @@ public interface DataTypeSerializer extends ExternalDataTypeSerializer<DataType>
      *
      * @param string the previously serialized string
      * @return the de-serialized {@link DataType}
+     * @throws ExternalDataTypeParseException if de-serialization fails
      */
     static DataType stringToType(final String string) throws ExternalDataTypeParseException {
         try {
@@ -100,7 +104,8 @@ public interface DataTypeSerializer extends ExternalDataTypeSerializer<DataType>
             JSONConfig.readJSON(settings, new StringReader(string));
             return SERIALIZER_INSTANCE.load(settings);
         } catch (IOException | InvalidSettingsException e) {
-            throw new ExternalDataTypeParseException("An unexpected error occurred while deserializing data type JSON.", e);
+            throw new ExternalDataTypeParseException("An unexpected error occurred while deserializing data type JSON.",
+                e);
         }
     }
 }

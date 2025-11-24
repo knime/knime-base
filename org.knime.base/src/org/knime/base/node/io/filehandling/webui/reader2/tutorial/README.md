@@ -56,10 +56,22 @@ Follow the numbered steps below to implement your own reader node.
    - `getTypeHierarchy()` - return your ReadAdapterFactory's TYPE_HIERARCHY
    - `extractRowKey()` - implement if your V type requires special handling
    - `PRODUCTION_PATH_PROVIDER` - initialize from your ReadAdapterFactory
-6. Configure file extensions and reader-specific parameters:
+6. Configure file extensions and add reader-specific parameters:
    - Set the file extensions in `Set*Extensions` (inner class of your renamed NodeParameters)
-   - Add reader-specific parameters to your renamed `ReaderParameters` class
-   - Adjust or delete your renamed `ReaderLayoutAdditions` if needed
+   - For each new reader-specific parameter you need to add:
+     1. **Nest it in a `*Parameters` class**: Group related parameters together in their own class
+        - The tutorial includes two example classes starting with `My...` that demonstrate the recommended structure
+        - These examples show how to organize parameters and define their layout
+     2. **Add save logic**: Implement or extend the `saveToConfig()` method in your parameter class
+        - This method should be called by the existing `saveToConfig()` in your main `ReaderParameters` class
+     3. **Add validation logic**: Implement or extend the `validate()` method in your parameter class
+        - This method should be called by the existing `validate()` in your main `ReaderParameters` class
+     4. **If the parameter affects table spec detection**:
+        - Add a `@ValueReference(<YourParameter>Ref.class)` annotation to the field
+        - Register the Ref class in `*TransformationParametersStateProviders.initConfigIdTriggers()`
+        - Add the field path to `TRIGGER_PATHS` in `*TransformationParametersStateProvidersTest`
+          - Path format: `List.of("yourReaderParameters", "yourParamsGroup", "yourFieldName")`
+          - Use field names without the "m_" prefix
 7. Enable and complete the test classes:
    - `*TransformationParametersStateProvidersTest`:
      - Remove `@Disabled`

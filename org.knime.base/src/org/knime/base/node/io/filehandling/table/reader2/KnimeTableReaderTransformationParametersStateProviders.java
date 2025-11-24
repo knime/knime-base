@@ -52,13 +52,9 @@ import java.util.function.Supplier;
 
 import org.knime.base.node.io.filehandling.table.reader.KnimeTableMultiTableReadConfig;
 import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeParameters.KnimeTableReaderParametersRef;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeParameters.ReaderParametersRef;
 import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderSpecific.ConfigAndReader;
 import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderSpecific.ProductionPathProviderAndTypeHierarchy;
 import org.knime.base.node.io.filehandling.webui.reader2.DataTypeSerializer;
-import org.knime.base.node.io.filehandling.webui.reader2.ReaderParameters;
-import org.knime.base.node.io.filehandling.webui.reader2.ReaderParameters.FirstColumnContainsRowIdsRef;
-import org.knime.base.node.io.filehandling.webui.reader2.ReaderParameters.SkipFirstDataRowsRef;
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParametersStateProviders;
 import org.knime.base.node.preproc.manipulator.TableManipulatorConfig;
 import org.knime.core.data.DataType;
@@ -75,21 +71,17 @@ final class KnimeTableReaderTransformationParametersStateProviders {
                 TableManipulatorConfig, DataType, KnimeTableMultiTableReadConfig>
         implements ConfigAndReader {
 
-        private Supplier<ReaderParameters> m_commonReaderNodeParamsSupplier;
-
-        private Supplier<KnimeTableReaderParameters> m_readerSpecificNodeParamsSupplier;
+        private Supplier<KnimeTableReaderParameters> m_readerNodeParamsSupplier;
 
         @Override
         protected void applyParametersToConfig(final KnimeTableMultiTableReadConfig config) {
-            m_commonReaderNodeParamsSupplier.get().saveToConfig(config);
-            m_readerSpecificNodeParamsSupplier.get().saveToConfig(config);
+            m_readerNodeParamsSupplier.get().saveToConfig(config);
         }
 
         @Override
         public void init(final StateProviderInitializer initializer) {
             super.init(initializer);
-            m_commonReaderNodeParamsSupplier = initializer.getValueSupplier(ReaderParametersRef.class);
-            m_readerSpecificNodeParamsSupplier = initializer.getValueSupplier(KnimeTableReaderParametersRef.class);
+            m_readerNodeParamsSupplier = initializer.getValueSupplier(KnimeTableReaderParametersRef.class);
         }
 
         interface Dependent
@@ -102,8 +94,7 @@ final class KnimeTableReaderTransformationParametersStateProviders {
 
             @Override
             default void initConfigIdTriggers(final StateProviderInitializer initializer) {
-                initializer.computeOnValueChange(FirstColumnContainsRowIdsRef.class);
-                initializer.computeOnValueChange(SkipFirstDataRowsRef.class);
+                // No triggers for Knime Table Reader. The spec does not depend on any parameter.
             }
         }
     }
