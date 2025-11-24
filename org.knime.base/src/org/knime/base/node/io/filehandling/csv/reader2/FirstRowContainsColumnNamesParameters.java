@@ -44,54 +44,40 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Oct 16, 2025 (Marc Bux, KNIME GmbH, Berlin, Germany): created
+ *   Nov 24, 2025 (Paul Bärnreuther): created
  */
-package org.knime.base.node.io.filehandling.webui.reader2;
+package org.knime.base.node.io.filehandling.csv.reader2;
 
-import org.knime.base.node.io.filehandling.webui.FileChooserPathAccessor;
-import org.knime.base.node.io.filehandling.webui.reader2.ReaderPathConfiguration.ReaderPathConfigResult;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
-import org.knime.filehandling.core.connections.FSLocation;
-import org.knime.filehandling.core.connections.FSLocationSpec;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
+import org.knime.base.node.io.filehandling.webui.ReferenceStateProvider;
+import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.updates.ValueReference;
 
 /**
- * Path for single file selection.
+ * Parameters for specifying whether the first row contains column names.
  *
- * @author Marc Bux, KNIME GmbH, Berlin, Germany
+ * @author Paul Bärnreuther
  */
-@SuppressWarnings("restriction")
-public class FileSelectionPath extends AbstractFileSelectionPath {
+public final class FirstRowContainsColumnNamesParameters implements NodeParameters {
 
-    private FileSelection m_location = new FileSelection();
-
-    @Override
-    void setFSLocationSpec(final FSLocationSpec fsLocationSpec) {
-        m_location.m_path = new FSLocation(fsLocationSpec.getFileSystemCategory(),
-            fsLocationSpec.getFileSystemSpecifier().orElse(null), m_location.m_path.getPath());
+    static class FirstRowContainsColumnNamesRef extends ReferenceStateProvider<Boolean> {
     }
 
-    @Override
-    public ReadPathAccessor createReadPathAccessor(final ReaderPathConfigResult configureResult) {
-        return new FileChooserPathAccessor(getLocation(), configureResult.portFSConnection());
-    }
+    @Widget(title = "First row contains column names",
+        description = "Select this box if the first row contains column name headers.")
+    @ValueReference(FirstRowContainsColumnNamesRef.class)
+    @Layout(CSVTableReaderLayoutAdditions.DataArea.FirstRowContainsColumnNames.class)
+    boolean m_firstRowContainsColumnNames = true;
 
-    @Override
-    FSLocation getFSLocation() {
-        return getLocation().m_path;
+    /**
+     * Save the settings to the given config.
+     *
+     * @param tableReadConfig the config to save to
+     */
+    public void saveToConfig(final DefaultTableReadConfig<?> tableReadConfig) {
+        tableReadConfig.setColumnHeaderIdx(0L);
+        tableReadConfig.setUseColumnHeaderIdx(m_firstRowContainsColumnNames);
     }
-
-    @Override
-    boolean isDirectory() {
-        return false;
-    }
-
-    FileSelection getLocation() {
-        return m_location;
-    }
-
-    void setLocation(final FileSelection location) {
-        m_location = location;
-    }
-
 }

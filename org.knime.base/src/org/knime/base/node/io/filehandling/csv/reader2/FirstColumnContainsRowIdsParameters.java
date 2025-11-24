@@ -44,54 +44,48 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Oct 16, 2025 (Marc Bux, KNIME GmbH, Berlin, Germany): created
+ *   Nov 24, 2025 (Paul Bärnreuther): created
  */
-package org.knime.base.node.io.filehandling.webui.reader2;
+package org.knime.base.node.io.filehandling.csv.reader2;
 
-import org.knime.base.node.io.filehandling.webui.FileChooserPathAccessor;
-import org.knime.base.node.io.filehandling.webui.reader2.ReaderPathConfiguration.ReaderPathConfigResult;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
-import org.knime.filehandling.core.connections.FSLocation;
-import org.knime.filehandling.core.connections.FSLocationSpec;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
+import org.knime.base.node.io.filehandling.webui.ReferenceStateProvider;
+import org.knime.base.node.io.filehandling.webui.reader2.ReaderLayout;
+import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.updates.util.BooleanReference;
 
 /**
- * Path for single file selection.
+ * Parameters for specifying whether the first column contains RowIDs (CSV-specific).
  *
- * @author Marc Bux, KNIME GmbH, Berlin, Germany
+ * @author Paul Bärnreuther
  */
-@SuppressWarnings("restriction")
-public class FileSelectionPath extends AbstractFileSelectionPath {
+public final class FirstColumnContainsRowIdsParameters implements NodeParameters {
 
-    private FileSelection m_location = new FileSelection();
+    private static final String DESCRIPTION =
+        "Select this box if the first column contains RowIDs (no duplicates allowed).";
 
-    @Override
-    void setFSLocationSpec(final FSLocationSpec fsLocationSpec) {
-        m_location.m_path = new FSLocation(fsLocationSpec.getFileSystemCategory(),
-            fsLocationSpec.getFileSystemSpecifier().orElse(null), m_location.m_path.getPath());
+    /**
+     * Reference for the first column contains row IDs value.
+     */
+    public static class FirstColumnContainsRowIdsRef extends ReferenceStateProvider<Boolean>
+        implements BooleanReference {
     }
 
-    @Override
-    public ReadPathAccessor createReadPathAccessor(final ReaderPathConfigResult configureResult) {
-        return new FileChooserPathAccessor(getLocation(), configureResult.portFSConnection());
-    }
+    @Widget(title = "First column contains RowIDs", description = DESCRIPTION)
+    @ValueReference(FirstColumnContainsRowIdsRef.class)
+    @Layout(ReaderLayout.DataArea.UseExistingRowId.class)
+    public boolean m_firstColumnContainsRowIds;
 
-    @Override
-    FSLocation getFSLocation() {
-        return getLocation().m_path;
+    /**
+     * Save the settings to the given config.
+     *
+     * @param tableReadConfig the config to save to
+     */
+    public void saveToConfig(final DefaultTableReadConfig<?> tableReadConfig) {
+        tableReadConfig.setRowIDIdx(0);
+        tableReadConfig.setUseRowIDIdx(m_firstColumnContainsRowIds);
     }
-
-    @Override
-    boolean isDirectory() {
-        return false;
-    }
-
-    FileSelection getLocation() {
-        return m_location;
-    }
-
-    void setLocation(final FileSelection location) {
-        m_location = location;
-    }
-
 }

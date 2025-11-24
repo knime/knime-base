@@ -54,13 +54,13 @@ import java.nio.charset.IllegalCharsetNameException;
 import java.nio.charset.UnsupportedCharsetException;
 import java.util.function.Supplier;
 
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderParameters.AutoDetectButtonRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderParameters.BufferSizeRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderParameters.CommentStartRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderParameters.CustomEncodingRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderParameters.FileEncodingOption;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderParameters.FileEncodingRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderParameters.SkipFirstLinesRef;
+import org.knime.base.node.io.filehandling.csv.reader2.AutoDetectCSVFormatParameters.AutoDetectButtonRef;
+import org.knime.base.node.io.filehandling.csv.reader2.AutoDetectCSVFormatParameters.BufferSizeRef;
+import org.knime.base.node.io.filehandling.csv.reader2.CSVFormatParameters.CommentStartRef;
+import org.knime.base.node.io.filehandling.csv.reader2.FileEncodingParameters.CustomEncodingRef;
+import org.knime.base.node.io.filehandling.csv.reader2.FileEncodingParameters.FileEncodingOption;
+import org.knime.base.node.io.filehandling.csv.reader2.FileEncodingParameters.FileEncodingRef;
+import org.knime.base.node.io.filehandling.csv.reader2.SkipFirstLinesOfFileParameters.SkipFirstLinesRef;
 import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
 import org.knime.base.node.io.filehandling.webui.reader2.ReaderParameters.FileSelectionRef;
 import org.knime.core.node.InvalidSettingsException;
@@ -127,7 +127,7 @@ public final class CSVFormatProvider extends CSVFormatAutoDetector implements St
     @Override
     protected Charset getSelectedCharset() throws InvalidSettingsException {
         try {
-            final var charsetName = CSVTableReaderParameters.fileEncodingToCharsetName(m_fileEncodingSupplier.get(),
+            final var charsetName = FileEncodingParameters.fileEncodingToCharsetName(m_fileEncodingSupplier.get(),
                 m_customEncodingSupplier.get());
             return charsetName == null ? Charset.defaultCharset() : Charset.forName(charsetName);
         } catch (IllegalCharsetNameException | UnsupportedCharsetException e) {

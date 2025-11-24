@@ -56,7 +56,7 @@ import java.util.function.Supplier;
 
 import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.ConfigIdSettings;
-import org.knime.base.node.io.filehandling.webui.reader2.ReaderParameters.HowToCombineColumnsOption;
+import org.knime.base.node.io.filehandling.webui.reader2.MultiFileReaderParameters.HowToCombineColumnsOption;
 import org.knime.base.node.io.filehandling.webui.reader2.ReaderSpecific.ExternalDataTypeParseException;
 import org.knime.base.node.io.filehandling.webui.reader2.ReaderSpecific.ExternalDataTypeSerializer;
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParametersStateProviders.TransformationSettingsWidgetModification;

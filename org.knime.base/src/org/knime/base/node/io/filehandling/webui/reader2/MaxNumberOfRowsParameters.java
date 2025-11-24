@@ -44,54 +44,62 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Oct 16, 2025 (Marc Bux, KNIME GmbH, Berlin, Germany): created
+ *   Nov 24, 2025 (Paul Bärnreuther): created
  */
 package org.knime.base.node.io.filehandling.webui.reader2;
 
-import org.knime.base.node.io.filehandling.webui.FileChooserPathAccessor;
-import org.knime.base.node.io.filehandling.webui.reader2.ReaderPathConfiguration.ReaderPathConfigResult;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
-import org.knime.filehandling.core.connections.FSLocation;
-import org.knime.filehandling.core.connections.FSLocationSpec;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
+import java.util.Optional;
+
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.widget.OptionalWidget;
+import org.knime.node.parameters.widget.OptionalWidget.DefaultValueProvider;
+import org.knime.node.parameters.widget.number.NumberInputWidget;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsNonNegativeValidation;
 
 /**
- * Path for single file selection.
+ * Parameters for limiting the maximum number of rows.
  *
- * @author Marc Bux, KNIME GmbH, Berlin, Germany
+ * @author Paul Bärnreuther
  */
-@SuppressWarnings("restriction")
-public class FileSelectionPath extends AbstractFileSelectionPath {
+public final class MaxNumberOfRowsParameters implements NodeParameters {
 
-    private FileSelection m_location = new FileSelection();
+    static final class MaximumNumberOfRowsDefaultProvider implements DefaultValueProvider<Long> {
+        @Override
+        public Long computeState(final NodeParametersInput context) {
+            return 50L;
+        }
+    }
 
-    @Override
-    void setFSLocationSpec(final FSLocationSpec fsLocationSpec) {
-        m_location.m_path = new FSLocation(fsLocationSpec.getFileSystemCategory(),
-            fsLocationSpec.getFileSystemSpecifier().orElse(null), m_location.m_path.getPath());
+    private static final String DESCRIPTION = """
+            If enabled, only the specified number of data rows are read. The column header row (if selected) is not
+            taken into account. Limiting rows prevents parallel reading of individual files.
+            """;
+
+    @Widget(title = "Limit number of rows", description = DESCRIPTION, advanced = true)
+    @Layout(ReaderLayout.DataArea.LimitNumberOfRows.class)
+    @OptionalWidget(defaultProvider = MaximumNumberOfRowsDefaultProvider.class)
+    @NumberInputWidget(minValidation = IsNonNegativeValidation.class)
+    public Optional<Long> m_maximumNumberOfRows = Optional.empty();
+
+    /**
+     * Save the settings to the given config.
+     *
+     * @param tableReadConfig the config to save to
+     */
+    public void saveToConfig(final DefaultTableReadConfig<?> tableReadConfig) {
+        tableReadConfig.setLimitRows(m_maximumNumberOfRows.isPresent());
+        tableReadConfig.setMaxRows(m_maximumNumberOfRows.orElse(0L));
     }
 
     @Override
-    public ReadPathAccessor createReadPathAccessor(final ReaderPathConfigResult configureResult) {
-        return new FileChooserPathAccessor(getLocation(), configureResult.portFSConnection());
+    public void validate() throws InvalidSettingsException {
+        if (m_maximumNumberOfRows.isPresent() && m_maximumNumberOfRows.get() < 0) {
+            throw new InvalidSettingsException("The maximum number of rows must be non-negative.");
+        }
     }
-
-    @Override
-    FSLocation getFSLocation() {
-        return getLocation().m_path;
-    }
-
-    @Override
-    boolean isDirectory() {
-        return false;
-    }
-
-    FileSelection getLocation() {
-        return m_location;
-    }
-
-    void setLocation(final FileSelection location) {
-        m_location = location;
-    }
-
 }

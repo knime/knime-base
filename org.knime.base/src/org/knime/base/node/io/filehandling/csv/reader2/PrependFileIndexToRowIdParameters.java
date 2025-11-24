@@ -44,54 +44,38 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Oct 16, 2025 (Marc Bux, KNIME GmbH, Berlin, Germany): created
+ *   Nov 24, 2025 (Paul Bärnreuther): created
  */
-package org.knime.base.node.io.filehandling.webui.reader2;
+package org.knime.base.node.io.filehandling.csv.reader2;
 
-import org.knime.base.node.io.filehandling.webui.FileChooserPathAccessor;
-import org.knime.base.node.io.filehandling.webui.reader2.ReaderPathConfiguration.ReaderPathConfigResult;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
-import org.knime.filehandling.core.connections.FSLocation;
-import org.knime.filehandling.core.connections.FSLocationSpec;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
+import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.layout.Layout;
 
 /**
- * Path for single file selection.
+ * Parameters for prepending file index to RowID.
  *
- * @author Marc Bux, KNIME GmbH, Berlin, Germany
+ * @author Paul Bärnreuther
  */
-@SuppressWarnings("restriction")
-public class FileSelectionPath extends AbstractFileSelectionPath {
+public final class PrependFileIndexToRowIdParameters implements NodeParameters {
 
-    private FileSelection m_location = new FileSelection();
+    @Widget(title = "Prepend file index to RowID", description = """
+            Select this box if you want to prepend a prefix that depends on the index of the source file to the
+            RowIDs. The prefix for the first file is "File_0_", for the second "File_1_" and so on. This option is
+            useful if the RowIDs within a single file are unique but the same RowIDs appear in multiple files.
+            Prepending the file index prevents parallel reading of individual files.
+            """)
+    @Layout(CSVTableReaderLayoutAdditions.MulitpleFileHandling.PrependFileIndexToRowId.class)
+    boolean m_prependFileIndexToRowId;
+    // TODO NOSONAR this setting should be shown when reading multiple files; currently blocked by UIEXT-1805
 
-    @Override
-    void setFSLocationSpec(final FSLocationSpec fsLocationSpec) {
-        m_location.m_path = new FSLocation(fsLocationSpec.getFileSystemCategory(),
-            fsLocationSpec.getFileSystemSpecifier().orElse(null), m_location.m_path.getPath());
+    /**
+     * Save the settings to the given config.
+     *
+     * @param tableReadConfig the config to save to
+     */
+    public void saveToConfig(final DefaultTableReadConfig<?> tableReadConfig) {
+        tableReadConfig.setPrependSourceIdxToRowId(m_prependFileIndexToRowId);
     }
-
-    @Override
-    public ReadPathAccessor createReadPathAccessor(final ReaderPathConfigResult configureResult) {
-        return new FileChooserPathAccessor(getLocation(), configureResult.portFSConnection());
-    }
-
-    @Override
-    FSLocation getFSLocation() {
-        return getLocation().m_path;
-    }
-
-    @Override
-    boolean isDirectory() {
-        return false;
-    }
-
-    FileSelection getLocation() {
-        return m_location;
-    }
-
-    void setLocation(final FileSelection location) {
-        m_location = location;
-    }
-
 }

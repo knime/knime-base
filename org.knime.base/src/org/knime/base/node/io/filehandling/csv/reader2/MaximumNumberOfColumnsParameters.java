@@ -44,54 +44,52 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Oct 16, 2025 (Marc Bux, KNIME GmbH, Berlin, Germany): created
+ *   Nov 24, 2025 (Paul Bärnreuther): created
  */
-package org.knime.base.node.io.filehandling.webui.reader2;
+package org.knime.base.node.io.filehandling.csv.reader2;
 
-import org.knime.base.node.io.filehandling.webui.FileChooserPathAccessor;
-import org.knime.base.node.io.filehandling.webui.reader2.ReaderPathConfiguration.ReaderPathConfigResult;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
-import org.knime.filehandling.core.connections.FSLocation;
-import org.knime.filehandling.core.connections.FSLocationSpec;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
+import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
+import org.knime.base.node.io.filehandling.webui.ReferenceStateProvider;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.widget.number.NumberInputWidget;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsNonNegativeValidation;
 
 /**
- * Path for single file selection.
+ * Parameters for maximum number of columns.
  *
- * @author Marc Bux, KNIME GmbH, Berlin, Germany
+ * @author Paul Bärnreuther
  */
-@SuppressWarnings("restriction")
-public class FileSelectionPath extends AbstractFileSelectionPath {
+public final class MaximumNumberOfColumnsParameters implements NodeParameters {
 
-    private FileSelection m_location = new FileSelection();
+    static class MaximumNumberOfColumnsRef extends ReferenceStateProvider<Integer> {
+    }
 
-    @Override
-    void setFSLocationSpec(final FSLocationSpec fsLocationSpec) {
-        m_location.m_path = new FSLocation(fsLocationSpec.getFileSystemCategory(),
-            fsLocationSpec.getFileSystemSpecifier().orElse(null), m_location.m_path.getPath());
+    @Widget(title = "Maximum number of columns", description = """
+            Sets the number of allowed columns (default 8192 columns) to prevent memory exhaustion. The node will
+                        fail if the number of columns exceeds the set limit.
+            """)
+    @ValueReference(MaximumNumberOfColumnsRef.class)
+    @NumberInputWidget(minValidation = IsNonNegativeValidation.class)
+    @Layout(CSVTableReaderLayoutAdditions.ColumnAndDataTypeDetection.MaximumNumberOfColumnsAndLimitMemoryPerColumn.class)
+    int m_maximumNumberOfColumns = 8192;
+
+    /**
+     * Save the settings to the given config.
+     *
+     * @param csvConfig the config to save to
+     */
+    public void saveToConfig(final CSVTableReaderConfig csvConfig) {
+        csvConfig.setMaxColumns(m_maximumNumberOfColumns);
     }
 
     @Override
-    public ReadPathAccessor createReadPathAccessor(final ReaderPathConfigResult configureResult) {
-        return new FileChooserPathAccessor(getLocation(), configureResult.portFSConnection());
+    public void validate() throws InvalidSettingsException {
+        if (m_maximumNumberOfColumns < 0) {
+            throw new InvalidSettingsException("The maximum number of columns must be non-negative.");
+        }
     }
-
-    @Override
-    FSLocation getFSLocation() {
-        return getLocation().m_path;
-    }
-
-    @Override
-    boolean isDirectory() {
-        return false;
-    }
-
-    FileSelection getLocation() {
-        return m_location;
-    }
-
-    void setLocation(final FileSelection location) {
-        m_location = location;
-    }
-
 }

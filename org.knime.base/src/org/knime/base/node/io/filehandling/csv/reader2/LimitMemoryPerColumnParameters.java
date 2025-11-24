@@ -44,54 +44,41 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Oct 16, 2025 (Marc Bux, KNIME GmbH, Berlin, Germany): created
+ *   Nov 24, 2025 (Paul Bärnreuther): created
  */
-package org.knime.base.node.io.filehandling.webui.reader2;
+package org.knime.base.node.io.filehandling.csv.reader2;
 
-import org.knime.base.node.io.filehandling.webui.FileChooserPathAccessor;
-import org.knime.base.node.io.filehandling.webui.reader2.ReaderPathConfiguration.ReaderPathConfigResult;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
-import org.knime.filehandling.core.connections.FSLocation;
-import org.knime.filehandling.core.connections.FSLocationSpec;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
+import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
+import org.knime.base.node.io.filehandling.webui.ReferenceStateProvider;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.updates.ValueReference;
 
 /**
- * Path for single file selection.
+ * Parameters for limiting memory per column.
  *
- * @author Marc Bux, KNIME GmbH, Berlin, Germany
+ * @author Paul Bärnreuther
  */
-@SuppressWarnings("restriction")
-public class FileSelectionPath extends AbstractFileSelectionPath {
+public final class LimitMemoryPerColumnParameters implements NodeParameters {
 
-    private FileSelection m_location = new FileSelection();
-
-    @Override
-    void setFSLocationSpec(final FSLocationSpec fsLocationSpec) {
-        m_location.m_path = new FSLocation(fsLocationSpec.getFileSystemCategory(),
-            fsLocationSpec.getFileSystemSpecifier().orElse(null), m_location.m_path.getPath());
+    static class LimitMemoryPerColumnRef extends ReferenceStateProvider<Boolean> {
     }
 
-    @Override
-    public ReadPathAccessor createReadPathAccessor(final ReaderPathConfigResult configureResult) {
-        return new FileChooserPathAccessor(getLocation(), configureResult.portFSConnection());
-    }
+    @Widget(title = "Limit memory per column", description = """
+            If selected the memory per column is restricted to 1MB in order to prevent memory exhaustion. Uncheck
+            this option to disable these memory restrictions.
+            """)
+    @ValueReference(LimitMemoryPerColumnRef.class)
+    @Layout(CSVTableReaderLayoutAdditions.ColumnAndDataTypeDetection.MaximumNumberOfColumnsAndLimitMemoryPerColumn.class)
+    boolean m_limitMemoryPerColumn = true;
 
-    @Override
-    FSLocation getFSLocation() {
-        return getLocation().m_path;
+    /**
+     * Save the settings to the given config.
+     *
+     * @param csvConfig the config to save to
+     */
+    public void saveToConfig(final CSVTableReaderConfig csvConfig) {
+        csvConfig.limitCharsPerColumn(m_limitMemoryPerColumn);
     }
-
-    @Override
-    boolean isDirectory() {
-        return false;
-    }
-
-    FileSelection getLocation() {
-        return m_location;
-    }
-
-    void setLocation(final FileSelection location) {
-        m_location = location;
-    }
-
 }

@@ -51,42 +51,18 @@ package org.knime.base.node.io.filehandling.webui.reader2;
 import java.net.URL;
 import java.util.Optional;
 
-import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
 import org.knime.base.node.io.filehandling.webui.ReferenceStateProvider;
-import org.knime.base.node.io.filehandling.webui.reader2.ReaderLayout.DataArea.LimitNumberOfRows;
-import org.knime.base.node.io.filehandling.webui.reader2.ReaderLayout.DataArea.SkipFirstDataRows;
-import org.knime.base.node.io.filehandling.webui.reader2.ReaderLayout.DataArea.UseExistingRowId;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
-import org.knime.filehandling.core.connections.FSLocationUtil;
-import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
 import org.knime.filehandling.core.node.table.reader.config.AbstractMultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 import org.knime.node.parameters.NodeParameters;
-import org.knime.node.parameters.NodeParametersInput;
-import org.knime.node.parameters.Widget;
-import org.knime.node.parameters.layout.Layout;
-import org.knime.node.parameters.updates.EffectPredicate;
-import org.knime.node.parameters.updates.EffectPredicateProvider;
-import org.knime.node.parameters.updates.ParameterReference;
-import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.updates.util.BooleanReference;
-import org.knime.node.parameters.widget.OptionalWidget;
-import org.knime.node.parameters.widget.OptionalWidget.DefaultValueProvider;
-import org.knime.node.parameters.widget.choices.Label;
-import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
-import org.knime.node.parameters.widget.message.TextMessage;
-import org.knime.node.parameters.widget.message.TextMessage.MessageType;
-import org.knime.node.parameters.widget.message.TextMessage.SimpleTextMessageProvider;
-import org.knime.node.parameters.widget.number.NumberInputWidget;
-import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsNonNegativeValidation;
-import org.knime.node.parameters.widget.text.TextInputWidget;
-import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils;
 
 /**
+ * Common parameters for reader nodes. This class composes the extracted parameter classes.
  *
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
@@ -94,248 +70,124 @@ import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils;
 public final class ReaderParameters implements NodeParameters {
 
     public ReaderParameters(final URL url) {
-        m_source = new FileSelection(FSLocationUtil.createFromURL(url.toString()));
+        m_singleFileReader = new SingleFileReaderParameters(url);
     }
 
     public ReaderParameters() {
         // default constructor
     }
 
-    public static final class FileSelectionRef extends ReferenceStateProvider<FileSelection>
-        implements Modification.Reference {
-    }
-
-    /**
-     * Set the file extensions for the file reader widget using {@link Modification} on the implementation of this class
-     * or the field where it is used.
-     */
-    public abstract static class SetFileReaderWidgetExtensions implements Modification.Modifier {
-        @Override
-        public void modify(final Modification.WidgetGroupModifier group) {
-            group.find(FileSelectionRef.class).modifyAnnotation(FileReaderWidget.class)
-                .withProperty("fileExtensions", getExtensions()).modify();
-        }
-
-        /**
-         * @return the the valid extensions by which the browsable files should be filtered
-         */
-        protected abstract String[] getExtensions();
-    }
-
-    static final class FileSystemManagedByPortNotAvailableMessage implements SimpleTextMessageProvider {
-
-        @Override
-        public boolean showMessage(final NodeParametersInput context) {
-            return FileSystemPortConnectionUtil.hasEmptyFileSystemPort(context);
-        }
-
-        @Override
-        public String title() {
-            return "File system managed by File System Input Port";
-        }
-
-        @Override
-        public String description() {
-            return "No file system is currently connected. To proceed, either connect a file system to the input"
-                + " port or remove the port.";
-        }
-
-        @Override
-        public MessageType type() {
-            return MessageType.INFO;
-        }
-    }
-
-    @TextMessage(value = FileSystemManagedByPortNotAvailableMessage.class)
-    @Layout(ReaderLayout.File.Source.class)
-    Void m_fileSystemFromPortNotAvailableMessage;
-
-    @Widget(title = "Source", description = ReaderLayout.File.Source.DESCRIPTION)
-    @ValueReference(FileSelectionRef.class)
-    @Layout(ReaderLayout.File.Source.class)
-    @Modification.WidgetReference(FileSelectionRef.class)
-    @FileReaderWidget()
-    public FileSelection m_source = new FileSelection();
-
-    public static class SkipFirstDataRowsRef extends ReferenceStateProvider<Long> {
-    }
-
-    @Widget(title = "Skip first data rows", description = SkipFirstDataRows.DESCRIPTION)
-    @ValueReference(SkipFirstDataRowsRef.class)
-    @NumberInputWidget(minValidation = IsNonNegativeValidation.class)
-    @Layout(SkipFirstDataRows.class)
-    public long m_skipFirstDataRows;
-
-    static final class MaximumNumberOfRowsDefaultProvider implements DefaultValueProvider<Long> {
-        @Override
-        public Long computeState(final NodeParametersInput context) {
-            return 50L;
-        }
-    }
-
-    @Widget(title = "Limit number of rows", description = LimitNumberOfRows.DESCRIPTION, advanced = true)
-    @Layout(LimitNumberOfRows.class)
-    @OptionalWidget(defaultProvider = MaximumNumberOfRowsDefaultProvider.class)
-    @NumberInputWidget(minValidation = IsNonNegativeValidation.class)
-    Optional<Long> m_maximumNumberOfRows = Optional.empty();
-
-    /**
-     * Access {@link #m_firstColumnContainsRowIds} by this reference.
-     */
+    // Re-export for backwards compatibility - note: this is now reader-specific (CSV vs KnimeTable)
+    // Keeping for backwards compatibility but should be migrated to reader-specific references
+    @Deprecated
     public static class FirstColumnContainsRowIdsRef extends ReferenceStateProvider<Boolean>
         implements BooleanReference {
     }
 
-    /**
-     * This reference is meant to be used to possibly modify title and description of
-     * {@link #m_firstColumnContainsRowIds}.
-     */
+    // Re-export for backwards compatibility
+    @Deprecated
     public static class UseExistingRowIdWidgetRef implements Modification.Reference {
     }
 
-    @Widget(title = "Use existing RowID", description = UseExistingRowId.DESCRIPTION)
-    @ValueReference(FirstColumnContainsRowIdsRef.class)
-    @Layout(UseExistingRowId.class)
-    @Modification.WidgetReference(UseExistingRowIdWidgetRef.class)
-    public boolean m_firstColumnContainsRowIds;
-
+    // Re-export for backwards compatibility
     public enum IfSchemaChangesOption {
-            @Label(value = "Fail",
-                description = ReaderLayout.ColumnAndDataTypeDetection.IfSchemaChanges.DESCRIPTION_FAIL) //
-            FAIL, //
-            @Label(value = "Use new schema",
-                description = ReaderLayout.ColumnAndDataTypeDetection.IfSchemaChanges.DESCRIPTION_USE_NEW_SCHEMA) //
-            USE_NEW_SCHEMA, //
-    }
+            FAIL, USE_NEW_SCHEMA;
 
-    static final class IfSchemaChangesOptionRef implements ParameterReference<IfSchemaChangesOption> {
-    }
+        public static IfSchemaChangesOption from(final MultiFileReaderParameters.IfSchemaChangesOption option) {
+            return option == MultiFileReaderParameters.IfSchemaChangesOption.FAIL ? FAIL : USE_NEW_SCHEMA;
+        }
 
-    public static final class UseNewSchema implements EffectPredicateProvider {
-        @Override
-        public EffectPredicate init(final PredicateInitializer i) {
-            return i.getEnum(IfSchemaChangesOptionRef.class).isOneOf(IfSchemaChangesOption.USE_NEW_SCHEMA);
+        public MultiFileReaderParameters.IfSchemaChangesOption toNew() {
+            return this == FAIL ? MultiFileReaderParameters.IfSchemaChangesOption.FAIL
+                : MultiFileReaderParameters.IfSchemaChangesOption.USE_NEW_SCHEMA;
         }
     }
 
-    @Widget(title = "If schema changes",
-        description = ReaderLayout.ColumnAndDataTypeDetection.IfSchemaChanges.DESCRIPTION)
-    @ValueSwitchWidget
-    @Layout(ReaderLayout.ColumnAndDataTypeDetection.IfSchemaChanges.class)
-    @ValueReference(IfSchemaChangesOptionRef.class)
-    public IfSchemaChangesOption m_ifSchemaChangesOption = IfSchemaChangesOption.FAIL;
+    // Re-export for backwards compatibility
+    public enum HowToCombineColumnsOption {
+            FAIL, UNION, INTERSECTION;
 
-    enum HowToCombineColumnsOption {
-            @Label(value = "Fail if different",
-                description = ReaderLayout.MultipleFileHandling.HowToCombineColumns.DESCRIPTION_FAIL)
-            FAIL(ColumnFilterMode.UNION),
-
-            @Label(value = "Union",
-                description = ReaderLayout.MultipleFileHandling.HowToCombineColumns.DESCRIPTION_UNION)
-            UNION(ColumnFilterMode.UNION),
-
-            @Label(value = "Intersection",
-                description = ReaderLayout.MultipleFileHandling.HowToCombineColumns.DESCRIPTION_INTERSECTION)
-            INTERSECTION(ColumnFilterMode.INTERSECTION);
-
-        private final ColumnFilterMode m_columnFilterMode;
-
-        HowToCombineColumnsOption(final ColumnFilterMode columnFilterMode) {
-            m_columnFilterMode = columnFilterMode;
+        public static HowToCombineColumnsOption from(final MultiFileReaderParameters.HowToCombineColumnsOption option) {
+            switch (option) {
+                case FAIL:
+                    return FAIL;
+                case UNION:
+                    return UNION;
+                case INTERSECTION:
+                    return INTERSECTION;
+                default:
+                    throw new IllegalArgumentException("Unknown option: " + option);
+            }
         }
 
-        ColumnFilterMode toColumnFilterMode() {
-            return m_columnFilterMode;
+        public MultiFileReaderParameters.HowToCombineColumnsOption toNew() {
+            switch (this) {
+                case FAIL:
+                    return MultiFileReaderParameters.HowToCombineColumnsOption.FAIL;
+                case UNION:
+                    return MultiFileReaderParameters.HowToCombineColumnsOption.UNION;
+                case INTERSECTION:
+                    return MultiFileReaderParameters.HowToCombineColumnsOption.INTERSECTION;
+                default:
+                    throw new IllegalArgumentException("Unknown option: " + this);
+            }
         }
-    }
 
-    static class HowToCombineColumnsOptionRef implements ParameterReference<HowToCombineColumnsOption> {
-    }
-
-    @Widget(title = "How to combine columns",
-        description = ReaderLayout.MultipleFileHandling.HowToCombineColumns.DESCRIPTION)
-    @ValueSwitchWidget
-    @ValueReference(HowToCombineColumnsOptionRef.class)
-    @Layout(ReaderLayout.MultipleFileHandling.HowToCombineColumns.class)
-    public HowToCombineColumnsOption m_howToCombineColumns = HowToCombineColumnsOption.FAIL;
-    // TODO NOSONAR this setting should be shown when reading multiple files; currently blocked by UIEXT-1805
-
-    static final class AppendPathColumnDefaultProvider implements DefaultValueProvider<String> {
-        @Override
-        public String computeState(final NodeParametersInput parametersInput) {
-            return "File Path";
+        public ColumnFilterMode toColumnFilterMode() {
+            return toNew().toColumnFilterMode();
         }
     }
 
-    @Widget(title = "Append file path column",
-        description = ReaderLayout.MultipleFileHandling.AppendFilePathColumn.DESCRIPTION)
-    @Layout(ReaderLayout.MultipleFileHandling.AppendFilePathColumn.class)
-    @OptionalWidget(defaultProvider = AppendPathColumnDefaultProvider.class)
-    @TextInputWidget(patternValidation = ColumnNameValidationUtils.ColumnNameValidation.class)
-    public Optional<String> m_appendPathColumn = Optional.empty();
+    public SingleFileReaderParameters m_singleFileReader = new SingleFileReaderParameters();
+
+    public SkipFirstDataRowsParameters m_skipFirstDataRowsParams = new SkipFirstDataRowsParameters();
+
+    public MaxNumberOfRowsParameters m_maxNumberOfRowsParams = new MaxNumberOfRowsParameters();
+
+    public MultiFileReaderParameters m_multiFileReaderParams = new MultiFileReaderParameters();
+
+    // Backwards compatibility accessors
+    public FileSelection m_source() {
+        return m_singleFileReader.m_source;
+    }
+
+    public long m_skipFirstDataRows() {
+        return m_skipFirstDataRowsParams.m_skipFirstDataRows;
+    }
+
+    public Optional<Long> m_maximumNumberOfRows() {
+        return m_maxNumberOfRowsParams.m_maximumNumberOfRows;
+    }
+
+    public HowToCombineColumnsOption m_howToCombineColumns() {
+        return HowToCombineColumnsOption.from(m_multiFileReaderParams.m_howToCombineColumns);
+    }
+
+    public Optional<String> m_appendPathColumn() {
+        return m_multiFileReaderParams.m_appendPathColumn;
+    }
 
     /**
-     * @param config
+     * @param config the config to save to
      */
     public void saveToConfig(final AbstractMultiTableReadConfig<?, ? extends DefaultTableReadConfig<?>, ?, ?> config) {
         final var tableReadConfig = config.getTableReadConfig();
 
-        tableReadConfig.setSkipRows(m_skipFirstDataRows > 0);
-        tableReadConfig.setNumRowsToSkip(m_skipFirstDataRows);
-
-        tableReadConfig.setLimitRows(m_maximumNumberOfRows.isPresent());
-        tableReadConfig.setMaxRows(m_maximumNumberOfRows.orElse(0L));
-
-        tableReadConfig.setRowIDIdx(0);
-        tableReadConfig.setUseRowIDIdx(m_firstColumnContainsRowIds);
-
-        config.setSaveTableSpecConfig(m_ifSchemaChangesOption == IfSchemaChangesOption.FAIL);
-        config.setCheckSavedTableSpec(true); // the option to ignore saved table spec is deprecated
-
-        config.setFailOnDifferingSpecs(m_howToCombineColumns == HowToCombineColumnsOption.FAIL);
-        config.setSpecMergeMode(m_howToCombineColumns == HowToCombineColumnsOption.INTERSECTION
-            ? SpecMergeMode.INTERSECTION : SpecMergeMode.UNION);
-
-        config.setAppendItemIdentifierColumn(m_appendPathColumn.isPresent());
-        config.setItemIdentifierColumnName(m_appendPathColumn.orElse(""));
+        m_skipFirstDataRowsParams.saveToConfig(tableReadConfig);
+        m_maxNumberOfRowsParams.saveToConfig(tableReadConfig);
+        m_multiFileReaderParams.saveToConfig(config);
     }
 
     public void saveToSource(final FileSelectionPath sourceSettings) {
-        sourceSettings.setLocation(m_source);
+        m_singleFileReader.saveToSource(sourceSettings);
     }
 
-    /** The annotations handle the validation for the dialog, we need to repeat them here for the model. */
     @Override
     public void validate() throws InvalidSettingsException {
-
-        m_source.validate();
-
-        // m_skipFirstDataRows: IsNonNegativeValidation
-        if (m_skipFirstDataRows < 0) {
-            throw new InvalidSettingsException("The number of data rows to skip must be non-negative.");
-        }
-
-        // m_maximumNumberOfRows: IsNonNegativeValidation (when present)
-        if (m_maximumNumberOfRows.isPresent() && m_maximumNumberOfRows.get() < 0) {
-            throw new InvalidSettingsException("The maximum number of rows must be non-negative.");
-        }
-
-        // m_appendPathColumn: ColumnNameValidation (when present)
-        if (m_appendPathColumn.isPresent()) {
-            final var columnName = m_appendPathColumn.get();
-            ColumnNameValidationUtils.validateColumnName(columnName, invalidState -> {
-                switch (invalidState) {
-                    case EMPTY:
-                        return "The file path column name must not be empty.";
-                    case BLANK:
-                        return "The file path column name must not be blank.";
-                    case NOT_TRIMMED:
-                        return "The file path column name must not start or end with whitespace.";
-                    default:
-                        throw new IllegalStateException("Unknown invalid column name state: " + invalidState);
-                }
-            });
-        }
+        m_singleFileReader.validate();
+        m_skipFirstDataRowsParams.validate();
+        m_maxNumberOfRowsParams.validate();
+        m_multiFileReaderParams.validate();
     }
 
 }

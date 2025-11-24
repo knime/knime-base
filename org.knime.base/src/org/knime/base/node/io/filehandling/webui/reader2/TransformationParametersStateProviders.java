@@ -65,9 +65,8 @@ import java.util.stream.Stream;
 
 import org.knime.base.node.io.filehandling.webui.FileChooserPathAccessor;
 import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
-import org.knime.base.node.io.filehandling.webui.reader2.ReaderParameters.FileSelectionRef;
+import org.knime.base.node.io.filehandling.webui.reader2.MultiFileReaderParameters.HowToCombineColumnsOptionRef;
 import org.knime.base.node.io.filehandling.webui.reader2.ReaderParameters.HowToCombineColumnsOption;
-import org.knime.base.node.io.filehandling.webui.reader2.ReaderParameters.HowToCombineColumnsOptionRef;
 import org.knime.base.node.io.filehandling.webui.reader2.ReaderSpecific.ExternalDataTypeSerializer;
 import org.knime.base.node.io.filehandling.webui.reader2.ReaderSpecific.ProductionPathProviderAndTypeHierarchy;
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.ColumnSpecSettings;
@@ -238,7 +237,7 @@ public final class TransformationParametersStateProviders {
         private void initTriggers(final StateProviderInitializer initializer) {
             initializer.computeAfterOpenDialog();
             initConfigIdTriggers(initializer);
-            initializer.computeOnValueChange(FileSelectionRef.class);
+            initializer.computeOnValueChange(SingleFileReaderParameters.FileSelectionRef.class);
         }
     }
 

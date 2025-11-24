@@ -44,54 +44,55 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Oct 16, 2025 (Marc Bux, KNIME GmbH, Berlin, Germany): created
+ *   Nov 24, 2025 (Paul Bärnreuther): created
  */
-package org.knime.base.node.io.filehandling.webui.reader2;
+package org.knime.base.node.io.filehandling.csv.reader2;
 
-import org.knime.base.node.io.filehandling.webui.FileChooserPathAccessor;
-import org.knime.base.node.io.filehandling.webui.reader2.ReaderPathConfiguration.ReaderPathConfigResult;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
-import org.knime.filehandling.core.connections.FSLocation;
-import org.knime.filehandling.core.connections.FSLocationSpec;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
+import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
+import org.knime.base.node.io.filehandling.webui.ReferenceStateProvider;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.widget.number.NumberInputWidget;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsNonNegativeValidation;
 
 /**
- * Path for single file selection.
+ * Parameters for skipping first lines of file.
  *
- * @author Marc Bux, KNIME GmbH, Berlin, Germany
+ * @author Paul Bärnreuther
  */
-@SuppressWarnings("restriction")
-public class FileSelectionPath extends AbstractFileSelectionPath {
+public final class SkipFirstLinesOfFileParameters implements NodeParameters {
 
-    private FileSelection m_location = new FileSelection();
+    static final class SkipFirstLinesRef extends ReferenceStateProvider<Long> {
+    }
 
-    @Override
-    void setFSLocationSpec(final FSLocationSpec fsLocationSpec) {
-        m_location.m_path = new FSLocation(fsLocationSpec.getFileSystemCategory(),
-            fsLocationSpec.getFileSystemSpecifier().orElse(null), m_location.m_path.getPath());
+    @Widget(title = "Skip first lines of file", description = """
+            Use this option to skip lines that do not fit in the table structure (e.g. multi-line comments).
+            <br/>
+            The specified number of lines are skipped in the input file before the parsing starts. Skipping lines
+            prevents parallel reading of individual files.
+            """)
+    @ValueReference(SkipFirstLinesRef.class)
+    @NumberInputWidget(minValidation = IsNonNegativeValidation.class)
+    @Layout(CSVTableReaderLayoutAdditions.FileFormat.class)
+    long m_skipFirstLines;
+
+    /**
+     * Save the settings to the given config.
+     *
+     * @param csvConfig the config to save to
+     */
+    public void saveToConfig(final CSVTableReaderConfig csvConfig) {
+        csvConfig.setSkipLines(m_skipFirstLines > 0);
+        csvConfig.setNumLinesToSkip(m_skipFirstLines);
     }
 
     @Override
-    public ReadPathAccessor createReadPathAccessor(final ReaderPathConfigResult configureResult) {
-        return new FileChooserPathAccessor(getLocation(), configureResult.portFSConnection());
+    public void validate() throws InvalidSettingsException {
+        if (m_skipFirstLines < 0) {
+            throw new InvalidSettingsException("The number of lines to skip must be non-negative.");
+        }
     }
-
-    @Override
-    FSLocation getFSLocation() {
-        return getLocation().m_path;
-    }
-
-    @Override
-    boolean isDirectory() {
-        return false;
-    }
-
-    FileSelection getLocation() {
-        return m_location;
-    }
-
-    void setLocation(final FileSelection location) {
-        m_location = location;
-    }
-
 }

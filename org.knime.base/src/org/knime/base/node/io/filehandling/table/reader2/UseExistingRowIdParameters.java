@@ -44,54 +44,50 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Oct 16, 2025 (Marc Bux, KNIME GmbH, Berlin, Germany): created
+ *   Nov 24, 2025 (Paul Bärnreuther): created
  */
-package org.knime.base.node.io.filehandling.webui.reader2;
+package org.knime.base.node.io.filehandling.table.reader2;
 
-import org.knime.base.node.io.filehandling.webui.FileChooserPathAccessor;
-import org.knime.base.node.io.filehandling.webui.reader2.ReaderPathConfiguration.ReaderPathConfigResult;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
-import org.knime.filehandling.core.connections.FSLocation;
-import org.knime.filehandling.core.connections.FSLocationSpec;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
+import org.knime.base.node.io.filehandling.webui.ReferenceStateProvider;
+import org.knime.base.node.io.filehandling.webui.reader2.ReaderLayout;
+import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.updates.util.BooleanReference;
 
 /**
- * Path for single file selection.
+ * Parameters for specifying whether to use existing RowIDs (KnimeTable-specific).
  *
- * @author Marc Bux, KNIME GmbH, Berlin, Germany
+ * @author Paul Bärnreuther
  */
-@SuppressWarnings("restriction")
-public class FileSelectionPath extends AbstractFileSelectionPath {
+public final class UseExistingRowIdParameters implements NodeParameters {
 
-    private FileSelection m_location = new FileSelection();
-
-    @Override
-    void setFSLocationSpec(final FSLocationSpec fsLocationSpec) {
-        m_location.m_path = new FSLocation(fsLocationSpec.getFileSystemCategory(),
-            fsLocationSpec.getFileSystemSpecifier().orElse(null), m_location.m_path.getPath());
+    /**
+     * Reference for the use existing row ID value.
+     */
+    public static class UseExistingRowIdRef extends ReferenceStateProvider<Boolean> implements BooleanReference {
     }
 
-    @Override
-    public ReadPathAccessor createReadPathAccessor(final ReaderPathConfigResult configureResult) {
-        return new FileChooserPathAccessor(getLocation(), configureResult.portFSConnection());
-    }
+    private static final String DESCRIPTION = """
+            Check this box if the RowIDs from the input tables should be used for
+            the output tables. If unchecked, a new RowID is generated.
+            The generated RowID follows the schema "Row0", "Row1" and so on.
+            """;
 
-    @Override
-    FSLocation getFSLocation() {
-        return getLocation().m_path;
-    }
+    @Widget(title = "Use existing RowID", description = DESCRIPTION)
+    @ValueReference(UseExistingRowIdRef.class)
+    @Layout(ReaderLayout.DataArea.UseExistingRowId.class)
+    public boolean m_useExistingRowId;
 
-    @Override
-    boolean isDirectory() {
-        return false;
+    /**
+     * Save the settings to the given config.
+     *
+     * @param tableReadConfig the config to save to
+     */
+    public void saveToConfig(final DefaultTableReadConfig<?> tableReadConfig) {
+        tableReadConfig.setRowIDIdx(0);
+        tableReadConfig.setUseRowIDIdx(m_useExistingRowId);
     }
-
-    FileSelection getLocation() {
-        return m_location;
-    }
-
-    void setLocation(final FileSelection location) {
-        m_location = location;
-    }
-
 }

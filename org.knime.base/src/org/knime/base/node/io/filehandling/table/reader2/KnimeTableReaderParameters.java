@@ -49,30 +49,24 @@
 package org.knime.base.node.io.filehandling.table.reader2;
 
 import org.knime.base.node.io.filehandling.table.reader.KnimeTableMultiTableReadConfig;
-import org.knime.base.node.io.filehandling.webui.reader2.ReaderParameters;
 import org.knime.node.parameters.NodeParameters;
-import org.knime.node.parameters.Widget;
-import org.knime.node.parameters.layout.Layout;
-import org.knime.node.parameters.updates.Effect;
-import org.knime.node.parameters.updates.Effect.EffectType;
 
 /**
+ * KnimeTable-specific parameters for the Table Reader Node.
+ *
  * @author Paul Bärnreuther
  */
 class KnimeTableReaderParameters implements NodeParameters {
 
-    @Widget(title = "Prepend file index to RowID", description = """
-            Only enabled if the existing RowIDs are used. If checked, a prefix is
-            prepended to the RowIDs that indicates which table the row came
-            from.
-            The format of the prefix is “File_0_“, “File_1_” and so on.
-                """)
-    @Layout(KnimeTableReaderLayoutAdditions.MultipleFileHandling.FirstRowContainsColumnNames.class)
-    @Effect(predicate = ReaderParameters.FirstColumnContainsRowIdsRef.class, type = EffectType.ENABLE)
-    boolean m_prependTableIndexToRowId;
+    public UseExistingRowIdParameters m_useExistingRowIdParams = new UseExistingRowIdParameters();
+
+    public PrependTableIndexToRowIdParameters m_prependTableIndexParams = new PrependTableIndexToRowIdParameters();
 
     void saveToConfig(final KnimeTableMultiTableReadConfig config) {
-        config.getTableReadConfig().setPrependSourceIdxToRowId(m_prependTableIndexToRowId);
+        final var tableReadConfig = config.getTableReadConfig();
+
+        m_useExistingRowIdParams.saveToConfig(tableReadConfig);
+        m_prependTableIndexParams.saveToConfig(tableReadConfig);
     }
 
 }

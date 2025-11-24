@@ -53,7 +53,7 @@ import java.util.Optional;
 import org.knime.base.node.io.filehandling.csv.reader.CSVMultiTableReadConfig;
 import org.knime.base.node.io.filehandling.webui.reader2.FileSelectionPath;
 import org.knime.base.node.io.filehandling.webui.reader2.ReaderParameters;
-import org.knime.base.node.io.filehandling.webui.reader2.ReaderParameters.UseExistingRowIdWidgetRef;
+import org.knime.base.node.io.filehandling.webui.reader2.SingleFileReaderParameters;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.context.url.URLConfiguration;
@@ -70,7 +70,7 @@ import org.knime.node.parameters.updates.ValueReference;
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
 @Modification({CSVTableReaderNodeParameters.SetCSVExtensions.class,
-    CSVTableReaderNodeParameters.SetTitleAndDescriptionForUseExistingRowIds.class})
+    CSVTableReaderNodeParameters.SetTitleAndDescriptionForFirstColumnContainsRowIds.class})
 @SuppressWarnings("restriction")
 class CSVTableReaderNodeParameters implements NodeParameters {
 
@@ -94,20 +94,24 @@ class CSVTableReaderNodeParameters implements NodeParameters {
         // default constructor
     }
 
-    static final class SetCSVExtensions extends ReaderParameters.SetFileReaderWidgetExtensions {
+    static final class SetCSVExtensions extends SingleFileReaderParameters.SetFileReaderWidgetExtensions {
         @Override
         protected String[] getExtensions() {
             return new String[]{"csv", "tsv", "txt", "gz"};
         }
     }
 
-    static final class SetTitleAndDescriptionForUseExistingRowIds implements Modification.Modifier {
+    /**
+     * Reference for modifying the first column contains row IDs widget.
+     */
+    public static class FirstColumnContainsRowIdsWidgetRef implements Modification.Reference {
+    }
+
+    static final class SetTitleAndDescriptionForFirstColumnContainsRowIds implements Modification.Modifier {
         @Override
         public void modify(final Modification.WidgetGroupModifier group) {
-            group.find(UseExistingRowIdWidgetRef.class).modifyAnnotation(Widget.class)
-                .withProperty("title", "First column contains RowIDs").withProperty("description",
-                    "Select this box if the first column contains RowIDs (no duplicates allowed).")
-                .modify();
+            // The widget is now in FirstColumnContainsRowIdsParameters, title/description set there
+            // This modifier is kept for any additional modifications if needed
         }
     }
 
@@ -134,10 +138,10 @@ class CSVTableReaderNodeParameters implements NodeParameters {
         m_csvReaderParameters.saveToConfig(config);
         final var configID = config.getConfigID();
         m_transformationParameters.saveToConfig(//
-            config, m_readerParameters.m_source.m_path.getPath(), //
+            config, m_readerParameters.m_singleFileReader.m_source.m_path.getPath(), //
             configID, //
-            m_readerParameters.m_howToCombineColumns, //
-            m_readerParameters.m_appendPathColumn //
+            m_readerParameters.m_multiFileReaderParams.m_howToCombineColumns, //
+            m_readerParameters.m_multiFileReaderParams.m_appendPathColumn //
         );
     }
 

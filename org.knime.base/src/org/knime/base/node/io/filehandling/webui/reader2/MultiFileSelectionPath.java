@@ -50,20 +50,23 @@ package org.knime.base.node.io.filehandling.webui.reader2;
 
 import org.knime.base.node.io.filehandling.webui.FileChooserPathAccessor;
 import org.knime.base.node.io.filehandling.webui.reader2.ReaderPathConfiguration.ReaderPathConfigResult;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.DefaultFileChooserFilters;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelection;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelectionMode;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSLocationSpec;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.ReadPathAccessor;
 
 /**
- * Path for single file selection.
+ * Path for multi file selection.
  *
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
 @SuppressWarnings("restriction")
-public class FileSelectionPath extends AbstractFileSelectionPath {
+public class MultiFileSelectionPath extends AbstractFileSelectionPath {
 
-    private FileSelection m_location = new FileSelection();
+    private MultiFileSelection<DefaultFileChooserFilters> m_location =
+        new MultiFileSelection<>(MultiFileSelectionMode.FILE, new DefaultFileChooserFilters());
 
     @Override
     void setFSLocationSpec(final FSLocationSpec fsLocationSpec) {
@@ -73,12 +76,12 @@ public class FileSelectionPath extends AbstractFileSelectionPath {
 
     @Override
     public ReadPathAccessor createReadPathAccessor(final ReaderPathConfigResult configureResult) {
-        return new FileChooserPathAccessor(getLocation(), configureResult.portFSConnection());
+        return new FileChooserPathAccessor(m_location, configureResult.portFSConnection());
     }
 
     @Override
     FSLocation getFSLocation() {
-        return getLocation().m_path;
+        return m_location.m_path;
     }
 
     @Override
@@ -86,11 +89,7 @@ public class FileSelectionPath extends AbstractFileSelectionPath {
         return false;
     }
 
-    FileSelection getLocation() {
-        return m_location;
-    }
-
-    void setLocation(final FileSelection location) {
+    void setLocation(final MultiFileSelection<DefaultFileChooserFilters> location) {
         m_location = location;
     }
 
