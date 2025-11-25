@@ -48,7 +48,7 @@
  */
 package org.knime.base.node.io.filehandling.webui.reader;
 
-import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
+import org.knime.base.node.io.filehandling.webui.FileSystemManagedByPortMessage;
 import org.knime.base.node.io.filehandling.webui.ReferenceStateProvider;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderLayout.DataArea.UseExistingRowId;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.SettingsWithRowId;
@@ -61,7 +61,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelectio
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.LegacyReaderFileSelectionPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
-import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.WidgetGroup;
 import org.knime.node.parameters.layout.Layout;
@@ -79,8 +78,6 @@ import org.knime.node.parameters.widget.choices.Label;
 import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 import org.knime.node.parameters.widget.message.TextMessage;
-import org.knime.node.parameters.widget.message.TextMessage.MessageType;
-import org.knime.node.parameters.widget.message.TextMessage.SimpleTextMessageProvider;
 import org.knime.node.parameters.widget.text.TextInputWidget;
 import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils;
 import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils.ColumnNameValidation;
@@ -123,31 +120,6 @@ public final class CommonReaderNodeSettings {
              * @return the the valid extensions by which the browsable files should be filtered
              */
             protected abstract String[] getExtensions();
-        }
-
-        static final class FileSystemManagedByPortMessage implements SimpleTextMessageProvider {
-
-            @Override
-            public boolean showMessage(final NodeParametersInput context) {
-                return FileSystemPortConnectionUtil.hasEmptyFileSystemPort(context);
-            }
-
-            @Override
-            public String title() {
-                return "File system managed by File System Input Port";
-            }
-
-            @Override
-            public String description() {
-                return "No file system is currently connected. To proceed, either connect a file system to the input"
-                    + " port or remove the port.";
-            }
-
-            @Override
-            public MessageType type() {
-                return MessageType.INFO;
-            }
-
         }
 
         @TextMessage(value = FileSystemManagedByPortMessage.class)
