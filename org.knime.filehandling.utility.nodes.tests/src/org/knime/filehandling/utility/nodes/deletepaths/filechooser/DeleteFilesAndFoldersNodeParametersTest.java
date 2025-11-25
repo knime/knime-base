@@ -44,72 +44,61 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Aug 3, 2020 (Timmo Waller-Ehrat, KNIME GmbH, Konstanz, Germany): created
+ *   Nov 26, 2025: created
  */
 package org.knime.filehandling.utility.nodes.deletepaths.filechooser;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.context.ports.PortsConfiguration;
-import org.knime.filehandling.core.connections.FSCategory;
-import org.knime.filehandling.core.defaultnodesettings.EnumConfig;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
-import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
-import org.knime.filehandling.utility.nodes.deletepaths.AbstractDeleteFilesAndFoldersNodeConfig;
+import org.knime.core.node.NodeSettings;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
+import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
+import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 
 /**
- * Configuration of the "Delete Files/Folders" node.
+ * Snapshot test for {@link DeleteFilesAndFoldersNodeParameters}.
  *
- * @author Timmo Waller-Ehrat, KNIME GmbH, Konstanz, Germany
- * @author Lars Schweikardt, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline
  */
-final class DeleteFilesAndFoldersNodeConfig extends AbstractDeleteFilesAndFoldersNodeConfig {
+@SuppressWarnings("restriction")
+final class DeleteFilesAndFoldersNodeParametersTest extends DefaultNodeSettingsSnapshotTest {
 
-    static final String CFG_FILE_CHOOSER = "file_chooser";
-
-    private final SettingsModelReaderFileChooser m_fileChooserSettings;
-
-    /**
-     * Constructor.
-     *
-     * @param portsConfiguration the {@link PortsConfiguration}
-     */
-    DeleteFilesAndFoldersNodeConfig(final PortsConfiguration portsConfiguration) {
-        super();
-        m_fileChooserSettings = new SettingsModelReaderFileChooser(CFG_FILE_CHOOSER, portsConfiguration,
-            AbstractDeleteFilesAndFoldersNodeConfig.CONNECTION_INPUT_PORT_GRP_NAME,
-            EnumConfig.create(FilterMode.FILE, FilterMode.FOLDER, FilterMode.FILES_IN_FOLDERS),
-            FSCategory.getStandardNonTrivialFSCategories());
-
-        m_fileChooserSettings.getFilterModeModel().setIncludeSubfolders(true);
+    DeleteFilesAndFoldersNodeParametersTest() {
+        super(getConfig());
     }
 
-    SettingsModelReaderFileChooser getFileChooserSettings() {
-        return m_fileChooserSettings;
+    private static SnapshotTestConfiguration getConfig() {
+        return SnapshotTestConfiguration.builder() //
+            .testJsonFormsForModel(DeleteFilesAndFoldersNodeParameters.class) //
+            .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings()) //
+            .testNodeSettingsStructure(() -> readSettings()) //
+            .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings_legacy()) //
+            .build();
     }
 
-    @Override
-    protected boolean failIfFileDoesNotExist() {
-        //Always returns true since the version of this node does not have this option
-        return true;
+
+    private static DeleteFilesAndFoldersNodeParameters readSettings() {
+        return readSettings("DeleteFilesAndFoldersNodeParameters.xml");
     }
 
-    @Override
-    public void loadSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_fileChooserSettings.loadSettingsFrom(settings);
-        super.loadSettingsForModel(settings);
+    private static DeleteFilesAndFoldersNodeParameters readSettings_legacy() {
+        return readSettings("DeleteFilesAndFoldersNodeParameters_legacy.xml");
     }
 
-    @Override
-    public void saveSettingsForModel(final NodeSettingsWO settings) {
-        m_fileChooserSettings.saveSettingsTo(settings);
-        super.saveSettingsForModel(settings);
-    }
-
-    @Override
-    public void validateSettingsForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_fileChooserSettings.validateSettings(settings);
-        super.validateSettingsForModel(settings);
+    private static DeleteFilesAndFoldersNodeParameters readSettings(final String filename) {
+        try {
+            var path = getSnapshotPath(DeleteFilesAndFoldersNodeParameters.class).getParent().resolve("node_settings")
+                .resolve(filename);
+            try (var fis = new FileInputStream(path.toFile())) {
+                var nodeSettings = NodeSettings.loadFromXML(fis);
+                return NodeParametersUtil.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
+                    DeleteFilesAndFoldersNodeParameters.class);
+            }
+        } catch (IOException | InvalidSettingsException e) {
+            throw new IllegalStateException(e);
+        }
     }
 }
