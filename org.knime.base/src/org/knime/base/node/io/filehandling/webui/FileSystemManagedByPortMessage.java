@@ -54,7 +54,7 @@ import org.knime.node.parameters.widget.message.TextMessage.SimpleTextMessagePro
 
 /**
  * Message to inform the user that no file system is connected to the file system input port.
- * @since 5.9
+ * @since 5.10
  */
 public final class FileSystemManagedByPortMessage implements SimpleTextMessageProvider {
 

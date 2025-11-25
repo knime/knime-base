@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: KNIME Date and Time Handling
 Bundle-SymbolicName: org.knime.time;singleton:=true
-Bundle-Version: 5.9.0.qualifier
+Bundle-Version: 5.10.0.qualifier
 Bundle-ClassPath: .
 Bundle-Vendor: KNIME AG, Zurich, Switzerland
 Export-Package: org.knime.base.data.filter.row.dialog,
@@ -16,12 +16,12 @@ Export-Package: org.knime.base.data.filter.row.dialog,
   org.knime.core.data.time.zoneddatetime,
   org.knime.core.data.v2.time,
   org.knime.time.util
-Require-Bundle: org.knime.core;bundle-version="[5.9.0,6.0.0)",
- org.knime.base;bundle-version="[5.9.0,6.0.0)",
+Require-Bundle: org.knime.core;bundle-version="[5.10.0,6.0.0)",
+ org.knime.base;bundle-version="[5.10.0,6.0.0)",
  org.apache.commons.lang3;bundle-version="[3.2.1,4.0.0)",
  com.toedter.jcalendar;bundle-version="[1.4.0,1.5.0)",
  org.knime.core.table;bundle-version="[5.9.0,6.0.0)",
- org.knime.core.ui;bundle-version="[5.9.0,6.0.0)"
+ org.knime.core.ui;bundle-version="[5.10.0,6.0.0)"
 Bundle-RequiredExecutionEnvironment: JavaSE-17
 Bundle-ActivationPolicy: lazy
 Automatic-Module-Name: org.knime.time
