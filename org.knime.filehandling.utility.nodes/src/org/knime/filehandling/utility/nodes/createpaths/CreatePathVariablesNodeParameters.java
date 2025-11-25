@@ -84,6 +84,7 @@ import org.knime.node.parameters.widget.message.TextMessage.SimpleTextMessagePro
 @LoadDefaultsForAbsentFields
 class CreatePathVariablesNodeParameters implements NodeParameters {
 
+    @SuppressWarnings("java:S1176")
     interface DialogLayout {
 
         @Section(title = "Base Location")
@@ -110,8 +111,8 @@ class CreatePathVariablesNodeParameters implements NodeParameters {
     @Widget(title = "File/Folder variables",
         description = "A list of file/folder locations that will form a path with the selected base folder. "
             + "Enter the name of the flow variable in the <i>Variable name</i> column and write the name of the "
-            + "file/folder in the <i>Value</i> column. In case of a file also fill in the <i>File extension</i> column. "
-            + "These will be added to the path shown in the <i>Base location</i> column.")
+            + "file/folder in the <i>Value</i> column. In case of a file also fill in the <i>File extension</i> "
+            + "column. These will be added to the path shown in the <i>Base location</i> column.")
     @ArrayWidget(addButtonText = "Add path variable", elementTitle = "Path Variable")
     @Persistor(PathVariableArrayPersistor.class)
     PathVariable[] m_additionalPathVariables = {};
