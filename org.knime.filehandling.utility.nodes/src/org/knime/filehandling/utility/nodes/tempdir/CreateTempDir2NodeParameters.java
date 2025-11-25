@@ -46,7 +46,7 @@
 
 package org.knime.filehandling.utility.nodes.tempdir;
 
-import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
+import org.knime.base.node.io.filehandling.webui.FileSystemManagedByPortMessage;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelectionWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSystemOption;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.SingleFileSelectionMode;
@@ -56,7 +56,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification.Widget
 import org.knime.filehandling.utility.nodes.dialog.variables.AbstractPathVariableArrayPersistor;
 import org.knime.filehandling.utility.nodes.dialog.variables.PathVariable;
 import org.knime.node.parameters.NodeParameters;
-import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.array.ArrayWidget;
 import org.knime.node.parameters.layout.After;
@@ -67,8 +66,6 @@ import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.persistence.legacy.LegacyFileWriterWithCreateMissingFolders;
 import org.knime.node.parameters.widget.message.TextMessage;
-import org.knime.node.parameters.widget.message.TextMessage.MessageType;
-import org.knime.node.parameters.widget.message.TextMessage.SimpleTextMessageProvider;
 
 /**
  * Node parameters for Create Temp Folder.
@@ -93,31 +90,6 @@ class CreateTempDir2NodeParameters implements NodeParameters {
             + " Each variable will denote a path to a file or folder.")
     @After(FileOptions.class)
     interface AdditionalPathVariablesSection {
-    }
-
-    static final class FileSystemManagedByPortMessage implements SimpleTextMessageProvider {
-
-        @Override
-        public boolean showMessage(final NodeParametersInput context) {
-            return FileSystemPortConnectionUtil.hasEmptyFileSystemPort(context);
-        }
-
-        @Override
-        public String title() {
-            return "File system managed by File System Input Port";
-        }
-
-        @Override
-        public String description() {
-            return "No file system is currently connected. To proceed, either connect a file system to the input"
-                + " port or remove the port.";
-        }
-
-        @Override
-        public MessageType type() {
-            return MessageType.INFO;
-        }
-
     }
 
     @TextMessage(value = FileSystemManagedByPortMessage.class)

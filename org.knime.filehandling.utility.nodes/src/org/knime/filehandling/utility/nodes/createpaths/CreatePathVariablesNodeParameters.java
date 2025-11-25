@@ -53,14 +53,13 @@ package org.knime.filehandling.utility.nodes.createpaths;
 import static org.knime.filehandling.utility.nodes.createpaths.CreatePathVariablesNodeConfig.CFG_DIR_PARENT;
 import static org.knime.filehandling.utility.nodes.createpaths.CreatePathVariablesNodeConfig.CFG_FILE_FOLDER_VARIABLES;
 
-import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
+import org.knime.base.node.io.filehandling.webui.FileSystemManagedByPortMessage;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelectionWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.SingleFileSelectionMode;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.filehandling.utility.nodes.dialog.variables.AbstractPathVariableArrayPersistor;
 import org.knime.filehandling.utility.nodes.dialog.variables.PathVariable;
 import org.knime.node.parameters.NodeParameters;
-import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.array.ArrayWidget;
 import org.knime.node.parameters.layout.After;
@@ -71,8 +70,6 @@ import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.persistence.legacy.LegacyFileWriter;
 import org.knime.node.parameters.widget.message.TextMessage;
-import org.knime.node.parameters.widget.message.TextMessage.MessageType;
-import org.knime.node.parameters.widget.message.TextMessage.SimpleTextMessageProvider;
 
 /**
  * Node parameters for Create File/Folder Variables.
@@ -131,31 +128,6 @@ class CreatePathVariablesNodeParameters implements NodeParameters {
                 .withProperty("value", SingleFileSelectionMode.FOLDER) //
                 .modify();
         }
-    }
-
-    private static final class FileSystemManagedByPortMessage implements SimpleTextMessageProvider {
-
-        @Override
-        public boolean showMessage(final NodeParametersInput context) {
-            return FileSystemPortConnectionUtil.hasEmptyFileSystemPort(context);
-        }
-
-        @Override
-        public String title() {
-            return "File system managed by File System Input Port";
-        }
-
-        @Override
-        public String description() {
-            return "No file system is currently connected. To proceed, either connect a file system to the input"
-                + " port or remove the port.";
-        }
-
-        @Override
-        public MessageType type() {
-            return MessageType.INFO;
-        }
-
     }
 
     private static final class PathVariableArrayPersistor extends AbstractPathVariableArrayPersistor {
