@@ -453,7 +453,7 @@ public class GroupByNodeModel extends NodeModel {
      * @param aggregators list of manual column aggregators (already extracted from settings)
      * @throws IllegalArgumentException if a column is selected in the manual aggregators that should not be selected.
      *
-     * @since 5.9
+     * @since 5.10
      */
     protected void validateManualColumnAggregators(final NodeSettingsRO settings, final List<String> groupByCols,
         final List<ColumnAggregator> aggregators) throws IllegalArgumentException {
