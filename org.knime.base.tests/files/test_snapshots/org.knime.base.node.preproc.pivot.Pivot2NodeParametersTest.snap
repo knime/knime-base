@@ -787,12 +787,12 @@
     "trigger" : {
       "scope" : "#/properties/model/properties/groupByColumns"
     },
-    "dependencies" : [ "#/properties/model/properties/groupByColumns", "#/properties/model/properties/pivotColumns" ]
+    "dependencies" : [ "#/properties/model/properties/groupByColumns", "#/properties/model/properties/groupByColumns/properties/twinList/properties/inclList", "#/properties/model/properties/pivotColumns" ]
   }, {
     "trigger" : {
       "scope" : "#/properties/model/properties/groupByColumns/properties/twinList/properties/inclList"
     },
-    "dependencies" : [ "#/properties/model/properties/groupByColumns/properties/twinList/properties/inclList" ]
+    "dependencies" : [ "#/properties/model/properties/groupByColumns", "#/properties/model/properties/groupByColumns/properties/twinList/properties/inclList" ]
   }, {
     "trigger" : {
       "scope" : "#/properties/model/properties/performanceParameters/properties/processInMemory"
