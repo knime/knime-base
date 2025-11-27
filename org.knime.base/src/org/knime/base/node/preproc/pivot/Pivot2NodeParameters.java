@@ -148,11 +148,43 @@ class Pivot2NodeParameters implements NodeParameters {
     interface PivotColumnsRef extends ParameterReference<LegacyStringFilter> {
     }
 
+    static final class NonGroupColumnsProvider implements ColumnChoicesProvider {
+
+        private Supplier<LegacyStringFilter> m_groupByColumnsSupplier;
+
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            ColumnChoicesProvider.super.init(initializer);
+            m_groupByColumnsSupplier = initializer.computeFromValueSupplier(GroupByColumnsRef.class);
+        }
+
+        @Override
+        public List<DataColumnSpec> columnChoices(final NodeParametersInput context) {
+            final var tableSpec = context.getInTableSpec(0);
+            if (tableSpec.isEmpty()) {
+                return List.of();
+            }
+            final var exclSet =
+                Arrays.stream(m_groupByColumnsSupplier.get().m_twinList.m_inclList).collect(Collectors.toSet());
+            return tableSpec.get().stream().filter(colSpec -> !exclSet.contains(colSpec.getName())).toList();
+        }
+    }
+
+    static final class PivotColumnsExclListProvider extends ColumnBasedExclListProvider {
+
+        @Override
+        public Class<? extends ChoicesStateProvider<TypedStringChoice>> getChoicesProviderClass() {
+            return NonGroupColumnsProvider.class;
+        }
+
+    }
+
     static final class PivotColumnsModification extends LegacyStringFilter.LegacyStringFilterModification {
         PivotColumnsModification() {
             super(false, "Pivot columns", """
                     Select one or more columns according to which the pivot columns are created.
-                    """, "Pivot columns", "Available columns", AllColumnsProvider.class, ExclListProvider.class);
+                    """, "Pivot columns", "Available columns", NonGroupColumnsProvider.class,
+                PivotColumnsExclListProvider.class);
         }
     }
 
