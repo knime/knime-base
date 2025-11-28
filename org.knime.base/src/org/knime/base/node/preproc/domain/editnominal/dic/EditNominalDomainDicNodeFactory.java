@@ -46,55 +46,130 @@
  */
 package org.knime.base.node.preproc.domain.editnominal.dic;
 
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
 
 /**
+ * {@link NodeFactory} for the Edit Nominal Domain (Dictionary) node.
  *
  * @author Marcel Hanser
+ * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.2
  */
-public final class EditNominalDomainDicNodeFactory extends NodeFactory<EditNominalDomainDicNodeModel> {
+@SuppressWarnings("restriction")
+public final class EditNominalDomainDicNodeFactory extends NodeFactory<EditNominalDomainDicNodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public EditNominalDomainDicNodeModel createNodeModel() {
         return new EditNominalDomainDicNodeModel();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected int getNrNodeViews() {
         return 0;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public NodeView<EditNominalDomainDicNodeModel> createNodeView(final int viewIndex,
         final EditNominalDomainDicNodeModel nodeModel) {
         throw new IndexOutOfBoundsException();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected boolean hasDialog() {
         return true;
     }
 
+    private static final String NODE_NAME = "Edit Nominal Domain (Dictionary)";
+
+    private static final String NODE_ICON = "domain.png";
+
+    private static final String SHORT_DESCRIPTION = """
+            Adds possible values to the domain.
+            """;
+
+    private static final String FULL_DESCRIPTION = """
+            <p> Adds (and/or sorts) possible values given by the 2nd data table to the domain of equally named
+                columns of the 1st input table. This allows the configuration of downstream nodes on an amended domain
+                list, e.g. a histogram that should show an empty bin for a value that is not actually present in the
+                data. Also, the sorting on the domain values can be changed. This might be useful for instance for many
+                predictor nodes, which add a new column for each possible value to the prediction output table, whereby
+                the order of the columns is determined by the ordering in the domain. </p>
+            """;
+
+    private static final List<PortDescription> INPUT_PORTS = List.of(
+            fixedPort("Input", """
+                Input data
+                """),
+            fixedPort("Input", """
+                Additional domain value data
+                """)
+    );
+
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(
+            fixedPort("Output", """
+                Input data with changed specification.
+                """)
+    );
+
     /**
-     * {@inheritDoc}
+     * @since 5.10
      */
     @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new EditNominalDomainDicNodeDialogPane();
+    public NodeDialogPane createNodeDialogPane() {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    /**
+     * @since 5.10
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, EditNominalDomainDicNodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription(
+            NODE_NAME,
+            NODE_ICON,
+            INPUT_PORTS,
+            OUTPUT_PORTS,
+            SHORT_DESCRIPTION,
+            FULL_DESCRIPTION,
+            List.of(),
+            EditNominalDomainDicNodeParameters.class,
+            null,
+            NodeType.Manipulator,
+            List.of(),
+            null
+        );
+    }
+
+    /**
+     * @since 5.10
+     */
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, EditNominalDomainDicNodeParameters.class));
     }
 
 }

@@ -63,20 +63,17 @@ import org.knime.core.node.util.filter.column.DataTypeColumnFilter;
  */
 final class EditNominalDomainDicConfiguration {
 
-    /**
-     *
-     */
-    private static final int DEFAULT_MAX_DOMAIN_VALUES = 1000;
+    static final int DEFAULT_MAX_DOMAIN_VALUES = 1000;
 
-    private static final String IGNORE_NOT_PRESENT_COLS = "ignore-not-present-col";
+    static final String IGNORE_NOT_PRESENT_COLS = "ignore-not-present-col";
 
-    private static final String IGNORE_NOT_MATHING_TYPES = "ignore-not-matching-types";
+    static final String IGNORE_NOT_MATCHING_TYPES = "ignore-not-matching-types";
 
-    private static final String NEW_DOMAIN_VALUES_FIRST = "new-domain-values-first";
+    static final String NEW_DOMAIN_VALUES_FIRST = "new-domain-values-first";
 
-    private static final String MAX_DOMAIN_VALUES = "maximal-domain-values";
+    static final String MAX_DOMAIN_VALUES = "maximal-domain-values";
 
-    private static final String DATA_COLUMN_FILTER_SPEC_KEY = "datacolfilter";
+    static final String DATA_COLUMN_FILTER_SPEC_KEY = "datacolfilter";
 
     private boolean m_ignoreDomainColumns = false;
 
@@ -117,7 +114,7 @@ final class EditNominalDomainDicConfiguration {
     void loadConfigurationInDialog(final NodeSettingsRO settings, final DataTableSpec origSpec,
         final DataTableSpec valueSpec) {
         m_ignoreDomainColumns = settings.getBoolean(IGNORE_NOT_PRESENT_COLS, false);
-        m_ignoreWrongTypes = settings.getBoolean(IGNORE_NOT_MATHING_TYPES, false);
+        m_ignoreWrongTypes = settings.getBoolean(IGNORE_NOT_MATCHING_TYPES, false);
         m_addNewValuesFirst = settings.getBoolean(NEW_DOMAIN_VALUES_FIRST, true);
         m_maxDomainValues = settings.getInt(MAX_DOMAIN_VALUES, DEFAULT_MAX_DOMAIN_VALUES);
         guessDefaultColumnFilter(origSpec, valueSpec);
@@ -132,7 +129,7 @@ final class EditNominalDomainDicConfiguration {
      */
     void loadConfigurationInModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_ignoreDomainColumns = settings.getBoolean(IGNORE_NOT_PRESENT_COLS);
-        m_ignoreWrongTypes = settings.getBoolean(IGNORE_NOT_MATHING_TYPES);
+        m_ignoreWrongTypes = settings.getBoolean(IGNORE_NOT_MATCHING_TYPES);
         m_addNewValuesFirst = settings.getBoolean(NEW_DOMAIN_VALUES_FIRST);
         m_maxDomainValues = settings.getInt(MAX_DOMAIN_VALUES);
 
@@ -146,7 +143,7 @@ final class EditNominalDomainDicConfiguration {
      */
     void saveConfiguration(final NodeSettingsWO settings) {
         settings.addBoolean(IGNORE_NOT_PRESENT_COLS, m_ignoreDomainColumns);
-        settings.addBoolean(IGNORE_NOT_MATHING_TYPES, m_ignoreWrongTypes);
+        settings.addBoolean(IGNORE_NOT_MATCHING_TYPES, m_ignoreWrongTypes);
         settings.addBoolean(NEW_DOMAIN_VALUES_FIRST, m_addNewValuesFirst);
         settings.addInt(MAX_DOMAIN_VALUES, m_maxDomainValues);
         m_filterConfiguration.saveConfiguration(settings);
