@@ -160,7 +160,7 @@ public final class MultiFileSelectionParameters implements NodeParameters {
 
         @Override
         public EffectPredicate init(final PredicateInitializer i) {
-            return i.getMultiFileSelectionMode(FileSelectionRef.class).isMultiFileSelection();
+            return i.getMultiFileSelection(FileSelectionRef.class).isMultiFileSelection();
         }
 
     }
