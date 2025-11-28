@@ -85,6 +85,8 @@ import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.node.table.reader.TableReaderNodeModel;
+import org.knime.filehandling.core.node.table.reader.config.StorableMultiTableReadConfig;
+import org.knime.filehandling.core.node.table.reader.paths.SourceSettings;
 import org.knime.testing.util.WorkflowManagerUtil;
 import org.xml.sax.SAXException;
 
@@ -199,7 +201,7 @@ class CSVTableReaderNodeModel2Test extends LocalWorkflowContextTest {
     }
 
     private static class TestCSVTableReaderNodeFactory2
-        extends ConfigurableNodeFactory<TableReaderNodeModel<FSPath, CSVTableReaderConfig, Class<?>>>
+        extends ConfigurableNodeFactory<TableReaderNodeModel<FSPath, SourceSettings<FSPath>, CSVTableReaderConfig, Class<?>, StorableMultiTableReadConfig<CSVTableReaderConfig, Class<?>>>>
         implements NodeDialogFactory {
 
         private final CSVTableReaderNodeFactory2 m_delegate = new CSVTableReaderNodeFactory2();
@@ -222,8 +224,9 @@ class CSVTableReaderNodeModel2Test extends LocalWorkflowContextTest {
         }
 
         @Override
-        protected TableReaderNodeModel<FSPath, CSVTableReaderConfig, Class<?>>
-            createNodeModel(final NodeCreationConfiguration creationConfig) {
+        protected
+            TableReaderNodeModel<FSPath, SourceSettings<FSPath>, CSVTableReaderConfig, Class<?>, StorableMultiTableReadConfig<CSVTableReaderConfig, Class<?>>>
+            createNodeModel(NodeCreationConfiguration creationConfig) {
             final var modifiableCreationConfig = (ModifiableNodeCreationConfiguration)creationConfig;
             modifiableCreationConfig.setURLConfiguration(m_url);
             return m_delegate.createNodeModel(modifiableCreationConfig);
@@ -239,12 +242,16 @@ class CSVTableReaderNodeModel2Test extends LocalWorkflowContextTest {
             return 0;
         }
 
+        @Deprecated
         @Override
-        public NodeView<TableReaderNodeModel<FSPath, CSVTableReaderConfig, Class<?>>> createNodeView(
-            final int viewIndex, final TableReaderNodeModel<FSPath, CSVTableReaderConfig, Class<?>> nodeModel) {
+        public
+            NodeView<TableReaderNodeModel<FSPath, SourceSettings<FSPath>, CSVTableReaderConfig, Class<?>, StorableMultiTableReadConfig<CSVTableReaderConfig, Class<?>>>>
+            createNodeView(final int viewIndex,
+                final TableReaderNodeModel<FSPath, SourceSettings<FSPath>, CSVTableReaderConfig, Class<?>, StorableMultiTableReadConfig<CSVTableReaderConfig, Class<?>>> nodeModel) {
             return m_delegate.createNodeView(viewIndex, nodeModel);
         }
 
+        @Deprecated
         @Override
         protected boolean hasDialog() {
             return true;
