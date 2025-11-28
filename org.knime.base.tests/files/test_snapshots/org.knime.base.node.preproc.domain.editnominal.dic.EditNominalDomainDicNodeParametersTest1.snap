@@ -1,0 +1,279 @@
+{
+  "data" : {
+    "model" : {
+      "columnFilter" : {
+        "mode" : "MANUAL",
+        "patternFilter" : {
+          "pattern" : "",
+          "isCaseSensitive" : true,
+          "isInverted" : false
+        },
+        "manualFilter" : {
+          "manuallySelected" : [ "Cluster Membership" ],
+          "manuallyDeselected" : [ ],
+          "includeUnknownColumns" : false
+        },
+        "typeFilter" : {
+          "selectedTypes" : [ ],
+          "typeDisplays" : [ ]
+        }
+      },
+      "missingColumnHandling" : "FAIL",
+      "typeMismatchHandling" : "FAIL",
+      "domainValuePosition" : "BEFORE",
+      "maxDomainValues" : 1000
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columnFilter" : {
+            "type" : "object",
+            "properties" : {
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "includeUnknownColumns" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "manuallyDeselected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "manuallySelected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "manuallySelected" : [ ],
+                  "manuallyDeselected" : [ ],
+                  "includeUnknownColumns" : false
+                }
+              },
+              "mode" : {
+                "oneOf" : [ {
+                  "const" : "MANUAL",
+                  "title" : "Manual"
+                }, {
+                  "const" : "REGEX",
+                  "title" : "Regex"
+                }, {
+                  "const" : "WILDCARD",
+                  "title" : "Wildcard"
+                }, {
+                  "const" : "TYPE",
+                  "title" : "Type"
+                } ],
+                "default" : "MANUAL"
+              },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "isCaseSensitive" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "isInverted" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "pattern" : {
+                    "type" : "string",
+                    "default" : ""
+                  }
+                },
+                "default" : {
+                  "pattern" : "",
+                  "isCaseSensitive" : false,
+                  "isInverted" : false
+                }
+              },
+              "selected" : {
+                "type" : "array",
+                "items" : {
+                  "type" : "string"
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "selectedTypes" : [ ],
+                  "typeDisplays" : [ ]
+                }
+              }
+            },
+            "title" : "Select domain value columns",
+            "description" : "Select the columns from the second input table that should be used to add domain values to the columns in the first input table with matching names and types.\n",
+            "default" : {
+              "mode" : "MANUAL",
+              "patternFilter" : {
+                "pattern" : "",
+                "isCaseSensitive" : false,
+                "isInverted" : false
+              },
+              "manualFilter" : {
+                "manuallySelected" : [ ],
+                "manuallyDeselected" : [ ],
+                "includeUnknownColumns" : false
+              },
+              "typeFilter" : {
+                "selectedTypes" : [ ],
+                "typeDisplays" : [ ]
+              }
+            }
+          },
+          "domainValuePosition" : {
+            "oneOf" : [ {
+              "const" : "BEFORE",
+              "title" : "Before existing domain values (1st input)"
+            }, {
+              "const" : "AFTER",
+              "title" : "After existing domain values (1st input)"
+            } ],
+            "title" : "Domain values (2nd input) will be inserted",
+            "description" : "The ordering of the values in the domain might be relevant for downstream nodes, e.g. predictor nodes, which append new columns representing the different possible values. This option determines the ordering in the output, whereby the additional domain values (2nd input) can be either inserted before or after existing domain values (1st input).",
+            "default" : "BEFORE"
+          },
+          "maxDomainValues" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Maximum amount of possible domain values",
+            "description" : "Sets the upper bound of the number of possible domain values. An extreme high amount of possible domain values may influence and even crash the rest of the workflow, since table specifications are held in memory. It is highly recommended to use the given default.",
+            "default" : 1000
+          },
+          "missingColumnHandling" : {
+            "oneOf" : [ {
+              "const" : "FAIL",
+              "title" : "Fail"
+            }, {
+              "const" : "IGNORE",
+              "title" : "Ignore column"
+            } ],
+            "title" : "If domain value columns are not present in data",
+            "description" : "Determines if the execution should either fail or the column should be ignored if an included column does not exist in the input table (1st).",
+            "default" : "FAIL"
+          },
+          "typeMismatchHandling" : {
+            "oneOf" : [ {
+              "const" : "FAIL",
+              "title" : "Fail"
+            }, {
+              "const" : "IGNORE",
+              "title" : "Ignore column"
+            } ],
+            "title" : "If column types do not match",
+            "description" : "Determines if the execution should either fail or the column should be ignored if the types of an included column are not equal.",
+            "default" : "FAIL"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/columnFilter",
+      "options" : {
+        "format" : "typedStringFilter",
+        "unknownValuesText" : "Any unknown column",
+        "emptyStateLabel" : "No columns in this list.",
+        "hideTypeFilter" : true
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/missingColumnHandling",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/typeMismatchHandling",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/domainValuePosition"
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/maxDomainValues",
+      "options" : {
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 2147483647.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 2.147483647E9
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 0.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 0.0
+            }
+          }
+        }
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columnFilter" : {
+            "configPaths" : [ [ "datacolfilter", "filter-type" ], [ "datacolfilter", "included_names" ], [ "datacolfilter", "excluded_names" ], [ "datacolfilter", "enforce_option" ], [ "datacolfilter", "name_pattern", "pattern" ], [ "datacolfilter", "name_pattern", "type" ], [ "datacolfilter", "name_pattern", "caseSensitive" ], [ "datacolfilter", "name_pattern", "excludeMatching" ] ]
+          },
+          "missingColumnHandling" : {
+            "configPaths" : [ [ "ignore-not-present-col" ] ]
+          },
+          "typeMismatchHandling" : {
+            "configPaths" : [ [ "ignore-not-matching-types" ] ]
+          },
+          "domainValuePosition" : {
+            "configPaths" : [ [ "new-domain-values-first" ] ]
+          },
+          "maxDomainValues" : {
+            "configKey" : "maximal-domain-values"
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/columnFilter",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Cluster Membership",
+        "text" : "Cluster Membership",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  } ]
+}
