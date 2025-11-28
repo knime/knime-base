@@ -62,9 +62,9 @@ import org.knime.filehandling.utility.nodes.deletepaths.AbstractDeleteFilesAndFo
  */
 final class DeleteFilesAndFoldersTableNodeConfig extends AbstractDeleteFilesAndFoldersNodeConfig {
 
-    private static final String CFG_COLUMN_SELECTION = "column_selection";
+    static final String CFG_COLUMN_SELECTION = "column_selection";
 
-    private static final String CFG_FAIL_IF_FILE_NOT_EXIST = "fail_if_file_does_not_exist";
+    static final String CFG_FAIL_IF_FILE_NOT_EXIST = "fail_if_file_does_not_exist";
 
     private final SettingsModelString m_columnSelection;
 
