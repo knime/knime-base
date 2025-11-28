@@ -1,0 +1,121 @@
+{
+  "data" : {
+    "model" : {
+      "columnSelection" : "Path",
+      "failIfDeleteFails" : false,
+      "failIfFileDoesNotExist" : false
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columnSelection" : {
+            "type" : "string",
+            "title" : "Path column",
+            "description" : "The Path column that contains the paths which should be deleted."
+          },
+          "failIfDeleteFails" : {
+            "type" : "boolean",
+            "title" : "Fail if delete fails",
+            "description" : "If this option is checked, the node will fail if one of the files/folders could not be deleted, i.e., it could not be accessed. If it is unchecked, the output table will contain a column that indicates whether a file/folder was successfully deleted or not.",
+            "default" : true
+          },
+          "failIfFileDoesNotExist" : {
+            "type" : "boolean",
+            "title" : "Fail if file does not exist",
+            "description" : "If this option is checked, the node will fail if one of the files/folders does not exist.",
+            "default" : true
+          },
+          "fileSystemManagedByPortMessage" : {
+            "type" : "object"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "id" : "#/properties/model/properties/fileSystemManagedByPortMessage",
+      "options" : {
+        "format" : "textMessage"
+      },
+      "providedOptions" : [ "message" ]
+    }, {
+      "label" : "Column selection",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/columnSelection",
+        "options" : {
+          "format" : "dropDown"
+        },
+        "providedOptions" : [ "possibleValues" ]
+      } ]
+    }, {
+      "label" : "Options",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/failIfDeleteFails",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/failIfFileDoesNotExist",
+        "options" : {
+          "format" : "checkbox"
+        }
+      } ]
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "fileSystemManagedByPortMessage" : { },
+          "columnSelection" : {
+            "configKey" : "column_selection"
+          },
+          "failIfDeleteFails" : {
+            "configKey" : "fail_if_delete_fails",
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "abort_if_delete_fails" ] ]
+            } ]
+          },
+          "failIfFileDoesNotExist" : {
+            "configKey" : "fail_if_file_does_not_exist"
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/columnSelection",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Path",
+        "text" : "Path",
+        "type" : {
+          "id" : "org.knime.filehandling.core.data.location.FSLocationValue",
+          "text" : "Path"
+        }
+      } ]
+    } ]
+  }, {
+    "id" : "#/properties/model/properties/fileSystemManagedByPortMessage",
+    "providedOptionName" : "message",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : null
+    } ]
+  } ]
+}
