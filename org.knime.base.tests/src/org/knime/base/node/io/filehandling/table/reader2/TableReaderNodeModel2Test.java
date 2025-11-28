@@ -82,6 +82,8 @@ import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.node.table.reader.TableReaderNodeModel;
+import org.knime.filehandling.core.node.table.reader.config.StorableMultiTableReadConfig;
+import org.knime.filehandling.core.node.table.reader.paths.SourceSettings;
 import org.knime.testing.util.WorkflowManagerUtil;
 import org.xml.sax.SAXException;
 
@@ -163,7 +165,7 @@ class TableReaderNodeModel2Test extends LocalWorkflowContextTest {
     }
 
     private static class TestTableReaderNodeFactory2
-        extends ConfigurableNodeFactory<TableReaderNodeModel<FSPath, TableManipulatorConfig, DataType>>
+        extends ConfigurableNodeFactory<TableReaderNodeModel<FSPath, SourceSettings<FSPath>, TableManipulatorConfig, DataType, StorableMultiTableReadConfig<TableManipulatorConfig, DataType>>>
         implements NodeDialogFactory {
 
         private final TableReaderNodeFactory2 m_delegate = new TableReaderNodeFactory2();
@@ -186,7 +188,8 @@ class TableReaderNodeModel2Test extends LocalWorkflowContextTest {
         }
 
         @Override
-        protected TableReaderNodeModel<FSPath, TableManipulatorConfig, DataType>
+        protected
+            TableReaderNodeModel<FSPath, SourceSettings<FSPath>, TableManipulatorConfig, DataType, StorableMultiTableReadConfig<TableManipulatorConfig, DataType>>
             createNodeModel(final NodeCreationConfiguration creationConfig) {
             final var modifiableCreationConfig = (ModifiableNodeCreationConfiguration)creationConfig;
             modifiableCreationConfig.setURLConfiguration(m_url);
@@ -203,12 +206,16 @@ class TableReaderNodeModel2Test extends LocalWorkflowContextTest {
             return 0;
         }
 
+        @Deprecated
         @Override
-        public NodeView<TableReaderNodeModel<FSPath, TableManipulatorConfig, DataType>> createNodeView(
-            final int viewIndex, final TableReaderNodeModel<FSPath, TableManipulatorConfig, DataType> nodeModel) {
+        public
+            NodeView<TableReaderNodeModel<FSPath, SourceSettings<FSPath>, TableManipulatorConfig, DataType, StorableMultiTableReadConfig<TableManipulatorConfig, DataType>>>
+            createNodeView(final int viewIndex,
+                final TableReaderNodeModel<FSPath, SourceSettings<FSPath>, TableManipulatorConfig, DataType, StorableMultiTableReadConfig<TableManipulatorConfig, DataType>> nodeModel) {
             return m_delegate.createNodeView(viewIndex, nodeModel);
         }
 
+        @Deprecated
         @Override
         protected boolean hasDialog() {
             return true;
