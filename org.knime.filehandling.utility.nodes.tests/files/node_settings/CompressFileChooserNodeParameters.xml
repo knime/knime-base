@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="settings.xml">
+    <entry key="node_file" type="xstring" value="settings.xml"/>
+    <config key="flow_stack"/>
+    <config key="internal_node_subsettings">
+        <entry key="memory_policy" type="xstring" value="CacheSmallInMemory"/>
+    </config>
+    <config key="model">
+        <config key="source_location">
+            <config key="filter_mode">
+                <entry key="filter_mode" type="xstring" value="FOLDER"/>
+                <entry key="include_subfolders" type="xboolean" value="false"/>
+                <config key="filter_options">
+                    <entry key="filter_files_extension" type="xboolean" value="false"/>
+                    <entry key="files_extension_expression" type="xstring" value=""/>
+                    <entry key="files_extension_case_sensitive" type="xboolean" value="false"/>
+                    <entry key="filter_files_name" type="xboolean" value="false"/>
+                    <entry key="files_name_expression" type="xstring" value="*"/>
+                    <entry key="files_name_filter_type" type="xstring" value="WILDCARD"/>
+                    <entry key="files_name_case_sensitive" type="xboolean" value="false"/>
+                    <entry key="include_hidden_files" type="xboolean" value="false"/>
+                    <entry key="include_special_files" type="xboolean" value="true"/>
+                    <entry key="filter_folders_name" type="xboolean" value="false"/>
+                    <entry key="folders_name_expression" type="xstring" value="*"/>
+                    <entry key="folders_name_filter_type" type="xstring" value="WILDCARD"/>
+                    <entry key="folders_name_case_sensitive" type="xboolean" value="false"/>
+                    <entry key="include_hidden_folders" type="xboolean" value="false"/>
+                    <entry key="follow_links" type="xboolean" value="true"/>
+                </config>
+            </config>
+            <config key="path">
+                <entry key="location_present" type="xboolean" value="true"/>
+                <entry key="file_system_type" type="xstring" value="LOCAL"/>
+                <entry key="path" type="xstring" value="/tmp/foo"/>
+            </config>
+            <config key="file_system_chooser__Internals">
+                <entry key="has_fs_port" type="xboolean" value="false"/>
+                <entry key="overwritten_by_variable" type="xboolean" value="false"/>
+                <entry key="convenience_fs_category" type="xstring" value="RELATIVE"/>
+                <entry key="relative_to" type="xstring" value="knime.workflow"/>
+                <entry key="mountpoint" type="xstring" value="LOCAL"/>
+                <entry key="spaceId" type="xstring" value=""/>
+                <entry key="spaceName" type="xstring" value=""/>
+                <entry key="custom_url_timeout" type="xint" value="1000"/>
+                <entry key="connected_fs" type="xboolean" value="true"/>
+            </config>
+        </config>
+        <config key="destination_location">
+            <config key="path">
+                <entry key="location_present" type="xboolean" value="true"/>
+                <entry key="file_system_type" type="xstring" value="LOCAL"/>
+                <entry key="path" type="xstring" value="/tmp/foo.tar"/>
+            </config>
+            <config key="file_system_chooser__Internals">
+                <entry key="has_fs_port" type="xboolean" value="false"/>
+                <entry key="overwritten_by_variable" type="xboolean" value="false"/>
+                <entry key="convenience_fs_category" type="xstring" value="LOCAL"/>
+                <entry key="relative_to" type="xstring" value="knime.workflow"/>
+                <entry key="mountpoint" type="xstring" value="LOCAL"/>
+                <entry key="spaceId" type="xstring" value=""/>
+                <entry key="spaceName" type="xstring" value=""/>
+                <entry key="custom_url_timeout" type="xint" value="1000"/>
+                <entry key="connected_fs" type="xboolean" value="true"/>
+            </config>
+            <entry key="create_missing_folders" type="xboolean" value="true"/>
+        </config>
+        <entry key="if_path_exists" type="xstring" value="OVERWRITE"/>
+        <entry key="archive_entry_path" type="xstring" value="REMOVE_FOLDER_PREFIX"/>
+        <entry key="folder_prefix" type="xstring" value="&lt;folder prefix&gt;"/>
+        <entry key="compression" type="xstring" value="tar"/>
+        <entry key="include_empty_folders" type="xboolean" value="true"/>
+    </config>
+    <config key="variables"/>
+    <entry key="customDescription" type="xstring" isnull="true" value=""/>
+    <entry key="state" type="xstring" value="CONFIGURED"/>
+    <entry key="factory" type="xstring" value="org.knime.filehandling.utility.nodes.compress.filechooser.CompressFileChooserNodeFactory"/>
+    <entry key="node-name" type="xstring" value="Compress Files/Folder"/>
+    <entry key="node-bundle-name" type="xstring" value="KNIME Filehandling Nodes"/>
+    <entry key="node-bundle-symbolic-name" type="xstring" value="org.knime.filehandling.utility.nodes"/>
+    <entry key="node-bundle-vendor" type="xstring" value="KNIME AG, Zurich, Switzerland"/>
+    <entry key="node-bundle-version" type="xstring" value="5.10.0.qualifier"/>
+    <entry key="node-feature-name" type="xstring" isnull="true" value=""/>
+    <entry key="node-feature-symbolic-name" type="xstring" isnull="true" value=""/>
+    <entry key="node-feature-vendor" type="xstring" isnull="true" value=""/>
+    <entry key="node-feature-version" type="xstring" value="0.0.0"/>
+    <config key="factory_settings"/>
+    <config key="node_creation_config">
+        <config key="Source File System Connection"/>
+        <config key="Destination File System Connection"/>
+    </config>
+    <entry key="name" type="xstring" value="Compress Files/Folder"/>
+    <entry key="hasContent" type="xboolean" value="false"/>
+    <entry key="isInactive" type="xboolean" value="false"/>
+    <config key="ports"/>
+    <config key="filestores">
+        <entry key="file_store_location" type="xstring" isnull="true" value=""/>
+        <entry key="file_store_id" type="xstring" isnull="true" value=""/>
+    </config>
+</config>

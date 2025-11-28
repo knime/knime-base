@@ -65,7 +65,7 @@ import org.knime.filehandling.utility.nodes.truncator.TruncationSettings;
  */
 final class CompressFileChooserNodeConfig extends AbstractCompressNodeConfig<TruncationSettings> {
 
-    private static final String CFG_INPUT_LOCATION = "source_location";
+    static final String CFG_INPUT_LOCATION = "source_location";
 
     private final SettingsModelReaderFileChooser m_inputLocationChooserModel;
 
