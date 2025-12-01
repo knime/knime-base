@@ -135,7 +135,9 @@ public class PCA2ReverseNodeFactory extends NodeFactory<PCA2ReverseNodeModel>
     );
 
     /**
-     * @since 5.9
+     * {@inheritDoc}
+     *
+     * @since 5.10
      */
     @Override
     public NodeDialogPane createNodeDialogPane() {
@@ -143,7 +145,9 @@ public class PCA2ReverseNodeFactory extends NodeFactory<PCA2ReverseNodeModel>
     }
 
     /**
-     * @since 5.9
+     * {@inheritDoc}
+     *
+     * @since 5.10
      */
     @Override
     public NodeDialog createNodeDialog() {
@@ -169,7 +173,9 @@ public class PCA2ReverseNodeFactory extends NodeFactory<PCA2ReverseNodeModel>
     }
 
     /**
-     * @since 5.9
+     * {@inheritDoc}
+     *
+     * @since 5.10
      */
     @Override
     public KaiNodeInterface createKaiNodeInterface() {

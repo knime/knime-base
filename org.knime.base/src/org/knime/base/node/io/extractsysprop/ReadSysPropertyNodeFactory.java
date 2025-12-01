@@ -72,7 +72,6 @@ import org.knime.node.impl.description.PortDescription;
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
  * @author Martin Horn, KNIME GmbH, Konstanz, Germany
  * @author AI Migration Pipeline v1.2
- * @since 5.9
  */
 @SuppressWarnings("restriction")
 public class ReadSysPropertyNodeFactory extends NodeFactory<ReadSysPropertyNodeModel>
@@ -123,7 +122,9 @@ public class ReadSysPropertyNodeFactory extends NodeFactory<ReadSysPropertyNodeM
     }
 
     /**
-     * @since 5.9
+     * {@inheritDoc}
+     *
+     * @since 5.10
      */
     @Override
     public NodeDialogPane createNodeDialogPane() {
@@ -131,7 +132,9 @@ public class ReadSysPropertyNodeFactory extends NodeFactory<ReadSysPropertyNodeM
     }
 
     /**
-     * @since 5.9
+     * {@inheritDoc}
+     *
+     * @since 5.10
      */
     @Override
     public NodeDialog createNodeDialog() {
@@ -146,7 +149,9 @@ public class ReadSysPropertyNodeFactory extends NodeFactory<ReadSysPropertyNodeM
     }
 
     /**
-     * @since 5.9
+     * {@inheritDoc}
+     *
+     * @since 5.10
      */
     @Override
     public KaiNodeInterface createKaiNodeInterface() {

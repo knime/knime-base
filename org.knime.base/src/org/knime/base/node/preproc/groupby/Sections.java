@@ -56,7 +56,8 @@ import org.knime.node.parameters.layout.Section;
  * Sections for GroupBy node dialog. Public as they are intended to be used by related dialogs as well (e.g. Pivot).
  *
  * @author Paul Bärnreuther
- * @since 5.9
+ *
+ * @since 5.10
  */
 public interface Sections {
 

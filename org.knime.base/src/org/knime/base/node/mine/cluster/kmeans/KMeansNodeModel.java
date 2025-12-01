@@ -103,7 +103,7 @@ import org.knime.node.parameters.widget.choices.util.ColumnSelectionUtil;
  *
  * @author Michael Berthold, University of Konstanz
  * @author Magnus Gohm, KNIME AG, Konstanz, Germany
- * @since 5.9
+ * @since 5.10
  */
 @SuppressWarnings("restriction")
 public final class KMeansNodeModel extends WebUINodeModel<KMeansNodeParameters> {
@@ -134,7 +134,7 @@ public final class KMeansNodeModel extends WebUINodeModel<KMeansNodeParameters> 
     /**
      * @return cluster centers' hilite handler
      */
-    final HiLiteHandler getHiLiteHandler() {
+    HiLiteHandler getHiLiteHandler() {
         return m_translator.getFromHiLiteHandler();
     }
 

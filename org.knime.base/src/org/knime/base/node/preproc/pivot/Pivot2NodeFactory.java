@@ -192,7 +192,7 @@ public class Pivot2NodeFactory extends NodeFactory<Pivot2NodeModel> implements N
     /**
      * {@inheritDoc}
      *
-     * @since 5.9
+     * @since 5.10
      */
     @Override
     public boolean hasNodeDialog() {
@@ -202,7 +202,7 @@ public class Pivot2NodeFactory extends NodeFactory<Pivot2NodeModel> implements N
     /**
      * {@inheritDoc}
      *
-     * @since 5.9
+     * @since 5.10
      */
     @Override
     public NodeDialog createNodeDialog() {

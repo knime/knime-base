@@ -65,14 +65,14 @@ public class TransformationApplySettings extends TransformationReverseSettings {
     /**
      * The configuration key for the number of dimensions to reduce to.
      *
-     * @since 5.9
+     * @since 5.10
      */
     public static final String K_CFG = "number_of_dimensions";
 
     /**
      * The configuration key of the fail on missings flag.
      *
-     * @since 5.9
+     * @since 5.10
      */
     public static final String FAIL_ON_MISSING_CFG = "fail_on_missings";
 

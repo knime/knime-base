@@ -145,7 +145,9 @@ public final class RegressionPredictorNodeFactory2
     }
 
     /**
-     * @since 5.9
+     * {@inheritDoc}
+     *
+     * @since 5.10
      */
     @Override
     public NodeDialog createNodeDialog() {
@@ -171,7 +173,9 @@ public final class RegressionPredictorNodeFactory2
     }
 
     /**
-     * @since 5.9
+     * {@inheritDoc}
+     *
+     * @since 5.10
      */
     @Override
     public KaiNodeInterface createKaiNodeInterface() {

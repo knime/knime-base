@@ -65,14 +65,14 @@ public class TransformationComputeSettings {
     /**
      * The configuration key for the used columns.
      *
-     * @since 5.9
+     * @since 5.10
      */
     public static final String USED_COLS_CFG = "used_columns";
 
     /**
      * The configuration key of the fail on missings flag.
      *
-     * @since 5.9
+     * @since 5.10
      */
     public static final String FAIL_ON_MISSING_CFG = "fail_on_missings";
 
