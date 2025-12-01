@@ -472,6 +472,26 @@
     } ]
   }, {
     "scope" : "#/properties/model/properties/aggregationMethods/items/properties/parameters",
+    "values" : [ {
+      "indices" : [ 0 ],
+      "value" : {
+        "@class" : "org.knime.base.data.aggregation.numerical.CorrelationOperator$CorrelationOperatorParameters",
+        "columnSelectorParams" : {
+          "selectedColumn" : "Universe_0_1"
+        },
+        "correlationSettings" : {
+          "correlationMethod" : "SPEARMAN"
+        }
+      }
+    }, {
+      "indices" : [ 1 ],
+      "value" : {
+        "@class" : "org.knime.base.data.aggregation.numerical.CovarianceOperator$CovarianceOperatorParameters",
+        "selectedColumn" : "Universe_1_1"
+      }
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/aggregationMethods/items/properties/parameters",
     "providedOptionName" : "dynamicSettings",
     "values" : [ {
       "indices" : [ 0 ],

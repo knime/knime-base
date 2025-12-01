@@ -672,6 +672,21 @@
     } ]
   }, {
     "scope" : "#/properties/model/properties/columnAggregators/items/properties/parameters",
+    "values" : [ {
+      "indices" : [ 0 ],
+      "value" : {
+        "@class" : "org.knime.base.data.aggregation.numerical.PSquarePercentileOperator$PSquarePercentileOperatorParameters",
+        "percentile" : 80.0
+      }
+    }, {
+      "indices" : [ 1 ],
+      "value" : {
+        "@class" : "org.knime.base.data.aggregation.general.AbstractMedianOperator$AbstractMedianOperatorParameters",
+        "medianMethod" : "LOWER"
+      }
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/columnAggregators/items/properties/parameters",
     "providedOptionName" : "dynamicSettings",
     "values" : [ {
       "indices" : [ 0 ],
