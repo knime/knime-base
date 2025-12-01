@@ -57,7 +57,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicPa
  * generated to display the optional operator parameters.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
- * @since 5.9
+ * @since 5.10
  */
 @SuppressWarnings("restriction") // webui
 public interface AggregationOperatorParameters extends DynamicParameters.DynamicNodeParameters {

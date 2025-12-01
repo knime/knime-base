@@ -580,7 +580,8 @@ public abstract class AggregationOperator implements AggregationMethod {
      * node settings.
      *
      * @return the {@link NodeParameters} class that holds the optional settings for this operator
-     * @since 5.9
+     *
+     * @since 5.10
      */
     public Class<? extends AggregationOperatorParameters> getParametersClass() {
         return null;

@@ -77,7 +77,7 @@ import org.knime.core.node.property.hilite.KeyEvent;
  * View for the ClusterNodeModel2.
  *
  * @author Michael Berthold, University of Konstanz
- * @since 5.9
+ * @since 5.10
  */
 public class KMeansNodeView extends NodeView<KMeansNodeModel>
     implements HiLiteListener {

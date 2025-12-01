@@ -72,7 +72,7 @@ import org.knime.node.impl.description.ViewDescription;
  * @author Michael Berthold, University of Konstanz
  * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
  * @author AI Migration Pipeline v1.0
- * @since 5.9
+ * @since 5.10
  */
 @SuppressWarnings("restriction")
 public class KMeansNodeFactory extends NodeFactory<KMeansNodeModel>

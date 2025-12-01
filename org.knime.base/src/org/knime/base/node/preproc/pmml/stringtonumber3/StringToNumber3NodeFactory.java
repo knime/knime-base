@@ -130,7 +130,9 @@ public class StringToNumber3NodeFactory extends
     );
 
     /**
-     * @since 5.9
+     * {@inheritDoc}
+     *
+     * @since 5.10
      */
     @Override
     public NodeDialogPane createNodeDialogPane() {
@@ -138,7 +140,9 @@ public class StringToNumber3NodeFactory extends
     }
 
     /**
-     * @since 5.9
+     * {@inheritDoc}
+     *
+     * @since 5.10
      */
     @Override
     public NodeDialog createNodeDialog() {
@@ -164,7 +168,9 @@ public class StringToNumber3NodeFactory extends
     }
 
     /**
-     * @since 5.9
+     * {@inheritDoc}
+     *
+     * @since 5.10
      */
     @Override
     public KaiNodeInterface createKaiNodeInterface() {

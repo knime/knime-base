@@ -137,7 +137,9 @@ public class XValidatePartitionerFactory extends
     );
 
     /**
-     * @since 5.9
+     * {@inheritDoc}
+     *
+     * @since 5.10
      */
     @Override
     public NodeDialogPane createNodeDialogPane() {
@@ -145,7 +147,9 @@ public class XValidatePartitionerFactory extends
     }
 
     /**
-     * @since 5.9
+     * {@inheritDoc}
+     *
+     * @since 5.10
      */
     @Override
     public NodeDialog createNodeDialog() {
@@ -171,7 +175,9 @@ public class XValidatePartitionerFactory extends
     }
 
     /**
-     * @since 5.9
+     * {@inheritDoc}
+     *
+     * @since 5.10
      */
     @Override
     public KaiNodeInterface createKaiNodeInterface() {

@@ -202,7 +202,7 @@ public class GroupByNodeFactory extends NodeFactory<GroupByNodeModel> implements
     /**
      * {@inheritDoc}
      *
-     * @since 5.9
+     * @since 5.10
      */
     @Override
     public boolean hasNodeDialog() {
@@ -212,7 +212,7 @@ public class GroupByNodeFactory extends NodeFactory<GroupByNodeModel> implements
     /**
      * {@inheritDoc}
      *
-     * @since 5.9
+     * @since 5.10
      */
     @Override
     public NodeDialog createNodeDialog() {

@@ -71,7 +71,6 @@ import org.knime.node.impl.description.PortDescription;
  * @author M. Berthold, University of Konstanz
  * @author Kai Franze, KNIME GmbH, Germany
  * @author AI Migration Pipeline v1.2
- * @since 5.9
  */
 @SuppressWarnings("restriction")
 public class EndifNodeFactory extends NodeFactory<EndifNodeModel>
@@ -120,7 +119,9 @@ public class EndifNodeFactory extends NodeFactory<EndifNodeModel>
         fixedPort("Output table", "Output Table."));
 
     /**
-     * @since 5.9
+     * {@inheritDoc}
+     *
+     * @since 5.10
      */
     @Override
     public NodeDialogPane createNodeDialogPane() {
@@ -128,7 +129,9 @@ public class EndifNodeFactory extends NodeFactory<EndifNodeModel>
     }
 
     /**
-     * @since 5.9
+     * {@inheritDoc}
+     *
+     * @since 5.10
      */
     @Override
     public NodeDialog createNodeDialog() {
@@ -154,7 +157,9 @@ public class EndifNodeFactory extends NodeFactory<EndifNodeModel>
     }
 
     /**
-     * @since 5.9
+     * {@inheritDoc}
+     *
+     * @since 5.10
      */
     @Override
     public KaiNodeInterface createKaiNodeInterface() {

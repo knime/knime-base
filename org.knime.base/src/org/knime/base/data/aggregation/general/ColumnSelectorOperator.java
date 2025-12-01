@@ -317,7 +317,7 @@ public abstract class ColumnSelectorOperator extends AggregationOperator {
      * Operator parameters for {@link ColumnSelectorOperator}. Use the {@link ColumnSelectorOperatorParametersModifier}
      * to set the UI of the column selection.
      *
-     * @since 5.9
+     * @since 5.10
      */
     @SuppressWarnings("restriction")
     public static class ColumnSelectorOperatorParameters implements AggregationOperatorParameters {

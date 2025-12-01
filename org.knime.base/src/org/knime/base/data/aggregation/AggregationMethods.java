@@ -513,7 +513,7 @@ public final class AggregationMethods implements AggregationFunctionProvider<Agg
      * @param operatorID the operator ID to get custom parameters for
      * @return the class representing the custom parameters, or {@link Optional#empty()} if there is no such class
      *
-     * @since 5.9
+     * @since 5.10
      */
     public Optional<Class<? extends AggregationOperatorParameters>>
             getParametersClassFor(final String operatorID) {
@@ -524,7 +524,8 @@ public final class AggregationMethods implements AggregationFunctionProvider<Agg
      * Get all registered parameter classes.
      *
      * @return all registered parameter classes
-     * @since 5.9
+     *
+     * @since 5.10
      */
     public static Collection<Class<? extends AggregationOperatorParameters>> getAllParameterClasses() {
         List<Class<? extends AggregationOperatorParameters>> paramClasses = new ArrayList<>();

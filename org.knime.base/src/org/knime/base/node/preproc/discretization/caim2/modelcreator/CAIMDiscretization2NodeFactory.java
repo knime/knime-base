@@ -138,16 +138,15 @@ public class CAIMDiscretization2NodeFactory extends
                 """)
     );
 
-    /**
-     * @since 5.9
-     */
     @Override
     public NodeDialogPane createNodeDialogPane() {
         return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
     }
 
     /**
-     * @since 5.9
+     * {@inheritDoc}
+     *
+     * @since 5.10
      */
     @Override
     public NodeDialog createNodeDialog() {
@@ -173,7 +172,9 @@ public class CAIMDiscretization2NodeFactory extends
     }
 
     /**
-     * @since 5.9
+     * {@inheritDoc}
+     *
+     * @since 5.10
      */
     @Override
     public KaiNodeInterface createKaiNodeInterface() {

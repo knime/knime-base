@@ -63,7 +63,7 @@ public class TransformationReverseSettings {
     /**
      * The configuration key of the remove used columns flag.
      *
-     * @since 5.9
+     * @since 5.10
      */
     public static final String REMOVE_USED_COLS_CFG = "remove_used_columns";
 
