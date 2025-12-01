@@ -64,6 +64,16 @@ import org.knime.core.node.NotConfigurableException;
  */
 final class BinByDictionaryConfiguration {
 
+    // Configuration keys
+    static final String CFG_VALUE_COLUMN_PORT0 = "valueColumnPort0";
+    static final String CFG_LOWER_BOUND_COLUMN_PORT1 = "lowerBoundColumnPort1";
+    static final String CFG_LOWER_BOUND_INCLUSIVE = "lowerBoundInclusive";
+    static final String CFG_UPPER_BOUND_COLUMN_PORT1 = "upperBoundColumnPort1";
+    static final String CFG_UPPER_BOUND_INCLUSIVE = "upperBoundInclusive";
+    static final String CFG_LABEL_COLUMN_PORT1 = "labelColumnPort1";
+    static final String CFG_FAIL_IF_NO_RULE_MATCHES = "failIfNoRuleMatches";
+    static final String CFG_USE_BINARY_SEARCH = "useBinarySearch";
+
     private String m_valueColumnPort0;
     private String m_lowerBoundColumnPort1;
     private boolean m_lowerBoundInclusive;
@@ -143,15 +153,15 @@ final class BinByDictionaryConfiguration {
      * @throws InvalidSettingsException */
     void loadSettingsModel(final NodeSettingsRO settings)
         throws InvalidSettingsException {
-        m_valueColumnPort0 = settings.getString("valueColumnPort0");
-        m_lowerBoundColumnPort1 = settings.getString("lowerBoundColumnPort1");
-        m_lowerBoundInclusive = settings.getBoolean("lowerBoundInclusive");
-        m_upperBoundColumnPort1 = settings.getString("upperBoundColumnPort1");
-        m_upperBoundInclusive = settings.getBoolean("upperBoundInclusive");
-        m_labelColumnPort1 = settings.getString("labelColumnPort1");
-        m_failIfNoRuleMatches = settings.getBoolean("failIfNoRuleMatches");
+        m_valueColumnPort0 = settings.getString(CFG_VALUE_COLUMN_PORT0);
+        m_lowerBoundColumnPort1 = settings.getString(CFG_LOWER_BOUND_COLUMN_PORT1);
+        m_lowerBoundInclusive = settings.getBoolean(CFG_LOWER_BOUND_INCLUSIVE);
+        m_upperBoundColumnPort1 = settings.getString(CFG_UPPER_BOUND_COLUMN_PORT1);
+        m_upperBoundInclusive = settings.getBoolean(CFG_UPPER_BOUND_INCLUSIVE);
+        m_labelColumnPort1 = settings.getString(CFG_LABEL_COLUMN_PORT1);
+        m_failIfNoRuleMatches = settings.getBoolean(CFG_FAIL_IF_NO_RULE_MATCHES);
         // added in 2.8
-        m_useBinarySearch = settings.getBoolean("useBinarySearch", false);
+        m_useBinarySearch = settings.getBoolean(CFG_USE_BINARY_SEARCH, false);
         if (m_useBinarySearch) {
             if (m_lowerBoundColumnPort1 == null) {
                 throw new InvalidSettingsException("Lower bound must be selected for binary search");
@@ -217,15 +227,15 @@ final class BinByDictionaryConfiguration {
                     "No reasonable column in second input");
         }
         m_valueColumnPort0 = settings.getString(
-                "valueColumnPort0", valueColPort0);
+                CFG_VALUE_COLUMN_PORT0, valueColPort0);
         m_lowerBoundColumnPort1 = settings.getString(
-                "lowerBoundColumnPort1", lowerBoundColPort1);
+                CFG_LOWER_BOUND_COLUMN_PORT1, lowerBoundColPort1);
         m_lowerBoundInclusive =
-            settings.getBoolean("lowerBoundInclusive", false);
+            settings.getBoolean(CFG_LOWER_BOUND_INCLUSIVE, false);
         m_upperBoundColumnPort1 = settings.getString(
-                "upperBoundColumnPort1", upperBoundColPort1);
+                CFG_UPPER_BOUND_COLUMN_PORT1, upperBoundColPort1);
         m_upperBoundInclusive =
-            settings.getBoolean("upperBoundInclusive", true);
+            settings.getBoolean(CFG_UPPER_BOUND_INCLUSIVE, true);
 
         for (DataColumnSpec c : ins[1]) {
             if (labelColumnPort1 == null) {
@@ -235,7 +245,7 @@ final class BinByDictionaryConfiguration {
             }
         }
         m_labelColumnPort1 = settings.getString(
-                "labelColumnPort1", labelColumnPort1);
+                CFG_LABEL_COLUMN_PORT1, labelColumnPort1);
 
         if (!ins[0].containsName(m_valueColumnPort0)) {
             m_valueColumnPort0 = valueColPort0;
@@ -248,21 +258,21 @@ final class BinByDictionaryConfiguration {
             m_labelColumnPort1 = labelColumnPort1;
         }
         m_failIfNoRuleMatches =
-            settings.getBoolean("failIfNoRuleMatches", false);
-        m_useBinarySearch = settings.getBoolean("useBinarySearch", false);
+            settings.getBoolean(CFG_FAIL_IF_NO_RULE_MATCHES, false);
+        m_useBinarySearch = settings.getBoolean(CFG_USE_BINARY_SEARCH, false);
     }
 
     /** Save current configuration.
       * @param settings To save to. */
     void saveSettingsTo(final NodeSettingsWO settings) {
-        settings.addString("valueColumnPort0", m_valueColumnPort0);
-        settings.addString("lowerBoundColumnPort1", m_lowerBoundColumnPort1);
-        settings.addBoolean("lowerBoundInclusive", m_lowerBoundInclusive);
-        settings.addString("upperBoundColumnPort1", m_upperBoundColumnPort1);
-        settings.addBoolean("upperBoundInclusive", m_upperBoundInclusive);
-        settings.addString("labelColumnPort1", m_labelColumnPort1);
-        settings.addBoolean("failIfNoRuleMatches", m_failIfNoRuleMatches);
-        settings.addBoolean("useBinarySearch", m_useBinarySearch);
+        settings.addString(CFG_VALUE_COLUMN_PORT0, m_valueColumnPort0);
+        settings.addString(CFG_LOWER_BOUND_COLUMN_PORT1, m_lowerBoundColumnPort1);
+        settings.addBoolean(CFG_LOWER_BOUND_INCLUSIVE, m_lowerBoundInclusive);
+        settings.addString(CFG_UPPER_BOUND_COLUMN_PORT1, m_upperBoundColumnPort1);
+        settings.addBoolean(CFG_UPPER_BOUND_INCLUSIVE, m_upperBoundInclusive);
+        settings.addString(CFG_LABEL_COLUMN_PORT1, m_labelColumnPort1);
+        settings.addBoolean(CFG_FAIL_IF_NO_RULE_MATCHES, m_failIfNoRuleMatches);
+        settings.addBoolean(CFG_USE_BINARY_SEARCH, m_useBinarySearch);
     }
 
 }

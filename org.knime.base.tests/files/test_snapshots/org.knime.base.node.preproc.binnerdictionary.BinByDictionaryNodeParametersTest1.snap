@@ -1,0 +1,410 @@
+{
+  "data" : {
+    "model" : {
+      "valueColumnPort0" : "Universe_0_0",
+      "boundChoices" : {
+        "boundChoice" : "BOTH_BOUNDS",
+        "lowerColumn" : "Universe_1_0",
+        "upperColumn" : "Universe_1_1"
+      },
+      "lowerBoundInclusive" : false,
+      "upperBoundInclusive" : true,
+      "labelColumnPort1" : "Cluster Membership",
+      "noRuleMatchBehavior" : "INSERT_MISSING",
+      "searchPattern" : "LINEAR"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "boundChoices" : {
+            "type" : "object",
+            "properties" : {
+              "boundChoice" : {
+                "oneOf" : [ {
+                  "const" : "BOTH_BOUNDS",
+                  "title" : "Both"
+                }, {
+                  "const" : "LOWER_BOUND",
+                  "title" : "Lower"
+                }, {
+                  "const" : "UPPER_BOUND",
+                  "title" : "Upper"
+                } ],
+                "title" : "Active bounds",
+                "description" : "Choose what bounds to enable:\n\n<ul>\n<li><b>Both</b>: Enable both bounds for binning.</li>\n<li><b>Lower</b>: Enable lower bound for binning.</li>\n<li><b>Upper</b>: Enable upper bound for binning.</li>\n</ul>",
+                "default" : "BOTH_BOUNDS"
+              },
+              "lowerColumn" : {
+                "type" : "string",
+                "title" : "Lower bound column (2nd port)",
+                "description" : "Select the column containing the lower bound values.",
+                "default" : ""
+              },
+              "upperColumn" : {
+                "type" : "string",
+                "title" : "Upper bound column (2nd port)",
+                "description" : "Select the column containing the upper bound values.",
+                "default" : ""
+              }
+            },
+            "default" : {
+              "boundChoice" : "BOTH_BOUNDS",
+              "lowerColumn" : "",
+              "upperColumn" : ""
+            }
+          },
+          "labelColumnPort1" : {
+            "type" : "string",
+            "title" : "Label column (2nd port)",
+            "description" : "Select the label column from the 2nd input that will be appended as category column to the output table.\n",
+            "default" : ""
+          },
+          "lowerBoundInclusive" : {
+            "type" : "boolean",
+            "title" : "Lower bound inclusive",
+            "description" : "Choose whether a value must be strictly smaller or smaller or equal than the lower bound value by\nselecting the \"Inclusive\" checkbox (if checked it will be smaller or equal).\n",
+            "default" : false
+          },
+          "noRuleMatchBehavior" : {
+            "oneOf" : [ {
+              "const" : "INSERT_MISSING",
+              "title" : "Insert Missing"
+            }, {
+              "const" : "FAIL",
+              "title" : "Fail"
+            } ],
+            "title" : "If no rule matches",
+            "description" : "Choose the behavior if none of the rules in the 2nd input fires for a given value:\n\n<ul>\n<li><b>Insert Missing</b>: Insert missing values as result.\n</li>\n<li><b>Fail</b>: Make this node fail during execution (reasonable when the rule table is assumed to cover the entire\ndomain)\n</li>\n</ul>",
+            "default" : "INSERT_MISSING"
+          },
+          "searchPattern" : {
+            "oneOf" : [ {
+              "const" : "LINEAR",
+              "title" : "Linear"
+            }, {
+              "const" : "BINARY",
+              "title" : "Binary"
+            } ],
+            "title" : "Search pattern",
+            "description" : "Linear Search scans all rules sequentially in the order they are defined in the rule table and returns the\nlabel of the first rule that matches. Binary search only works if both limits are specified (and not\nmissing); it sorts the rules based on their lower and upper limits and performs a binary search to find the\nmatching label. Binary search might not be deterministic if rules overlap. It is much faster if there is a\nlarge rule set (tens of thousands or millions). If in doubt, use linear search.\n",
+            "default" : "LINEAR"
+          },
+          "upperBoundInclusive" : {
+            "type" : "boolean",
+            "title" : "Upper bound inclusive",
+            "description" : "Choose whether a value must be strictly larger or larger or equal than the upper bound value by selecting\nthe \"Inclusive\" checkbox (if checked it will be larger or equal).\n",
+            "default" : true
+          },
+          "valueColumnPort0" : {
+            "type" : "string",
+            "title" : "Value column to bin (1st port)",
+            "description" : "Select the column in the first input table containing the values to be categorized.",
+            "default" : ""
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/valueColumnPort0",
+      "options" : {
+        "format" : "dropDown"
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/boundChoices/properties/boundChoice",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/boundChoices/properties/lowerColumn",
+      "options" : {
+        "format" : "dropDown"
+      },
+      "providedOptions" : [ "possibleValues" ],
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/boundChoices/properties/boundChoice",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "LOWER_BOUND"
+            }, {
+              "const" : "BOTH_BOUNDS"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/lowerBoundInclusive",
+      "options" : {
+        "format" : "checkbox"
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/boundChoices/properties/boundChoice",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "LOWER_BOUND"
+            }, {
+              "const" : "BOTH_BOUNDS"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/boundChoices/properties/upperColumn",
+      "options" : {
+        "format" : "dropDown"
+      },
+      "providedOptions" : [ "possibleValues" ],
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/boundChoices/properties/boundChoice",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "UPPER_BOUND"
+            }, {
+              "const" : "BOTH_BOUNDS"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/upperBoundInclusive",
+      "options" : {
+        "format" : "checkbox"
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/boundChoices/properties/boundChoice",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "UPPER_BOUND"
+            }, {
+              "const" : "BOTH_BOUNDS"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/labelColumnPort1",
+      "options" : {
+        "format" : "dropDown"
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/noRuleMatchBehavior",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/searchPattern",
+      "options" : {
+        "format" : "valueSwitch"
+      },
+      "rule" : {
+        "effect" : "DISABLE",
+        "condition" : {
+          "type" : "OR",
+          "conditions" : [ {
+            "scope" : "#/properties/model/properties/boundChoices/properties/boundChoice",
+            "schema" : {
+              "not" : {
+                "oneOf" : [ {
+                  "const" : "LOWER_BOUND"
+                }, {
+                  "const" : "BOTH_BOUNDS"
+                } ]
+              }
+            }
+          }, {
+            "scope" : "#/properties/model/properties/boundChoices/properties/boundChoice",
+            "schema" : {
+              "not" : {
+                "oneOf" : [ {
+                  "const" : "UPPER_BOUND"
+                }, {
+                  "const" : "BOTH_BOUNDS"
+                } ]
+              }
+            }
+          } ]
+        }
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "valueColumnPort0" : {
+            "configKey" : "valueColumnPort0"
+          },
+          "boundChoices" : {
+            "configPaths" : [ [ "lowerBoundColumnPort1" ], [ "upperBoundColumnPort1" ] ]
+          },
+          "lowerBoundInclusive" : {
+            "configKey" : "lowerBoundInclusive"
+          },
+          "upperBoundInclusive" : {
+            "configKey" : "upperBoundInclusive"
+          },
+          "labelColumnPort1" : {
+            "configKey" : "labelColumnPort1"
+          },
+          "noRuleMatchBehavior" : {
+            "configPaths" : [ [ "failIfNoRuleMatches" ] ]
+          },
+          "searchPattern" : {
+            "configPaths" : [ [ "useBinarySearch" ] ]
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/boundChoices/properties/lowerColumn",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Universe_1_0",
+        "text" : "Universe_1_0",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Universe_1_1",
+        "text" : "Universe_1_1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Cluster Membership",
+        "text" : "Cluster Membership",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "OtherRuleColumn",
+        "text" : "OtherRuleColumn",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/boundChoices/properties/upperColumn",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Universe_1_0",
+        "text" : "Universe_1_0",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Universe_1_1",
+        "text" : "Universe_1_1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Cluster Membership",
+        "text" : "Cluster Membership",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "OtherRuleColumn",
+        "text" : "OtherRuleColumn",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/labelColumnPort1",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Cluster Membership",
+        "text" : "Cluster Membership",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "OtherRuleColumn",
+        "text" : "OtherRuleColumn",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/valueColumnPort0",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Universe_0_0",
+        "text" : "Universe_0_0",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "OtherColumn",
+        "text" : "OtherColumn",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "id" : "after-open-dialog"
+    },
+    "triggerInitially" : true,
+    "dependencies" : [ "#/properties/model/properties/boundChoices/properties/lowerColumn", "#/properties/model/properties/boundChoices/properties/upperColumn", "#/properties/model/properties/labelColumnPort1", "#/properties/model/properties/valueColumnPort0" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/boundChoices/properties/boundChoice"
+    },
+    "dependencies" : [ "#/properties/model/properties/boundChoices/properties/boundChoice" ]
+  } ]
+}
