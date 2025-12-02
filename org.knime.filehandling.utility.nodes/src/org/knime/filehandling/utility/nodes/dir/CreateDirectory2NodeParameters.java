@@ -135,8 +135,8 @@ final class CreateDirectory2NodeParameters implements NodeParameters {
                 .modify();
             fileSelection //
                 .addAnnotation(WithFileSystem.class) //
-                .withProperty("value",
-                    new FileSystemOption[]{FileSystemOption.LOCAL, FileSystemOption.SPACE, FileSystemOption.EMBEDDED})
+                .withProperty("value", new FileSystemOption[]{FileSystemOption.CONNECTED,
+                    FileSystemOption.LOCAL, FileSystemOption.SPACE, FileSystemOption.EMBEDDED})
                 .modify();
         }
 
