@@ -82,7 +82,6 @@ import org.knime.node.parameters.widget.text.TextInputWidgetValidation.PatternVa
  * @author Jasper Krauter, KNIME GmbH, Konstanz, Germany
  * @since 5.2
  */
-@SuppressWarnings({"restriction", "squid:S3052"}) // New Node UI is not yet API / initialise defaults verbosely
 public final class StringCleanerNodeSettings implements NodeParameters {
 
     // Layout
@@ -495,11 +494,8 @@ public final class StringCleanerNodeSettings implements NodeParameters {
 
     // Constructor
 
-    /**
-     * Constructor for de/serialization.
-     */
     StringCleanerNodeSettings() {
-        // required by interface
+        m_columnsToClean = new ColumnFilter().withIncludeUnknownColumns();
     }
 
     StringCleanerNodeSettings(final NodeParametersInput ctx) {

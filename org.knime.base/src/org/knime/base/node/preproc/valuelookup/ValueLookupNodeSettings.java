@@ -80,7 +80,6 @@ import org.knime.node.parameters.widget.choices.util.AllColumnsProvider;
  *
  * @author Jasper Krauter, KNIME GmbH, Konstanz, Germany
  */
-@SuppressWarnings("restriction") // New Node UI is not yet API
 public final class ValueLookupNodeSettings implements NodeParameters {
 
     /** How Strings in the target column / dictionary lookup shall be handled */
@@ -352,11 +351,8 @@ public final class ValueLookupNodeSettings implements NodeParameters {
     @Migrate(loadDefaultIfAbsent = true)
     boolean m_enableHiliting = false; //NOSONAR: more verbosity
 
-    /**
-     * Constructor for de/serialization.
-     */
     ValueLookupNodeSettings() {
-        // required by interface
+        m_dictValueCols = new ColumnFilter().withIncludeUnknownColumns();
     }
 
     ValueLookupNodeSettings(final NodeParametersInput ctx) {
