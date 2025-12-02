@@ -4,8 +4,6 @@
     <entry key="fail_if_source_does_not_exist" type="xboolean" value="true"/>
     <entry key="delete_source_files_folders" type="xboolean" value="false"/>
     <entry key="fail_on_unsuccessful_deletion" type="xboolean" value="true"/>
-    <entry key="transfer_policy" type="xstring" value="OVERWRITE_IF_NEWER"/>
-    <entry key="detailed_output" type="xboolean" value="true"/>
     <entry key="from_table" type="xboolean" value="true"/>
     <entry key="destination_column" type="xstring" value="dir1"/>
     <config key="destination_location">
@@ -27,6 +25,8 @@
         </config>
         <entry key="create_missing_folders" type="xboolean" value="false"/>
     </config>
+    <entry key="transfer_policy" type="xstring" value="OVERWRITE_IF_NEWER"/>
     <entry key="destination_file_path" type="xstring" value="REMOVE_FOLDER_PREFIX"/>
     <entry key="folder_prefix" type="xstring" value="&lt;folder prefix&gt;"/>
+    <entry key="detailed_output" type="xboolean" value="true"/>
 </config>

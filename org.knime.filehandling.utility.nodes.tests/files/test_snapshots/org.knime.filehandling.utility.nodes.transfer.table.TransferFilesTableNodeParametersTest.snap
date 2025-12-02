@@ -4,7 +4,6 @@
       "failIfSourceDoesNotExist" : false,
       "deleteSourceFilesAndFolders" : false,
       "failOnUnsuccessfulDeletion" : false,
-      "detailedOutput" : false,
       "fromTable" : "FROM_TABLE",
       "targetFolder" : {
         "file" : {
@@ -18,7 +17,8 @@
           }
         },
         "createMissingFolders" : false
-      }
+      },
+      "detailedOutput" : false
     }
   },
   "schema" : {
@@ -231,18 +231,6 @@
         "providedOptions" : [ "message" ]
       }, {
         "type" : "Control",
-        "scope" : "#/properties/model/properties/transferPolicy",
-        "options" : {
-          "format" : "valueSwitch"
-        }
-      }, {
-        "type" : "Control",
-        "scope" : "#/properties/model/properties/detailedOutput",
-        "options" : {
-          "format" : "checkbox"
-        }
-      }, {
-        "type" : "Control",
         "scope" : "#/properties/model/properties/fromTable",
         "options" : {
           "format" : "valueSwitch"
@@ -308,6 +296,12 @@
         }
       }, {
         "type" : "Control",
+        "scope" : "#/properties/model/properties/transferPolicy",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      }, {
+        "type" : "Control",
         "scope" : "#/properties/model/properties/destinationPath",
         "options" : {
           "format" : "valueSwitch"
@@ -348,6 +342,19 @@
           }
         }
       } ]
+    }, {
+      "label" : "Output",
+      "type" : "Section",
+      "options" : {
+        "isAdvanced" : true
+      },
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/detailedOutput",
+        "options" : {
+          "format" : "checkbox"
+        }
+      } ]
     } ]
   },
   "persist" : {
@@ -370,12 +377,6 @@
             "configKey" : "fail_on_unsuccessful_deletion"
           },
           "destinationFileSystemManagedByPortMessage" : { },
-          "transferPolicy" : {
-            "configKey" : "transfer_policy"
-          },
-          "detailedOutput" : {
-            "configKey" : "detailed_output"
-          },
           "fromTable" : {
             "configPaths" : [ [ "from_table" ] ]
           },
@@ -394,11 +395,17 @@
             },
             "configKey" : "destination_location"
           },
+          "transferPolicy" : {
+            "configKey" : "transfer_policy"
+          },
           "destinationPath" : {
             "configKey" : "destination_file_path"
           },
           "folderPrefix" : {
             "configKey" : "folder_prefix"
+          },
+          "detailedOutput" : {
+            "configKey" : "detailed_output"
           }
         }
       }
