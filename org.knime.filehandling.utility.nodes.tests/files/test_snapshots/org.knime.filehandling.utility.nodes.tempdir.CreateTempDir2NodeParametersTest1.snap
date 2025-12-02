@@ -4,11 +4,10 @@
       "targetFolder" : {
         "file" : {
           "path" : {
-            "fsCategory" : "RELATIVE",
+            "fsCategory" : "relative-to-workflow",
             "path" : "../test",
             "timeout" : 10000,
             "context" : {
-              "fsSpecifier" : "knime.workflow",
               "fsToString" : "(RELATIVE, knime.workflow, ../test)"
             }
           }
