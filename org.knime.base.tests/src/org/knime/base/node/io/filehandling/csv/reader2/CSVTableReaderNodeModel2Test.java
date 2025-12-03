@@ -88,7 +88,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSel
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSPath;
-import org.knime.filehandling.core.node.table.reader.TableReaderNodeModel;
+import org.knime.filehandling.core.node.table.reader.CommonTableReaderNodeModel;
 import org.knime.testing.util.WorkflowManagerUtil;
 import org.xml.sax.SAXException;
 
@@ -206,9 +206,9 @@ class CSVTableReaderNodeModel2Test extends LocalWorkflowContextTest {
         m_wfm.loadNodeSettings(m_csvReader.getID(), nodeSettings);
     }
 
-    private static class TestCSVTableReaderNodeFactory2 extends
-        ConfigurableNodeFactory<TableReaderNodeModel<FSPath, MultiFileSelectionPath, CSVTableReaderConfig, Class<?>, //
-                CSVMultiTableReadConfig>>
+    private static class TestCSVTableReaderNodeFactory2
+        extends ConfigurableNodeFactory<CommonTableReaderNodeModel<FSPath, MultiFileSelectionPath, //
+                CSVTableReaderConfig, Class<?>, CSVMultiTableReadConfig>>
         implements NodeDialogFactory {
 
         private final CSVTableReaderNodeFactory2 m_delegate = new CSVTableReaderNodeFactory2();
@@ -231,9 +231,8 @@ class CSVTableReaderNodeModel2Test extends LocalWorkflowContextTest {
         }
 
         @Override
-        protected
-            TableReaderNodeModel<FSPath, MultiFileSelectionPath, CSVTableReaderConfig, Class<?>, CSVMultiTableReadConfig>
-            createNodeModel(final NodeCreationConfiguration creationConfig) {
+        protected CommonTableReaderNodeModel<FSPath, MultiFileSelectionPath, CSVTableReaderConfig, Class<?>, //
+                CSVMultiTableReadConfig> createNodeModel(final NodeCreationConfiguration creationConfig) {
             final var modifiableCreationConfig = (ModifiableNodeCreationConfiguration)creationConfig;
             modifiableCreationConfig.setURLConfiguration(m_url);
             return m_delegate.createNodeModel(modifiableCreationConfig);
@@ -251,11 +250,10 @@ class CSVTableReaderNodeModel2Test extends LocalWorkflowContextTest {
 
         @Deprecated
         @Override
-        public
-            NodeView<TableReaderNodeModel<FSPath, MultiFileSelectionPath, CSVTableReaderConfig, Class<?>, CSVMultiTableReadConfig>>
-            createNodeView(final int viewIndex,
-                final TableReaderNodeModel<FSPath, MultiFileSelectionPath, CSVTableReaderConfig, Class<?>, //
-                        CSVMultiTableReadConfig> nodeModel) {
+        public NodeView<CommonTableReaderNodeModel<FSPath, MultiFileSelectionPath, CSVTableReaderConfig, Class<?>, //
+                CSVMultiTableReadConfig>> createNodeView(final int viewIndex,
+                    final CommonTableReaderNodeModel<FSPath, MultiFileSelectionPath, CSVTableReaderConfig, Class<?>, //
+                            CSVMultiTableReadConfig> nodeModel) {
             return m_delegate.createNodeView(viewIndex, nodeModel);
         }
 
