@@ -1,0 +1,456 @@
+{
+  "data" : {
+    "model" : {
+      "columnType" : "NUMERIC_COLUMN",
+      "columnFilter" : {
+        "mode" : "MANUAL",
+        "patternFilter" : {
+          "pattern" : "",
+          "isCaseSensitive" : true,
+          "isInverted" : false
+        },
+        "manualFilter" : {
+          "manuallySelected" : [ "Universe_0_0", "Universe_0_1", "Universe_1_0", "Universe_1_1" ],
+          "manuallyDeselected" : [ ],
+          "includeUnknownColumns" : true
+        },
+        "typeFilter" : {
+          "selectedTypes" : [ ],
+          "typeDisplays" : [ ]
+        }
+      },
+      "allowImpreciseProbabilities" : true,
+      "precisionDigits" : 4,
+      "invalidDistributionHandling" : "FAIL",
+      "stringColumn" : "Cluster Membership",
+      "outputColumnName" : "Probability Distribution",
+      "removeIncludedColumns" : false,
+      "missingValueHandling" : "FAIL"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "allowImpreciseProbabilities" : {
+            "type" : "boolean",
+            "title" : "Allow probabilities that sum up to 1 imprecisely",
+            "description" : "If enabled, the probabilities must not sum up to 1 precisely. This might be helpful if there are, e.g., some\nrounding errors in the probability values.\n",
+            "default" : true
+          },
+          "columnFilter" : {
+            "type" : "object",
+            "properties" : {
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "includeUnknownColumns" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "manuallyDeselected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "manuallySelected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "manuallySelected" : [ ],
+                  "manuallyDeselected" : [ ],
+                  "includeUnknownColumns" : false
+                }
+              },
+              "mode" : {
+                "oneOf" : [ {
+                  "const" : "MANUAL",
+                  "title" : "Manual"
+                }, {
+                  "const" : "REGEX",
+                  "title" : "Regex"
+                }, {
+                  "const" : "WILDCARD",
+                  "title" : "Wildcard"
+                }, {
+                  "const" : "TYPE",
+                  "title" : "Type"
+                } ],
+                "default" : "MANUAL"
+              },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "isCaseSensitive" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "isInverted" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "pattern" : {
+                    "type" : "string",
+                    "default" : ""
+                  }
+                },
+                "default" : {
+                  "pattern" : "",
+                  "isCaseSensitive" : false,
+                  "isInverted" : false
+                }
+              },
+              "selected" : {
+                "type" : "array",
+                "items" : {
+                  "type" : "string"
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "selectedTypes" : [ ],
+                  "typeDisplays" : [ ]
+                }
+              }
+            },
+            "title" : "Numeric columns",
+            "description" : "Move the columns that contain the probability values to the \"Include\" list.\n",
+            "default" : {
+              "mode" : "MANUAL",
+              "patternFilter" : {
+                "pattern" : "",
+                "isCaseSensitive" : false,
+                "isInverted" : false
+              },
+              "manualFilter" : {
+                "manuallySelected" : [ ],
+                "manuallyDeselected" : [ ],
+                "includeUnknownColumns" : false
+              },
+              "typeFilter" : {
+                "selectedTypes" : [ ],
+                "typeDisplays" : [ ]
+              }
+            }
+          },
+          "columnType" : {
+            "oneOf" : [ {
+              "const" : "NUMERIC_COLUMN",
+              "title" : "Numeric columns"
+            }, {
+              "const" : "STRING_COLUMN",
+              "title" : "String column"
+            } ],
+            "title" : "Column type",
+            "description" : "Choose whether to create probability distributions from numeric columns or a single string column.\n\n<ul>\n<li><b>Numeric columns</b>: Creates probability distributions from one or more numeric columns containing probability values.\n</li>\n<li><b>String column</b>: Creates a one-hot encoded probability distribution from a single string column.\n</li>\n</ul>",
+            "default" : "NUMERIC_COLUMN"
+          },
+          "invalidDistributionHandling" : {
+            "oneOf" : [ {
+              "const" : "FAIL",
+              "title" : "Fail"
+            }, {
+              "const" : "IGNORE",
+              "title" : "Ignore"
+            } ],
+            "title" : "Invalid probability distribution handling",
+            "description" : "Specify how to treat invalid probabilities. Invalid means, e.g., negative probabilities or probabilities\nthat do not sum up to 1 (with respect to the specified precision). If <i>Fail</i> is selected, the node will\n fail. Otherwise, the node just gives a warning and puts missing values in the output for the corresponding\nrows.\n",
+            "default" : "FAIL"
+          },
+          "missingValueHandling" : {
+            "oneOf" : [ {
+              "const" : "FAIL",
+              "title" : "Fail"
+            }, {
+              "const" : "IGNORE",
+              "title" : "Ignore"
+            }, {
+              "const" : "ZERO",
+              "title" : "Treat as zero"
+            } ],
+            "title" : "Missing value handling",
+            "description" : "Specify how to treat a missing value in one of the input columns. If 'Fail' is selected, the node will fail.\n If 'Ignore' is selected, the node just gives a warning and puts missing values in the output for the\n corresponding rows. If 'Treat as zero' is selected, the missing value will be treated as 0.\n",
+            "default" : "FAIL"
+          },
+          "outputColumnName" : {
+            "type" : "string",
+            "title" : "Output column name",
+            "description" : "Specify the name of the created column containing the probability distribution.",
+            "default" : "Probability Distribution"
+          },
+          "precisionDigits" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Precision (number of decimal digits)",
+            "description" : "Defines the precision that the sum of the probabilities must have by restricting the number of decimal\ndigits that must be precise. The sum is accepted if <i>abs(sum - 1) &lt;= 10^(-precision)</i> , e.g., if the\n sum is 0.999, it is only accepted with a precision of &lt;=2. The lower the specified number, the higher\n is the tolerance.\n",
+            "default" : 4
+          },
+          "removeIncludedColumns" : {
+            "type" : "boolean",
+            "title" : "Remove included columns",
+            "description" : "If selected, the included numeric columns or the picked string column will be removed from the output.\n",
+            "default" : false
+          },
+          "stringColumn" : {
+            "type" : "string",
+            "title" : "String column",
+            "description" : "Select a single string column with a valid domain to create a one-hot encoding probability distribution. I.e., the number of distinct values in the string column is will be the number of classes in the created distribution and the string value of a cell will have probability 1 whereby all other possible string values of a cell will have a probablity of 0. "
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "label" : "Column Type Selection",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/columnType",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      } ]
+    }, {
+      "label" : "Numeric Column Selection",
+      "type" : "Section",
+      "rule" : {
+        "effect" : "HIDE",
+        "condition" : {
+          "scope" : "#/properties/model/properties/columnType",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "STRING_COLUMN"
+            } ]
+          }
+        }
+      },
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/columnFilter",
+        "options" : {
+          "format" : "typedStringFilter",
+          "unknownValuesText" : "Any unknown column",
+          "emptyStateLabel" : "No columns in this list.",
+          "hideTypeFilter" : true
+        },
+        "providedOptions" : [ "possibleValues" ]
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/allowImpreciseProbabilities",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/precisionDigits",
+        "options" : {
+          "validation" : {
+            "max" : {
+              "errorMessage" : "The value must not exceed 2147483647.",
+              "parameters" : {
+                "isExclusive" : false,
+                "max" : 2.147483647E9
+              }
+            },
+            "min" : {
+              "errorMessage" : "The value must be at least 1.",
+              "parameters" : {
+                "isExclusive" : false,
+                "min" : 1.0
+              }
+            }
+          }
+        },
+        "rule" : {
+          "effect" : "ENABLE",
+          "condition" : {
+            "scope" : "#/properties/model/properties/allowImpreciseProbabilities",
+            "schema" : {
+              "const" : true
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/invalidDistributionHandling",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      } ]
+    }, {
+      "label" : "String Column Selection",
+      "type" : "Section",
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/columnType",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "STRING_COLUMN"
+            } ]
+          }
+        }
+      },
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/stringColumn",
+        "options" : {
+          "format" : "dropDown"
+        },
+        "providedOptions" : [ "possibleValues" ],
+        "rule" : {
+          "effect" : "ENABLE",
+          "condition" : {
+            "scope" : "#/properties/model/properties/columnType",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "STRING_COLUMN"
+              } ]
+            }
+          }
+        }
+      } ]
+    }, {
+      "label" : "Output",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/outputColumnName",
+        "options" : {
+          "validation" : {
+            "pattern" : {
+              "errorMessage" : "The field cannot be blank (it must contain at least one non-whitespace character).",
+              "parameters" : {
+                "pattern" : ".*\\S.*"
+              }
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/removeIncludedColumns",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/missingValueHandling",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      } ]
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columnType" : {
+            "configPaths" : [ [ "column_type" ] ]
+          },
+          "columnFilter" : {
+            "configPaths" : [ [ "column_filter", "filter-type" ], [ "column_filter", "included_names" ], [ "column_filter", "excluded_names" ], [ "column_filter", "enforce_option" ], [ "column_filter", "name_pattern", "pattern" ], [ "column_filter", "name_pattern", "type" ], [ "column_filter", "name_pattern", "caseSensitive" ], [ "column_filter", "name_pattern", "excludeMatching" ] ]
+          },
+          "allowImpreciseProbabilities" : {
+            "configKey" : "enable_precision"
+          },
+          "precisionDigits" : {
+            "configKey" : "precision"
+          },
+          "invalidDistributionHandling" : {
+            "configPaths" : [ [ "invalid_distribution_handling" ] ]
+          },
+          "stringColumn" : {
+            "configKey" : "single_string_column"
+          },
+          "outputColumnName" : {
+            "configKey" : "column_name"
+          },
+          "removeIncludedColumns" : {
+            "configKey" : "remove_included_columns"
+          },
+          "missingValueHandling" : {
+            "configPaths" : [ [ "missing_value_handling" ] ]
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/columnFilter",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Universe_0_0",
+        "text" : "Universe_0_0",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Universe_0_1",
+        "text" : "Universe_0_1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Universe_1_0",
+        "text" : "Universe_1_0",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Universe_1_1",
+        "text" : "Universe_1_1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/stringColumn",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Cluster Membership",
+        "text" : "Cluster Membership",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "id" : "after-open-dialog"
+    },
+    "triggerInitially" : true,
+    "dependencies" : [ "#/properties/model/properties/stringColumn" ]
+  } ]
+}

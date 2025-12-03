@@ -99,6 +99,17 @@ import org.knime.core.util.UniqueNameGenerator;
  */
 final class NominalDistributionCreatorNodeModel extends NodeModel {
 
+    // Configuration keys
+    static final String CFG_COLUMN_NAME = "column_name";
+    static final String CFG_REMOVE_INCLUDED_COLUMNS = "remove_included_columns";
+    static final String CFG_COLUMN_FILTER = "column_filter";
+    static final String CFG_ENABLE_PRECISION = "enable_precision";
+    static final String CFG_PRECISION = "precision";
+    static final String CFG_MISSING_VALUE_HANDLING = "missing_value_handling";
+    static final String CFG_INVALID_DISTRIBUTION_HANDLING = "invalid_distribution_handling";
+    static final String CFG_SINGLE_STRING_COLUMN = "single_string_column";
+    static final String CFG_COLUMN_TYPE = "column_type";
+
     /**
      */
     protected NominalDistributionCreatorNodeModel() {
@@ -124,43 +135,44 @@ final class NominalDistributionCreatorNodeModel extends NodeModel {
     private final SettingsModelString m_columnTypeModel = createColumnTypeModel();
 
     static SettingsModelString createColumnNameModel() {
-        return new SettingsModelString("column_name", "Probability Distribution");
+        return new SettingsModelString(CFG_COLUMN_NAME, "Probability Distribution");
     }
 
     static SettingsModelBoolean createRemoveIncludedColsBooleanModel() {
-        return new SettingsModelBoolean("remove_included_columns", false);
+        return new SettingsModelBoolean(CFG_REMOVE_INCLUDED_COLUMNS, false);
     }
 
     @SuppressWarnings("unchecked")
     static SettingsModelColumnFilter2 createColumnFilterModel() {
-        return new SettingsModelColumnFilter2("column_filter", DoubleValue.class);
+        return new SettingsModelColumnFilter2(CFG_COLUMN_FILTER, DoubleValue.class);
     }
 
     static SettingsModelBoolean createPrecisionBooleanModel() {
-        return new SettingsModelBoolean("enable_precision", true);
+        return new SettingsModelBoolean(CFG_ENABLE_PRECISION, true);
     }
 
     static SettingsModelIntegerBounded createPrecisionModel(final SettingsModelBoolean precisionBoolModel) {
-        final SettingsModelIntegerBounded model = new SettingsModelIntegerBounded("precision", 4, 1, Integer.MAX_VALUE);
+        final SettingsModelIntegerBounded model = new SettingsModelIntegerBounded(
+            CFG_PRECISION, 4, 1, Integer.MAX_VALUE);
         model.setEnabled(precisionBoolModel.getBooleanValue());
         precisionBoolModel.addChangeListener(l -> model.setEnabled(precisionBoolModel.getBooleanValue()));
         return model;
     }
 
     static SettingsModelString createMissingValueHandlingModel() {
-        return new SettingsModelString("missing_value_handling", MissingValueHandling.FAIL.name());
+        return new SettingsModelString(CFG_MISSING_VALUE_HANDLING, MissingValueHandling.FAIL.name());
     }
 
     static SettingsModelString createInvalidDistributionHandlingModel() {
-        return new SettingsModelString("invalid_distribution_handling", ExceptionHandling.FAIL.name());
+        return new SettingsModelString(CFG_INVALID_DISTRIBUTION_HANDLING, ExceptionHandling.FAIL.name());
     }
 
     static SettingsModelString createStringFilterModel() {
-        return new SettingsModelString("single_string_column", "String Column");
+        return new SettingsModelString(CFG_SINGLE_STRING_COLUMN, "");
     }
 
     static SettingsModelString createColumnTypeModel() {
-        return new SettingsModelString("column_type", ColumnType.getDefault().name());
+        return new SettingsModelString(CFG_COLUMN_TYPE, ColumnType.getDefault().name());
     }
 
     /**
