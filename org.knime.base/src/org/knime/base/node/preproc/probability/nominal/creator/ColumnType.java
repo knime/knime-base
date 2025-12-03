@@ -48,15 +48,26 @@
  */
 package org.knime.base.node.preproc.probability.nominal.creator;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.util.ButtonGroupEnumInterface;
+import org.knime.node.parameters.widget.choices.Label;
 
 /**
  *
  * @author Perla Gjoka, KNIME GmbH, Konstanz, Germany
  */
 enum ColumnType implements ButtonGroupEnumInterface {
-    NUMERIC_COLUMN("Create probability distribution from numeric columns", null, true),
-    STRING_COLUMN("Create probability distribution from string column", null, false);
+        @Label(value = "Numeric columns", description = """
+                Creates probability distributions from one or more numeric columns containing probability values.
+                """)
+        NUMERIC_COLUMN("Create probability distribution from numeric columns", null, true),
+        @Label(value = "String column", description = """
+                Creates a one-hot encoded probability distribution from a single string column.
+                """)
+        STRING_COLUMN("Create probability distribution from string column", null, false);
 
     private final String m_text;
     private final String m_toolTip;
@@ -67,6 +78,20 @@ enum ColumnType implements ButtonGroupEnumInterface {
         m_text = text;
         m_toolTip = toolTip;
         m_numericColumn = numericColumn;
+    }
+
+    static ColumnType getFromValue(final String value) throws InvalidSettingsException {
+        for (final ColumnType columnType : values()) {
+            if (columnType.name().equals(value)) {
+                return columnType;
+            }
+        }
+        throw new InvalidSettingsException(createInvalidSettingsExceptionMessage(value));
+    }
+
+    private static String createInvalidSettingsExceptionMessage(final String name) {
+        var values = List.of(NUMERIC_COLUMN.name(), STRING_COLUMN.name()).stream().collect(Collectors.joining(", "));
+        return String.format("Invalid value '%s'. Possible values: %s", name, values);
     }
 
     public boolean isNumericColumn() {

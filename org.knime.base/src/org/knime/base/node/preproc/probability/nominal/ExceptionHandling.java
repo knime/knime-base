@@ -48,7 +48,12 @@
  */
 package org.knime.base.node.preproc.probability.nominal;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.util.ButtonGroupEnumInterface;
+import org.knime.node.parameters.widget.choices.Label;
 
 /**
  * Enumeration of strategies how to handle exceptions during the creation or splitting of probability distribution
@@ -59,17 +64,41 @@ import org.knime.core.node.util.ButtonGroupEnumInterface;
 public enum ExceptionHandling implements ButtonGroupEnumInterface {
 
         /** Fail if an exception occurs. */
+        @Label("Fail")
         FAIL("Fail"),
         /**
          * Don't fail on an exception but handle it gracefully e.g. by outputting missing values or ignoring rows during
          * model building.
          */
+        @Label("Ignore")
         IGNORE("Ignore");
 
     private final String m_text;
 
     private ExceptionHandling(final String text) {
         m_text = text;
+    }
+
+    /**
+     * Returns the {@link ExceptionHandling} for the given value.
+     *
+     * @param value the value
+     * @return the corresponding ExceptionHandling
+     * @throws InvalidSettingsException if the value is invalid
+     * @since 5.10
+     */
+    public static ExceptionHandling getFromValue(final String value) throws InvalidSettingsException {
+        for (final ExceptionHandling exceptionHandling : values()) {
+            if (exceptionHandling.name().equals(value)) {
+                return exceptionHandling;
+            }
+        }
+        throw new InvalidSettingsException(createInvalidSettingsExceptionMessage(value));
+    }
+
+    private static String createInvalidSettingsExceptionMessage(final String name) {
+        var values = List.of(FAIL.name(), IGNORE.name()).stream().collect(Collectors.joining(", "));
+        return String.format("Invalid value '%s'. Possible values: %s", name, values);
     }
 
     /**

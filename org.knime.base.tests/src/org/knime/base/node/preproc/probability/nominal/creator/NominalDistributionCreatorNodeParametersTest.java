@@ -44,88 +44,64 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 6, 2019 (Simon Schmid, KNIME GmbH, Konstanz, Germany): created
+ *   Created on Nov 28, 2025 by AI Assistant
  */
 package org.knime.base.node.preproc.probability.nominal.creator;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import java.io.FileInputStream;
+import java.io.IOException;
 
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataType;
+import org.knime.core.data.def.DoubleCell;
+import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.util.ButtonGroupEnumInterface;
-import org.knime.node.parameters.widget.choices.Label;
+import org.knime.core.node.NodeSettings;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
+import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
+import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 
 /**
- * Enumeration of strategies how to handle missing values.
- *
- * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
+ * Snapshot test for {@link NominalDistributionCreatorNodeParameters}.
  */
-enum MissingValueHandling implements ButtonGroupEnumInterface {
-        /** Fail if an exception occurs. */
-        @Label("Fail")
-        FAIL("Fail"),
-        /**
-         * Don't fail on an exception but handle it gracefully e.g. by outputting missing values or ignoring rows during
-         * model building.
-         */
-        @Label("Ignore")
-        IGNORE("Ignore"),
-        /**
-         * Don't fail and treat the missing value as 0.
-         */
-        @Label("Treat as zero")
-        ZERO("Treat as zero");
+@SuppressWarnings({"restriction", "javadoc"})
+final class NominalDistributionCreatorNodeParametersTest extends DefaultNodeSettingsSnapshotTest {
 
-    private final String m_text;
+    private static final PortObjectSpec[] INPUT_PORT_SPECS = createInputPortSpecs();
 
-    private MissingValueHandling(final String text) {
-        m_text = text;
+    NominalDistributionCreatorNodeParametersTest() {
+        super(getConfig());
     }
 
-    static MissingValueHandling getFromValue(final String value) throws InvalidSettingsException {
-        for (final MissingValueHandling missingValueHandling : values()) {
-            if (missingValueHandling.name().equals(value)) {
-                return missingValueHandling;
+    private static SnapshotTestConfiguration getConfig() {
+        return SnapshotTestConfiguration.builder() //
+            .withInputPortObjectSpecs(INPUT_PORT_SPECS) //
+            .testJsonFormsForModel(NominalDistributionCreatorNodeParameters.class) //
+            .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings()) //
+            .testNodeSettingsStructure(() -> readSettings()) //
+            .build();
+    }
+
+    private static NominalDistributionCreatorNodeParameters readSettings() {
+        try {
+            var path = getSnapshotPath(NominalDistributionCreatorNodeParameters.class).getParent()
+                .resolve("node_settings").resolve("NominalDistributionCreatorNodeParameters.xml");
+            try (var fis = new FileInputStream(path.toFile())) {
+                var nodeSettings = NodeSettings.loadFromXML(fis);
+                return NodeParametersUtil.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
+                    NominalDistributionCreatorNodeParameters.class);
             }
+        } catch (IOException | InvalidSettingsException e) {
+            throw new IllegalStateException(e);
         }
-        throw new InvalidSettingsException(createInvalidSettingsExceptionMessage(value));
     }
 
-    private static String createInvalidSettingsExceptionMessage(final String name) {
-        var values = List.of(FAIL.name(), IGNORE.name(), ZERO.name()).stream().collect(Collectors.joining(", "));
-        return String.format("Invalid value '%s'. Possible values: %s", name, values);
+    private static PortObjectSpec[] createInputPortSpecs() {
+        return new PortObjectSpec[]{new DataTableSpec(
+            new String[]{"Universe_0_0", "Universe_0_1", "Universe_1_0", "Universe_1_1", "Cluster Membership"},
+            new DataType[]{DoubleCell.TYPE, DoubleCell.TYPE, DoubleCell.TYPE, DoubleCell.TYPE, StringCell.TYPE}
+        )};
     }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getText() {
-        return m_text;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getActionCommand() {
-        return name();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getToolTip() {
-        return null;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean isDefault() {
-        return this == FAIL;
-    }
-
 }
