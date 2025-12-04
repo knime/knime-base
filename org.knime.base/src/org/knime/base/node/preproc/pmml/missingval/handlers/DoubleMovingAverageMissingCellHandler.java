@@ -73,9 +73,9 @@ import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
  */
 public class DoubleMovingAverageMissingCellHandler extends MissingCellHandler {
 
-    private static final String LOOKBEHIND_SIZE_CFG = "lookbehindSize";
+    static final String LOOKBEHIND_SIZE_CFG = "lookbehindSize";
 
-    private static final String LOOKAHEAD_SIZE_CFG = "lookaheadSize";
+    static final String LOOKAHEAD_SIZE_CFG = "lookaheadSize";
 
     /**
      * @return a SettingsModel for setting the lookbehind

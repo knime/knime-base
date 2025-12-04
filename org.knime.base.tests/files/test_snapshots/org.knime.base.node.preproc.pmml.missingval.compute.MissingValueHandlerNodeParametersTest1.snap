@@ -1,0 +1,429 @@
+{
+  "data" : {
+    "model" : {
+      "columnSettings" : [ {
+        "colNames" : [ "StringCol" ],
+        "treatment" : {
+          "factoryID" : "org.knime.base.node.preproc.pmml.missingval.handlers.FixedStringValueMissingCellHandlerFactory",
+          "parameters" : {
+            "@class" : "org.knime.base.node.preproc.pmml.missingval.handlers.FixedStringValueParameters",
+            "value" : "1"
+          }
+        }
+      }, {
+        "colNames" : [ "IntCol", "LongCol" ],
+        "treatment" : {
+          "factoryID" : "org.knime.base.node.preproc.pmml.missingval.handlers.DoubleMovingAverageMissingCellHandlerFactory",
+          "parameters" : {
+            "@class" : "org.knime.base.node.preproc.pmml.missingval.handlers.DoubleMovingAverageParameters",
+            "lookbehind" : 3,
+            "lookahead" : 4
+          }
+        }
+      }, {
+        "colNames" : [ "BooleanCol" ],
+        "treatment" : {
+          "factoryID" : "org.knime.base.node.preproc.pmml.missingval.handlers.FixedBooleanValueMissingCellHandlerFactory",
+          "parameters" : {
+            "@class" : "org.knime.base.node.preproc.pmml.missingval.handlers.FixedBooleanValueParameters",
+            "value" : "FALSE"
+          }
+        }
+      } ],
+      "dataTypeSettings" : {
+        "allLoadedTreatments" : [ {
+          "dataTypeKey" : "org.knime.core.data.def.IntCell",
+          "treatment" : {
+            "factoryID" : "org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"
+          }
+        }, {
+          "dataTypeKey" : "org.knime.core.data.collection.ListCell",
+          "treatment" : {
+            "factoryID" : "org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"
+          }
+        }, {
+          "dataTypeKey" : "org.knime.core.data.time.zoneddatetime.ZonedDateTimeCell",
+          "treatment" : {
+            "factoryID" : "org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"
+          }
+        }, {
+          "dataTypeKey" : "org.knime.core.data.collection.SetCell",
+          "treatment" : {
+            "factoryID" : "org.knime.base.node.preproc.pmml.missingval.handlers.timeseries.PreviousMissingCellHandlerFactory"
+          }
+        }, {
+          "dataTypeKey" : "org.knime.core.data.time.localtime.LocalTimeCell",
+          "treatment" : {
+            "factoryID" : "org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"
+          }
+        }, {
+          "dataTypeKey" : "org.knime.core.data.def.LongCell",
+          "treatment" : {
+            "factoryID" : "org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"
+          }
+        }, {
+          "dataTypeKey" : "org.knime.core.data.def.DoubleCell",
+          "treatment" : {
+            "factoryID" : "org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"
+          }
+        }, {
+          "dataTypeKey" : "org.knime.core.data.uri.URIDataCell",
+          "treatment" : {
+            "factoryID" : "org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"
+          }
+        }, {
+          "dataTypeKey" : "org.knime.core.data.time.localdate.LocalDateCell",
+          "treatment" : {
+            "factoryID" : "org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"
+          }
+        }, {
+          "dataTypeKey" : "org.knime.core.data.def.BooleanCell",
+          "treatment" : {
+            "factoryID" : "org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"
+          }
+        }, {
+          "dataTypeKey" : "org.knime.core.data.def.StringCell",
+          "treatment" : {
+            "factoryID" : "org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"
+          }
+        }, {
+          "dataTypeKey" : "org.knime.core.data.time.duration.DurationCell",
+          "treatment" : {
+            "factoryID" : "org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"
+          }
+        }, {
+          "dataTypeKey" : "org.knime.core.data.time.localdatetime.LocalDateTimeCell",
+          "treatment" : {
+            "factoryID" : "org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"
+          }
+        }, {
+          "dataTypeKey" : "org.knime.core.data.date.DateAndTimeCell",
+          "treatment" : {
+            "factoryID" : "org.knime.base.node.preproc.pmml.missingval.handlers.MaxMissingCellHandlerFactory"
+          }
+        }, {
+          "dataTypeKey" : "org.knime.core.data.time.period.PeriodCell",
+          "treatment" : {
+            "factoryID" : "org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"
+          }
+        } ],
+        "treatmentsForPresentDataTypes" : [ ]
+      }
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columnSettings" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "colNames" : {
+                  "type" : "array",
+                  "items" : {
+                    "type" : "string"
+                  },
+                  "title" : "Columns",
+                  "description" : "Choose one or multiple columns for which a missing values treatment should be defined.If multiple columns are selected, only treatment options that are applicable to all of their data types become available.",
+                  "default" : [ "test1" ]
+                },
+                "treatment" : {
+                  "type" : "object",
+                  "properties" : {
+                    "factoryID" : {
+                      "type" : "string",
+                      "title" : "Treatment",
+                      "description" : "Choose the missing value treatment strategy. Some strategies require additional parameters which can be set below after selecting the strategy.<br/><br/>Options marked with an asterisk (*) will result in non-standard PMML, which uses extensions that cannot be read by other tools than KNIME.",
+                      "default" : "org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"
+                    },
+                    "parameters" : {
+                      "type" : "object"
+                    }
+                  },
+                  "default" : {
+                    "factoryID" : "org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"
+                  }
+                }
+              }
+            },
+            "title" : "Treatment by Column",
+            "description" : "Specify how to treat missing values for a specific columns.",
+            "default" : [ ]
+          },
+          "dataTypeSettings" : {
+            "type" : "object",
+            "properties" : {
+              "allLoadedTreatments" : {
+                "type" : "array",
+                "items" : {
+                  "type" : "object",
+                  "properties" : {
+                    "dataTypeKey" : {
+                      "type" : "string"
+                    },
+                    "treatment" : {
+                      "type" : "object",
+                      "properties" : {
+                        "factoryID" : {
+                          "type" : "string",
+                          "title" : "Treatment",
+                          "description" : "Choose the missing value treatment strategy. Some strategies require additional parameters which can be set below after selecting the strategy.<br/><br/>Options marked with an asterisk (*) will result in non-standard PMML, which uses extensions that cannot be read by other tools than KNIME.",
+                          "default" : "org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"
+                        },
+                        "parameters" : {
+                          "type" : "object"
+                        }
+                      }
+                    }
+                  }
+                },
+                "default" : [ ]
+              },
+              "treatmentsForPresentDataTypes" : {
+                "type" : "array",
+                "items" : {
+                  "type" : "object",
+                  "properties" : {
+                    "dataType" : {
+                      "type" : "string"
+                    },
+                    "treatment" : {
+                      "type" : "object",
+                      "properties" : {
+                        "factoryID" : {
+                          "type" : "string",
+                          "title" : "Treatment",
+                          "description" : "Choose the missing value treatment strategy. Some strategies require additional parameters which can be set below after selecting the strategy.<br/><br/>Options marked with an asterisk (*) will result in non-standard PMML, which uses extensions that cannot be read by other tools than KNIME.",
+                          "default" : "org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"
+                        },
+                        "parameters" : {
+                          "type" : "object"
+                        }
+                      },
+                      "default" : {
+                        "factoryID" : "org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"
+                      }
+                    }
+                  }
+                },
+                "title" : "Treatment by Data Type",
+                "description" : "Specify how to treat missing values for all columns of a certain data type.",
+                "default" : [ ]
+              }
+            },
+            "default" : {
+              "allLoadedTreatments" : [ ],
+              "treatmentsForPresentDataTypes" : [ ]
+            }
+          },
+          "noOrEmptyTableMessage" : {
+            "type" : "object"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "id" : "#/properties/model/properties/noOrEmptyTableMessage",
+      "options" : {
+        "format" : "textMessage"
+      },
+      "providedOptions" : [ "message" ]
+    }, {
+      "label" : "Treatment by Column",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/columnSettings",
+        "options" : {
+          "detail" : [ {
+            "type" : "Control",
+            "scope" : "#/properties/colNames",
+            "options" : {
+              "format" : "comboBox"
+            },
+            "providedOptions" : [ "possibleValues" ]
+          }, {
+            "type" : "Control",
+            "scope" : "#/properties/treatment/properties/factoryID",
+            "options" : {
+              "format" : "dropDown"
+            },
+            "providedOptions" : [ "possibleValues" ]
+          }, {
+            "type" : "Control",
+            "scope" : "#/properties/treatment/properties/parameters",
+            "options" : {
+              "format" : "dynamicInput"
+            },
+            "providedOptions" : [ "dynamicSettings" ]
+          } ],
+          "addButtonText" : "Add Column Treatment",
+          "arrayElementTitle" : "Column Treatment"
+        }
+      } ]
+    }, {
+      "label" : "Treatment by Data Type",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/dataTypeSettings/properties/treatmentsForPresentDataTypes",
+        "options" : {
+          "detail" : [ {
+            "type" : "Control",
+            "scope" : "#/properties/treatment/properties/factoryID",
+            "options" : {
+              "format" : "dropDown"
+            },
+            "providedOptions" : [ "possibleValues" ],
+            "rule" : {
+              "effect" : "SHOW",
+              "condition" : {
+                "scope" : "#/properties/_edit",
+                "schema" : {
+                  "const" : true
+                }
+              }
+            }
+          }, {
+            "type" : "Control",
+            "scope" : "#/properties/treatment/properties/parameters",
+            "options" : {
+              "format" : "dynamicInput"
+            },
+            "providedOptions" : [ "dynamicSettings" ],
+            "rule" : {
+              "effect" : "SHOW",
+              "condition" : {
+                "scope" : "#/properties/_edit",
+                "schema" : {
+                  "const" : true
+                }
+              }
+            }
+          } ],
+          "arrayElementTitle" : "Treatments For Present Data Type",
+          "hasFixedSize" : true,
+          "withEditAndReset" : true
+        },
+        "providedOptions" : [ "arrayElementTitle" ]
+      } ]
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "noOrEmptyTableMessage" : { },
+          "columnSettings" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "colNames" : { },
+                "treatment" : {
+                  "type" : "object",
+                  "properties" : {
+                    "factoryID" : { },
+                    "parameters" : {
+                      "type" : "object",
+                      "properties" : { },
+                      "configKey" : "settings",
+                      "deprecatedConfigKeys" : [ {
+                        "deprecated" : [ ]
+                      } ]
+                    }
+                  },
+                  "configKey" : "settings"
+                }
+              }
+            }
+          },
+          "dataTypeSettings" : {
+            "propertiesConfigPaths" : [ ]
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/columnSettings/items/properties/colNames",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "test1",
+        "text" : "test1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "test2",
+        "text" : "test2",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/dataTypeSettings/properties/treatmentsForPresentDataTypes",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "dataType" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.DoubleCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "treatment" : {
+          "factoryID" : "org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"
+        }
+      }, {
+        "dataType" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.StringCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "treatment" : {
+          "factoryID" : "org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"
+        }
+      } ]
+    } ]
+  }, {
+    "id" : "#/properties/model/properties/noOrEmptyTableMessage",
+    "providedOptionName" : "message",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : null
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "id" : "ElementResetButton"
+    },
+    "dependencies" : [ "#/properties/model/properties/dataTypeSettings/properties/treatmentsForPresentDataTypes/items/properties/treatment" ]
+  }, {
+    "trigger" : {
+      "id" : "after-open-dialog"
+    },
+    "triggerInitially" : true,
+    "dependencies" : [ "#/properties/model/properties/columnSettings/items/properties/colNames", "#/properties/model/properties/columnSettings/items/properties/treatment/properties/factoryID", "#/properties/model/properties/columnSettings/items/properties/treatment/properties/parameters", "#/properties/model/properties/dataTypeSettings/properties/treatmentsForPresentDataTypes/items/properties/dataType", "#/properties/model/properties/dataTypeSettings/properties/treatmentsForPresentDataTypes/items/properties/treatment/properties/factoryID", "#/properties/model/properties/dataTypeSettings/properties/treatmentsForPresentDataTypes/items/properties/treatment/properties/parameters" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/columnSettings/items/properties/colNames"
+    },
+    "dependencies" : [ "#/properties/model/properties/columnSettings/items/properties/colNames" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/columnSettings/items/properties/treatment/properties/factoryID"
+    },
+    "dependencies" : [ "#/properties/model/properties/columnSettings/items/properties/treatment/properties/factoryID", "#/properties/model/properties/columnSettings/items/properties/treatment/properties/parameters" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/dataTypeSettings/properties/treatmentsForPresentDataTypes/items/properties/treatment/properties/factoryID"
+    },
+    "dependencies" : [ "#/properties/model/properties/dataTypeSettings/properties/treatmentsForPresentDataTypes/items/properties/treatment/properties/factoryID", "#/properties/model/properties/dataTypeSettings/properties/treatmentsForPresentDataTypes/items/properties/treatment/properties/parameters" ]
+  } ]
+}

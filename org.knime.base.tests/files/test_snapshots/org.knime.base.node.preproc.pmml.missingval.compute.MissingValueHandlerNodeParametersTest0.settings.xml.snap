@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
+    <config key="columnSettings">
+        <config key="0">
+            <config key="colNames">
+                <entry key="array-size" type="xint" value="1"/>
+                <entry key="0" type="xstring" value="StringCol"/>
+            </config>
+            <config key="settings">
+                <entry key="factoryID" type="xstring" value="org.knime.base.node.preproc.pmml.missingval.handlers.FixedStringValueMissingCellHandlerFactory"/>
+                <config key="settings">
+                    <config key="fixStringValue_Internals">
+                        <entry key="SettingsModelID" type="xstring" value="SMID_string"/>
+                        <entry key="EnabledStatus" type="xboolean" value="true"/>
+                    </config>
+                    <entry key="fixStringValue" type="xstring" value="1"/>
+                </config>
+            </config>
+        </config>
+        <config key="1">
+            <config key="colNames">
+                <entry key="array-size" type="xint" value="2"/>
+                <entry key="0" type="xstring" value="IntCol"/>
+                <entry key="1" type="xstring" value="LongCol"/>
+            </config>
+            <config key="settings">
+                <entry key="factoryID" type="xstring" value="org.knime.base.node.preproc.pmml.missingval.handlers.DoubleMovingAverageMissingCellHandlerFactory"/>
+                <config key="settings">
+                    <config key="lookbehindSize_Internals">
+                        <entry key="SettingsModelID" type="xstring" value="SMID_integer"/>
+                        <entry key="EnabledStatus" type="xboolean" value="true"/>
+                    </config>
+                    <entry key="lookbehindSize" type="xint" value="3"/>
+                    <config key="lookaheadSize_Internals">
+                        <entry key="SettingsModelID" type="xstring" value="SMID_integer"/>
+                        <entry key="EnabledStatus" type="xboolean" value="true"/>
+                    </config>
+                    <entry key="lookaheadSize" type="xint" value="4"/>
+                </config>
+            </config>
+        </config>
+        <config key="2">
+            <config key="colNames">
+                <entry key="array-size" type="xint" value="1"/>
+                <entry key="0" type="xstring" value="BooleanCol"/>
+            </config>
+            <config key="settings">
+                <entry key="factoryID" type="xstring" value="org.knime.base.node.preproc.pmml.missingval.handlers.FixedBooleanValueMissingCellHandlerFactory"/>
+                <config key="settings">
+                    <config key="fixBooleanValue_Internals">
+                        <entry key="SettingsModelID" type="xstring" value="SMID_boolean"/>
+                        <entry key="EnabledStatus" type="xboolean" value="true"/>
+                    </config>
+                    <entry key="fixBooleanValue" type="xboolean" value="false"/>
+                </config>
+            </config>
+        </config>
+    </config>
+    <config key="dataTypeSettings">
+        <config key="org.knime.core.data.def.IntCell">
+            <entry key="factoryID" type="xstring" value="org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"/>
+            <config key="settings"/>
+        </config>
+        <config key="org.knime.core.data.collection.ListCell">
+            <entry key="factoryID" type="xstring" value="org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"/>
+            <config key="settings"/>
+        </config>
+        <config key="org.knime.core.data.time.zoneddatetime.ZonedDateTimeCell">
+            <entry key="factoryID" type="xstring" value="org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"/>
+            <config key="settings"/>
+        </config>
+        <config key="org.knime.core.data.collection.SetCell">
+            <entry key="factoryID" type="xstring" value="org.knime.base.node.preproc.pmml.missingval.handlers.timeseries.PreviousMissingCellHandlerFactory"/>
+            <config key="settings"/>
+        </config>
+        <config key="org.knime.core.data.time.localtime.LocalTimeCell">
+            <entry key="factoryID" type="xstring" value="org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"/>
+            <config key="settings"/>
+        </config>
+        <config key="org.knime.core.data.def.LongCell">
+            <entry key="factoryID" type="xstring" value="org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"/>
+            <config key="settings"/>
+        </config>
+        <config key="org.knime.core.data.def.DoubleCell">
+            <entry key="factoryID" type="xstring" value="org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"/>
+            <config key="settings"/>
+        </config>
+        <config key="org.knime.core.data.uri.URIDataCell">
+            <entry key="factoryID" type="xstring" value="org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"/>
+            <config key="settings"/>
+        </config>
+        <config key="org.knime.core.data.time.localdate.LocalDateCell">
+            <entry key="factoryID" type="xstring" value="org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"/>
+            <config key="settings"/>
+        </config>
+        <config key="org.knime.core.data.def.BooleanCell">
+            <entry key="factoryID" type="xstring" value="org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"/>
+            <config key="settings"/>
+        </config>
+        <config key="org.knime.core.data.def.StringCell">
+            <entry key="factoryID" type="xstring" value="org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"/>
+            <config key="settings"/>
+        </config>
+        <config key="org.knime.core.data.time.duration.DurationCell">
+            <entry key="factoryID" type="xstring" value="org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"/>
+            <config key="settings"/>
+        </config>
+        <config key="org.knime.core.data.time.localdatetime.LocalDateTimeCell">
+            <entry key="factoryID" type="xstring" value="org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"/>
+            <config key="settings"/>
+        </config>
+        <config key="org.knime.core.data.date.DateAndTimeCell">
+            <entry key="factoryID" type="xstring" value="org.knime.base.node.preproc.pmml.missingval.handlers.MaxMissingCellHandlerFactory"/>
+            <config key="settings"/>
+        </config>
+        <config key="org.knime.core.data.time.period.PeriodCell">
+            <entry key="factoryID" type="xstring" value="org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"/>
+            <config key="settings"/>
+        </config>
+    </config>
+</config>

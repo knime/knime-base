@@ -70,7 +70,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelDouble;
  */
 public class FixedDoubleValueMissingCellHandler extends MissingCellHandler {
 
-    private static final String FIX_VAL_CFG = "fixDoubleValue";
+    static final String FIX_VAL_CFG = "fixDoubleValue";
 
     /**
      * @return a new SettingsModel for the fix value the user can select

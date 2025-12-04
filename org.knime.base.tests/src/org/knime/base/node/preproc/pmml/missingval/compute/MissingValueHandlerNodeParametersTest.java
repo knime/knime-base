@@ -44,81 +44,60 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   14.01.2015 (Alexander): created
+ *   Dec 5, 2025 (Paul Bärnreuther): created
  */
-package org.knime.base.node.preproc.pmml.missingval.handlers;
+package org.knime.base.node.preproc.pmml.missingval.compute;
 
-import org.knime.base.node.preproc.pmml.missingval.MissingCellHandler;
-import org.knime.base.node.preproc.pmml.missingval.MissingCellHandlerFactory;
-import org.knime.base.node.preproc.pmml.missingval.MissingValueHandlerPanel;
-import org.knime.base.node.preproc.pmml.missingval.compute.MissingValueTreatmentParameters;
-import org.knime.core.data.DataColumnSpec;
+import java.io.FileInputStream;
+import java.io.IOException;
+
+import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
+import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.StringCell;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettings;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
+import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
+import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 
-/**
- * Creates a handler that replaces missing values witha fixed string.
- *
- * @author Alexander Fillbrunn
- * @since 3.5
- * @noreference This class is not intended to be referenced by clients.
- */
-public class FixedStringValueMissingCellHandlerFactory extends MissingCellHandlerFactory {
+@SuppressWarnings("restriction")
+class MissingValueHandlerNodeParametersTest extends DefaultNodeSettingsSnapshotTest {
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean hasSettingsPanel() {
-        return true;
+    static final PortObjectSpec[] TEST_TABLE_SPECS = new PortObjectSpec[]{//
+        new DataTableSpec(new String[]{"test1", "test2"}, new DataType[]{DoubleCell.TYPE, StringCell.TYPE}) //
+    };
+
+    MissingValueHandlerNodeParametersTest() {
+        super(getConfig());
     }
 
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Class<? extends MissingValueTreatmentParameters> getParametersClass() {
-        return FixedStringValueParameters.class;
-    }
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public MissingValueHandlerPanel getSettingsPanel() {
-        return new FixedStringValuePanel();
+    private static SnapshotTestConfiguration getConfig() {
+        return SnapshotTestConfiguration.builder() //
+            .withInputPortObjectSpecs(TEST_TABLE_SPECS) //
+            .testJsonFormsForModel(MissingValueHandlerNodeParameters.class) //
+            // Would contain fallback dialog uuids, so we cannot use it here.
+            // .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings("MissingValueHandlerNodeParameters.xml")) //
+            .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings("MissingValueHandlerNodeParameters1.xml")) //
+            .testNodeSettingsStructure(() -> readSettings("MissingValueHandlerNodeParameters.xml")) //
+            .testNodeSettingsStructure(() -> readSettings("MissingValueHandlerNodeParameters1.xml")) //
+            .build();
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getDisplayName() {
-        return "Fix Value";
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public MissingCellHandler createHandler(final DataColumnSpec column) {
-        return new FixedStringValueMissingCellHandler(column);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean producesPMML4_2() {
-        return true;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean isApplicable(final DataType type) {
-        return type.equals(StringCell.TYPE);
+    private static MissingValueHandlerNodeParameters readSettings(final String fileName) {
+        try {
+            var path = getSnapshotPath(MissingValueHandlerNodeParameters.class).getParent().resolve("node_settings")
+                .resolve(fileName);
+            try (var fis = new FileInputStream(path.toFile())) {
+                var nodeSettings = NodeSettings.loadFromXML(fis);
+                return NodeParametersUtil.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
+                    MissingValueHandlerNodeParameters.class);
+            }
+        } catch (IOException | InvalidSettingsException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
 }

@@ -44,88 +44,23 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   14.01.2015 (Alexander): created
+ *   Dec 4, 2025 (paulbaernreuther): created
  */
-package org.knime.base.node.preproc.pmml.missingval.handlers;
+package org.knime.base.node.preproc.pmml.missingval.compute;
 
-import org.dmg.pmml.DATATYPE;
-import org.dmg.pmml.DerivedFieldDocument.DerivedField;
-import org.knime.base.data.statistics.Statistic;
-import org.knime.base.node.preproc.pmml.missingval.DataColumnWindow;
-import org.knime.base.node.preproc.pmml.missingval.DefaultMissingCellHandler;
-import org.knime.core.data.DataCell;
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.RowKey;
-import org.knime.core.data.def.StringCell;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.base.node.preproc.pmml.missingval.MissingCellHandlerFactory;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters.DynamicNodeParameters;
 
 /**
- * Replaces missing values with a fixed integer.
+ * Marker interface.
  *
- * @author Alexander Fillbrunn
- * @since 3.5
- * @noreference This class is not intended to be referenced by clients.
+ * The modern ui representation of parameters for a {@link MissingCellHandlerFactory} whose method
+ * {@link MissingCellHandlerFactory#hasSettingsPanel} evaluates to true.
+ *
+ * @author Paul Baernreuther
+ * @since 5.10
  */
-public class FixedStringValueMissingCellHandler extends DefaultMissingCellHandler {
+@SuppressWarnings("restriction")
+public interface MissingValueTreatmentParameters extends DynamicNodeParameters {
 
-    static final String FIX_VAL_CFG = "fixStringValue";
-
-    /**
-     * @return a new SettingsModel for the fixed integer value the user can select
-     */
-    public static SettingsModelString createStringValueSettingsModel() {
-        return new SettingsModelString(FIX_VAL_CFG, "");
-    }
-
-    private SettingsModelString m_fixVal = createStringValueSettingsModel();
-
-    /**
-     * @param col the column this handler is configured for
-     */
-    public FixedStringValueMissingCellHandler(final DataColumnSpec col) {
-        super(col);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void loadSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_fixVal.loadSettingsFrom(settings);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void saveSettingsTo(final NodeSettingsWO settings) {
-        m_fixVal.saveSettingsTo(settings);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Statistic getStatistic() {
-        return null;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public DataCell getCell(final RowKey key, final DataColumnWindow window) {
-        return new StringCell(m_fixVal.getStringValue());
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public DerivedField getPMMLDerivedField() {
-        return createValueReplacingDerivedField(DATATYPE.STRING, m_fixVal.getStringValue());
-    }
 }

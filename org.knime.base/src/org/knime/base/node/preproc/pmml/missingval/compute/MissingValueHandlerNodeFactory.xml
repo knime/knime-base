@@ -11,26 +11,32 @@
     <fullDescription>
         <intro>
             This node helps handle missing values found in cells of the input 
-            table. The first tab in the dialog (labeled "Default") provides 
+            table.
+            <p>
+            The first section "Treatment by Column" permits individual settings for each available column.
+            Only columns that are not listed here are treated according to the settings in the second 
+            section "Treatment by Data Type". 
+            It is possible to select more than one column within one 
+            element leaving only treatment options that are applicable to all selected columns enabled. 
+            <br/>
+            </p>
+            <p>
+            The second section "Treatment by Data Type" provides 
             default handling options for all columns of a given type. 
             These settings apply to all columns in the input table that are not
-            explicitly mentioned in the second tab, labeled "Individual". This
-            second tab permits individual settings for each available column 
-            (thus, overriding the default). To make use of this second approach,
-            select a column or a list of columns which needs
-            extra handling, click "Add", and set the parameters. Click on the 
-            label with the column name(s), will select all covered columns 
-            in the column list. To remove this extra handling (and instead use 
-            the default handling), click the "Remove" button for this column.<br/>
-            Options marked with an asterisk (*) will result in non-standard PMML,
+            explicitly mentioned in the first section "Treatment by Column". 
+            </p>
+            <p>
+            Treatment options marked with an asterisk (*) will result in non-standard PMML,
             which uses extensions that cannot be read by other tools than KNIME.
+            </p>
         </intro>
     </fullDescription>
     
     <ports>
-        <inPort index="0" name="Input table">Table with missing values</inPort>
-        <outPort index="0" name="Output table">Table with replaced missing values</outPort>
-        <outPort index="1" name="PMML Transformations">Table with PMML documenting the missing value replacement</outPort>
+        <inPort index="0" name="Input table">Table with missing values.</inPort>
+        <outPort index="0" name="Output table">Table with replaced missing values.</outPort>
+        <outPort index="1" name="PMML Transformations">Table with PMML documenting the missing value replacement.</outPort>
     </ports>
     <keywords>
     	<keyword>Imputation</keyword>
