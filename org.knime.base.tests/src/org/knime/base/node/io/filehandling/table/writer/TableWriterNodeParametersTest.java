@@ -44,69 +44,67 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 26, 2021 (Mark Ortmann): created
+ *   Dec 3, 2025: created
  */
 package org.knime.base.node.io.filehandling.table.writer;
 
-import java.awt.Component;
-import java.awt.GridBagLayout;
+import java.io.FileInputStream;
+import java.io.IOException;
 
-import javax.swing.JPanel;
-
-import org.knime.core.node.FlowVariableModel;
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataType;
+import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.NotConfigurableException;
-import org.knime.core.node.context.ports.PortsConfiguration;
+import org.knime.core.node.NodeSettings;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.DialogComponentWriterFileChooser;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
-import org.knime.filehandling.core.util.GBCBuilder;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
+import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
+import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 
 /**
- * The dialog of the table writer node.
+ * Snapshot test for {@link TableWriterNodeParameters}.
  *
- * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
+ * @author AI Migration Pipeline
  */
-final class TableWriterNodeDialog extends NodeDialogPane {
+@SuppressWarnings("restriction")
+final class TableWriterNodeParametersTest extends DefaultNodeSettingsSnapshotTest {
 
-    private final DialogComponentWriterFileChooser m_writer;
-
-    TableWriterNodeDialog(final PortsConfiguration portsConfig, final String connectionInputPortGrpName) {
-        final TableWriterSettings settings = new TableWriterSettings(portsConfig, connectionInputPortGrpName);
-        final SettingsModelWriterFileChooser writerModel = settings.getWriterModel();
-        final FlowVariableModel fvm =
-            createFlowVariableModel(writerModel.getKeysForFSLocation(), FSLocationVariableType.INSTANCE);
-        m_writer = new DialogComponentWriterFileChooser(writerModel, connectionInputPortGrpName, fvm);
-        addTab("Settings", createPanel());
+    TableWriterNodeParametersTest() {
+        super(getConfig());
     }
 
-    private Component createPanel() {
-        final JPanel p = new JPanel(new GridBagLayout());
-        final GBCBuilder gbc = new GBCBuilder().weight(1, 0).anchorFirstLineStart().fillHorizontal();
-        p.add(m_writer.getComponentPanel(), gbc.build());
-        p.add(new JPanel(), gbc.incY().weight(0, 1).fillVertical().build());
-        return p;
+    private static SnapshotTestConfiguration getConfig() {
+        return SnapshotTestConfiguration.builder() //
+            .withInputPortObjectSpecs(createInputPortSpecs()) //
+            .testJsonFormsForModel(TableWriterNodeParameters.class) //
+            .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings()) //
+            .testNodeSettingsStructure(() -> readSettings()) //
+            .build();
     }
 
-    @Override
-    protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
-        m_writer.saveSettingsTo(settings);
+    private static TableWriterNodeParameters readSettings() {
+        try {
+            var path = getSnapshotPath(TableWriterNodeParameters.class).getParent().resolve("node_settings")
+                .resolve("TableWriterNodeParameters.xml");
+            try (var fis = new FileInputStream(path.toFile())) {
+                var nodeSettings = NodeSettings.loadFromXML(fis);
+                return NodeParametersUtil.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
+                    TableWriterNodeParameters.class);
+            }
+        } catch (IOException | InvalidSettingsException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
-    @Override
-    protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
-        throws NotConfigurableException {
-        m_writer.loadSettingsFrom(settings, specs);
+    private static PortObjectSpec[] createInputPortSpecs() {
+        return new PortObjectSpec[]{createDefaultTestTableSpec()};
     }
 
-    @Override
-    public void onClose() {
-        m_writer.onClose();
-        super.onClose();
+    private static DataTableSpec createDefaultTestTableSpec() {
+        return new DataTableSpec(
+            new String[]{"test_column"},
+            new DataType[]{DataType.getType(StringCell.class)}
+        );
     }
-
 }

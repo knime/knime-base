@@ -64,7 +64,7 @@ import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelF
  */
 final class TableWriterSettings {
 
-    private static final String CFG_FILE_CHOOSER = "file_selection";
+    static final String CFG_FILE_CHOOSER = "file_selection";
 
     private final SettingsModelWriterFileChooser m_writer;
 
