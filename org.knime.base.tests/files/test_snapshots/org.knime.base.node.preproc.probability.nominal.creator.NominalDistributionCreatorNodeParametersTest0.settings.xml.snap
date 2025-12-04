@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
     <entry key="column_type" type="xstring" value="NUMERIC_COLUMN"/>
+    <entry key="single_string_column" type="xstring" value="Cluster Membership"/>
     <config key="column_filter">
         <entry key="filter-type" type="xstring" value="STANDARD"/>
         <config key="included_names">
@@ -27,7 +28,6 @@
     <entry key="enable_precision" type="xboolean" value="true"/>
     <entry key="precision" type="xint" value="4"/>
     <entry key="invalid_distribution_handling" type="xstring" value="FAIL"/>
-    <entry key="single_string_column" type="xstring" value="Cluster Membership"/>
     <entry key="column_name" type="xstring" value="Probability Distribution"/>
     <entry key="remove_included_columns" type="xboolean" value="false"/>
     <entry key="missing_value_handling" type="xstring" value="FAIL"/>
