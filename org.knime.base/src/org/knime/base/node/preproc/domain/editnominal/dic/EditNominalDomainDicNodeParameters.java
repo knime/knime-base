@@ -46,6 +46,7 @@
 
 package org.knime.base.node.preproc.domain.editnominal.dic;
 
+import org.knime.core.data.NominalValue;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.TypedStringFilterWidgetInternal;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.Widget;
@@ -58,7 +59,7 @@ import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.Label;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
-import org.knime.node.parameters.widget.choices.util.AllColumnsProvider;
+import org.knime.node.parameters.widget.choices.util.CompatibleColumnsProvider;
 import org.knime.node.parameters.widget.number.NumberInputWidget;
 import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsNonNegativeValidation;
 
@@ -111,7 +112,11 @@ final class EditNominalDomainDicNodeParameters implements NodeParameters {
     @Persist(configKey = EditNominalDomainDicConfiguration.MAX_DOMAIN_VALUES)
     int m_maxDomainValues = EditNominalDomainDicConfiguration.DEFAULT_MAX_DOMAIN_VALUES;
 
-    static final class ColumnFilterChoicesProvider extends AllColumnsProvider {
+    static final class ColumnFilterChoicesProvider extends CompatibleColumnsProvider {
+
+        protected ColumnFilterChoicesProvider() {
+            super(NominalValue.class);
+        }
 
         @Override
         public int getInputTableIndex() {
