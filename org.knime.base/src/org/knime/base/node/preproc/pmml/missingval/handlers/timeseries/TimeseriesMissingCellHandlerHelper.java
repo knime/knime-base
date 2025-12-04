@@ -56,7 +56,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
  */
 public final class TimeseriesMissingCellHandlerHelper {
 
-    private static final String TABLE_BACKED_EXECUTION = "tableBackedExec";
+    static final String TABLE_BACKED_EXECUTION = "tableBackedExec";
 
     private TimeseriesMissingCellHandlerHelper() {
     }

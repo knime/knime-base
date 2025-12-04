@@ -44,88 +44,29 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   14.01.2015 (Alexander): created
+ *   Dec 4, 2025 (paulbaernreuther): created
  */
-package org.knime.base.node.preproc.pmml.missingval.handlers;
+package org.knime.base.node.preproc.pmml.missingval.handlers.timeseries;
 
-import org.dmg.pmml.DATATYPE;
-import org.dmg.pmml.DerivedFieldDocument.DerivedField;
-import org.knime.base.data.statistics.Statistic;
-import org.knime.base.node.preproc.pmml.missingval.DataColumnWindow;
-import org.knime.base.node.preproc.pmml.missingval.DefaultMissingCellHandler;
-import org.knime.core.data.DataCell;
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.RowKey;
-import org.knime.core.data.def.StringCell;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.base.node.preproc.pmml.missingval.compute.MissingValueTreatmentParameters;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
+import org.knime.node.parameters.persistence.Persist;
 
 /**
- * Replaces missing values with a fixed integer.
+ * Base class for timeseries missing value treatment parameters that support disk-backed statistics.
  *
- * @author Alexander Fillbrunn
- * @since 3.5
- * @noreference This class is not intended to be referenced by clients.
+ * @author Paul Baernreuther
  */
-public class FixedStringValueMissingCellHandler extends DefaultMissingCellHandler {
+@LoadDefaultsForAbsentFields
+abstract class TimeseriesMissingValueTreatmentParameters implements MissingValueTreatmentParameters {
 
-    static final String FIX_VAL_CFG = "fixStringValue";
+    @Persist(configKey = TimeseriesMissingCellHandlerHelper.TABLE_BACKED_EXECUTION)
+    @Widget(title = "Use disk based statistic",
+        description = "When dealing with tables that have a large number of rows but not too many columns "
+            + "that need missing value replacement, the option to use disk backed statistics "
+            + "avoids flooding of the main memory. This should be used with caution, as it is generally "
+            + "much slower than in-memory statistics.")
+    boolean m_useTableBackedExecution;
 
-    /**
-     * @return a new SettingsModel for the fixed integer value the user can select
-     */
-    public static SettingsModelString createStringValueSettingsModel() {
-        return new SettingsModelString(FIX_VAL_CFG, "");
-    }
-
-    private SettingsModelString m_fixVal = createStringValueSettingsModel();
-
-    /**
-     * @param col the column this handler is configured for
-     */
-    public FixedStringValueMissingCellHandler(final DataColumnSpec col) {
-        super(col);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void loadSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_fixVal.loadSettingsFrom(settings);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void saveSettingsTo(final NodeSettingsWO settings) {
-        m_fixVal.saveSettingsTo(settings);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Statistic getStatistic() {
-        return null;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public DataCell getCell(final RowKey key, final DataColumnWindow window) {
-        return new StringCell(m_fixVal.getStringValue());
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public DerivedField getPMMLDerivedField() {
-        return createValueReplacingDerivedField(DATATYPE.STRING, m_fixVal.getStringValue());
-    }
 }

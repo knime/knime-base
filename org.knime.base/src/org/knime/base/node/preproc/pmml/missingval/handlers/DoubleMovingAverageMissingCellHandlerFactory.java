@@ -51,6 +51,7 @@ package org.knime.base.node.preproc.pmml.missingval.handlers;
 import org.knime.base.node.preproc.pmml.missingval.MissingCellHandler;
 import org.knime.base.node.preproc.pmml.missingval.MissingCellHandlerFactory;
 import org.knime.base.node.preproc.pmml.missingval.MissingValueHandlerPanel;
+import org.knime.base.node.preproc.pmml.missingval.compute.MissingValueTreatmentParameters;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DoubleValue;
@@ -116,6 +117,14 @@ public class DoubleMovingAverageMissingCellHandlerFactory extends MissingCellHan
     @Override
     public boolean hasSettingsPanel() {
         return true;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Class<? extends MissingValueTreatmentParameters> getParametersClass() {
+        return DoubleMovingAverageParameters.class;
     }
 
     /**

@@ -48,6 +48,7 @@
  */
 package org.knime.base.node.preproc.pmml.missingval;
 
+import org.knime.base.node.preproc.pmml.missingval.compute.MissingValueTreatmentParameters;
 import org.knime.base.node.preproc.pmml.missingval.utils.MissingCellHandlerDescription;
 import org.knime.base.node.preproc.pmml.missingval.utils.MissingCellHandlerDescriptionFactory;
 import org.knime.core.data.DataColumnSpec;
@@ -88,6 +89,15 @@ public abstract class MissingCellHandlerFactory {
      * @return should return true if the {@link #getSettingsPanel() getSettingsPanel} method returns not null.
      */
     public abstract boolean hasSettingsPanel();
+
+    /**
+     * Returns the parameter class for the modern UI dialog if available.
+     * @return the parameter class, or null if no modern parameters are available
+     * @since 5.10
+     */
+    public Class<? extends MissingValueTreatmentParameters> getParametersClass() {
+        return null;
+    }
 
     /**
      * Creates and returns the panel where the user can make changes to settings of the missing value handler.

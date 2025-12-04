@@ -231,7 +231,9 @@ public class MVSettings {
         }
     }
 
-    private String getTypeKey(final DataType type) {
+
+    @SuppressWarnings("javadoc")
+    public static String getTypeKey(final DataType type) {
         // If the cell class is not available, we use all data values
         // This is a fix for bug 6253
         if (type.getCellClass() != null) {
