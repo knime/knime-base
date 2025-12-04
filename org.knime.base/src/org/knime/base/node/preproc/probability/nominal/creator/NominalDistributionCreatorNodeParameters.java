@@ -46,7 +46,9 @@
 
 package org.knime.base.node.preproc.probability.nominal.creator;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 import org.knime.base.node.preproc.probability.nominal.ExceptionHandling;
 import org.knime.core.data.DataColumnSpec;
@@ -76,6 +78,7 @@ import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.updates.legacy.ColumnNameAutoGuessValueProvider;
 import org.knime.node.parameters.updates.util.BooleanReference;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.EnumChoicesProvider;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
 import org.knime.node.parameters.widget.choices.util.ColumnSelectionUtil;
@@ -96,28 +99,17 @@ import org.knime.node.parameters.widget.text.TextInputWidgetValidation.PatternVa
 @SuppressWarnings("restriction")
 final class NominalDistributionCreatorNodeParameters implements NodeParameters {
 
-    @Section(title = "Column Type Selection")
-    interface ColumnSelectionSection {
-    }
-
     @Section(title = "Numeric Column Selection")
-    @After(ColumnSelectionSection.class)
-    @Effect(predicate = IsStringColumnTypePredicate.class, type = EffectType.HIDE)
+    @Effect(predicate = IsStringColumnType.class, type = EffectType.HIDE)
     interface NumericColumnsSection {
     }
 
-    @Section(title = "String Column Selection")
-    @Effect(predicate = IsStringColumnTypePredicate.class, type = EffectType.SHOW)
-    @After(NumericColumnsSection.class)
-    interface StringColumnSection {
-    }
-
     @Section(title = "Output")
-    @After(StringColumnSection.class)
+    @After(NumericColumnsSection.class)
     interface OutputSection {
+
     }
 
-    @Layout(ColumnSelectionSection.class)
     @Widget(title = "Column type", description = """
             Choose whether to create probability distributions from numeric columns or a single string column.
             """)
@@ -125,6 +117,19 @@ final class NominalDistributionCreatorNodeParameters implements NodeParameters {
     @ValueReference(ColumnTypeRef.class)
     @ValueSwitchWidget
     ColumnType m_columnType = ColumnType.NUMERIC_COLUMN;
+
+    @Widget(title = "String column", description = """
+            Select a single string column with a valid domain to create a one-hot encoding probability distribution. \
+            I.e., the number of distinct values in the string column will be the number of classes in the created \
+            distribution and the string value of a cell will have probability 1 whereby all other possible string \
+            values of a cell will have a probablity of 0. \
+            """)
+    @ChoicesProvider(NominalChoicesProvider.class)
+    @Persist(configKey = NominalDistributionCreatorNodeModel.CFG_SINGLE_STRING_COLUMN)
+    @Effect(predicate = IsStringColumnType.class, type = Effect.EffectType.SHOW)
+    @ValueReference(StringColumnRef.class)
+    @ValueProvider(StringColumnProvider.class)
+    String m_stringColumn;
 
     @Layout(NumericColumnsSection.class)
     @Widget(title = "Numeric columns", description = """
@@ -141,7 +146,7 @@ final class NominalDistributionCreatorNodeParameters implements NodeParameters {
             rounding errors in the probability values.
             """)
     @Persist(configKey = NominalDistributionCreatorNodeModel.CFG_ENABLE_PRECISION)
-    @ValueReference(AllowImpreciseProbabilities.class)
+    @ValueReference(AllowImpreciseProbabilitiesRef.class)
     boolean m_allowImpreciseProbabilities = true;
 
     @Layout(NumericColumnsSection.class)
@@ -152,8 +157,8 @@ final class NominalDistributionCreatorNodeParameters implements NodeParameters {
              is the tolerance.
             """)
     @NumberInputWidget(minValidation = IsPositiveIntegerValidation.class)
-    @Persist(configKey = NominalDistributionCreatorNodeModel.CFG_PRECISION)
     @Effect(predicate = AllowImpreciseProbabilities.class, type = Effect.EffectType.ENABLE)
+    @Persist(configKey = NominalDistributionCreatorNodeModel.CFG_PRECISION)
     int m_precisionDigits = 4;
 
     @Layout(NumericColumnsSection.class)
@@ -166,20 +171,6 @@ final class NominalDistributionCreatorNodeParameters implements NodeParameters {
     @ValueSwitchWidget
     @Persistor(InvalidDistributionHandlingPersistor.class)
     ExceptionHandling m_invalidDistributionHandling = ExceptionHandling.FAIL;
-
-    @Layout(StringColumnSection.class)
-    @Widget(title = "String column", description = """
-            Select a single string column with a valid domain to create a one-hot encoding probability distribution. \
-            I.e., the number of distinct values in the string column is will be the number of classes in the created \
-            distribution and the string value of a cell will have probability 1 whereby all other possible string \
-            values of a cell will have a probablity of 0. \
-            """)
-    @ChoicesProvider(NominalChoicesProvider.class)
-    @Persist(configKey = NominalDistributionCreatorNodeModel.CFG_SINGLE_STRING_COLUMN)
-    @Effect(predicate = IsStringColumnTypePredicate.class, type = Effect.EffectType.ENABLE)
-    @ValueReference(StringColumnRef.class)
-    @ValueProvider(StringColumnProvider.class)
-    String m_stringColumn;
 
     @Layout(OutputSection.class)
     @Widget(title = "Output column name",
@@ -201,7 +192,7 @@ final class NominalDistributionCreatorNodeParameters implements NodeParameters {
              If 'Ignore' is selected, the node just gives a warning and puts missing values in the output for the
              corresponding rows. If 'Treat as zero' is selected, the missing value will be treated as 0.
              """)
-    @ValueSwitchWidget
+    @ChoicesProvider(MissingValueHandlingChoicesProvider.class)
     @Persistor(MissingValueHandlingPersistor.class)
     MissingValueHandling m_missingValueHandling = MissingValueHandling.FAIL;
 
@@ -211,14 +202,23 @@ final class NominalDistributionCreatorNodeParameters implements NodeParameters {
     static final class ColumnTypeRef implements ParameterReference<ColumnType> {
     }
 
-    static final class AllowImpreciseProbabilities implements BooleanReference {
+    static final class AllowImpreciseProbabilitiesRef implements BooleanReference {
     }
 
-    static final class IsStringColumnTypePredicate implements EffectPredicateProvider {
+    static final class IsStringColumnType implements EffectPredicateProvider {
 
         @Override
         public EffectPredicate init(final PredicateInitializer i) {
             return i.getEnum(ColumnTypeRef.class).isOneOf(ColumnType.STRING_COLUMN);
+        }
+
+    }
+
+    static final class AllowImpreciseProbabilities implements EffectPredicateProvider {
+
+        @Override
+        public EffectPredicate init(final PredicateInitializer i) {
+            return i.getBoolean(AllowImpreciseProbabilitiesRef.class).isTrue();
         }
 
     }
@@ -247,12 +247,34 @@ final class NominalDistributionCreatorNodeParameters implements NodeParameters {
 
     }
 
+    static final class MissingValueHandlingChoicesProvider implements EnumChoicesProvider<MissingValueHandling> {
+
+        Supplier<ColumnType> m_columnTypeSupplier;
+
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            initializer.computeBeforeOpenDialog();
+            m_columnTypeSupplier = initializer.computeFromValueSupplier(ColumnTypeRef.class);
+        }
+
+        @Override
+        public List<MissingValueHandling> choices(final NodeParametersInput context) {
+            final var columnType = m_columnTypeSupplier.get();
+            if (columnType == ColumnType.STRING_COLUMN) {
+                return List.of(MissingValueHandling.FAIL, MissingValueHandling.IGNORE);
+            } else {
+                return List.of(MissingValueHandling.FAIL, MissingValueHandling.IGNORE, MissingValueHandling.ZERO);
+            }
+        }
+
+    }
+
     static final class ColumnTypePersistor implements NodeParametersPersistor<ColumnType> {
 
         @Override
         public ColumnType load(final NodeSettingsRO settings) throws InvalidSettingsException {
             return ColumnType.getFromValue(settings.getString(NominalDistributionCreatorNodeModel.CFG_COLUMN_TYPE,
-                MissingValueHandling.FAIL.name()));
+                ColumnType.NUMERIC_COLUMN.name()));
         }
 
         @Override
@@ -277,9 +299,9 @@ final class NominalDistributionCreatorNodeParameters implements NodeParameters {
 
         @Override
         public ExceptionHandling load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            return ExceptionHandling
-                .getFromValue(settings.getString(NominalDistributionCreatorNodeModel.CFG_INVALID_DISTRIBUTION_HANDLING,
-                    MissingValueHandling.FAIL.name()));
+            return ExceptionHandling.getFromValue(
+                settings.getString(NominalDistributionCreatorNodeModel.CFG_INVALID_DISTRIBUTION_HANDLING,
+                    ExceptionHandling.FAIL.name()));
         }
 
         @Override

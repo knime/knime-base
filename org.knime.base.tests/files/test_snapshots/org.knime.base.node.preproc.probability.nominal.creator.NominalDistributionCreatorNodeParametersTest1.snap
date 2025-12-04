@@ -2,6 +2,7 @@
   "data" : {
     "model" : {
       "columnType" : "NUMERIC_COLUMN",
+      "stringColumn" : "Cluster Membership",
       "columnFilter" : {
         "mode" : "MANUAL",
         "patternFilter" : {
@@ -22,7 +23,6 @@
       "allowImpreciseProbabilities" : true,
       "precisionDigits" : 4,
       "invalidDistributionHandling" : "FAIL",
-      "stringColumn" : "Cluster Membership",
       "outputColumnName" : "Probability Distribution",
       "removeIncludedColumns" : false,
       "missingValueHandling" : "FAIL"
@@ -211,7 +211,7 @@
           "stringColumn" : {
             "type" : "string",
             "title" : "String column",
-            "description" : "Select a single string column with a valid domain to create a one-hot encoding probability distribution. I.e., the number of distinct values in the string column is will be the number of classes in the created distribution and the string value of a cell will have probability 1 whereby all other possible string values of a cell will have a probablity of 0. "
+            "description" : "Select a single string column with a valid domain to create a one-hot encoding probability distribution. I.e., the number of distinct values in the string column will be the number of classes in the created distribution and the string value of a cell will have probability 1 whereby all other possible string values of a cell will have a probablity of 0. "
           }
         }
       }
@@ -219,15 +219,29 @@
   },
   "ui_schema" : {
     "elements" : [ {
-      "label" : "Column Type Selection",
-      "type" : "Section",
-      "elements" : [ {
-        "type" : "Control",
-        "scope" : "#/properties/model/properties/columnType",
-        "options" : {
-          "format" : "valueSwitch"
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/columnType",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/stringColumn",
+      "options" : {
+        "format" : "dropDown"
+      },
+      "providedOptions" : [ "possibleValues" ],
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/columnType",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "STRING_COLUMN"
+            } ]
+          }
         }
-      } ]
+      }
     }, {
       "label" : "Numeric Column Selection",
       "type" : "Section",
@@ -296,39 +310,6 @@
         }
       } ]
     }, {
-      "label" : "String Column Selection",
-      "type" : "Section",
-      "rule" : {
-        "effect" : "SHOW",
-        "condition" : {
-          "scope" : "#/properties/model/properties/columnType",
-          "schema" : {
-            "oneOf" : [ {
-              "const" : "STRING_COLUMN"
-            } ]
-          }
-        }
-      },
-      "elements" : [ {
-        "type" : "Control",
-        "scope" : "#/properties/model/properties/stringColumn",
-        "options" : {
-          "format" : "dropDown"
-        },
-        "providedOptions" : [ "possibleValues" ],
-        "rule" : {
-          "effect" : "ENABLE",
-          "condition" : {
-            "scope" : "#/properties/model/properties/columnType",
-            "schema" : {
-              "oneOf" : [ {
-                "const" : "STRING_COLUMN"
-              } ]
-            }
-          }
-        }
-      } ]
-    }, {
       "label" : "Output",
       "type" : "Section",
       "elements" : [ {
@@ -354,8 +335,9 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/missingValueHandling",
         "options" : {
-          "format" : "valueSwitch"
-        }
+          "format" : "dropDown"
+        },
+        "providedOptions" : [ "possibleValues" ]
       } ]
     } ]
   },
@@ -368,6 +350,9 @@
           "columnType" : {
             "configPaths" : [ [ "column_type" ] ]
           },
+          "stringColumn" : {
+            "configKey" : "single_string_column"
+          },
           "columnFilter" : {
             "configPaths" : [ [ "column_filter", "filter-type" ], [ "column_filter", "included_names" ], [ "column_filter", "excluded_names" ], [ "column_filter", "enforce_option" ], [ "column_filter", "name_pattern", "pattern" ], [ "column_filter", "name_pattern", "type" ], [ "column_filter", "name_pattern", "caseSensitive" ], [ "column_filter", "name_pattern", "excludeMatching" ] ]
           },
@@ -379,9 +364,6 @@
           },
           "invalidDistributionHandling" : {
             "configPaths" : [ [ "invalid_distribution_handling" ] ]
-          },
-          "stringColumn" : {
-            "configKey" : "single_string_column"
           },
           "outputColumnName" : {
             "configKey" : "column_name"
@@ -432,6 +414,22 @@
       } ]
     } ]
   }, {
+    "scope" : "#/properties/model/properties/missingValueHandling",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "FAIL",
+        "text" : "Fail"
+      }, {
+        "id" : "IGNORE",
+        "text" : "Ignore"
+      }, {
+        "id" : "ZERO",
+        "text" : "Treat as zero"
+      } ]
+    } ]
+  }, {
     "scope" : "#/properties/model/properties/stringColumn",
     "providedOptionName" : "possibleValues",
     "values" : [ {
@@ -452,5 +450,10 @@
     },
     "triggerInitially" : true,
     "dependencies" : [ "#/properties/model/properties/stringColumn" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/columnType"
+    },
+    "dependencies" : [ "#/properties/model/properties/columnType" ]
   } ]
 }
