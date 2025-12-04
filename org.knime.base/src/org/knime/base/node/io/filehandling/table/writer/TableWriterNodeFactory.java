@@ -48,22 +48,42 @@
  */
 package org.knime.base.node.io.filehandling.table.writer;
 
+import static org.knime.node.impl.description.PortDescription.dynamicPort;
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ConfigurableNodeFactory;
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeView;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.context.ports.PortsConfiguration;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
 import org.knime.filehandling.core.port.FileSystemPortObject;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
 
 /**
  * The factory of the table writer node.
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
+ * @author Thomas Reifenberger, TNG Technology Consulting GmbH
+ * @author AI Migration Pipeline v1.2
  */
-public final class TableWriterNodeFactory extends ConfigurableNodeFactory<TableWriterNodeModel> {
+@SuppressWarnings("restriction")
+public final class TableWriterNodeFactory extends ConfigurableNodeFactory<TableWriterNodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     /** The name of the optional connection input port group. */
     public static final String CONNECTION_INPUT_PORT_GRP_NAME = "File System Connection";
@@ -85,26 +105,73 @@ public final class TableWriterNodeFactory extends ConfigurableNodeFactory<TableW
     }
 
     @Override
-    protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
-        return new TableWriterNodeDialog(getPortsConfig(creationConfig), CONNECTION_INPUT_PORT_GRP_NAME);
-    }
-
-    @Override
     protected int getNrNodeViews() {
         return 0;
     }
 
+    @SuppressWarnings("removal")
     @Override
     public NodeView<TableWriterNodeModel> createNodeView(final int viewIndex, final TableWriterNodeModel nodeModel) {
         return null;
     }
 
     @Override
+    @SuppressWarnings("removal")
     protected boolean hasDialog() {
         return true;
     }
 
     private static final PortsConfiguration getPortsConfig(final NodeCreationConfiguration creationConfig) {
         return creationConfig.getPortConfig().orElseThrow(IllegalStateException::new);
+    }
+
+    private static final String NODE_NAME = "Table Writer";
+
+    private static final String NODE_ICON = "./tablewrite.png";
+
+    private static final String SHORT_DESCRIPTION = """
+            Writes a data table to a file using KNIME's internal format.
+            """;
+
+    @SuppressWarnings("java:S103")
+    private static final String FULL_DESCRIPTION =
+        """
+                <p> This node writes a data table in KNIME's internal format to a file, which can be read using the
+                    <i>Table Reader</i>node. </p> <p> <i>This node can access a variety of different</i> <a
+                    href="https://docs.knime.com/2021-06/analytics_platform_file_handling_guide/index.html#analytics-platform-file-systems"><i>file
+                    systems.</i></a> <i>More information about file handling in KNIME can be found in the official</i> <a
+                    href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html"><i>File Handling
+                    Guide.</i></a> </p>
+                """;
+
+    private static final List<PortDescription> INPUT_PORTS =
+        List.of(dynamicPort(CONNECTION_INPUT_PORT_GRP_NAME, "File system connection", """
+                The file system connection.
+                """), fixedPort("Input table", """
+                The data table to write out.
+                """));
+
+    private static final List<PortDescription> OUTPUT_PORTS = List.of();
+
+    @Override
+    public NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, TableWriterNodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription(NODE_NAME, NODE_ICON, INPUT_PORTS, OUTPUT_PORTS,
+            SHORT_DESCRIPTION, FULL_DESCRIPTION, List.of(), TableWriterNodeParameters.class, null, NodeType.Sink,
+            List.of(), null);
+    }
+
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, TableWriterNodeParameters.class));
     }
 }
