@@ -1,0 +1,165 @@
+{
+  "data" : {
+    "model" : {
+      "fileChooser" : {
+        "file" : {
+          "path" : {
+            "fsCategory" : "LOCAL",
+            "path" : "",
+            "timeout" : 10000,
+            "context" : {
+              "fsToString" : "(LOCAL, )"
+            }
+          }
+        },
+        "createMissingFolders" : false,
+        "overwritePolicy" : "overwrite"
+      }
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "fileChooser" : {
+            "type" : "object",
+            "properties" : {
+              "createMissingFolders" : {
+                "type" : "boolean",
+                "title" : "Create missing folders",
+                "description" : "If enabled, missing folders in the specified path will be created automatically.",
+                "default" : false
+              },
+              "file" : {
+                "type" : "object",
+                "properties" : {
+                  "path" : {
+                    "type" : "object",
+                    "default" : {
+                      "fsCategory" : "LOCAL",
+                      "path" : "",
+                      "timeout" : 10000,
+                      "context" : {
+                        "fsToString" : "(LOCAL, )"
+                      }
+                    }
+                  }
+                },
+                "title" : "Output location",
+                "description" : "Select a file to store the output model",
+                "default" : {
+                  "path" : {
+                    "fsCategory" : "LOCAL",
+                    "path" : "",
+                    "timeout" : 10000,
+                    "context" : {
+                      "fsToString" : "(LOCAL, )"
+                    }
+                  }
+                }
+              },
+              "overwritePolicy" : {
+                "oneOf" : [ {
+                  "const" : "fail",
+                  "title" : "Fail"
+                }, {
+                  "const" : "overwrite",
+                  "title" : "Overwrite"
+                }, {
+                  "const" : "ignore",
+                  "title" : "Ignore"
+                } ],
+                "title" : "If exists",
+                "description" : "Specify the behavior of the node in case the output file already exists. <ul><li><b>Fail</b>: Will issue an error during the node's execution (to prevent unintentional overwrite).</li><li><b>Overwrite</b>: Will replace any existing file.</li></ul>",
+                "default" : "overwrite"
+              }
+            },
+            "default" : {
+              "file" : {
+                "path" : {
+                  "fsCategory" : "LOCAL",
+                  "path" : "",
+                  "timeout" : 10000,
+                  "context" : {
+                    "fsToString" : "(LOCAL, )"
+                  }
+                }
+              },
+              "createMissingFolders" : false,
+              "overwritePolicy" : "overwrite"
+            }
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/fileChooser/properties/file",
+      "options" : {
+        "fileExtension" : "model",
+        "isLocal" : true,
+        "isWriter" : true,
+        "spaceFSOptions" : {
+          "mountId" : "Local space"
+        },
+        "format" : "fileChooser"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/fileChooser/properties/createMissingFolders",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/fileChooser/properties/overwritePolicy",
+      "options" : {
+        "format" : "valueSwitch"
+      },
+      "providedOptions" : [ "possibleValues" ]
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "fileChooser" : {
+            "type" : "object",
+            "properties" : {
+              "file" : {
+                "configPaths" : [ [ "path" ] ]
+              },
+              "createMissingFolders" : {
+                "configKey" : "create_missing_folders"
+              },
+              "overwritePolicy" : {
+                "configKey" : "if_path_exists"
+              }
+            },
+            "configKey" : "filechooser"
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/fileChooser/properties/overwritePolicy",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "fail",
+        "text" : "Fail"
+      }, {
+        "id" : "overwrite",
+        "text" : "Overwrite"
+      } ]
+    } ]
+  } ]
+}
