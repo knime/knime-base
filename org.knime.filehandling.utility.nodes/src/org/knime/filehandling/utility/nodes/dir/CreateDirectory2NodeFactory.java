@@ -143,11 +143,12 @@ public final class CreateDirectory2NodeFactory extends ConfigurableNodeFactory<C
             ><i>File Handling Guide.</i></a> </p>
         """;
 
-    private static final List<PortDescription> INPUT_PORTS = List.of(fixedPort("Input variables (optional)", """
-            Input variables (optional).
-            """), dynamicPort(CONNECTION_INPUT_PORT_GRP_NAME, "File system connection", """
-            The file system connection.
-            """));
+    private static final List<PortDescription> INPUT_PORTS =
+        List.of(dynamicPort(CONNECTION_INPUT_PORT_GRP_NAME, "File system connection", """
+                The file system connection.
+                """), fixedPort("Input variables (optional)", """
+                Input variables (optional).
+                """));
 
     private static final List<PortDescription> OUTPUT_PORTS =
         List.of(fixedPort("Flow Variables with path information", """
