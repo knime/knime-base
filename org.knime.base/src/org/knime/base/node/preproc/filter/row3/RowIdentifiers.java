@@ -58,7 +58,7 @@ import org.knime.node.parameters.widget.choices.Label;
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
 @SuppressWarnings("restriction")
-enum RowIdentifiers {
+public enum RowIdentifiers {
 
         /**
          * Row Id selection.

@@ -53,6 +53,7 @@ import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
+import org.knime.core.data.v2.IndexedRowReadPredicate;
 import org.knime.core.data.v2.RowCursor;
 import org.knime.core.data.v2.RowRead;
 import org.knime.core.data.v2.RowWriteCursor;

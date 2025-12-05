@@ -48,6 +48,9 @@
  */
 package org.knime.base.data.filter.row.v2;
 
+import java.util.function.LongPredicate;
+
+import org.knime.core.data.v2.IndexedRowReadPredicate;
 import org.knime.core.data.v2.RowRead;
 import org.knime.core.node.util.CheckUtils;
 
@@ -94,13 +97,22 @@ public record OffsetFilter(Operator operator, long offset) {
      * @return predicate to evaluate on indexed row read
      */
     public IndexedRowReadPredicate asPredicate() {
+        final var pred = asOffsetPredicate();
+        return (rowIndex, read) -> pred.test(rowIndex);
+    }
+
+    /**
+     * Converts the offset filter definition into a predicate that can be evaluated on a (0-based) row index.
+     * @return predicate to evaluate on row index
+     */
+    public LongPredicate asOffsetPredicate() {
         return switch (operator) {
-            case EQ -> (rowIndex, read) -> rowIndex == offset;
-            case NEQ -> (rowIndex, read) -> rowIndex != offset;
-            case LT -> (rowIndex, read) -> rowIndex < offset;
-            case LTE -> (rowIndex, read) -> rowIndex <= offset;
-            case GT -> (rowIndex, read) -> rowIndex > offset;
-            case GTE -> (rowIndex, read) -> rowIndex >= offset;
+            case EQ -> rowIndex -> rowIndex == offset;
+            case NEQ -> rowIndex -> rowIndex != offset;
+            case LT -> rowIndex -> rowIndex < offset;
+            case LTE -> rowIndex -> rowIndex <= offset;
+            case GT -> rowIndex -> rowIndex > offset;
+            case GTE -> rowIndex -> rowIndex >= offset;
         };
     }
 }

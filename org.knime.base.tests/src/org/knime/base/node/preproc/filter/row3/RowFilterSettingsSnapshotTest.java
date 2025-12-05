@@ -48,7 +48,8 @@
  */
 package org.knime.base.node.preproc.filter.row3;
 
-import java.util.Map;
+import java.io.IOException;
+import java.nio.file.Files;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
@@ -56,20 +57,53 @@ import org.knime.core.data.def.BooleanCell;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.StringCell;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettings;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
+import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 
 /**
- * Snapshot test for {@code RowFilter3NodeSettingsSnapshotTest}.
+ * Snapshot test for the webui-based Row Splitter.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction") // webui
-class RowFilterNodeSettingsSnapshotTest extends DefaultNodeSettingsSnapshotTest {
+final class RowFilterNodeSettingsSnapshotTest extends DefaultNodeSettingsSnapshotTest {
 
     protected RowFilterNodeSettingsSnapshotTest() {
-        super(Map.of(SettingsType.MODEL, RowFilterNodeSettings.class),
-            new DataTableSpec(new String[]{"DoubleCol", "StringCol", "IntCol", "BoolCol"},
-                new DataType[]{DoubleCell.TYPE, StringCell.TYPE, IntCell.TYPE, BooleanCell.TYPE}));
+        super(getConfig());
     }
+
+    private static SnapshotTestConfiguration getConfig() {
+        return SnapshotTestConfiguration.builder() //
+            .withInputPortObjectSpecs(
+                new PortObjectSpec[]{new DataTableSpec(new String[]{"DoubleCol", "StringCol", "IntCol", "BoolCol"},
+                    new DataType[]{DoubleCell.TYPE, StringCell.TYPE, IntCell.TYPE, BooleanCell.TYPE})})
+            .testJsonFormsForModel("Default RowFilterNodeSettings instance", RowFilterNodeSettings.class) //
+            // new settings file after UIEXT-2923 (dynamic parameters)
+            .testJsonFormsWithInstance("Loading new version of settings", SettingsType.MODEL,
+                () -> readNodeSettings("RowFilterNodeSettings1.xml")) //
+            .testNodeSettingsStructure("Can load parameters from new XML",
+                () -> readNodeSettings("RowFilterNodeSettings1.xml")) //
+            // Backwards-compatibility with a pre-UIEXT-2923 settings file (original webui migration)
+            .testJsonFormsWithInstance("Loading legacy version of settings", SettingsType.MODEL,
+                () -> readNodeSettings("RowFilterNodeSettings0.xml")) //
+            // no save supported: .testNodeSettingsStructure(() -> readNodeSettings("RowFilterNodeSettings0.xml"))
+            .build();
+    }
+
+    static AbstractRowFilterNodeSettings readNodeSettings(final String filename)
+        throws IOException, InvalidSettingsException {
+        final var path = getSnapshotPath(AbstractRowFilterNodeSettings.class).getParent().resolve("node_settings") //
+            .resolve(RowFilterNodeSettings.class.getPackageName()).resolve(filename);
+        try (final var in = Files.newInputStream(path)) {
+            final var settings = NodeSettings.loadFromXML(in);
+            return NodeParametersUtil.loadSettings(settings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
+                RowFilterNodeSettings.class);
+        }
+    }
+
 }

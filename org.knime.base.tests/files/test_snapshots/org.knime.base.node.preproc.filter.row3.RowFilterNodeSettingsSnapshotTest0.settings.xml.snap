@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
+    <entry key="matchCriteria" type="xstring" value="OR"/>
+    <config key="predicates">
+        <config key="0">
+            <config key="columnV2">
+                <entry key="regularChoice" type="xstring" isnull="true" value=""/>
+                <entry key="specialChoice_Internals" type="xstring" value="ROW_ID"/>
+            </config>
+            <config key="columnType">
+                <entry key="is_null" type="xboolean" value="true"/>
+            </config>
+            <entry key="operator" type="xstring" value="NEQ"/>
+            <config key="filterValueParameters">
+                <entry key="@class" type="xstring" value="org.knime.base.node.preproc.filter.row3.operators.rowkey.RowKeyEqualsParameters"/>
+                <entry key="caseSensitivity" type="xstring" value="CASE_SENSITIVE"/>
+                <entry key="value" type="xstring" value="RowXXX"/>
+            </config>
+        </config>
+        <config key="1">
+            <config key="columnV2">
+                <entry key="regularChoice" type="xstring" value="StringCol"/>
+                <entry key="specialChoice_Internals" type="xstring" isnull="true" value=""/>
+            </config>
+            <config key="columnType">
+                <entry key="cell_class" type="xstring" value="org.knime.core.data.def.StringCell"/>
+                <entry key="is_null" type="xboolean" value="false"/>
+            </config>
+            <entry key="operator" type="xstring" value="WILDCARD"/>
+            <config key="filterValueParameters">
+                <entry key="@class" type="xstring" value="org.knime.base.node.preproc.filter.row3.operators.pattern.PatternWithCaseParameters"/>
+                <entry key="pattern" type="xstring" value="Foo*Foo*"/>
+                <entry key="caseSensitivity" type="xstring" value="CASE_SENSITIVE"/>
+            </config>
+        </config>
+        <config key="2">
+            <config key="columnV2">
+                <entry key="regularChoice" type="xstring" value="LongCol"/>
+                <entry key="specialChoice_Internals" type="xstring" isnull="true" value=""/>
+            </config>
+            <config key="columnType">
+                <entry key="cell_class" type="xstring" value="org.knime.core.data.def.LongCell"/>
+                <entry key="is_null" type="xboolean" value="false"/>
+            </config>
+            <entry key="operator" type="xstring" value="WILDCARD"/>
+            <config key="filterValueParameters">
+                <entry key="@class" type="xstring" value="org.knime.base.node.preproc.filter.row3.operators.pattern.PatternFilterParameters"/>
+                <entry key="pattern" type="xstring" value="100*"/>
+            </config>
+        </config>
+    </config>
+    <entry key="domains" type="xstring" value="RETAIN"/>
+    <entry key="outputMode" type="xstring" value="MATCHING"/>
+</config>

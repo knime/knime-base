@@ -68,6 +68,7 @@ import org.knime.core.data.RowKey;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.LongCell;
 import org.knime.core.data.def.StringCell;
+import org.knime.core.data.v2.IndexedRowReadPredicate;
 import org.knime.core.data.v2.RowRead;
 import org.knime.core.data.v2.RowWriteCursor;
 import org.knime.core.data.v2.value.ValueInterfaces.IntWriteValue;

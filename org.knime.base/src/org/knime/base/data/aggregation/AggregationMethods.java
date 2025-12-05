@@ -524,7 +524,6 @@ public final class AggregationMethods implements AggregationFunctionProvider<Agg
      * Get all registered parameter classes.
      *
      * @return all registered parameter classes
-     *
      * @since 5.10
      */
     public static Collection<Class<? extends AggregationOperatorParameters>> getAllParameterClasses() {

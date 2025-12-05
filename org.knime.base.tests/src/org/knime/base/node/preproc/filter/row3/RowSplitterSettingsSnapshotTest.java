@@ -48,28 +48,33 @@
  */
 package org.knime.base.node.preproc.filter.row3;
 
-import java.util.Map;
-
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.def.BooleanCell;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.StringCell;
-import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
+import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 
 /**
- * Snapshot test for {@code RowFilter3NodeSettingsSnapshotTest}.
+ * Snapshot test for the webui-based Row Splitter.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-@SuppressWarnings("restriction") // webui
 class RowSplitterNodeSettingsSnapshotTest extends DefaultNodeSettingsSnapshotTest {
 
     protected RowSplitterNodeSettingsSnapshotTest() {
-        super(Map.of(SettingsType.MODEL, RowSplitterNodeSettings.class),
-            new DataTableSpec(new String[]{"DoubleCol", "StringCol", "IntCol", "BoolCol"},
-                new DataType[]{DoubleCell.TYPE, StringCell.TYPE, IntCell.TYPE, BooleanCell.TYPE}));
+        super(getConfig());
+    }
+
+    private static SnapshotTestConfiguration getConfig() {
+        return SnapshotTestConfiguration.builder() //
+            .withInputPortObjectSpecs(
+                new PortObjectSpec[]{new DataTableSpec(new String[]{"DoubleCol", "StringCol", "IntCol", "BoolCol"},
+                    new DataType[]{DoubleCell.TYPE, StringCell.TYPE, IntCell.TYPE, BooleanCell.TYPE})})
+            .testJsonFormsForModel("Default RowFilterNodeSettings instance", RowSplitterNodeSettings.class) //
+            .build();
     }
 }
