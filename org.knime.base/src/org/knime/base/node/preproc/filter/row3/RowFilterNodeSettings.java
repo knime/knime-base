@@ -58,20 +58,17 @@ import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-@SuppressWarnings("restriction") // webui is not public yet
 final class RowFilterNodeSettings extends AbstractRowFilterNodeSettings {
 
-    // we need to repeat both constructors, otherwise InstantiationUtil cannot instantiate our concrete settings class
-
-    // for de-/serialization
     RowFilterNodeSettings() {
         super();
     }
 
-    // auto-configuration constructor needs to be "re-declared" in subclass
-    RowFilterNodeSettings(final NodeParametersInput ctx) {
-        super(ctx);
+    RowFilterNodeSettings(final NodeParametersInput input) {
+        super(input);
     }
+
+    // we need to repeat both constructors, otherwise InstantiationUtil cannot instantiate our concrete settings class
 
     @Override
     boolean isSecondOutputActive() {

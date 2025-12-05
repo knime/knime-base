@@ -27,6 +27,7 @@ try {
                     repositories:  [
                         "knime-aws",
                         "knime-base",
+                        "knime-base-expressions",
                         "knime-bigdata",
                         "knime-bigdata-externals",
                         "knime-birt",

@@ -421,6 +421,22 @@
                 factoryClass="org.knime.core.data.time.zoneddatetime.ZonedDateTimeCellCreationParametersFactory">
          </CreateDataCellParameters>
     </extension>
+    <extension
+        point="org.knime.core.ui.filterOperators">
+        <FilterOperators
+            factoryClass="org.knime.core.data.time.localdate.LocalDateCellFilterOperators">
+        </FilterOperators>
+        <FilterOperators
+            factoryClass="org.knime.core.data.time.localtime.LocalTimeCellFilterOperators">
+        </FilterOperators>
+        <FilterOperators
+            factoryClass="org.knime.core.data.time.localdatetime.LocalDateTimeCellFilterOperators">
+        </FilterOperators>
+        <FilterOperators
+            factoryClass="org.knime.core.data.time.zoneddatetime.ZonedDateTimeCellFilterOperators">
+        </FilterOperators>
+    </extension>
+
    <extension
          point="org.knime.base.AggregationOperator">
       <AggregationOperator

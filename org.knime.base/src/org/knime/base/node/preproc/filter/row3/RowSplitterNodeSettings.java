@@ -59,19 +59,14 @@ import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-@SuppressWarnings("restriction") // webui
 final class RowSplitterNodeSettings extends AbstractRowFilterNodeSettings {
 
-    // we need to repeat both constructors, otherwise InstantiationUtil cannot instantiate our concrete settings class
-
-    // for de-/serialization
     RowSplitterNodeSettings() {
         super();
     }
 
-    // auto-configuration constructor needs to be "re-declared" in subclass
-    RowSplitterNodeSettings(final NodeParametersInput ctx) {
-        super(ctx);
+    RowSplitterNodeSettings(final NodeParametersInput input) {
+        super(input);
     }
 
     @Override
@@ -97,10 +92,9 @@ final class RowSplitterNodeSettings extends AbstractRowFilterNodeSettings {
     // variants are named exactly as in `FilterMode` to make it easier to switch from Filter to Splitter when using
     // flow variables
     private enum SplitterMode {
-        @Label("Matching rows at first output, non-matching at second output")
-        MATCHING,
-        @Label("Non-matching rows at first output, matching at second output")
-        NON_MATCHING
+            @Label("Matching rows at first output, non-matching at second output")
+            MATCHING, @Label("Non-matching rows at first output, matching at second output")
+            NON_MATCHING
     }
 
 }

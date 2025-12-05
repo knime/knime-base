@@ -41,13 +41,13 @@
 			<id>test</id>
 			<modules>
 				<module>org.knime.base</module>
+				<module>org.knime.time</module>
 				<module>org.knime.base.tests/lib/fetch_jars</module>
 				<module>org.knime.base.tests</module>
 				<module>org.knime.deprecated</module>
 				<module>org.knime.features.base</module>
 				<module>org.knime.filehandling.utility.nodes</module>
 				<module>org.knime.filehandling.utility.nodes.tests</module>
-				<module>org.knime.time</module>
 				<module>org.knime.time.tests</module>
 			</modules>
 			<repositories>
@@ -90,6 +90,17 @@
                     <id>p2-knime-hubclient-sdk</id>
                     <layout>p2</layout>
                     <url>${knime.hubclient.sdk.p2}</url>
+                </repository>
+                <repository>
+                    <id>p2-knime-chemistry</id>
+                    <layout>p2</layout>
+                    <url>${knime.chemistry.p2}</url>
+                </repository>
+                <repository>
+                    <!-- dependency of knime-chemistry types -->
+                    <id>p2-knime-python</id>
+                    <layout>p2</layout>
+                    <url>${knime.python.p2}</url>
                 </repository>
 			</repositories>
 		</profile>

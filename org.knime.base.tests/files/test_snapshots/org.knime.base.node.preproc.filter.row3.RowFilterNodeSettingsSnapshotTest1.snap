@@ -1,0 +1,479 @@
+{
+  "data" : {
+    "model" : {
+      "matchCriteria" : "OR",
+      "predicates" : [ {
+        "column" : {
+          "specialChoice" : "ROW_ID"
+        },
+        "operator" : "NEQ",
+        "filterValueParameters" : {
+          "@class" : "org.knime.base.node.preproc.filter.row3.operators.rowkey.RowKeyEqualsParameters",
+          "caseSensitivity" : "CASE_SENSITIVE",
+          "value" : "RowXXX"
+        }
+      }, {
+        "column" : {
+          "regularChoice" : "StringCol"
+        },
+        "columnType" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.StringCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "operator" : "WILDCARD",
+        "filterValueParameters" : {
+          "@class" : "org.knime.base.node.preproc.filter.row3.operators.pattern.PatternWithCaseParameters",
+          "pattern" : "Foo*Foo*",
+          "caseSensitivity" : "CASE_SENSITIVE"
+        }
+      }, {
+        "column" : {
+          "regularChoice" : "LongCol"
+        },
+        "columnType" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.LongCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "operator" : "WILDCARD",
+        "filterValueParameters" : {
+          "@class" : "org.knime.base.node.preproc.filter.row3.operators.pattern.PatternFilterParameters",
+          "pattern" : "100*"
+        }
+      } ],
+      "domains" : "RETAIN",
+      "outputMode" : "MATCHING"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "domains" : {
+            "oneOf" : [ {
+              "const" : "RETAIN",
+              "title" : "Retain"
+            }, {
+              "const" : "COMPUTE",
+              "title" : "Compute"
+            } ],
+            "title" : "Column domains",
+            "description" : "Specify whether to take domains of all input columns as output domains as-is or compute them on the output\nrows.\n<br />\n\nDepending on the use case, one or the other setting may be preferable:\n<ul>\n    <li><em>Retaining</em> input columns can be useful, if the axis limits of a view should be derived from\n    domain bounds, and that bounds should stay stable even when the displayed data is filtered.\n    </li>\n    <li><em>Computing</em> domains can be useful when a selection widget consumes the output and should only\n    display actually present options to users.</li>\n</ul>\n\nIf column domains are irrelevant for a particular use case, the &quot;Retain&quot; option should be used\nsince it does not incur computation costs.\n<br />\n\nFor more control over individual column domains, you can use the <a href=\"\nhttps://hub.knime.com/knime/extensions/org.knime.features.base/latest/org.knime.base.node.preproc.domain.dialog2.DomainNodeFactory        \"><em>Domain Calculator</em></a>, <a href=\"\nhttps://hub.knime.com/knime/extensions/org.knime.features.base/latest/org.knime.base.node.preproc.domain.editnumeric.EditNumericDomainNodeFactory        \"><em>Edit Numeric Domain</em></a>, or <a href=\"\nhttps://hub.knime.com/knime/extensions/org.knime.features.base/latest/org.knime.base.node.preproc.domain.editnominal.EditNominalDomainNodeFactory        \"><em>Edit Nominal Domain</em></a> nodes.\n\n<ul>\n<li><b>Retain</b>: Retain input domains on output columns, i.e. the upper and lower bounds or possible values in the table\nspec are not changed, even if one of the bounds or one value is fully filtered out from the output\ntable. If the input does not contain domain information, so will the output.\n</li>\n<li><b>Compute</b>: Compute column domains on output columns, i.e. upper and lower bounds and possible values are computed\nonly on the rows output by the node.\n</li>\n</ul>",
+            "default" : "RETAIN"
+          },
+          "matchCriteria" : {
+            "oneOf" : [ {
+              "const" : "AND",
+              "title" : "All criteria"
+            }, {
+              "const" : "OR",
+              "title" : "Any criterion"
+            } ],
+            "title" : "Match row if matched by",
+            "description" : "Match the row if all or any criteria match:\n<ul>\n    <li><b>All criteria</b>: a row is matched if <i>all</i> of the criteria match\n    (intersection of matches)</li>\n    <li><b>Any criterion</b>: a row is matched if <i>at least one</i> of the\n    criteria matches (union of matches)</li>\n</ul>\n",
+            "default" : "AND"
+          },
+          "outputMode" : {
+            "oneOf" : [ {
+              "const" : "MATCHING",
+              "title" : "Output matching rows"
+            }, {
+              "const" : "NON_MATCHING",
+              "title" : "Output non-matching rows"
+            } ],
+            "title" : "Filter behavior",
+            "description" : "Determines whether only matching or non-matching rows are output.",
+            "default" : "MATCHING"
+          },
+          "predicates" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "column" : {
+                  "type" : "object",
+                  "properties" : {
+                    "regularChoice" : {
+                      "type" : "string"
+                    },
+                    "specialChoice" : {
+                      "oneOf" : [ {
+                        "const" : "ROW_ID",
+                        "title" : "RowID"
+                      }, {
+                        "const" : "ROW_NUMBER",
+                        "title" : "Row number"
+                      } ]
+                    }
+                  },
+                  "title" : "Filter column",
+                  "description" : "The column on which to apply the filter.\n<br />\n\nThe special column \"RowID\" represents the RowID of the input and is treated as a String column that\nis never missing. The special column \"Row number\" targets the 1-based row number of the input, is\ntreated as a Long column and is never missing. Both special columns are always available, regardless of\nthe input table spec or data.\n<br /><br />\n\nColumns containing data types that are non-native, i.e. contain cells of heterogeneous data types, or\ndo not offer a conversion from and to a string representation are not supported and are filtered out\nfrom the available options.\n<br />\n\nCollection columns are also not supported by the node.\n",
+                  "default" : {
+                    "regularChoice" : "BoolCol"
+                  }
+                },
+                "columnType" : {
+                  "type" : "string",
+                  "default" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}"
+                },
+                "filterValueParameters" : {
+                  "type" : "object"
+                },
+                "operator" : {
+                  "type" : "string",
+                  "title" : "Operator",
+                  "description" : "Select the filter operator to apply.",
+                  "default" : "IS_TRUE"
+                }
+              }
+            },
+            "title" : "Filter criteria",
+            "description" : "The list of criteria that should be filtered on.",
+            "default" : [ {
+              "column" : {
+                "regularChoice" : "BoolCol"
+              },
+              "columnType" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+              "operator" : "IS_TRUE"
+            } ]
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "label" : "Filter",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/matchCriteria",
+        "options" : {
+          "format" : "valueSwitch"
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/predicates",
+            "schema" : {
+              "minItems" : 2
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/predicates",
+        "options" : {
+          "detail" : [ {
+            "type" : "HorizontalLayout",
+            "elements" : [ {
+              "type" : "Control",
+              "scope" : "#/properties/column",
+              "options" : {
+                "format" : "singleSelection",
+                "specialChoices" : [ {
+                  "id" : "ROW_ID",
+                  "text" : "RowID"
+                }, {
+                  "id" : "ROW_NUMBER",
+                  "text" : "Row number"
+                } ]
+              },
+              "providedOptions" : [ "possibleValues" ]
+            }, {
+              "type" : "Control",
+              "scope" : "#/properties/operator",
+              "options" : {
+                "format" : "dropDown"
+              },
+              "providedOptions" : [ "possibleValues" ]
+            } ]
+          }, {
+            "type" : "Control",
+            "scope" : "#/properties/filterValueParameters",
+            "options" : {
+              "format" : "dynamicInput"
+            },
+            "providedOptions" : [ "dynamicSettings" ]
+          } ],
+          "addButtonText" : "Add filter criterion",
+          "arrayElementTitle" : "Criterion",
+          "showSortButtons" : true
+        },
+        "providedOptions" : [ "elementDefaultValue" ]
+      } ]
+    }, {
+      "label" : "Output",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/domains",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/outputMode",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      } ]
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "matchCriteria" : { },
+          "predicates" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "column" : {
+                  "type" : "object",
+                  "properties" : {
+                    "regularChoice" : { },
+                    "specialChoice" : {
+                      "configPaths" : [ ]
+                    }
+                  },
+                  "configKey" : "columnV2",
+                  "deprecatedConfigKeys" : [ {
+                    "deprecated" : [ [ "column" ] ]
+                  } ]
+                },
+                "columnType" : {
+                  "configPaths" : [ [ "columnType", "cell_class" ] ]
+                },
+                "operator" : { },
+                "filterValueParameters" : {
+                  "type" : "object",
+                  "properties" : { },
+                  "deprecatedConfigKeys" : [ {
+                    "deprecated" : [ [ "predicateValues" ] ]
+                  } ]
+                }
+              }
+            }
+          },
+          "domains" : { },
+          "outputMode" : { }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/predicates/items/properties/column",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "DoubleCol",
+        "text" : "DoubleCol",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "StringCol",
+        "text" : "StringCol",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "IntCol",
+        "text" : "IntCol",
+        "type" : {
+          "id" : "org.knime.core.data.IntValue",
+          "text" : "Number (Integer)"
+        }
+      }, {
+        "id" : "BoolCol",
+        "text" : "BoolCol",
+        "type" : {
+          "id" : "org.knime.core.data.BooleanValue",
+          "text" : "Boolean"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/predicates/items/properties/columnType",
+    "values" : [ {
+      "indices" : [ 0 ],
+      "value" : null
+    }, {
+      "indices" : [ 1 ],
+      "value" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.StringCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}"
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/predicates/items/properties/filterValueParameters",
+    "values" : [ {
+      "indices" : [ 0 ],
+      "value" : {
+        "@class" : "org.knime.base.node.preproc.filter.row3.operators.rowkey.RowKeyEqualsParameters",
+        "caseSensitivity" : "CASE_SENSITIVE",
+        "value" : "RowXXX"
+      }
+    }, {
+      "indices" : [ 1 ],
+      "value" : {
+        "@class" : "org.knime.base.node.preproc.filter.row3.operators.pattern.PatternWithCaseParameters",
+        "pattern" : "Foo*Foo*",
+        "caseSensitivity" : "CASE_SENSITIVE"
+      }
+    }, {
+      "indices" : [ 2 ],
+      "value" : {
+        "@class" : "org.knime.base.node.preproc.filter.row3.operators.pattern.PatternFilterParameters",
+        "pattern" : "100*"
+      }
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/predicates/items/properties/filterValueParameters",
+    "providedOptionName" : "dynamicSettings",
+    "values" : [ {
+      "indices" : [ 0 ],
+      "value" : {
+        "data" : {
+          "@class" : "org.knime.base.node.preproc.filter.row3.operators.rowkey.RowKeyEqualsParameters",
+          "caseSensitivity" : "CASE_SENSITIVE",
+          "value" : "RowXXX"
+        },
+        "schema" : "{\"type\":\"object\",\"properties\":{\"caseSensitivity\":{\"oneOf\":[{\"const\":\"CASE_SENSITIVE\",\"title\":\"Case sensitive\"},{\"const\":\"CASE_INSENSITIVE\",\"title\":\"Case insensitive\"}],\"title\":\"Case matching\",\"description\":\"Whether the comparison should be case sensitive or not.\",\"default\":\"CASE_SENSITIVE\"},\"value\":{\"type\":\"string\",\"title\":\"RowID\",\"description\":\"The RowID to compare with.\",\"default\":\"\"}}}",
+        "uiSchema" : "{\"elements\":[{\"type\":\"Control\",\"scope\":\"#/properties/caseSensitivity\",\"options\":{\"format\":\"valueSwitch\"}},{\"type\":\"Control\",\"scope\":\"#/properties/value\"}]}",
+        "persist" : "{\"type\":\"object\",\"properties\":{\"caseSensitivity\":{},\"value\":{}}}",
+        "updates" : "{}",
+        "settingsId" : null
+      }
+    }, {
+      "indices" : [ 1 ],
+      "value" : {
+        "data" : {
+          "@class" : "org.knime.base.node.preproc.filter.row3.operators.pattern.PatternWithCaseParameters",
+          "pattern" : "Foo*Foo*",
+          "caseSensitivity" : "CASE_SENSITIVE"
+        },
+        "schema" : "{\"type\":\"object\",\"properties\":{\"caseSensitivity\":{\"oneOf\":[{\"const\":\"CASE_SENSITIVE\",\"title\":\"Case sensitive\"},{\"const\":\"CASE_INSENSITIVE\",\"title\":\"Case insensitive\"}],\"title\":\"Case matching\",\"description\":\"Whether to consider casing when matching the pattern.\",\"default\":\"CASE_INSENSITIVE\"},\"pattern\":{\"type\":\"string\",\"title\":\"Pattern\",\"description\":\"The pattern to filter for. The format depends on the operator (regex or wildcard).\",\"default\":\"\"}}}",
+        "uiSchema" : "{\"elements\":[{\"type\":\"Control\",\"scope\":\"#/properties/caseSensitivity\",\"options\":{\"format\":\"valueSwitch\"}},{\"type\":\"Control\",\"scope\":\"#/properties/pattern\"}]}",
+        "persist" : "{\"type\":\"object\",\"properties\":{\"pattern\":{},\"caseSensitivity\":{}}}",
+        "updates" : "{}",
+        "settingsId" : null
+      }
+    }, {
+      "indices" : [ 2 ],
+      "value" : {
+        "data" : {
+          "@class" : "org.knime.base.node.preproc.filter.row3.operators.pattern.PatternFilterParameters",
+          "pattern" : "100*"
+        },
+        "schema" : "{\"type\":\"object\",\"properties\":{\"pattern\":{\"type\":\"string\",\"title\":\"Pattern\",\"description\":\"The pattern to filter for. The format depends on the operator (regex or wildcard).\",\"default\":\"\"}}}",
+        "uiSchema" : "{\"elements\":[{\"type\":\"Control\",\"scope\":\"#/properties/pattern\"}]}",
+        "persist" : "{\"type\":\"object\",\"properties\":{\"pattern\":{}}}",
+        "updates" : "{}",
+        "settingsId" : null
+      }
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/predicates/items/properties/operator",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ 0 ],
+      "value" : [ {
+        "id" : "EQ",
+        "text" : "Equals"
+      }, {
+        "id" : "NEQ",
+        "text" : "Not equal"
+      }, {
+        "id" : "REGEX",
+        "text" : "Matches regex"
+      }, {
+        "id" : "WILDCARD",
+        "text" : "Matches wildcard"
+      } ]
+    }, {
+      "indices" : [ 1 ],
+      "value" : [ {
+        "id" : "EQ",
+        "text" : "Equals"
+      }, {
+        "id" : "NEQ",
+        "text" : "Is not equal"
+      }, {
+        "id" : "NEQ_MISS",
+        "text" : "Is not equal (nor missing)"
+      }, {
+        "id" : "REGEX",
+        "text" : "Matches regex"
+      }, {
+        "id" : "WILDCARD",
+        "text" : "Matches wildcard"
+      }, {
+        "id" : "IS_MISSING",
+        "text" : "Is missing"
+      }, {
+        "id" : "IS_NOT_MISSING",
+        "text" : "Is not missing"
+      } ]
+    }, {
+      "indices" : [ 2 ],
+      "value" : [ {
+        "id" : "EQ",
+        "text" : "Equals"
+      }, {
+        "id" : "NEQ",
+        "text" : "Is not equal"
+      }, {
+        "id" : "NEQ_MISS",
+        "text" : "Is not equal (nor missing)"
+      }, {
+        "id" : "LT",
+        "text" : "Less than"
+      }, {
+        "id" : "LTE",
+        "text" : "Less than or equal"
+      }, {
+        "id" : "GT",
+        "text" : "Greater than"
+      }, {
+        "id" : "GTE",
+        "text" : "Greater than or equal"
+      }, {
+        "id" : "REGEX",
+        "text" : "Matches regex"
+      }, {
+        "id" : "WILDCARD",
+        "text" : "Matches wildcard"
+      }, {
+        "id" : "IS_MISSING",
+        "text" : "Is missing"
+      }, {
+        "id" : "IS_NOT_MISSING",
+        "text" : "Is not missing"
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/predicates",
+    "providedOptionName" : "elementDefaultValue",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : {
+        "column" : {
+          "regularChoice" : "BoolCol"
+        },
+        "columnType" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "operator" : "IS_TRUE"
+      }
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/predicates/items/properties/column"
+    },
+    "dependencies" : [ "#/properties/model/properties/predicates/items/properties/column", "#/properties/model/properties/predicates/items/properties/columnType", "#/properties/model/properties/predicates/items/properties/filterValueParameters", "#/properties/model/properties/predicates/items/properties/operator" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/predicates/items/properties/operator"
+    },
+    "dependencies" : [ "#/properties/model/properties/predicates/items/properties/column", "#/properties/model/properties/predicates/items/properties/columnType", "#/properties/model/properties/predicates/items/properties/filterValueParameters", "#/properties/model/properties/predicates/items/properties/operator" ]
+  } ]
+}
