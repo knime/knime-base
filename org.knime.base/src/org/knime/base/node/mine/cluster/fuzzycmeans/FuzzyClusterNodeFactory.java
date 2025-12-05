@@ -77,15 +77,19 @@ import org.knime.node.impl.description.ViewDescription;
 public class FuzzyClusterNodeFactory extends
         NodeFactory<FuzzyClusterNodeModel> implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
-    private boolean m_showPMMLInput;
+    private final boolean m_showPMMLInput;
 
     public FuzzyClusterNodeFactory() {
         this(true);
     }
 
     FuzzyClusterNodeFactory(final boolean showPMMLInput) {
+        // node description creation needs this field to be set, if created eager, field is not yet assigned
+        super(showPMMLInput); // lazy <=> showPMMLInput
         m_showPMMLInput = showPMMLInput;
-
+        if (showPMMLInput) {
+            init();
+        }
     }
 
     @Override
