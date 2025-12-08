@@ -56,6 +56,7 @@ import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperator;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.builtin.RegexOperator;
 
 /**
  * Filter operator for regex pattern matching.
@@ -85,6 +86,7 @@ final class DefaultRegexPatternFilterOperator implements FilterOperator<PatternW
         final DataType configureColumnType, final PatternWithCaseParameters params) throws InvalidSettingsException {
         return PatternFilterUtils.createPredicate(params.m_pattern, true,
             params.m_caseSensitivity == CaseSensitivity.CASE_SENSITIVE,
+            // toStringFunction does the support check
             PatternFilterUtils.toStringFunction(runtimeColumnSpec));
     }
 

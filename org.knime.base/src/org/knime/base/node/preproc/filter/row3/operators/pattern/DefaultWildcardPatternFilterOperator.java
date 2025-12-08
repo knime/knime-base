@@ -56,6 +56,7 @@ import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperator;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.builtin.WildcardOperator;
 
 /**
  * Filter operator for wildcard pattern matching.
@@ -84,9 +85,9 @@ final class DefaultWildcardPatternFilterOperator
     @Override
     public Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec,
         final DataType configureColumnType, final PatternWithCaseParameters params) throws InvalidSettingsException {
-        // responsibility of framework to make sure data values are actually String-compatible
         return PatternFilterUtils.createPredicate(params.m_pattern, false,
             params.m_caseSensitivity == CaseSensitivity.CASE_SENSITIVE,
+            // toStringFunction does the support check
             PatternFilterUtils.toStringFunction(runtimeColumnSpec));
     }
 
