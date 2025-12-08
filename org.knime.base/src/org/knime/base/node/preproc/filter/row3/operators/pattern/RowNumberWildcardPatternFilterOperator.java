@@ -53,6 +53,7 @@ import java.util.function.LongPredicate;
 import org.knime.base.node.preproc.filter.row3.operators.legacy.StringPredicate;
 import org.knime.base.node.preproc.filter.row3.operators.rownumber.RowNumberFilterOperator;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.builtin.WildcardOperator;
 
 /**
  * Filter operator for wildcard pattern matching on row numbers. Row numbers are converted to 1-based strings for
