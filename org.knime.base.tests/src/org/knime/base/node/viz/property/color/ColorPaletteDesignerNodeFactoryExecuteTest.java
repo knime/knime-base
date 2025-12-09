@@ -1,0 +1,244 @@
+/*
+ * ------------------------------------------------------------------------
+ *
+ *  Copyright by KNIME AG, Zurich, Switzerland
+ *  Website: http://www.knime.com; Email: contact@knime.com
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License, Version 3, as
+ *  published by the Free Software Foundation.
+ *
+ *  This program is distributed in the hope that it will be useful, but
+ *  WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, see <http://www.gnu.org/licenses>.
+ *
+ *  Additional permission under GNU GPL version 3 section 7:
+ *
+ *  KNIME interoperates with ECLIPSE solely via ECLIPSE's plug-in APIs.
+ *  Hence, KNIME and ECLIPSE are both independent programs and are not
+ *  derived from each other. Should, however, the interpretation of the
+ *  GNU GPL Version 3 ("License") under any applicable laws result in
+ *  KNIME and ECLIPSE being a combined program, KNIME AG herewith grants
+ *  you the additional permission to use and propagate KNIME together with
+ *  ECLIPSE with only the license terms in place for ECLIPSE applying to
+ *  ECLIPSE and the GNU GPL Version 3 applying for KNIME, provided the
+ *  license terms of ECLIPSE themselves allow for the respective use and
+ *  propagation of ECLIPSE together with KNIME.
+ *
+ *  Additional permission relating to nodes for KNIME that extend the Node
+ *  Extension (and in particular that are based on subclasses of NodeModel,
+ *  NodeDialog, and NodeView) and that only interoperate with KNIME through
+ *  standard APIs ("Nodes"):
+ *  Nodes are deemed to be separate and independent programs and to not be
+ *  covered works.  Notwithstanding anything to the contrary in the
+ *  License, the License does not apply to Nodes, you are not required to
+ *  license Nodes under the License, and you are granted a license to
+ *  prepare and propagate Nodes, in each case even if such Nodes are
+ *  propagated with or for interoperation with KNIME.  The owner of a Node
+ *  may freely choose the license terms applicable to such Node, including
+ *  when such Node is propagated with or for interoperation with KNIME.
+ * ------------------------------------------------------------------------
+ */
+
+package org.knime.base.node.viz.property.color;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.util.List;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.def.StringCell;
+import org.knime.core.node.BufferedDataTable;
+import org.knime.core.node.ExecutionContext;
+import org.knime.core.node.context.ports.PortsConfiguration;
+import org.knime.core.node.port.PortObject;
+import org.knime.core.node.port.PortType;
+import org.knime.core.node.port.viewproperty.ColorHandlerPortObject;
+import org.knime.node.DefaultModel.ExecuteInput;
+import org.knime.node.DefaultModel.ExecuteOutput;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
+import org.mockito.ArgumentMatchers;
+import org.mockito.Mockito;
+
+@SuppressWarnings("static-method")
+final class ColorPaletteDesignerNodeFactoryExecuteTest {
+
+    @Test
+    void testExecuteWithoutInputTableProducesOnlyColorModel() {
+        final var parameters = new ColorPaletteDesignerNodeParameters();
+        final var executeInput = new TestExecuteInput(parameters, new BufferedDataTable[0]);
+        final var executeOutput = new TestExecuteOutput();
+
+        ColorPaletteDesignerNodeFactory.execute(executeInput, executeOutput);
+
+        assertEquals(1, executeOutput.m_outData.length);
+        assertEquals(ColorHandlerPortObject.class, executeOutput.m_outData[0].getClass());
+    }
+
+    @Test
+    void testExecuteWithInputTableProducesBothOutputs() {
+        final var parameters = new ColorPaletteDesignerNodeParameters();
+        parameters.m_columnFilter = new ColumnFilter(TestHelper.COLUMNS_WITH_DOMAIN);
+
+        final var inputTable = mock(BufferedDataTable.class);
+        final var inputSpec = TestHelper.createTestTableSpec();
+        when(inputTable.getDataTableSpec()).thenReturn(inputSpec);
+
+        final var executeInput = new TestExecuteInput(parameters, new BufferedDataTable[]{inputTable});
+        final var executeOutput = new TestExecuteOutput();
+
+        ColorPaletteDesignerNodeFactory.execute(executeInput, executeOutput);
+
+        assertEquals(2, executeOutput.m_outData.length);
+        assertEquals(BufferedDataTable.class, executeOutput.m_outData[0].getClass());
+        assertEquals(ColorHandlerPortObject.class, executeOutput.m_outData[1].getClass());
+    }
+
+    static Stream<Arguments> portSummaryTestParameters() {
+        return Stream.of( //
+            Arguments.of(1, "Coloring on \"Col0\""), //
+            Arguments.of(2, "Coloring on \"Col0\" and \"Col1\""), //
+            Arguments.of(3, "Coloring on \"Col0\", \"Col1\", and \"Col2\""), //
+            Arguments.of(4, "Coloring on \"Col0\", \"Col1\", \"Col2\", and 1 more column"), //
+            Arguments.of(5, "Coloring on \"Col0\", \"Col1\", \"Col2\", and 2 more columns"));
+    }
+
+    @ParameterizedTest
+    @MethodSource("portSummaryTestParameters")
+    void testPortSummaryWithMultipleColumns(final int numberOfColumns, final String expectedSummary) {
+        final var columnSpecs = IntStream.range(0, numberOfColumns)
+            .mapToObj(i -> TestHelper.createColumnWithDomain("Col" + i, StringCell.TYPE,
+                List.of("Col" + i + "_A", "Col" + i + "_B", "Col" + i + "_C")))
+            .toArray(DataColumnSpec[]::new);
+        final var testTableSpec = new DataTableSpec(columnSpecs);
+        final var columnNames = testTableSpec.getColumnNames();
+        final var parameters = new ColorPaletteDesignerNodeParameters();
+        parameters.m_columnFilter = new ColumnFilter(columnNames);
+
+        final var inputTable = mock(BufferedDataTable.class);
+        when(inputTable.getDataTableSpec()).thenReturn(testTableSpec);
+
+        final var executeInput = new TestExecuteInput(parameters, new BufferedDataTable[]{inputTable});
+        final var executeOutput = new TestExecuteOutput();
+
+        ColorPaletteDesignerNodeFactory.execute(executeInput, executeOutput);
+
+        final var colorHandlerPort = (ColorHandlerPortObject)executeOutput.m_outData[1];
+        assertEquals(expectedSummary, colorHandlerPort.getSummary());
+    }
+
+    @Test
+    void testPortSummaryForColumnNames() {
+        final var parameters = new ColorPaletteDesignerNodeParameters();
+        parameters.m_applyTo = ColorPaletteDesignerNodeParameters.ApplyColorTo.COLUMNS;
+        final var testTableSpec = TestHelper.createTestTableSpec();
+
+        final var inputTable = mock(BufferedDataTable.class);
+        when(inputTable.getDataTableSpec()).thenReturn(testTableSpec);
+
+        final var executeInput = new TestExecuteInput(parameters, new BufferedDataTable[]{inputTable});
+        final var executeOutput = new TestExecuteOutput();
+
+        ColorPaletteDesignerNodeFactory.execute(executeInput, executeOutput);
+
+        final var colorHandlerPort = (ColorHandlerPortObject)executeOutput.m_outData[1];
+        assertEquals("Coloring on column names", colorHandlerPort.getSummary());
+    }
+
+    // Test implementation of ExecuteInput that only implements the methods used by the factory
+    private static final class TestExecuteInput implements ExecuteInput {
+        private final NodeParameters m_parameters;
+
+        private final BufferedDataTable[] m_inTables;
+
+        private final ExecutionContext m_executionContext;
+
+        TestExecuteInput(final NodeParameters parameters, final BufferedDataTable[] inTables) {
+            m_parameters = parameters;
+            m_inTables = inTables;
+            m_executionContext = mock(ExecutionContext.class);
+            Mockito.when(m_executionContext.createSpecReplacerTable(ArgumentMatchers.any(BufferedDataTable.class),
+                ArgumentMatchers.any(DataTableSpec.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        }
+
+        @Override
+        public <S extends NodeParameters> S getParameters() {
+            @SuppressWarnings("unchecked")
+            final S result = (S)m_parameters;
+            return result;
+        }
+
+        @Override
+        public BufferedDataTable[] getInTables() {
+            return m_inTables;
+        }
+
+        @Override
+        public ExecutionContext getExecutionContext() {
+            return m_executionContext;
+        }
+
+        // Unused methods can return null
+        @Override
+        public PortObject[] getInPortObjects() {
+            return null;
+        }
+
+        @Override
+        public <D extends PortObject> D getInPortObject(final int portIndex) {
+            return null;
+        }
+
+        @Override
+        public BufferedDataTable getInTable(final int portIndex) {
+            return null;
+        }
+
+        @Override
+        public PortType[] getOutPortTypes() {
+            return null;
+        }
+
+        @Override
+        public PortsConfiguration getPortsConfiguration() {
+            return null;
+        }
+    }
+
+    // Test implementation of ExecuteOutput that only implements the methods used by the factory
+    private static final class TestExecuteOutput implements ExecuteOutput {
+        PortObject[] m_outData;
+
+        @Override
+        public <D extends PortObject> void setOutData(final D... data) {
+            m_outData = data;
+        }
+
+        // Unused methods can be empty
+        @Override
+        public <D extends PortObject> void setOutData(final int index, final D data) {
+        }
+
+        @Override
+        public <D extends PortObject> void setInternalData(final D... data) {
+        }
+
+        @Override
+        public void setWarningMessage(final String message) {
+        }
+    }
+}
