@@ -49,7 +49,7 @@
 package org.knime.base.node.io.filehandling.table.reader2;
 
 import org.knime.base.node.io.filehandling.table.reader2.PrependTableIndexToRowIdParameters.PrependTableIndexToRowIdLayout;
-import org.knime.base.node.io.filehandling.webui.reader2.MultiFileReaderParameters.AppendFilePathColumn;
+import org.knime.base.node.io.filehandling.webui.reader2.AppendFilePathColumnParameters.AppendFilePathColumn;
 import org.knime.base.node.io.filehandling.webui.reader2.MultiFileReaderParameters.HowToCombineColumns;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.node.parameters.NodeParameters;

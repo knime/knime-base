@@ -41,9 +41,9 @@
             <entry key="ifSchemaChangesOption" type="xstring" value="FAIL"/>
         </config>
         <config key="multiFileReaderParams">
-            <entry key="howToCombineColumns" type="xstring" value="UNION"/>
             <entry key="appendPathColumn" type="xstring" value="File Path"/>
             <entry key="appendPathColumn_is_present" type="xboolean" value="true"/>
+            <entry key="howToCombineColumns" type="xstring" value="UNION"/>
         </config>
         <config key="useExistingRowIdParams">
             <entry key="useExistingRowId" type="xboolean" value="true"/>
