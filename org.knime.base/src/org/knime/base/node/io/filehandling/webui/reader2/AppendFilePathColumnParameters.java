@@ -44,95 +44,110 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 24, 2025 (Paul Bärnreuther): created
+ *   Dec 8, 2025 (paulbaernreuther): created
  */
 package org.knime.base.node.io.filehandling.webui.reader2;
 
 import java.util.Optional;
 
-import org.knime.base.node.io.filehandling.webui.reader2.SkipFirstDataRowsParameters.SkipFirstDataRows;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.filehandling.core.node.table.reader.config.AbstractTableReadConfig;
+import org.knime.filehandling.core.node.table.reader.config.AbstractMultiTableReadConfig;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
-import org.knime.node.parameters.layout.After;
+import org.knime.node.parameters.layout.Inside;
 import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.widget.OptionalWidget;
 import org.knime.node.parameters.widget.OptionalWidget.DefaultValueProvider;
-import org.knime.node.parameters.widget.number.NumberInputWidget;
-import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsNonNegativeValidation;
+import org.knime.node.parameters.widget.text.TextInputWidget;
+import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils;
 
 /**
- * Parameters for limiting the maximum number of rows.
+ * Parameters for appending a file path column to the read table.
  *
  * @author Paul Bärnreuther
  * @since 5.10
  */
-public final class MaxNumberOfRowsParameters implements NodeParameters {
+public class AppendFilePathColumnParameters implements NodeParameters {
 
-    static final class MaximumNumberOfRowsDefaultProvider implements DefaultValueProvider<Long> {
+    /**
+     * Reference this interface to position parameters relative to "Append file path column".
+     */
+    @Inside(ReaderLayout.MultipleFileHandling.class)
+    public interface AppendFilePathColumn {
+    }
+
+    private static final String APPEND_FILE_PATH_COLUMN_DESCRIPTION = """
+            Select this box if you want to add a column containing the path of the file from which the row is read.
+            The node will fail if adding the column with the provided name causes a name collision with any of the
+            columns in the read table.
+            """;
+
+    @Widget(title = "Append file path column", description = APPEND_FILE_PATH_COLUMN_DESCRIPTION)
+    @Layout(AppendFilePathColumn.class)
+    @OptionalWidget(defaultProvider = AppendPathColumnDefaultProvider.class)
+    @TextInputWidget(patternValidation = ColumnNameValidationUtils.ColumnNameValidation.class)
+    Optional<String> m_appendPathColumn = Optional.empty();
+
+    static final class AppendPathColumnDefaultProvider implements DefaultValueProvider<String> {
         @Override
-        public Long computeState(final NodeParametersInput context) {
-            return 50L;
+        public String computeState(final NodeParametersInput parametersInput) {
+            return "File Path";
         }
     }
 
     /**
-     * Reference this interface to position parameters relative to "Limit number of rows" in the layout.
+     * Default constructor with empty path column.
      */
-    @After(SkipFirstDataRows.class)
-    public interface LimitNumberOfRows {
-    }
-
-    @Widget(title = "Limit number of rows", description = """
-            If enabled, only the specified number of data rows are read. The column header row (if selected) is not
-            taken into account. Limiting rows prevents parallel reading of individual files.
-            """, advanced = true)
-    @Layout(LimitNumberOfRows.class)
-    @OptionalWidget(defaultProvider = MaximumNumberOfRowsDefaultProvider.class)
-    @NumberInputWidget(minValidation = IsNonNegativeValidation.class)
-    Optional<Long> m_maximumNumberOfRows = Optional.empty();
-
-    /**
-     * Default constructor with empty maximum number of rows.
-     */
-    public MaxNumberOfRowsParameters() {
+    public AppendFilePathColumnParameters() {
         // Default constructor
     }
 
     /**
-     * Constructor with maximum number of rows.
+     * Constructor with column name.
      *
-     * @param maxRows the maximum number of rows
+     * @param columnName the column name to append, or null for empty
      */
-    public MaxNumberOfRowsParameters(final long maxRows) {
-        m_maximumNumberOfRows = Optional.of(maxRows);
+    public AppendFilePathColumnParameters(final String columnName) {
+        m_appendPathColumn = Optional.ofNullable(columnName);
     }
 
     /**
      * Save the settings to the given config.
      *
-     * @param tableReadConfig the config to save to
+     * @param config the config to save to
      */
-    public void saveToConfig(final AbstractTableReadConfig<?> tableReadConfig) {
-        tableReadConfig.setLimitRows(m_maximumNumberOfRows.isPresent());
-        tableReadConfig.setMaxRows(m_maximumNumberOfRows.orElse(0L));
+    public void saveToConfig(final AbstractMultiTableReadConfig<?, ?, ?, ?> config) {
+        config.setAppendItemIdentifierColumn(m_appendPathColumn.isPresent());
+        config.setItemIdentifierColumnName(m_appendPathColumn.orElse(""));
     }
 
     /**
-     * Get the maximum number of rows value.
+     * Get the append path column value.
      *
-     * @return the optional maximum number of rows
+     * @return the optional column name
      */
-    public Optional<Long> getMaximumNumberOfRows() {
-        return m_maximumNumberOfRows;
+    public Optional<String> getAppendPathColumn() {
+        return m_appendPathColumn;
     }
 
     @Override
     public void validate() throws InvalidSettingsException {
-        if (m_maximumNumberOfRows.isPresent() && m_maximumNumberOfRows.get() < 0) {
-            throw new InvalidSettingsException("The maximum number of rows must be non-negative.");
+        if (m_appendPathColumn.isPresent()) {
+            final var columnName = m_appendPathColumn.get();
+            ColumnNameValidationUtils.validateColumnName(columnName, invalidState -> { // NOSONAR complexity seems OK
+                switch (invalidState) {
+                    case EMPTY:
+                        return "The file path column name must not be empty.";
+                    case BLANK:
+                        return "The file path column name must not be blank.";
+                    case NOT_TRIMMED:
+                        return "The file path column name must not start or end with whitespace.";
+                    default:
+                        throw new IllegalStateException("Unknown invalid column name state: " + invalidState);
+                }
+            });
         }
     }
+
 }

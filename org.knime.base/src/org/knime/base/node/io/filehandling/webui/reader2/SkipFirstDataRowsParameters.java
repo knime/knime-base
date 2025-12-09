@@ -90,6 +90,22 @@ public final class SkipFirstDataRowsParameters implements NodeParameters {
     long m_skipFirstDataRows;
 
     /**
+     * Default constructor with no rows skipped.
+     */
+    public SkipFirstDataRowsParameters() {
+        // Default constructor
+    }
+
+    /**
+     * Constructor with number of rows to skip.
+     *
+     * @param skipRows the number of rows to skip
+     */
+    public SkipFirstDataRowsParameters(final long skipRows) {
+        m_skipFirstDataRows = skipRows;
+    }
+
+    /**
      * Save the settings to the given config.
      *
      * @param tableReadConfig the config to save to
@@ -97,6 +113,15 @@ public final class SkipFirstDataRowsParameters implements NodeParameters {
     public void saveToConfig(final DefaultTableReadConfig<?> tableReadConfig) {
         tableReadConfig.setSkipRows(m_skipFirstDataRows > 0);
         tableReadConfig.setNumRowsToSkip(m_skipFirstDataRows);
+    }
+
+    /**
+     * Get the skip first data rows value.
+     *
+     * @return the number of rows to skip
+     */
+    public long getSkipFirstDataRows() {
+        return m_skipFirstDataRows;
     }
 
     @Override

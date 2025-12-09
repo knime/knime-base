@@ -48,26 +48,16 @@
  */
 package org.knime.base.node.io.filehandling.webui.reader2;
 
-import java.util.Optional;
-
-import org.knime.core.node.InvalidSettingsException;
 import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
 import org.knime.filehandling.core.node.table.reader.config.AbstractMultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
-import org.knime.node.parameters.NodeParameters;
-import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
-import org.knime.node.parameters.layout.After;
-import org.knime.node.parameters.layout.Inside;
+import org.knime.node.parameters.layout.Before;
 import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.ValueReference;
-import org.knime.node.parameters.widget.OptionalWidget;
-import org.knime.node.parameters.widget.OptionalWidget.DefaultValueProvider;
 import org.knime.node.parameters.widget.choices.Label;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
-import org.knime.node.parameters.widget.text.TextInputWidget;
-import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils;
 
 /**
  * Parameters for handling multiple files in a reader.
@@ -75,8 +65,7 @@ import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils;
  * @author Paul Bärnreuther
  * @since 5.10
  */
-@Inside(ReaderLayout.MultipleFileHandling.class)
-public final class MultiFileReaderParameters implements NodeParameters {
+public final class MultiFileReaderParameters extends AppendFilePathColumnParameters {
 
     static class HowToCombineColumnsOptionRef implements ParameterReference<HowToCombineColumnsOption> {
     }
@@ -84,6 +73,7 @@ public final class MultiFileReaderParameters implements NodeParameters {
     /**
      * Reference this interface to position parameters relative to "How to combine columns".
      */
+    @Before(AppendFilePathColumnParameters.AppendFilePathColumn.class)
     public interface HowToCombineColumns {
     }
 
@@ -97,66 +87,20 @@ public final class MultiFileReaderParameters implements NodeParameters {
     @Layout(HowToCombineColumns.class)
     public HowToCombineColumnsOption m_howToCombineColumns = HowToCombineColumnsOption.FAIL;
 
-    static final class AppendPathColumnDefaultProvider implements DefaultValueProvider<String> {
-        @Override
-        public String computeState(final NodeParametersInput parametersInput) {
-            return "File Path";
-        }
-    }
-
-    /**
-     * Reference this interface to position parameters relative to "Append file path column".
-     */
-    @After(HowToCombineColumns.class)
-    public interface AppendFilePathColumn {
-    }
-
-    private static final String APPEND_FILE_PATH_COLUMN_DESCRIPTION = """
-            Select this box if you want to add a column containing the path of the file from which the row is read.
-            The node will fail if adding the column with the provided name causes a name collision with any of the
-            columns in the read table.
-            """;
-
-    @Widget(title = "Append file path column", description = APPEND_FILE_PATH_COLUMN_DESCRIPTION)
-    @Layout(AppendFilePathColumn.class)
-    @OptionalWidget(defaultProvider = AppendPathColumnDefaultProvider.class)
-    @TextInputWidget(patternValidation = ColumnNameValidationUtils.ColumnNameValidation.class)
-    Optional<String> m_appendPathColumn = Optional.empty();
-
     /**
      * Save the settings to the given config.
      *
      * @param config the config to save to
      */
+    @Override
     @SuppressWarnings("deprecation")
     public void saveToConfig(final AbstractMultiTableReadConfig<?, ?, ?, ?> config) {
+        super.saveToConfig(config);
         config.setCheckSavedTableSpec(true); // the option to ignore saved table spec is deprecated
 
         config.setFailOnDifferingSpecs(m_howToCombineColumns == HowToCombineColumnsOption.FAIL);
         config.setSpecMergeMode(m_howToCombineColumns == HowToCombineColumnsOption.INTERSECTION
             ? SpecMergeMode.INTERSECTION : SpecMergeMode.UNION);
-
-        config.setAppendItemIdentifierColumn(m_appendPathColumn.isPresent());
-        config.setItemIdentifierColumnName(m_appendPathColumn.orElse(""));
-    }
-
-    @Override
-    public void validate() throws InvalidSettingsException {
-        if (m_appendPathColumn.isPresent()) {
-            final var columnName = m_appendPathColumn.get();
-            ColumnNameValidationUtils.validateColumnName(columnName, invalidState -> { // NOSONAR complexity seems OK
-                switch (invalidState) {
-                    case EMPTY:
-                        return "The file path column name must not be empty.";
-                    case BLANK:
-                        return "The file path column name must not be blank.";
-                    case NOT_TRIMMED:
-                        return "The file path column name must not start or end with whitespace.";
-                    default:
-                        throw new IllegalStateException("Unknown invalid column name state: " + invalidState);
-                }
-            });
-        }
     }
 
     /**
