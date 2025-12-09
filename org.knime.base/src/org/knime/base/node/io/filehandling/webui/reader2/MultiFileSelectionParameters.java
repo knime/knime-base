@@ -49,6 +49,7 @@
 package org.knime.base.node.io.filehandling.webui.reader2;
 
 import java.net.URL;
+import java.util.Set;
 
 import org.knime.base.node.io.filehandling.webui.FileSystemManagedByPortMessage;
 import org.knime.base.node.io.filehandling.webui.ReferenceStateProvider;
@@ -59,7 +60,10 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSel
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelectionMode;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelectionWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
+import org.knime.filehandling.core.connections.FSCategory;
+import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSLocationUtil;
+import org.knime.filehandling.core.connections.RelativeTo;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.updates.EffectPredicate;
@@ -82,8 +86,22 @@ public final class MultiFileSelectionParameters implements NodeParameters {
      * @param url the URL to initialize from
      */
     public MultiFileSelectionParameters(final URL url) {
-        m_source = new MultiFileSelection<>(MultiFileSelectionMode.FILE, new DefaultFileChooserFilters(),
-            FSLocationUtil.createFromURL(url.toString()));
+        var fsLocation = urlToSupportedFSLocation(url);
+        m_source = new MultiFileSelection<>(MultiFileSelectionMode.FILE, new DefaultFileChooserFilters(), fsLocation);
+    }
+
+    static FSLocation urlToSupportedFSLocation(final URL url) {
+        var fsLocation = FSLocationUtil.createFromURL(url.toString());
+        /**
+         * We don't support MOUNTPOINT or HUB_SPACE as source selection in readers using
+         * {@link AbstractFileSelectionPath}.
+         */
+        if (Set.of(FSCategory.MOUNTPOINT, FSCategory.HUB_SPACE).contains(fsLocation.getFSCategory())
+            || (fsLocation.getFSCategory() == FSCategory.RELATIVE && fsLocation.getFileSystemSpecifier()
+                .filter(RelativeTo.MOUNTPOINT.getSettingsValue()::equals).isPresent())) {
+            return new FSLocation(FSCategory.CUSTOM_URL, "1000", url.toString());
+        }
+        return fsLocation;
     }
 
     /**
