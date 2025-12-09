@@ -112,7 +112,7 @@ class MissingValueTreatment implements NodeParameters {
             + "Some strategies require additional parameters which can be set below after selecting the strategy."//
             + "<br/><br/>" //
             + "Options marked with an asterisk (*) will result in non-standard PMML, "
-            + "which uses extensions that cannot be read by other tools than KNIME.")
+            + "which uses extensions that cannot be read by tools other than KNIME.")
     @Modification.WidgetReference(FactoryIDWidget.class)
     String m_factoryID = DoNothingMissingCellHandlerFactory.getInstance().getID();
 

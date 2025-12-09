@@ -31,83 +31,82 @@
         }
       } ],
       "dataTypeSettings" : {
-        "allLoadedTreatments" : [ {
-          "dataTypeKey" : "org.knime.core.data.def.IntCell",
+        "treatmentsForPresentDataTypes" : [ {
+          "key" : "org.knime.core.data.def.IntCell",
           "treatment" : {
             "factoryID" : "org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"
           }
         }, {
-          "dataTypeKey" : "org.knime.core.data.collection.ListCell",
+          "key" : "org.knime.core.data.collection.ListCell",
           "treatment" : {
             "factoryID" : "org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"
           }
         }, {
-          "dataTypeKey" : "org.knime.core.data.time.zoneddatetime.ZonedDateTimeCell",
+          "key" : "org.knime.core.data.time.zoneddatetime.ZonedDateTimeCell",
           "treatment" : {
             "factoryID" : "org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"
           }
         }, {
-          "dataTypeKey" : "org.knime.core.data.collection.SetCell",
+          "key" : "org.knime.core.data.collection.SetCell",
           "treatment" : {
             "factoryID" : "org.knime.base.node.preproc.pmml.missingval.handlers.timeseries.PreviousMissingCellHandlerFactory"
           }
         }, {
-          "dataTypeKey" : "org.knime.core.data.time.localtime.LocalTimeCell",
+          "key" : "org.knime.core.data.time.localtime.LocalTimeCell",
           "treatment" : {
             "factoryID" : "org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"
           }
         }, {
-          "dataTypeKey" : "org.knime.core.data.def.LongCell",
+          "key" : "org.knime.core.data.def.LongCell",
           "treatment" : {
             "factoryID" : "org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"
           }
         }, {
-          "dataTypeKey" : "org.knime.core.data.def.DoubleCell",
+          "key" : "org.knime.core.data.def.DoubleCell",
           "treatment" : {
             "factoryID" : "org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"
           }
         }, {
-          "dataTypeKey" : "org.knime.core.data.uri.URIDataCell",
+          "key" : "org.knime.core.data.uri.URIDataCell",
           "treatment" : {
             "factoryID" : "org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"
           }
         }, {
-          "dataTypeKey" : "org.knime.core.data.time.localdate.LocalDateCell",
+          "key" : "org.knime.core.data.time.localdate.LocalDateCell",
           "treatment" : {
             "factoryID" : "org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"
           }
         }, {
-          "dataTypeKey" : "org.knime.core.data.def.BooleanCell",
+          "key" : "org.knime.core.data.def.BooleanCell",
           "treatment" : {
             "factoryID" : "org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"
           }
         }, {
-          "dataTypeKey" : "org.knime.core.data.def.StringCell",
+          "key" : "org.knime.core.data.def.StringCell",
           "treatment" : {
             "factoryID" : "org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"
           }
         }, {
-          "dataTypeKey" : "org.knime.core.data.time.duration.DurationCell",
+          "key" : "org.knime.core.data.time.duration.DurationCell",
           "treatment" : {
             "factoryID" : "org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"
           }
         }, {
-          "dataTypeKey" : "org.knime.core.data.time.localdatetime.LocalDateTimeCell",
+          "key" : "org.knime.core.data.time.localdatetime.LocalDateTimeCell",
           "treatment" : {
             "factoryID" : "org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"
           }
         }, {
-          "dataTypeKey" : "org.knime.core.data.date.DateAndTimeCell",
+          "key" : "org.knime.core.data.date.DateAndTimeCell",
           "treatment" : {
             "factoryID" : "org.knime.base.node.preproc.pmml.missingval.handlers.MaxMissingCellHandlerFactory"
           }
         }, {
-          "dataTypeKey" : "org.knime.core.data.time.period.PeriodCell",
+          "key" : "org.knime.core.data.time.period.PeriodCell",
           "treatment" : {
             "factoryID" : "org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"
           }
-        } ],
-        "treatmentsForPresentDataTypes" : [ ]
+        } ]
       }
     }
   },
@@ -137,7 +136,7 @@
                     "factoryID" : {
                       "type" : "string",
                       "title" : "Treatment",
-                      "description" : "Choose the missing value treatment strategy. Some strategies require additional parameters which can be set below after selecting the strategy.<br/><br/>Options marked with an asterisk (*) will result in non-standard PMML, which uses extensions that cannot be read by other tools than KNIME.",
+                      "description" : "Choose the missing value treatment strategy. Some strategies require additional parameters which can be set below after selecting the strategy.<br/><br/>Options marked with an asterisk (*) will result in non-standard PMML, which uses extensions that cannot be read by tools other than KNIME.",
                       "default" : "org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"
                     },
                     "parameters" : {
@@ -150,39 +149,13 @@
                 }
               }
             },
-            "title" : "Treatment by Column",
-            "description" : "Specify how to treat missing values for a specific columns.",
+            "title" : "Treatment by column",
+            "description" : "Specify how to treat missing values for a specific column.",
             "default" : [ ]
           },
           "dataTypeSettings" : {
             "type" : "object",
             "properties" : {
-              "allLoadedTreatments" : {
-                "type" : "array",
-                "items" : {
-                  "type" : "object",
-                  "properties" : {
-                    "dataTypeKey" : {
-                      "type" : "string"
-                    },
-                    "treatment" : {
-                      "type" : "object",
-                      "properties" : {
-                        "factoryID" : {
-                          "type" : "string",
-                          "title" : "Treatment",
-                          "description" : "Choose the missing value treatment strategy. Some strategies require additional parameters which can be set below after selecting the strategy.<br/><br/>Options marked with an asterisk (*) will result in non-standard PMML, which uses extensions that cannot be read by other tools than KNIME.",
-                          "default" : "org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"
-                        },
-                        "parameters" : {
-                          "type" : "object"
-                        }
-                      }
-                    }
-                  }
-                },
-                "default" : [ ]
-              },
               "treatmentsForPresentDataTypes" : {
                 "type" : "array",
                 "items" : {
@@ -191,13 +164,16 @@
                     "dataType" : {
                       "type" : "string"
                     },
+                    "key" : {
+                      "type" : "string"
+                    },
                     "treatment" : {
                       "type" : "object",
                       "properties" : {
                         "factoryID" : {
                           "type" : "string",
                           "title" : "Treatment",
-                          "description" : "Choose the missing value treatment strategy. Some strategies require additional parameters which can be set below after selecting the strategy.<br/><br/>Options marked with an asterisk (*) will result in non-standard PMML, which uses extensions that cannot be read by other tools than KNIME.",
+                          "description" : "Choose the missing value treatment strategy. Some strategies require additional parameters which can be set below after selecting the strategy.<br/><br/>Options marked with an asterisk (*) will result in non-standard PMML, which uses extensions that cannot be read by tools other than KNIME.",
                           "default" : "org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"
                         },
                         "parameters" : {
@@ -216,7 +192,6 @@
               }
             },
             "default" : {
-              "allLoadedTreatments" : [ ],
               "treatmentsForPresentDataTypes" : [ ]
             }
           },
@@ -264,8 +239,8 @@
             },
             "providedOptions" : [ "dynamicSettings" ]
           } ],
-          "addButtonText" : "Add Column Treatment",
-          "arrayElementTitle" : "Column Treatment"
+          "addButtonText" : "Add column treatment",
+          "arrayElementTitle" : "Column treatment"
         }
       } ]
     }, {
@@ -348,7 +323,12 @@
             }
           },
           "dataTypeSettings" : {
-            "propertiesConfigPaths" : [ ]
+            "type" : "object",
+            "properties" : {
+              "treatmentsForPresentDataTypes" : {
+                "configPaths" : [ ]
+              }
+            }
           }
         }
       }
@@ -380,11 +360,13 @@
     "values" : [ {
       "indices" : [ ],
       "value" : [ {
+        "key" : "org.knime.core.data.def.DoubleCell",
         "dataType" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.DoubleCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
         "treatment" : {
           "factoryID" : "org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"
         }
       }, {
+        "key" : "org.knime.core.data.def.StringCell",
         "dataType" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.StringCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
         "treatment" : {
           "factoryID" : "org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"

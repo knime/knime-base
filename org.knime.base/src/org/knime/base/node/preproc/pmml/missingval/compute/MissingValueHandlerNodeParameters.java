@@ -81,8 +81,8 @@ class MissingValueHandlerNodeParameters implements NodeParameters {
     Void m_noOrEmptyTableMessage;
 
     @Layout(ByColumnSection.class)
-    @Widget(title = "Treatment by Column", description = "Specify how to treat missing values for a specific columns.")
-    @ArrayWidget(elementTitle = "Column Treatment", addButtonText = "Add Column Treatment")
+    @Widget(title = "Treatment by column", description = "Specify how to treat missing values for a specific column.")
+    @ArrayWidget(elementTitle = "Column treatment", addButtonText = "Add column treatment")
     MissingValueColumnTreatment[] m_columnSettings = new MissingValueColumnTreatment[0];
 
     @Layout(ByDataTypeSection.class)
@@ -102,12 +102,11 @@ class MissingValueHandlerNodeParameters implements NodeParameters {
             final var inTableSpec = parametersInput.getInTableSpec(0);
             if (inTableSpec.isEmpty()) {
                 return Optional.of(new TextMessage.Message("No input table connected.",
-                    "Please connect an input table to configure missing value handling.",
-                    TextMessage.MessageType.WARNING));
+                    "Connect an input table to configure missing value handling.", TextMessage.MessageType.WARNING));
             }
             if (inTableSpec.get().getNumColumns() == 0) {
                 return Optional.of(new TextMessage.Message("Input table has no columns.",
-                    "Please provide an input table with at least one column to configure missing value handling.",
+                    "Provide an input table with at least one column to configure missing value handling.",
                     TextMessage.MessageType.WARNING));
             }
             return Optional.empty();

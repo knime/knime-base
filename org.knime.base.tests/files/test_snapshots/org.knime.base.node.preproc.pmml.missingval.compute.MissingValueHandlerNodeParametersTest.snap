@@ -3,7 +3,6 @@
     "model" : {
       "columnSettings" : [ ],
       "dataTypeSettings" : {
-        "allLoadedTreatments" : [ ],
         "treatmentsForPresentDataTypes" : [ ]
       }
     }
@@ -34,7 +33,7 @@
                     "factoryID" : {
                       "type" : "string",
                       "title" : "Treatment",
-                      "description" : "Choose the missing value treatment strategy. Some strategies require additional parameters which can be set below after selecting the strategy.<br/><br/>Options marked with an asterisk (*) will result in non-standard PMML, which uses extensions that cannot be read by other tools than KNIME.",
+                      "description" : "Choose the missing value treatment strategy. Some strategies require additional parameters which can be set below after selecting the strategy.<br/><br/>Options marked with an asterisk (*) will result in non-standard PMML, which uses extensions that cannot be read by tools other than KNIME.",
                       "default" : "org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"
                     },
                     "parameters" : {
@@ -47,39 +46,13 @@
                 }
               }
             },
-            "title" : "Treatment by Column",
-            "description" : "Specify how to treat missing values for a specific columns.",
+            "title" : "Treatment by column",
+            "description" : "Specify how to treat missing values for a specific column.",
             "default" : [ ]
           },
           "dataTypeSettings" : {
             "type" : "object",
             "properties" : {
-              "allLoadedTreatments" : {
-                "type" : "array",
-                "items" : {
-                  "type" : "object",
-                  "properties" : {
-                    "dataTypeKey" : {
-                      "type" : "string"
-                    },
-                    "treatment" : {
-                      "type" : "object",
-                      "properties" : {
-                        "factoryID" : {
-                          "type" : "string",
-                          "title" : "Treatment",
-                          "description" : "Choose the missing value treatment strategy. Some strategies require additional parameters which can be set below after selecting the strategy.<br/><br/>Options marked with an asterisk (*) will result in non-standard PMML, which uses extensions that cannot be read by other tools than KNIME.",
-                          "default" : "org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"
-                        },
-                        "parameters" : {
-                          "type" : "object"
-                        }
-                      }
-                    }
-                  }
-                },
-                "default" : [ ]
-              },
               "treatmentsForPresentDataTypes" : {
                 "type" : "array",
                 "items" : {
@@ -88,13 +61,16 @@
                     "dataType" : {
                       "type" : "string"
                     },
+                    "key" : {
+                      "type" : "string"
+                    },
                     "treatment" : {
                       "type" : "object",
                       "properties" : {
                         "factoryID" : {
                           "type" : "string",
                           "title" : "Treatment",
-                          "description" : "Choose the missing value treatment strategy. Some strategies require additional parameters which can be set below after selecting the strategy.<br/><br/>Options marked with an asterisk (*) will result in non-standard PMML, which uses extensions that cannot be read by other tools than KNIME.",
+                          "description" : "Choose the missing value treatment strategy. Some strategies require additional parameters which can be set below after selecting the strategy.<br/><br/>Options marked with an asterisk (*) will result in non-standard PMML, which uses extensions that cannot be read by tools other than KNIME.",
                           "default" : "org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"
                         },
                         "parameters" : {
@@ -113,7 +89,6 @@
               }
             },
             "default" : {
-              "allLoadedTreatments" : [ ],
               "treatmentsForPresentDataTypes" : [ ]
             }
           },
@@ -161,8 +136,8 @@
             },
             "providedOptions" : [ "dynamicSettings" ]
           } ],
-          "addButtonText" : "Add Column Treatment",
-          "arrayElementTitle" : "Column Treatment"
+          "addButtonText" : "Add column treatment",
+          "arrayElementTitle" : "Column treatment"
         }
       } ]
     }, {
@@ -245,7 +220,12 @@
             }
           },
           "dataTypeSettings" : {
-            "propertiesConfigPaths" : [ ]
+            "type" : "object",
+            "properties" : {
+              "treatmentsForPresentDataTypes" : {
+                "configPaths" : [ ]
+              }
+            }
           }
         }
       }
@@ -277,11 +257,13 @@
     "values" : [ {
       "indices" : [ ],
       "value" : [ {
+        "key" : "org.knime.core.data.def.DoubleCell",
         "dataType" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.DoubleCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
         "treatment" : {
           "factoryID" : "org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"
         }
       }, {
+        "key" : "org.knime.core.data.def.StringCell",
         "dataType" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.StringCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
         "treatment" : {
           "factoryID" : "org.knime.base.node.preproc.pmml.missingval.handlers.DoNothingMissingCellHandlerFactory"
