@@ -194,6 +194,14 @@ class CSVTableReaderNodeModel2Test extends LocalWorkflowContextTest {
         assertArrayEquals(new String[]{"colName", "colName2"}, getOutputTable().getSpec().getColumnNames());
     }
 
+    @Test
+    void testReadFromMountpointURL() throws IOException, InvalidSettingsException {
+        m_wfm.removeNode(m_csvReader.getID());
+        m_csvReader = WorkflowManagerUtil.createAndAddNode(m_wfm,
+            new TestCSVTableReaderNodeFactory2(new URL("knime://LOCAL/test.csv")));
+        assertTrue(m_csvReader.getNodeContainerState().isConfigured());
+    }
+
     private BufferedDataTable getOutputTable() {
         return (BufferedDataTable)m_csvReader.getOutPort(1).getPortObject();
     }

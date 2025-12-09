@@ -56,7 +56,6 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
-import org.knime.filehandling.core.connections.FSLocationUtil;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.layout.Layout;
@@ -78,7 +77,7 @@ public final class SingleFileSelectionParameters implements NodeParameters {
      * @param url the URL to initialize from
      */
     public SingleFileSelectionParameters(final URL url) {
-        m_source = new FileSelection(FSLocationUtil.createFromURL(url.toString()));
+        m_source = new FileSelection(MultiFileSelectionParameters.urlToSupportedFSLocation(url));
     }
 
     /**
