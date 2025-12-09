@@ -53,6 +53,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
@@ -89,39 +90,32 @@ import org.knime.node.parameters.updates.ValueProvider;
 import org.knime.node.parameters.updates.ValueReference;
 
 /**
- * We want to show only treatments for data types that are actually present in the input table. But we also want to keep
- * settings of data types that are not currently present, so that when the user adds such columns again later, the
- * settings are still there.
+ * We want to show only treatments for data types that are actually present in the input table.
  *
- * So we load to a hidden separate list of all loaded treatments, and then show only those treatments that correspond to
- * data types present in the input table.
- *
- * A caveat of this approach is that the dialog is always dirty initially, because the visible list is computed newly
- * each time the dialog is opened, and thus differs from the initial empty state (since we do not have access to the
- * input specs when loading in a persistor).
+ * So we load all treatments into the array, and then use a ValueProvider to filter and show only those treatments that
+ * correspond to data types present in the input table. The ValueProvider takes a self-reference to the array to access
+ * all loaded treatments. This also makes the data type available to the factory choice provider.
  *
  * @author Paul Bärnreuther
  */
 @SuppressWarnings("restriction")
-@Persistor(MissingValueDataTypeParameters.Persistor.class)
 class MissingValueDataTypeParameters implements NodeParameters {
-
-    @ValueReference(AllLoadedTreatmentsReference.class)
-    LoadedMissingValueTreatment[] m_allLoadedTreatments = new LoadedMissingValueTreatment[0];
-
-    interface AllLoadedTreatmentsReference extends ParameterReference<LoadedMissingValueTreatment[]> {
-    }
 
     @ArrayWidget(hasFixedSize = true)
     @ArrayWidgetInternal(titleProvider = DataTypeTreatmentTitleProvider.class, withEditAndReset = true)
     @Widget(title = "Treatment by Data Type",
         description = "Specify how to treat missing values for all columns of a certain data type.")
     @ValueProvider(ShowPresentDataTypesProvider.class)
+    @ValueReference(AllLoadedTreatmentsReference.class)
+    @Persistor(MissingValueDataTypeParametersPersistor.class)
     DataTypeMissingValueTreatment[] m_treatmentsForPresentDataTypes = new DataTypeMissingValueTreatment[0];
+
+    interface AllLoadedTreatmentsReference extends ParameterReference<DataTypeMissingValueTreatment[]> {
+    }
 
     static final class ShowPresentDataTypesProvider implements StateProvider<DataTypeMissingValueTreatment[]> {
 
-        private Supplier<LoadedMissingValueTreatment[]> m_allLoadedTreatments;
+        private Supplier<DataTypeMissingValueTreatment[]> m_allLoadedTreatments;
 
         @Override
         public void init(final StateProviderInitializer initializer) {
@@ -146,40 +140,15 @@ class MissingValueDataTypeParameters implements NodeParameters {
                 }
                 encounteredDataTypeKeys.add(dataTypeKey);
                 final var treatment = loadedTreatmentsMap.getOrDefault(dataTypeKey, new MissingValueTreatment());
-                visibleTreatments.add(new DataTypeMissingValueTreatment(treatment, colSpec.getType()));
+                visibleTreatments.add(new DataTypeMissingValueTreatment(treatment, colSpec.getType(), dataTypeKey));
             });
             return visibleTreatments.toArray(new DataTypeMissingValueTreatment[0]);
 
         }
 
         private Map<String, MissingValueTreatment> getLoadedTreatmentsMap() {
-            return Arrays.stream(m_allLoadedTreatments.get()).collect(Collectors.toMap(
-                LoadedMissingValueTreatment::getDataTypeKey, LoadedMissingValueTreatment::getTreatment, (l, r) -> r));
-        }
-
-    }
-
-    static final class LoadedMissingValueTreatment {
-
-        LoadedMissingValueTreatment() {
-            // Default constructor  for serialization
-        }
-
-        private LoadedMissingValueTreatment(final String dataTypeKey, final MissingValueTreatment treatment) {
-            m_dataTypeKey = dataTypeKey;
-            m_treatment = treatment;
-        }
-
-        String m_dataTypeKey;
-
-        MissingValueTreatment m_treatment;
-
-        private String getDataTypeKey() {
-            return m_dataTypeKey;
-        }
-
-        private MissingValueTreatment getTreatment() {
-            return m_treatment;
+            return Arrays.stream(m_allLoadedTreatments.get())
+                .collect(Collectors.toMap(t -> t.m_key, t -> t.m_treatment, (l, r) -> r));
         }
 
     }
@@ -189,10 +158,26 @@ class MissingValueDataTypeParameters implements NodeParameters {
         DataTypeMissingValueTreatment() {
         }
 
-        DataTypeMissingValueTreatment(final MissingValueTreatment treatment, final DataType dataType) {
+        /**
+         * Constructor used initially during loading from NodeSettings. I.e. we rely on the initial update to set the
+         * data type of the elements later.
+         */
+        DataTypeMissingValueTreatment(final MissingValueTreatment treatment, final String key) {
+            m_treatment = treatment;
+            m_key = key;
+        }
+
+        /**
+         * Constructor used when creating visible treatments for present data types in the initial update.
+         */
+        DataTypeMissingValueTreatment(final MissingValueTreatment treatment, final DataType dataType,
+            final String key) {
             m_treatment = treatment;
             m_dataType = dataType;
+            m_key = key;
         }
+
+        String m_key;
 
         @ValueReference(DataTypeReference.class)
         DataType m_dataType;
@@ -245,7 +230,7 @@ class MissingValueDataTypeParameters implements NodeParameters {
 
             @Override
             DataType[] getDataTypes(final NodeParametersInput context) {
-                return new DataType[]{m_dataTypeSupplier.get()};
+                return Optional.ofNullable(m_dataTypeSupplier.get()).stream().toArray(DataType[]::new);
             }
 
         }
@@ -312,7 +297,8 @@ class MissingValueDataTypeParameters implements NodeParameters {
                 throws StateComputationFailureException {
                 final var dataType = m_typeSupplier.get();
                 if (dataType == null) {
-                    throw new IllegalStateException("No data type available within a data type treatment.");
+                    throw new IllegalStateException(
+                        "No data type available within a data type treatment after opening the dialog.");
                 }
                 if (dataType.isCollectionType()) {
                     return COLLECTION_OF_END_PATTERN.matcher(dataType.toPrettyString()).replaceFirst("");
@@ -323,31 +309,26 @@ class MissingValueDataTypeParameters implements NodeParameters {
 
     }
 
-    static final class Persistor implements NodeParametersPersistor<MissingValueDataTypeParameters> {
+    static final class MissingValueDataTypeParametersPersistor
+        implements NodeParametersPersistor<DataTypeMissingValueTreatment[]> {
 
         @Override
-        public MissingValueDataTypeParameters load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            final List<LoadedMissingValueTreatment> loadedTreatments = new ArrayList<>();
+        public DataTypeMissingValueTreatment[] load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            final List<DataTypeMissingValueTreatment> loadedTreatments = new ArrayList<>();
             for (var key : settings.keySet()) {
                 final var treatmentSettings = settings.getNodeSettings(key);
                 final var treatment = NodeParametersUtil.loadSettings(treatmentSettings, MissingValueTreatment.class);
-                loadedTreatments.add(new LoadedMissingValueTreatment(key, treatment));
+                final var dataTypeTreatment = new DataTypeMissingValueTreatment(treatment, key);
+                loadedTreatments.add(dataTypeTreatment);
             }
-            final var loaded = new MissingValueDataTypeParameters();
-            loaded.m_allLoadedTreatments = loadedTreatments.toArray(new LoadedMissingValueTreatment[0]);
-            return loaded;
+            return loadedTreatments.toArray(new DataTypeMissingValueTreatment[0]);
 
         }
 
         @Override
-        public void save(final MissingValueDataTypeParameters param, final NodeSettingsWO settings) {
-            for (var loadedTreatment : param.m_allLoadedTreatments) {
-                final var treatmentSettings = settings.addNodeSettings(loadedTreatment.getDataTypeKey());
-                saveTreatment(loadedTreatment.getTreatment(), treatmentSettings);
-            }
-            for (var dataTypeTreatment : param.m_treatmentsForPresentDataTypes) {
-                final var key = MVSettings.getTypeKey(dataTypeTreatment.m_dataType);
-                final var treatmentSettings = settings.addNodeSettings(key);
+        public void save(final DataTypeMissingValueTreatment[] treatments, final NodeSettingsWO settings) {
+            for (var dataTypeTreatment : treatments) {
+                final var treatmentSettings = settings.addNodeSettings(dataTypeTreatment.m_key);
                 saveTreatment(dataTypeTreatment.m_treatment, treatmentSettings);
             }
         }
