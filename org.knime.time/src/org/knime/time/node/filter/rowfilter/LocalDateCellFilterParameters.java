@@ -46,37 +46,40 @@
  * History
  *   17 Sept 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.core.data.time.localdatetime;
+package org.knime.time.node.filter.rowfilter;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.time.LocalDate;
 
 import org.knime.core.data.DataType;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperatorFamily;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperators;
+import org.knime.core.data.time.localdate.LocalDateCell;
+import org.knime.core.data.time.localdate.LocalDateCellFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.builtin.ComparableOperatorFamily;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.builtin.EqualsOperatorFamily;
+import org.knime.node.parameters.Widget;
 
 /**
- * Operators for filtering {@link LocalDateTimeCell} values.
+ * Parameters for filtering {@link LocalDateCell} values.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-public class LocalDateTimeCellFilterOperators implements FilterOperators {
+public class LocalDateCellFilterParameters implements FilterValueParameters.SingleCellValueParameters<LocalDateCell> {
+
+    @Widget(title = "Date", description = "The date to compare against")
+    LocalDate m_date = LocalDate.now();
 
     @Override
-    public DataType getDataType() {
-        return LocalDateTimeCell.TYPE;
+    public LocalDateCell createCell() {
+        return (LocalDateCell)LocalDateCellFactory.create(m_date);
     }
 
     @Override
-    public List<FilterOperatorFamily<? extends FilterValueParameters>> getOperatorFamilies() {
-        final var operators = new ArrayList<FilterOperatorFamily<? extends FilterValueParameters>>();
-        operators.add(new EqualsOperatorFamily<>(LocalDateTimeCell.TYPE, LocalDateTimeCellFilterParameters.class));
-        operators.add(new ComparableOperatorFamily<>(LocalDateTimeCell.TYPE, LocalDateTimeCellFilterParameters.class));
-        return operators;
+    public void loadFrom(final LocalDateCell valueFromStash) {
+        m_date = valueFromStash.getLocalDate();
+    }
+
+    @Override
+    public DataType getSpecificType() {
+        return DataType.getType(LocalDateCell.class);
     }
 
 }

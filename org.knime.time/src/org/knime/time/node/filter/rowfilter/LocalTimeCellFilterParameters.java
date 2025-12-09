@@ -46,39 +46,40 @@
  * History
  *   17 Sept 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.core.data.time.localdatetime;
+package org.knime.time.node.filter.rowfilter;
 
-import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 import org.knime.core.data.DataType;
+import org.knime.core.data.time.localtime.LocalTimeCell;
+import org.knime.core.data.time.localtime.LocalTimeCellFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
 import org.knime.node.parameters.Widget;
 
 /**
- * Parameters class for filtering {@link LocalDateTimeCell} values.
+ * Parameters for filtering {@link LocalTimeCell} values.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-public class LocalDateTimeCellFilterParameters
-        implements FilterValueParameters.SingleCellValueParameters<LocalDateTimeCell> {
+public class LocalTimeCellFilterParameters implements FilterValueParameters.SingleCellValueParameters<LocalTimeCell> {
 
-    @Widget(title = "Date & Time", description = "The date and time to compare against")
-    LocalDateTime m_dateTime = LocalDateTime.now();
+    @Widget(title = "Time", description = "The time to compare against")
+    LocalTime m_time = LocalTime.now();
 
     @Override
-    public LocalDateTimeCell createCell() {
-        return (LocalDateTimeCell)LocalDateTimeCellFactory.create(m_dateTime);
+    public LocalTimeCell createCell() {
+        return (LocalTimeCell)LocalTimeCellFactory.create(m_time);
     }
 
     @Override
-    public void loadFrom(final LocalDateTimeCell valueFromStash) {
-        m_dateTime = valueFromStash.getLocalDateTime();
+    public void loadFrom(final LocalTimeCell valueFromStash) {
+        m_time = valueFromStash.getLocalTime();
     }
 
     @Override
     public DataType getSpecificType() {
-        return LocalDateTimeCell.TYPE;
+        return DataType.getType(LocalTimeCell.class);
     }
 
 }

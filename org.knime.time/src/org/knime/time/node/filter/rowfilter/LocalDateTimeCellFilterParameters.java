@@ -46,37 +46,41 @@
  * History
  *   17 Sept 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.core.data.time.zoneddatetime;
+package org.knime.time.node.filter.rowfilter;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.time.LocalDateTime;
 
 import org.knime.core.data.DataType;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperatorFamily;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperators;
+import org.knime.core.data.time.localdatetime.LocalDateTimeCell;
+import org.knime.core.data.time.localdatetime.LocalDateTimeCellFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.builtin.ComparableOperatorFamily;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.builtin.EqualsOperatorFamily;
+import org.knime.node.parameters.Widget;
 
 /**
- * Filter operators for {@link ZonedDateTimeCell} values.
+ * Parameters class for filtering {@link LocalDateTimeCell} values.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-public class ZonedDateTimeCellFilterOperators implements FilterOperators {
+public class LocalDateTimeCellFilterParameters
+        implements FilterValueParameters.SingleCellValueParameters<LocalDateTimeCell> {
+
+    @Widget(title = "Date & Time", description = "The date and time to compare against")
+    LocalDateTime m_dateTime = LocalDateTime.now();
 
     @Override
-    public DataType getDataType() {
-        return ZonedDateTimeCell.TYPE;
+    public LocalDateTimeCell createCell() {
+        return (LocalDateTimeCell)LocalDateTimeCellFactory.create(m_dateTime);
     }
 
     @Override
-    public List<FilterOperatorFamily<? extends FilterValueParameters>> getOperatorFamilies() {
-        final var operators = new ArrayList<FilterOperatorFamily<? extends FilterValueParameters>>();
-        operators.add(new EqualsOperatorFamily<>(ZonedDateTimeCell.TYPE, ZonedDateTimeCellFilterParameters.class));
-        operators.add(new ComparableOperatorFamily<>(ZonedDateTimeCell.TYPE, ZonedDateTimeCellFilterParameters.class));
-        return operators;
+    public void loadFrom(final LocalDateTimeCell valueFromStash) {
+        m_dateTime = valueFromStash.getLocalDateTime();
+    }
+
+    @Override
+    public DataType getSpecificType() {
+        return DataType.getType(LocalDateTimeCell.class);
     }
 
 }

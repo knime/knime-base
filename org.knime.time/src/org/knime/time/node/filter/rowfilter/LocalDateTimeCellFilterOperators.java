@@ -46,12 +46,13 @@
  * History
  *   17 Sept 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.core.data.time.localdate;
+package org.knime.time.node.filter.rowfilter;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.knime.core.data.DataType;
+import org.knime.core.data.time.localdatetime.LocalDateTimeCell;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperatorFamily;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperators;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
@@ -59,23 +60,23 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extension
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.builtin.EqualsOperatorFamily;
 
 /**
- * Provides operators for filtering {@link LocalDateCell} values.
+ * Operators for filtering {@link LocalDateTimeCell} values.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-public class LocalDateCellFilterOperators implements FilterOperators {
+public class LocalDateTimeCellFilterOperators implements FilterOperators {
 
     @Override
     public DataType getDataType() {
-        return LocalDateCell.TYPE;
+        return DataType.getType(LocalDateTimeCell.class);
     }
 
     @Override
     public List<FilterOperatorFamily<? extends FilterValueParameters>> getOperatorFamilies() {
         final var operators = new ArrayList<FilterOperatorFamily<? extends FilterValueParameters>>();
-        operators.add(new EqualsOperatorFamily<>(LocalDateCell.TYPE, LocalDateCellFilterParameters.class));
-        operators.add(new ComparableOperatorFamily<>(LocalDateCell.TYPE, LocalDateCellFilterParameters.class));
+        operators.add(new EqualsOperatorFamily<>(getDataType(), LocalDateTimeCellFilterParameters.class));
+        operators.add(new ComparableOperatorFamily<>(getDataType(), LocalDateTimeCellFilterParameters.class));
         return operators;
     }
 
