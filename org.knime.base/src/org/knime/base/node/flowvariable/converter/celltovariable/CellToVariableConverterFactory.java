@@ -166,7 +166,8 @@ public final class CellToVariableConverterFactory {
     private static String getTypeName(final DataType type) {
         var currentType = type;
         final var typeName = new StringBuilder(currentType.getName());
-        while (currentType.isCollectionType()) {
+        // type name is only used for an exception message
+        while (currentType.isCollectionType() && !currentType.isMissingValueType()) {
             currentType = currentType.getCollectionElementType();
             typeName.append(" of ").append(currentType.getName());
         }
@@ -174,6 +175,12 @@ public final class CellToVariableConverterFactory {
     }
 
     private static DataType getType(final DataType type) {
+        if (type.isMissingValueType()) {
+            // a missing type is universally compatible, and therefore also counts
+            // as a collection -- avoid NPE here by not extracting the null
+            // collection element type inside the missing cell
+            return DataType.getMissingCell().getType();
+        }
         return type.isCollectionType() ? type.getCollectionElementType() : type;
     }
 
