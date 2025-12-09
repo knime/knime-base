@@ -46,38 +46,38 @@
  * History
  *   17 Sept 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.core.data.time.localtime;
+package org.knime.time.node.filter.rowfilter;
 
-import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.knime.core.data.DataType;
+import org.knime.core.data.time.localtime.LocalTimeCell;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperatorFamily;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperators;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
-import org.knime.node.parameters.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.builtin.ComparableOperatorFamily;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.builtin.EqualsOperatorFamily;
 
 /**
- * Parameters for filtering {@link LocalTimeCell} values.
+ * Filter operators for {@link LocalTimeCell} values.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-public class LocalTimeCellFilterParameters implements FilterValueParameters.SingleCellValueParameters<LocalTimeCell> {
-
-    @Widget(title = "Time", description = "The time to compare against")
-    LocalTime m_time = LocalTime.now();
+public class LocalTimeCellFilterOperators implements FilterOperators {
 
     @Override
-    public LocalTimeCell createCell() {
-        return (LocalTimeCell)LocalTimeCellFactory.create(m_time);
+    public DataType getDataType() {
+        return DataType.getType(LocalTimeCell.class);
     }
 
     @Override
-    public void loadFrom(final LocalTimeCell valueFromStash) {
-        m_time = valueFromStash.getLocalTime();
-    }
-
-    @Override
-    public DataType getSpecificType() {
-        return LocalTimeCell.TYPE;
+    public List<FilterOperatorFamily<? extends FilterValueParameters>> getOperatorFamilies() {
+        final var operators = new ArrayList<FilterOperatorFamily<? extends FilterValueParameters>>();
+        operators.add(new EqualsOperatorFamily<>(getDataType(), LocalTimeCellFilterParameters.class));
+        operators.add(new ComparableOperatorFamily<>(getDataType(), LocalTimeCellFilterParameters.class));
+        return operators;
     }
 
 }

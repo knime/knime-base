@@ -46,12 +46,13 @@
  * History
  *   17 Sept 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.core.data.time.localtime;
+package org.knime.time.node.filter.rowfilter;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.knime.core.data.DataType;
+import org.knime.core.data.time.zoneddatetime.ZonedDateTimeCell;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperatorFamily;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperators;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
@@ -59,23 +60,23 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extension
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.builtin.EqualsOperatorFamily;
 
 /**
- * Filter operators for {@link LocalTimeCell} values.
+ * Filter operators for {@link ZonedDateTimeCell} values.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-public class LocalTimeCellFilterOperators implements FilterOperators {
+public class ZonedDateTimeCellFilterOperators implements FilterOperators {
 
     @Override
     public DataType getDataType() {
-        return LocalTimeCell.TYPE;
+        return DataType.getType(ZonedDateTimeCell.class);
     }
 
     @Override
     public List<FilterOperatorFamily<? extends FilterValueParameters>> getOperatorFamilies() {
         final var operators = new ArrayList<FilterOperatorFamily<? extends FilterValueParameters>>();
-        operators.add(new EqualsOperatorFamily<>(LocalTimeCell.TYPE, LocalTimeCellFilterParameters.class));
-        operators.add(new ComparableOperatorFamily<>(LocalTimeCell.TYPE, LocalTimeCellFilterParameters.class));
+        operators.add(new EqualsOperatorFamily<>(getDataType(), ZonedDateTimeCellFilterParameters.class));
+        operators.add(new ComparableOperatorFamily<>(getDataType(), ZonedDateTimeCellFilterParameters.class));
         return operators;
     }
 

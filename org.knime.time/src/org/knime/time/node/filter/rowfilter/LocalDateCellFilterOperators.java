@@ -46,39 +46,38 @@
  * History
  *   17 Sept 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.core.data.time.zoneddatetime;
+package org.knime.time.node.filter.rowfilter;
 
-import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.knime.core.data.DataType;
+import org.knime.core.data.time.localdate.LocalDateCell;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperatorFamily;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperators;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
-import org.knime.node.parameters.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.builtin.ComparableOperatorFamily;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.builtin.EqualsOperatorFamily;
 
 /**
- * Parameters class for filtering {@link ZonedDateTimeCell} values.
+ * Provides operators for filtering {@link LocalDateCell} values.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-public class ZonedDateTimeCellFilterParameters
-        implements FilterValueParameters.SingleCellValueParameters<ZonedDateTimeCell> {
-
-    @Widget(title = "Date & Time", description = "The date and time (with time zone) to compare against")
-    ZonedDateTime m_dateTime = ZonedDateTime.now();
+public class LocalDateCellFilterOperators implements FilterOperators {
 
     @Override
-    public ZonedDateTimeCell createCell() {
-        return (ZonedDateTimeCell)ZonedDateTimeCellFactory.create(m_dateTime);
+    public DataType getDataType() {
+        return DataType.getType(LocalDateCell.class);
     }
 
     @Override
-    public void loadFrom(final ZonedDateTimeCell valueFromStash) {
-        m_dateTime = valueFromStash.getZonedDateTime();
-    }
-
-    @Override
-    public DataType getSpecificType() {
-        return ZonedDateTimeCell.TYPE;
+    public List<FilterOperatorFamily<? extends FilterValueParameters>> getOperatorFamilies() {
+        final var operators = new ArrayList<FilterOperatorFamily<? extends FilterValueParameters>>();
+        operators.add(new EqualsOperatorFamily<>(getDataType(), LocalDateCellFilterParameters.class));
+        operators.add(new ComparableOperatorFamily<>(getDataType(), LocalDateCellFilterParameters.class));
+        return operators;
     }
 
 }

@@ -424,16 +424,16 @@
     <extension
         point="org.knime.core.ui.filterOperators">
         <FilterOperators
-            factoryClass="org.knime.core.data.time.localdate.LocalDateCellFilterOperators">
+            factoryClass="org.knime.time.node.filter.rowfilter.LocalDateCellFilterOperators">
         </FilterOperators>
         <FilterOperators
-            factoryClass="org.knime.core.data.time.localtime.LocalTimeCellFilterOperators">
+            factoryClass="org.knime.time.node.filter.rowfilter.LocalTimeCellFilterOperators">
         </FilterOperators>
         <FilterOperators
-            factoryClass="org.knime.core.data.time.localdatetime.LocalDateTimeCellFilterOperators">
+            factoryClass="org.knime.time.node.filter.rowfilter.LocalDateTimeCellFilterOperators">
         </FilterOperators>
         <FilterOperators
-            factoryClass="org.knime.core.data.time.zoneddatetime.ZonedDateTimeCellFilterOperators">
+            factoryClass="org.knime.time.node.filter.rowfilter.ZonedDateTimeCellFilterOperators">
         </FilterOperators>
     </extension>
 

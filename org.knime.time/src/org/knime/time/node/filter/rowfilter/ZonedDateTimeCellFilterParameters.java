@@ -46,38 +46,41 @@
  * History
  *   17 Sept 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.core.data.time.localdate;
+package org.knime.time.node.filter.rowfilter;
 
-import java.time.LocalDate;
+import java.time.ZonedDateTime;
 
 import org.knime.core.data.DataType;
+import org.knime.core.data.time.zoneddatetime.ZonedDateTimeCell;
+import org.knime.core.data.time.zoneddatetime.ZonedDateTimeCellFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
 import org.knime.node.parameters.Widget;
 
 /**
- * Parameters for filtering {@link LocalDateCell} values.
+ * Parameters class for filtering {@link ZonedDateTimeCell} values.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-public class LocalDateCellFilterParameters implements FilterValueParameters.SingleCellValueParameters<LocalDateCell> {
+public class ZonedDateTimeCellFilterParameters
+        implements FilterValueParameters.SingleCellValueParameters<ZonedDateTimeCell> {
 
-    @Widget(title = "Date", description = "The date to compare against")
-    LocalDate m_date = LocalDate.now();
+    @Widget(title = "Date & Time", description = "The date and time (with time zone) to compare against")
+    ZonedDateTime m_dateTime = ZonedDateTime.now();
 
     @Override
-    public LocalDateCell createCell() {
-        return (LocalDateCell)LocalDateCellFactory.create(m_date);
+    public ZonedDateTimeCell createCell() {
+        return (ZonedDateTimeCell)ZonedDateTimeCellFactory.create(m_dateTime);
     }
 
     @Override
-    public void loadFrom(final LocalDateCell valueFromStash) {
-        m_date = valueFromStash.getLocalDate();
+    public void loadFrom(final ZonedDateTimeCell valueFromStash) {
+        m_dateTime = valueFromStash.getZonedDateTime();
     }
 
     @Override
     public DataType getSpecificType() {
-        return LocalDateCell.TYPE;
+        return DataType.getType(ZonedDateTimeCell.class);
     }
 
 }
