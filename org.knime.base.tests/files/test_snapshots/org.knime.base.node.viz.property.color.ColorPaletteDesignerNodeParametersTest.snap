@@ -1,0 +1,462 @@
+{
+  "data" : {
+    "model" : {
+      "applyTo" : "VALUES",
+      "columnFilter" : {
+        "mode" : "MANUAL",
+        "patternFilter" : {
+          "pattern" : "",
+          "isCaseSensitive" : false,
+          "isInverted" : false
+        },
+        "manualFilter" : {
+          "manuallySelected" : [ ],
+          "manuallyDeselected" : [ ],
+          "includeUnknownColumns" : false
+        },
+        "typeFilter" : {
+          "selectedTypes" : [ ],
+          "typeDisplays" : [ ]
+        }
+      },
+      "basePalette" : "BREWER_SET1_COLORS9",
+      "customPalette" : [ ],
+      "assignedColors" : [ ],
+      "missingValueColor" : "#D30D52"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "applyTo" : {
+            "oneOf" : [ {
+              "const" : "VALUES",
+              "title" : "Values in columns"
+            }, {
+              "const" : "COLUMNS",
+              "title" : "Column names"
+            } ],
+            "title" : "Apply color to",
+            "description" : "Determine where to apply the color mapping to:\n<ul>\n<li><b>Values in columns</b>: Apply the colors to the unique values in the selected columns.</li>\n<li><b>Column names</b>: Apply the colors to the column names of the input table.</li>\n</ul>",
+            "default" : "VALUES"
+          },
+          "assignedColors" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "color" : {
+                  "type" : "string",
+                  "title" : "Color",
+                  "description" : "Specify the color to be used for the corresponding value.",
+                  "default" : "#000000"
+                },
+                "matchingValue" : {
+                  "type" : "string",
+                  "title" : "Matching value",
+                  "description" : "Enter the exact value (or column name) that should receive the assigned color.",
+                  "default" : ""
+                }
+              }
+            },
+            "title" : "Assigned colors",
+            "description" : "Define specific color assignments for particular values (or column names). These assignments take precedence over the base palette.",
+            "default" : [ ]
+          },
+          "basePalette" : {
+            "oneOf" : [ {
+              "const" : "CUSTOM",
+              "title" : "Custom"
+            }, {
+              "const" : "BREWER_SET1_COLORS9",
+              "title" : "Brewer Set 1 (9 colors)"
+            }, {
+              "const" : "BREWER_SET2_COLORS8",
+              "title" : "Brewer Set 2 (8 colors)"
+            }, {
+              "const" : "BREWER_SET3_COLORS12",
+              "title" : "Brewer Set 3 (12 colors)"
+            }, {
+              "const" : "BREWER_PASTEL1_COLORS9",
+              "title" : "Brewer Pastel1 (9 colors)"
+            }, {
+              "const" : "BREWER_PASTEL2_COLORS8",
+              "title" : "Brewer Pastel 2 (8 colors)"
+            }, {
+              "const" : "BREWER_PAIRED_COLORS12",
+              "title" : "Brewer Paired (12 colors)"
+            }, {
+              "const" : "BREWER_ACCENT_COLORS8",
+              "title" : "Brewer Accent (8 colors)"
+            }, {
+              "const" : "BREWER_DARK2_COLORS_8",
+              "title" : "Brewer Dark 2 (8 colors)"
+            }, {
+              "const" : "COLOR_UNIVERSAL_DESIGN_COLORS7",
+              "title" : "Color Universal Design (7 colors)"
+            } ],
+            "title" : "Base palette",
+            "description" : "Colors are assigned from this palette in the order listed. If the number of values exceeds the number of colors, the palette is repeated.\n<ul>\n<li><b>Custom</b>: Define a personalized color palette.</li>\n<li><b>Brewer Set 1 (9 colors)</b></li>\n<li><b>Brewer Set 2 (8 colors)</b></li>\n<li><b>Brewer Set 3 (12 colors)</b></li>\n<li><b>Brewer Pastel1 (9 colors)</b></li>\n<li><b>Brewer Pastel 2 (8 colors)</b></li>\n<li><b>Brewer Paired (12 colors)</b></li>\n<li><b>Brewer Accent (8 colors)</b></li>\n<li><b>Brewer Dark 2 (8 colors)</b></li>\n<li><b>Color Universal Design (7 colors)</b>: (colorblind safe)</li>\n</ul>",
+            "default" : "BREWER_SET1_COLORS9"
+          },
+          "columnFilter" : {
+            "type" : "object",
+            "properties" : {
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "includeUnknownColumns" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "manuallyDeselected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "manuallySelected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "manuallySelected" : [ ],
+                  "manuallyDeselected" : [ ],
+                  "includeUnknownColumns" : false
+                }
+              },
+              "mode" : {
+                "oneOf" : [ {
+                  "const" : "MANUAL",
+                  "title" : "Manual"
+                }, {
+                  "const" : "REGEX",
+                  "title" : "Regex"
+                }, {
+                  "const" : "WILDCARD",
+                  "title" : "Wildcard"
+                }, {
+                  "const" : "TYPE",
+                  "title" : "Type"
+                } ],
+                "default" : "MANUAL"
+              },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "isCaseSensitive" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "isInverted" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "pattern" : {
+                    "type" : "string",
+                    "default" : ""
+                  }
+                },
+                "default" : {
+                  "pattern" : "",
+                  "isCaseSensitive" : false,
+                  "isInverted" : false
+                }
+              },
+              "selected" : {
+                "type" : "array",
+                "items" : {
+                  "type" : "string"
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "selectedTypes" : [ ],
+                  "typeDisplays" : [ ]
+                }
+              }
+            },
+            "title" : "Categorical columns",
+            "description" : "Specify one or more category columns whose unique values will be colorized. When multiple columns are selected, the palette spans the combined set of unique values.",
+            "default" : {
+              "mode" : "MANUAL",
+              "patternFilter" : {
+                "pattern" : "",
+                "isCaseSensitive" : false,
+                "isInverted" : false
+              },
+              "manualFilter" : {
+                "manuallySelected" : [ ],
+                "manuallyDeselected" : [ ],
+                "includeUnknownColumns" : false
+              },
+              "typeFilter" : {
+                "selectedTypes" : [ ],
+                "typeDisplays" : [ ]
+              }
+            }
+          },
+          "customPalette" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "color" : {
+                  "type" : "string",
+                  "title" : "Color",
+                  "description" : "Specify the color to be used in the custom palette.",
+                  "default" : "#000000"
+                }
+              }
+            },
+            "title" : "Custom palette",
+            "description" : "Enter colors in the desired order. These colors are used for automatic mapping and repeat if more values exist than listed colors.",
+            "default" : [ ]
+          },
+          "missingValueColor" : {
+            "type" : "string",
+            "title" : "Missing value color",
+            "description" : "Define the color assigned to missing values in the data.",
+            "default" : "#D30D52"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "label" : "Values",
+      "type" : "Section",
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "schema" : { }
+        }
+      },
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/applyTo",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/columnFilter",
+        "options" : {
+          "format" : "typedStringFilter",
+          "unknownValuesText" : "Any unknown column",
+          "emptyStateLabel" : "No columns in this list."
+        },
+        "providedOptions" : [ "possibleValues" ],
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "type" : "AND",
+            "conditions" : [ {
+              "schema" : { }
+            }, {
+              "scope" : "#/properties/model/properties/applyTo",
+              "schema" : {
+                "oneOf" : [ {
+                  "const" : "VALUES"
+                } ]
+              }
+            } ]
+          }
+        }
+      } ]
+    }, {
+      "label" : "Color Palette",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/basePalette"
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/customPalette",
+        "options" : {
+          "detail" : [ {
+            "type" : "Control",
+            "scope" : "#/properties/color",
+            "options" : {
+              "validation" : {
+                "pattern" : {
+                  "errorMessage" : "The field cannot be blank (it must contain at least one non-whitespace character).",
+                  "parameters" : {
+                    "pattern" : ".*\\S.*"
+                  }
+                }
+              }
+            }
+          } ],
+          "addButtonText" : "Add color",
+          "elementLayout" : "HORIZONTAL_SINGLE_LINE",
+          "showSortButtons" : true
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/basePalette",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "CUSTOM"
+              } ]
+            }
+          }
+        }
+      } ]
+    }, {
+      "label" : "Assigned Colors",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/assignedColors",
+        "options" : {
+          "detail" : [ {
+            "type" : "Control",
+            "scope" : "#/properties/color",
+            "options" : {
+              "validation" : {
+                "pattern" : {
+                  "errorMessage" : "The field cannot be blank (it must contain at least one non-whitespace character).",
+                  "parameters" : {
+                    "pattern" : ".*\\S.*"
+                  }
+                }
+              }
+            }
+          }, {
+            "type" : "Control",
+            "scope" : "#/properties/matchingValue"
+          } ],
+          "addButtonText" : "Add color rule",
+          "arrayElementTitle" : "Color rule"
+        }
+      } ]
+    }, {
+      "label" : "Special Colors",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/missingValueColor",
+        "options" : {
+          "validation" : {
+            "pattern" : {
+              "errorMessage" : "The field cannot be blank (it must contain at least one non-whitespace character).",
+              "parameters" : {
+                "pattern" : ".*\\S.*"
+              }
+            }
+          }
+        }
+      } ]
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "applyTo" : { },
+          "columnFilter" : {
+            "type" : "object",
+            "properties" : {
+              "selected" : {
+                "configPaths" : [ ]
+              },
+              "mode" : { },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "pattern" : { },
+                  "isCaseSensitive" : { },
+                  "isInverted" : { }
+                }
+              },
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "manuallySelected" : { },
+                  "manuallyDeselected" : { },
+                  "includeUnknownColumns" : { }
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : { }
+                }
+              }
+            }
+          },
+          "basePalette" : { },
+          "customPalette" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "color" : { }
+              }
+            }
+          },
+          "assignedColors" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "color" : { },
+                "matchingValue" : { }
+              }
+            }
+          },
+          "missingValueColor" : { }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/columnFilter",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Column 1",
+        "text" : "Column 1",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "Column 2",
+        "text" : "Column 2",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/basePalette"
+    },
+    "dependencies" : [ "#/properties/model/properties/basePalette", "#/properties/model/properties/customPalette" ]
+  } ]
+}
