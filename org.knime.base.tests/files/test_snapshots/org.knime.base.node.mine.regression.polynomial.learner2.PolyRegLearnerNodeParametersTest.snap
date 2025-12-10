@@ -225,6 +225,7 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/maxRowsForView",
         "options" : {
+          "stepSize" : 10.0,
           "validation" : {
             "max" : {
               "errorMessage" : "The value must not exceed 2147483647.",
