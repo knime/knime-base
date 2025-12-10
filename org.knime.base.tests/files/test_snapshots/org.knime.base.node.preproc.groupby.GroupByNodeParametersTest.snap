@@ -540,6 +540,7 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/globalAggregationMethodParameters/properties/maxUniqueValues",
         "options" : {
+          "stepSize" : 1000.0,
           "validation" : {
             "max" : {
               "errorMessage" : "The value must not exceed 2147483647.",
@@ -549,10 +550,10 @@
               }
             },
             "min" : {
-              "errorMessage" : "The value must be at least -2147483648.",
+              "errorMessage" : "The value must be at least 1.",
               "parameters" : {
                 "isExclusive" : false,
-                "min" : -2.147483648E9
+                "min" : 1.0
               }
             }
           }
@@ -896,5 +897,7 @@
       "scope" : "#/properties/model/properties/performanceParameters/properties/processInMemory"
     },
     "dependencies" : [ "#/properties/model/properties/performanceParameters/properties/processInMemory", "#/properties/model/properties/performanceParameters/properties/retainOrder" ]
+  } ]
+}etainOrder" ]
   } ]
 }
