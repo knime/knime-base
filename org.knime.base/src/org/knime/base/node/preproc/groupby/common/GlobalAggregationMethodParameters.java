@@ -63,6 +63,7 @@ import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.widget.number.NumberInputWidget;
 import org.knime.node.parameters.widget.text.TextInputWidget;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsPositiveIntegerValidation;
 
 @SuppressWarnings("javadoc")
 @LoadDefaultsForAbsentFields
@@ -75,7 +76,7 @@ public final class GlobalAggregationMethodParameters implements NodeParameters {
             values are skipped during the calculation and a missing value is set
             in the corresponding column, and a warning is displayed.
             """)
-    @NumberInputWidget() // TODO UIEXT-2930: Step-size 1000.  Also add a min of 1.
+    @NumberInputWidget(minValidation = IsPositiveIntegerValidation.class, stepSize = 1000)
     @Persist(configKey = "maxNoneNumericalVals")
     int m_maxUniqueValues = 100000;
 
