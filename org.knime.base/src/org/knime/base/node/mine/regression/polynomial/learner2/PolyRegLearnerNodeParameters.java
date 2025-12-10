@@ -143,7 +143,7 @@ final class PolyRegLearnerNodeParameters implements NodeParameters {
             This option can be used to change the number of data points in the node view if e.g. there are too
             many points. The default value is 10,000 points.
             """)
-    @NumberInputWidget(minValidation = IsPositiveIntegerValidation.class)
+    @NumberInputWidget(minValidation = IsPositiveIntegerValidation.class, stepSize = 10)
     int m_maxRowsForView = 10000;
 
     static final class TargetColumnRef implements ParameterReference<String> {
