@@ -1,0 +1,340 @@
+{
+  "data" : {
+    "model" : {
+      "flowVariableName" : "knime.workspace",
+      "flowVariableType" : "STRING",
+      "makeDialogDirty" : false,
+      "operator" : "EQ",
+      "flowVariableValue" : "null",
+      "propagateLoopVariables" : false,
+      "portSettings" : [ {
+        "addLastRows" : true,
+        "addLastRowsOnly" : false,
+        "addIterationColumn" : true
+      } ],
+      "makeDialogDirtyInitialValue" : false,
+      "initializationDone" : false
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "flowVariableName" : {
+            "type" : "string",
+            "title" : "Flow variables",
+            "description" : "Select one of the available flow variables to check the condition against.\nThe loop execution will be finished when the selected variable meets the specified condition.\n"
+          },
+          "flowVariableType" : {
+            "type" : "string"
+          },
+          "flowVariableValue" : {
+            "type" : "string",
+            "title" : "Condition value",
+            "description" : "Select the value to compare the chosen flow variable value against using the defined comparison operator.\nThe loop will end when the comparison evaluates to true.\n"
+          },
+          "initializationDone" : {
+            "type" : "boolean",
+            "default" : false
+          },
+          "makeDialogDirty" : {
+            "type" : "boolean",
+            "title" : "Confirm variable type change",
+            "description" : "This option is automatically set when the flow variable type changes initially requiring the node to be\nreconfigured. Manual changes to this setting are ignored.\n",
+            "default" : false
+          },
+          "makeDialogDirtyInitialValue" : {
+            "type" : "boolean",
+            "default" : false
+          },
+          "operator" : {
+            "oneOf" : [ {
+              "const" : "GT",
+              "title" : ">"
+            }, {
+              "const" : "LT",
+              "title" : "<"
+            }, {
+              "const" : "GE",
+              "title" : ">="
+            }, {
+              "const" : "LE",
+              "title" : "<="
+            }, {
+              "const" : "NE",
+              "title" : "!="
+            }, {
+              "const" : "EQ",
+              "title" : "="
+            } ],
+            "title" : "Comparison operator",
+            "description" : "Choose the comparison operator for the condition which finishes the loop's execution. For string and\nboolean variables, only equality and inequality checks are possible.\n",
+            "default" : "EQ"
+          },
+          "portSettings" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "addIterationColumn" : {
+                  "type" : "boolean",
+                  "title" : "Add iteration column",
+                  "description" : "Allows you to add a column containing the iteration number to this output table.\n",
+                  "default" : true
+                },
+                "addLastRows" : {
+                  "type" : "boolean",
+                  "title" : "Collect rows from last iteration",
+                  "description" : "The default is to collect the rows from all the loop's iterations, including the last one after\nwhich the loop is stopped. If you de-select this option, the rows from the last iteration are not\nadded to this output table.\n",
+                  "default" : true
+                },
+                "addLastRowsOnly" : {
+                  "type" : "boolean",
+                  "title" : "Collect rows from last iteration only",
+                  "description" : "If only the rows from the very last iteration should be collected in this table,\nyou have to enable this option.\n",
+                  "default" : false
+                }
+              }
+            },
+            "title" : "Port settings",
+            "description" : "Configure settings for each collector port.\n",
+            "default" : [ ]
+          },
+          "propagateLoopVariables" : {
+            "type" : "boolean",
+            "title" : "Propagate modified loop variables",
+            "description" : "If checked, variables whose values are modified within the loop are exported by this node.\nThese variables must be declared outside the loop, i.e. injected into the loop from a side-branch\nor be available upstream of the corresponding loop start node. For the latter, any modification of a\nvariable is passed back to the start node in subsequent iterations (e.g. moving sum calculation).\nNote that variables defined by the loop start node itself are excluded as these usually represent\nloop controls (e.g. \"currentIteration\").\n",
+            "default" : false
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/flowVariableName",
+      "options" : {
+        "format" : "dropDown"
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/makeDialogDirty",
+      "options" : {
+        "format" : "checkbox"
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/makeDialogDirtyInitialValue",
+          "schema" : {
+            "const" : true
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/operator",
+      "options" : {
+        "format" : "dropDown"
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/flowVariableValue"
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/propagateLoopVariables",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/portSettings",
+      "options" : {
+        "detail" : [ {
+          "type" : "Control",
+          "scope" : "#/properties/addLastRows",
+          "options" : {
+            "format" : "checkbox"
+          },
+          "rule" : {
+            "effect" : "DISABLE",
+            "condition" : {
+              "scope" : "#/properties/addLastRowsOnly",
+              "schema" : {
+                "const" : true
+              }
+            }
+          }
+        }, {
+          "type" : "Control",
+          "scope" : "#/properties/addLastRowsOnly",
+          "options" : {
+            "format" : "checkbox"
+          }
+        }, {
+          "type" : "Control",
+          "scope" : "#/properties/addIterationColumn",
+          "options" : {
+            "format" : "checkbox"
+          }
+        } ],
+        "arrayElementTitle" : "Port",
+        "hasFixedSize" : true
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "flowVariableName" : {
+            "configKey" : "variableName"
+          },
+          "flowVariableType" : {
+            "configKey" : "variableType"
+          },
+          "makeDialogDirty" : {
+            "configPaths" : [ ]
+          },
+          "operator" : {
+            "configKey" : "operator",
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ ]
+            } ]
+          },
+          "flowVariableValue" : {
+            "configKey" : "value",
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ ]
+            } ]
+          },
+          "propagateLoopVariables" : {
+            "configKey" : "propagateLoopVariables"
+          },
+          "portSettings" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "addLastRows" : {
+                  "route" : [ "..", ".." ],
+                  "configPaths" : [ [ "addLastRows" ] ]
+                },
+                "addLastRowsOnly" : {
+                  "route" : [ "..", ".." ],
+                  "configPaths" : [ [ "addLastRowsOnly" ] ]
+                },
+                "addIterationColumn" : {
+                  "route" : [ "..", ".." ],
+                  "configPaths" : [ [ "addIterationColumn" ] ]
+                }
+              }
+            }
+          },
+          "makeDialogDirtyInitialValue" : {
+            "configPaths" : [ ]
+          },
+          "initializationDone" : {
+            "configPaths" : [ ]
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/flowVariableName",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "knime.workspace",
+        "text" : "knime.workspace",
+        "type" : {
+          "id" : "STRING",
+          "text" : "StringType"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/flowVariableType",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : "STRING"
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/initializationDone",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : true
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/makeDialogDirty",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : false
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/makeDialogDirtyInitialValue",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : false
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/operator",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "EQ",
+        "text" : "="
+      }, {
+        "id" : "NE",
+        "text" : "!="
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/portSettings",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "addLastRows" : true,
+        "addLastRowsOnly" : false,
+        "addIterationColumn" : true
+      } ]
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "id" : "after-open-dialog"
+    },
+    "triggerInitially" : true,
+    "dependencies" : [ "#/properties/model/properties/flowVariableName" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/flowVariableName"
+    },
+    "dependencies" : [ "#/properties/model/properties/flowVariableName", "#/properties/model/properties/flowVariableType", "#/properties/model/properties/initializationDone", "#/properties/model/properties/makeDialogDirty", "#/properties/model/properties/makeDialogDirtyInitialValue" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/flowVariableType"
+    },
+    "dependencies" : [ "#/properties/model/properties/flowVariableType" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/makeDialogDirty"
+    },
+    "dependencies" : [ "#/properties/model/properties/flowVariableName", "#/properties/model/properties/flowVariableType", "#/properties/model/properties/initializationDone", "#/properties/model/properties/makeDialogDirty", "#/properties/model/properties/makeDialogDirtyInitialValue" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/portSettings/items/properties/addLastRowsOnly"
+    },
+    "dependencies" : [ "#/properties/model/properties/portSettings/items/properties/addLastRows", "#/properties/model/properties/portSettings/items/properties/addLastRowsOnly" ]
+  } ]
+}

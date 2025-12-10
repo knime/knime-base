@@ -56,6 +56,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.VariableType;
 import org.knime.core.node.workflow.VariableTypeRegistry;
+import org.knime.node.parameters.widget.choices.Label;
 
 /**
  * This class holds the settings for the condition loop tail node.
@@ -65,19 +66,36 @@ import org.knime.core.node.workflow.VariableTypeRegistry;
  * @since 4.5
  */
 final class LoopEndConditionDynamicSettings {
+    
+    // Config keys for persistence
+    static final String CFG_VARIABLE_NAME = "variableName";
+    static final String CFG_VARIABLE_TYPE = "variableType";
+    static final String CFG_VALUE = "value";
+    static final String CFG_OPERATOR = "operator";
+    static final String CFG_ADD_LAST_ROWS = "addLastRows";
+    static final String CFG_ADD_LAST_ROWS_ONLY = "addLastRowsOnly";
+    static final String CFG_ADD_ITERATION_COLUMN = "addIterationColumn";
+    static final String CFG_PROPAGATE_LOOP_VARIABLES = "propagateLoopVariables";
+    
     /** All comparison operators the user can choose from in the dialog. */
     enum Operator {
             /** Numeric greater than. */
+            @Label(value = ">")
             GT(">", i -> i > 0),
             /** Numeric lower than. */
+            @Label(value = "<")
             LT("<", i -> i < 0),
             /** Numeric greater than or equal. */
+            @Label(value = ">=")
             GE(">=", i -> i >= 0),
             /** Numeric lower than or equal. */
+            @Label(value = "<=")
             LE("<=", i -> i <= 0),
             /** Numeric or string unequal. */
+            @Label(value = "!=")
             NE("!=", i -> i != 0),
             /** Numeric or string equal. */
+            @Label(value = "=")
             EQ("=", i -> i == 0);
 
         private final String m_represent;
@@ -297,8 +315,8 @@ final class LoopEndConditionDynamicSettings {
      * @throws InvalidSettingsException
      */
     public void loadSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_variableName = settings.getString("variableName");
-        final var type = settings.getString("variableType");
+        m_variableName = settings.getString(CFG_VARIABLE_NAME);
+        final var type = settings.getString(CFG_VARIABLE_TYPE);
         if (type == null) {
             m_variableType = null;
         } else {
@@ -307,19 +325,19 @@ final class LoopEndConditionDynamicSettings {
                 .findAny()//
                 .orElseThrow(() -> new InvalidSettingsException("Unknown variable type: " + type));
         }
-        m_value = settings.getString("value");
+        m_value = settings.getString(CFG_VALUE);
 
-        final var op = settings.getString("operator");
+        final var op = settings.getString(CFG_OPERATOR);
         if (op == null) {
             m_operator = null;
         } else {
             m_operator = Operator.valueOf(op);
         }
 
-        m_addLastRows = read(settings, "addLastRows", true);
-        m_addLastRowsOnly = read(settings, "addLastRowsOnly", false);
-        m_addIterationColumn = readWithDefaults(settings, "addIterationColumn", true);
-        m_propagateLoopVariables = settings.getBoolean("propagateLoopVariables", false);
+        m_addLastRows = read(settings, CFG_ADD_LAST_ROWS, true);
+        m_addLastRowsOnly = read(settings, CFG_ADD_LAST_ROWS_ONLY, false);
+        m_addIterationColumn = readWithDefaults(settings, CFG_ADD_ITERATION_COLUMN, true);
+        m_propagateLoopVariables = settings.getBoolean(CFG_PROPAGATE_LOOP_VARIABLES, false);
     }
 
     /**
@@ -328,10 +346,10 @@ final class LoopEndConditionDynamicSettings {
      * @param settings a node settings object
      */
     public void loadSettingsForDialog(final NodeSettingsRO settings) {
-        m_variableName = settings.getString("variableName", null);
-        m_value = settings.getString("value", "");
+        m_variableName = settings.getString(CFG_VARIABLE_NAME, null);
+        m_value = settings.getString(CFG_VALUE, "");
 
-        final var type = settings.getString("variableType", null);
+        final var type = settings.getString(CFG_VARIABLE_TYPE, null);
         if (type == null) {
             m_variableType = null;
         } else {
@@ -341,7 +359,7 @@ final class LoopEndConditionDynamicSettings {
                 .orElse(null);
         }
 
-        final var op = settings.getString("operator", Operator.EQ.name());
+        final var op = settings.getString(CFG_OPERATOR, Operator.EQ.name());
         if (op == null) {
             m_operator = null;
         } else {
@@ -352,10 +370,10 @@ final class LoopEndConditionDynamicSettings {
             }
         }
 
-        m_addLastRows = readWithDefaults(settings, "addLastRows", true);
-        m_addLastRowsOnly = readWithDefaults(settings, "addLastRowsOnly", false);
-        m_addIterationColumn = readWithDefaults(settings, "addIterationColumn", true);
-        m_propagateLoopVariables = settings.getBoolean("propagateLoopVariables", false); // added in 4.4
+        m_addLastRows = readWithDefaults(settings, CFG_ADD_LAST_ROWS, true);
+        m_addLastRowsOnly = readWithDefaults(settings, CFG_ADD_LAST_ROWS_ONLY, false);
+        m_addIterationColumn = readWithDefaults(settings, CFG_ADD_ITERATION_COLUMN, true);
+        m_propagateLoopVariables = settings.getBoolean(CFG_PROPAGATE_LOOP_VARIABLES, false); // added in 4.4
     }
 
     /**
@@ -364,22 +382,22 @@ final class LoopEndConditionDynamicSettings {
      * @param settings a node settings object
      */
     public void saveSettings(final NodeSettingsWO settings) {
-        settings.addString("variableName", m_variableName);
+        settings.addString(CFG_VARIABLE_NAME, m_variableName);
         if (m_variableType == null) {
-            settings.addString("variableType", null);
+            settings.addString(CFG_VARIABLE_TYPE, null);
         } else {
-            settings.addString("variableType", m_variableType.getIdentifier());
+            settings.addString(CFG_VARIABLE_TYPE, m_variableType.getIdentifier());
         }
-        settings.addString("value", m_value);
+        settings.addString(CFG_VALUE, m_value);
         if (m_operator == null) {
-            settings.addString("operator", null);
+            settings.addString(CFG_OPERATOR, null);
         } else {
-            settings.addString("operator", m_operator.name());
+            settings.addString(CFG_OPERATOR, m_operator.name());
         }
-        settings.addBooleanArray("addLastRows", m_addLastRows);
-        settings.addBooleanArray("addLastRowsOnly", m_addLastRowsOnly);
-        settings.addBooleanArray("addIterationColumn", m_addIterationColumn);
-        settings.addBoolean("propagateLoopVariables", m_propagateLoopVariables);
+        settings.addBooleanArray(CFG_ADD_LAST_ROWS, m_addLastRows);
+        settings.addBooleanArray(CFG_ADD_LAST_ROWS_ONLY, m_addLastRowsOnly);
+        settings.addBooleanArray(CFG_ADD_ITERATION_COLUMN, m_addIterationColumn);
+        settings.addBoolean(CFG_PROPAGATE_LOOP_VARIABLES, m_propagateLoopVariables);
     }
 
     private boolean[] read(final NodeSettingsRO settings, final String key, final boolean def)

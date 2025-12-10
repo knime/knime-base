@@ -47,24 +47,44 @@
  */
 package org.knime.base.node.meta.looper.condition;
 
+import static org.knime.node.impl.description.PortDescription.dynamicPort;
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ConfigurableNodeFactory;
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeView;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.port.PortType;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.ExternalResource;
+import org.knime.node.impl.description.PortDescription;
 
 /**
  * This factory creates all necessary classes for the condition loop head node.
  *
  * @author Jannik Löscher, KNIME GmbH, Konstanz, Germany
  * @author based on {@link LoopEndConditionNodeFactory} by Thorsten Meinl, University of Konstanz
+ * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.2
  * @since 4.5
  */
-public final class LoopEndConditionDynamicNodeFactory extends
-        ConfigurableNodeFactory<LoopEndConditionDynamicNodeModel> {
+@SuppressWarnings("restriction")
+public final class LoopEndConditionDynamicNodeFactory extends ConfigurableNodeFactory<LoopEndConditionDynamicNodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     @Override
     protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
@@ -80,11 +100,6 @@ public final class LoopEndConditionDynamicNodeFactory extends
         return new LoopEndConditionDynamicNodeModel(config.getInputPorts(), config.getOutputPorts());
     }
 
-    @Override
-    protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
-        final var config = creationConfig.getPortConfig().orElseThrow();
-        return new LoopEndConditionDynamicNodeDialog(config.getInputPorts().length);
-    }
 
     @Override
     protected int getNrNodeViews() {
@@ -100,5 +115,96 @@ public final class LoopEndConditionDynamicNodeFactory extends
     @Override
     protected boolean hasDialog() {
         return true;
+    }
+    private static final String NODE_NAME = "Variable Condition Loop End";
+
+    private static final String NODE_ICON = "variable_condition_loop_end.png";
+
+    private static final String SHORT_DESCRIPTION = """
+            Loop end node that checks for a condition in one of the flow variables
+            """;
+
+    private static final String FULL_DESCRIPTION = """
+            In combination with a Generic Loop Start node, this node lets you execute the body of the loop until a
+                certain condition on one of the flow variables is met. In the dialog you can choose one of the available
+                flow variables and which condition should cause the loop to finish. <p> You can add more input and output
+                tables using the “…” menu. </p>
+            """;
+
+    private static final List<PortDescription> INPUT_PORTS = List.of(
+            fixedPort("Input table", """
+                Any datatable
+                """),
+            dynamicPort("Collector", "Input table", """
+                Any datatable
+                """)
+    );
+
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(
+            fixedPort("Collected results", """
+                Collected results from the loop body
+                """),
+            dynamicPort("Collector", "Collected results", """
+                Collected results from the loop body
+                """),
+            fixedPort("Variable values", """
+                The selected flow variable's values in each iteration
+                """)
+    );
+
+    private static final List<ExternalResource> LINKS = List.of(
+         new ExternalResource(
+            "https://docs.knime.com/latest/analytics_platform_flow_control_guide/index.html#flow-variables", """
+                KNIME Flow Control Guide: Flow Variables
+                """),
+         new ExternalResource(
+            "https://docs.knime.com/latest/analytics_platform_flow_control_guide/index.html#loops", """
+                KNIME Flow Control Guide: Section Loops
+                """)
+    );
+
+    /**
+     * {@inheritDoc}
+     * @since 5.10
+     */
+    @Override
+    public NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    /**
+     * {@inheritDoc}
+     * @since 5.10
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, LoopEndConditionDynamicNodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription(
+            NODE_NAME,
+            NODE_ICON,
+            INPUT_PORTS,
+            OUTPUT_PORTS,
+            SHORT_DESCRIPTION,
+            FULL_DESCRIPTION,
+            LINKS,
+            LoopEndConditionDynamicNodeParameters.class,
+            null,
+            NodeType.LoopEnd,
+            List.of(),
+            null
+        );
+    }
+
+    /**
+     * {@inheritDoc}
+     * @since 5.10
+     */
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, LoopEndConditionDynamicNodeParameters.class));
     }
 }
