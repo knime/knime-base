@@ -44,21 +44,17 @@
  * ------------------------------------------------------------------------
  */
 
-package org.knime.filehandling.utility.nodes.transfer.table;
+package org.knime.filehandling.utility.nodes.transfer.filechooser;
 
-import java.util.Arrays;
-import java.util.List;
-
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataTableSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelectionWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSystemOption;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.InputFSPortProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelectionMode;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelectionWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.SingleFileSelectionMode;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.WithFileSystem;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification.WidgetGroupModifier;
-import org.knime.filehandling.core.data.location.FSLocationValue;
 import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 import org.knime.node.parameters.Advanced;
 import org.knime.node.parameters.NodeParameters;
@@ -69,19 +65,17 @@ import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.layout.Section;
 import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
 import org.knime.node.parameters.persistence.Persist;
-import org.knime.node.parameters.persistence.Persistor;
-import org.knime.node.parameters.persistence.legacy.EnumBooleanPersistor;
 import org.knime.node.parameters.persistence.legacy.LegacyFileWriter;
 import org.knime.node.parameters.persistence.legacy.LegacyFileWriterWithCreateMissingFolders;
+import org.knime.node.parameters.persistence.legacy.LegacyMultiFileSelection;
 import org.knime.node.parameters.updates.Effect;
 import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.updates.EffectPredicate;
 import org.knime.node.parameters.updates.EffectPredicateProvider;
 import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.updates.legacy.LegacyPredicateInitializer;
 import org.knime.node.parameters.updates.util.BooleanReference;
-import org.knime.node.parameters.widget.choices.ChoicesProvider;
-import org.knime.node.parameters.widget.choices.ColumnChoicesProvider;
 import org.knime.node.parameters.widget.choices.Label;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 import org.knime.node.parameters.widget.message.TextMessage;
@@ -89,16 +83,14 @@ import org.knime.node.parameters.widget.message.TextMessage.MessageType;
 import org.knime.node.parameters.widget.message.TextMessage.SimpleTextMessageProvider;
 
 /**
- * Node parameters for Transfer Files (Table).
+ * Node parameters for Transfer Files.
  *
  * @author Tim Crundall, TNG Technology Consulting GmbH
  * @author AI Migration Pipeline v1.2
  */
 @LoadDefaultsForAbsentFields
 @SuppressWarnings("restriction")
-class TransferFilesTableNodeParameters implements NodeParameters {
-
-    private static final String CFG_DESTINATION_POLICY_KEY = "from_table";
+class TransferFilesFileChooserNodeParameters implements NodeParameters {
 
     protected static final String CONNECTION_SOURCE_PORT_GRP_NAME = "Source File System Connection";
 
@@ -110,15 +102,27 @@ class TransferFilesTableNodeParameters implements NodeParameters {
     private interface Source {
     }
 
-    @Section(title = "Destination", description = "Configure the destination file/folder to be copied/moved to")
+    @Section(title = "Destination", description = "Configure the destination folder to be copied/moved to")
     @After(Source.class)
     private interface Destination {
     }
 
+    // TODO UIEXT-1547: There is presently a bug in which "show advanced options" will display even
+    // if the advanced options section is empty. This occurs in this case when the Output section is
+    // hidden
     @Section(title = "Output")
     @After(Destination.class)
+    @Effect(predicate = SourceFilterModeIsFolder.class, type = EffectType.SHOW)
     @Advanced()
     private interface Output {
+    }
+
+    private static final class SourceFilterModeIsFolder implements EffectPredicateProvider {
+        @Override
+        public EffectPredicate init(final PredicateInitializer i) {
+            return ((LegacyPredicateInitializer)i).getLegacyMultiFileSelection(SourceFileChooserRef.class)
+                    .getSelectionMode().isOneOf(MultiFileSelectionMode.FOLDER);
+        }
     }
 
     // ====== Settings
@@ -128,20 +132,23 @@ class TransferFilesTableNodeParameters implements NodeParameters {
     @Layout(Source.class)
     Void m_sourceFileSystemManagedByPortMessage;
 
-    @Widget(title = "Source column", description = """
-                Select the column containing the paths to the files/folders that must be copied/moved.
-            """)
     @Layout(Source.class)
-    @ChoicesProvider(PathColumnChoices.class)
-    @Persist(configKey = "source_column")
-    String m_sourceColumn;
+    @Persist(configKey = "source_location")
+    @MultiFileSelectionWidget({MultiFileSelectionMode.FILE, MultiFileSelectionMode.FOLDER,
+        MultiFileSelectionMode.FILES_IN_FOLDERS})
+    @WithFileSystem(connectionProvider = SourceInputFSPortProvider.class)
+    @ValueReference(SourceFileChooserRef.class)
+    LegacyMultiFileSelection m_sourceFileChooser = new LegacyMultiFileSelection(MultiFileSelectionMode.FILE);
 
-    @Layout(Source.class)
-    @Widget(title = "Fail if source does not exist", description = """
-                If the source file/folder to copy/move does not exit the node will fail.
-            """)
-    @Persist(configKey = "fail_if_source_does_not_exist")
-    boolean m_failIfSourceDoesNotExist;
+    private interface SourceFileChooserRef extends ParameterReference<LegacyMultiFileSelection> {
+    }
+
+    private static final class SourceInputFSPortProvider extends InputFSPortProvider {
+        @Override
+        protected String getGroupId() {
+            return CONNECTION_SOURCE_PORT_GRP_NAME;
+        }
+    }
 
     @Widget(title = "Delete source files / folders", description = """
             Delete all files/folders that have been successfully copied from the source folder. The
@@ -170,43 +177,8 @@ class TransferFilesTableNodeParameters implements NodeParameters {
     @Layout(Destination.class)
     Void m_destinationFileSystemManagedByPortMessage;
 
-    @Widget(title = "Choose destination", description = "Select a method with which to set the destination.")
-    @Layout(Destination.class)
-    @ValueSwitchWidget
-    @ValueReference(DestinationPolicyRef.class)
-    @Persistor(DestinationPolicyPersistor.class)
-    DestinationPolicy m_fromTable = DestinationPolicy.FROM_TABLE;
-
-    private static final class DestinationPolicyRef implements ParameterReference<DestinationPolicy> {
-    }
-
-    private enum DestinationPolicy {
-            @Label(value = "From file chooser", description = """
-                    Specify a folder where you want to copy/move the (source) files/folders to.
-                    """)
-            FILE_CHOOSER, //
-            @Label(value = "From table", description = """
-                    Select the column containing the destination, i.e., the new location and names of
-                    the files/folders to be copied/moved. <br /> <i>Note:</i> If the source references a
-                    file/folder the destination also has to be a file/folder.
-                    """)
-            FROM_TABLE,
-    }
-
-    @Widget(title = "Destination column", description = """
-            Select the column containing the destination, i.e., the new location and names of the
-            files/folders to be copied/moved. <br /> <i>Note:</i> If the source references a file/folder the
-            destination also has to be a file/folder.
-            """)
-    @Layout(Destination.class)
-    @ChoicesProvider(PathColumnChoices.class)
-    @Effect(predicate = DestinationIsFromTable.class, type = EffectType.SHOW)
-    @Persist(configKey = "destination_column")
-    String m_destinationColumn;
-
     @Persist(configKey = "destination_location")
     @Layout(Destination.class)
-    @Effect(predicate = DestinationIsFromTable.class, type = EffectType.HIDE)
     @Modification(LegacyFileWriterModifier.class)
     LegacyFileWriterWithCreateMissingFolders m_targetFolder = new LegacyFileWriterWithCreateMissingFolders();
 
@@ -239,7 +211,7 @@ class TransferFilesTableNodeParameters implements NodeParameters {
     }
 
     @Widget(title = "Overwrite policy", description = """
-                How to handle files to be copied already existing in destination folder
+            How to handle files to be copied already existing in destination folder
             """)
     @Layout(Destination.class)
     @ValueSwitchWidget
@@ -252,7 +224,6 @@ class TransferFilesTableNodeParameters implements NodeParameters {
             """)
     @Layout(Destination.class)
     @Persist(configKey = "destination_file_path")
-    @Effect(predicate = DestinationIsFromTable.class, type = EffectType.HIDE)
     @ValueSwitchWidget
     @ValueReference(DestinationPathRef.class)
     DestinationPath m_destinationPath;
@@ -290,6 +261,13 @@ class TransferFilesTableNodeParameters implements NodeParameters {
     @Effect(predicate = IncludePolicyIsPrefix.class, type = EffectType.SHOW)
     String m_folderPrefix;
 
+    private static final class IncludePolicyIsPrefix implements EffectPredicateProvider {
+        @Override
+        public EffectPredicate init(final PredicateInitializer i) {
+            return i.getEnum(DestinationPathRef.class).isOneOf(DestinationPath.REMOVE_FOLDER_PREFIX);
+        }
+    }
+
     private enum OverwritePolicy {
             @Label(value = "Fail", description = """
                     Will issue an error during the node's execution (to prevent unintentional overwrite).
@@ -316,56 +294,6 @@ class TransferFilesTableNodeParameters implements NodeParameters {
     @Layout(Output.class)
     @Persist(configKey = "detailed_output")
     boolean m_detailedOutput;
-
-    // ====== ValueProviders
-
-    private static class PathColumnChoices implements ColumnChoicesProvider {
-
-        // The index of the table spec will change based on whether one or both of the source and
-        // destination file system ports1 are connected.
-        @Override
-        public List<DataColumnSpec> columnChoices(final NodeParametersInput context) {
-            var tableSpec = Arrays //
-                .stream(context.getInPortSpecs()) //
-                .filter(DataTableSpec.class::isInstance) //
-                .findFirst();
-            if (tableSpec.isEmpty()) {
-                return List.of();
-            }
-            return ((DataTableSpec)tableSpec.get()).stream() //
-                .filter(colSpec -> colSpec.getType().isCompatible(FSLocationValue.class)) //
-                .toList();
-        }
-    }
-
-    // ====== EffectProviders
-
-    private static final class DestinationIsFromTable implements EffectPredicateProvider {
-        @Override
-        public EffectPredicate init(final PredicateInitializer i) {
-            return i.getEnum(DestinationPolicyRef.class).isOneOf(DestinationPolicy.FROM_TABLE);
-        }
-    }
-
-    private static final class IncludePolicyIsPrefix implements EffectPredicateProvider {
-        @Override
-        public EffectPredicate init(final PredicateInitializer i) {
-            return i //
-                .getEnum(DestinationPolicyRef.class) //
-                .isOneOf(DestinationPolicy.FILE_CHOOSER) //
-                .and(i.getEnum(DestinationPathRef.class) //
-                    .isOneOf(DestinationPath.REMOVE_FOLDER_PREFIX) //
-                );
-        }
-    }
-
-    // ====== Persistors
-
-    private static final class DestinationPolicyPersistor extends EnumBooleanPersistor<DestinationPolicy> {
-        protected DestinationPolicyPersistor() {
-            super(CFG_DESTINATION_POLICY_KEY, DestinationPolicy.class, DestinationPolicy.FROM_TABLE);
-        }
-    }
 
     // ====== Info message
 
@@ -430,8 +358,6 @@ class TransferFilesTableNodeParameters implements NodeParameters {
         // empty --> Dynamic port is active, connected but not executed
         return !res.getFileSystemConnection().isEmpty();
     }
-
-    // ====== Helpers
 
     private static int getFSPortIndex(final String groupId, final NodeParametersInput context) {
         var fsPortIndex = context.getPortsConfiguration().getInputPortLocation().get(groupId);

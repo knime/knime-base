@@ -44,72 +44,56 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 25, 2021 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
+ *   11 Dec 2025 (Tim Crundall): created
  */
 package org.knime.filehandling.utility.nodes.transfer.filechooser;
 
-import java.awt.Component;
+import java.io.FileInputStream;
+import java.io.IOException;
 
-import org.knime.core.node.FlowVariableModel;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.NotConfigurableException;
-import org.knime.core.node.port.PortObjectSpec;
-import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.DialogComponentReaderFileChooser;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
-import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
-import org.knime.filehandling.utility.nodes.transfer.AbstractTransferFilesNodeDialog;
+import org.knime.core.node.NodeSettings;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
+import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
+import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 
 /**
- * Node dialog of the Transfer Files/Folder node.
  *
- * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
+ * @author Tim Crundall, TNG Technology Consulting GmbH
  */
-final class TransferFilesFileChooserNodeDialog
-    extends AbstractTransferFilesNodeDialog<TransferFilesFileChooserNodeConfig> {
+public class TransferFilesFileChooserNodeParametersTest extends DefaultNodeSettingsSnapshotTest{
 
-    private final DialogComponentReaderFileChooser m_sourceFilePanel;
-
-    /**
-     * Constructor.
-     *
-     * @param config the {@link TransferFilesFileChooserNodeConfig}
-     */
-    TransferFilesFileChooserNodeDialog(final TransferFilesFileChooserNodeConfig config) {
-        super(config);
-        final SettingsModelReaderFileChooser sourceFileChooserConfig = config.getSourceFileChooserModel();
-        final FlowVariableModel sourceFvm =
-            createFlowVariableModel(sourceFileChooserConfig.getKeysForFSLocation(), FSLocationVariableType.INSTANCE);
-
-        m_sourceFilePanel = new DialogComponentReaderFileChooser(sourceFileChooserConfig, "source_chooser", sourceFvm);
-        sourceFileChooserConfig.addChangeListener(
-            l -> enableVerboseOutputCheckbox(sourceFileChooserConfig.getFilterMode() == FilterMode.FOLDER));
-        createPanel();
+    TransferFilesFileChooserNodeParametersTest() {
+        super(getConfig());
     }
 
-    @Override
-    public void onClose() {
-        super.onClose();
-        m_sourceFilePanel.onClose();
+    @SuppressWarnings("restriction")
+    private static SnapshotTestConfiguration getConfig() {
+        var portConfig = new TransferFilesFileChooserNodeFactory().createNodeCreationConfig().getPortConfig().get();
+        var tests = SnapshotTestConfiguration.builder() //
+            .withPortsConfiguration(portConfig) //
+            .testJsonFormsForModel(TransferFilesFileChooserNodeParameters.class) //
+            .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings()) //
+            .testNodeSettingsStructure(() -> readSettings()) //
+            .build();
+        return tests;
     }
 
-    @Override
-    protected Component getSourceLocationPanel() {
-        return m_sourceFilePanel.getComponentPanel();
-    }
-
-    @Override
-    protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
-        throws NotConfigurableException {
-        m_sourceFilePanel.loadSettingsFrom(settings, specs);
-        super.loadSettingsFrom(settings, specs);
-    }
-
-    @Override
-    protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
-        m_sourceFilePanel.saveSettingsTo(settings);
-        super.saveSettingsTo(settings);
+    @SuppressWarnings("restriction")
+    private static TransferFilesFileChooserNodeParameters readSettings() {
+        try {
+            var path = getSnapshotPath(TransferFilesFileChooserNodeParameters.class) //
+                .getParent() //
+                .resolve("node_settings") //
+                .resolve("TransferFilesFileChooserNodeParameters.xml");
+            try (var fis = new FileInputStream(path.toFile())) {
+                var nodeSettings = NodeSettings.loadFromXML(fis);
+                return NodeParametersUtil.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
+                    TransferFilesFileChooserNodeParameters.class);
+            }
+        } catch (IOException | InvalidSettingsException e) {
+            throw new IllegalStateException(e);
+        }
     }
 }
