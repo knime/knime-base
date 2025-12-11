@@ -59,6 +59,7 @@ import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.array.ArrayWidget;
+import org.knime.node.parameters.array.PerPortValueProvider;
 import org.knime.node.parameters.layout.After;
 import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.layout.Section;
@@ -72,7 +73,6 @@ import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.updates.EffectPredicate;
 import org.knime.node.parameters.updates.EffectPredicateProvider;
 import org.knime.node.parameters.updates.ParameterReference;
-import org.knime.node.parameters.updates.StateProvider;
 import org.knime.node.parameters.updates.ValueProvider;
 import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.OptionalWidget;
@@ -163,73 +163,6 @@ final class RecursiveLoopEndDynamicNodeParameters implements NodeParameters {
         long m_minNrOfRows = 1;
     }
 
-    private abstract static class PerPortValueProvider<V> implements StateProvider<V[]> {
-
-        enum PortGroupSide {
-                INPUT, OUTPUT
-        }
-
-        private final String m_portGroupId;
-
-        private final PortGroupSide m_portGroupSide;
-
-        private Supplier<V[]> m_widgetSettings;
-
-        PerPortValueProvider(final String portGroupId, final PortGroupSide portGroupSide) {
-            m_portGroupId = portGroupId;
-            m_portGroupSide = portGroupSide;
-        }
-
-        abstract Supplier<V[]> supplier(StateProviderInitializer initializer);
-
-        abstract V[] newArray(int size);
-
-        abstract V newInstance();
-
-        @Override
-        public void init(final StateProviderInitializer initializer) {
-            initializer.computeBeforeOpenDialog();
-            m_widgetSettings = supplier(initializer);
-        }
-
-        @Override
-        public V[] computeState(final NodeParametersInput parametersInput) {
-            var numberOfPorts = getNumberOfPorts(parametersInput);
-            var currentSettings = m_widgetSettings.get();
-
-            if (currentSettings.length == numberOfPorts) {
-                return currentSettings;
-            }
-
-            var newSettings = newArray(numberOfPorts);
-
-            var numCurrentSettings = Math.min(currentSettings.length, numberOfPorts);
-            System.arraycopy(currentSettings, 0, newSettings, 0, numCurrentSettings);
-
-            for (var i = numCurrentSettings; i < numberOfPorts; i++) {
-                newSettings[i] = newInstance();
-            }
-
-            return newSettings;
-        }
-
-        private int getNumberOfPorts(final NodeParametersInput parametersInput) {
-            try {
-                var portsConfig = parametersInput.getPortsConfiguration();
-                var portLocations = m_portGroupSide == PortGroupSide.INPUT ? portsConfig.getInputPortLocation()
-                    : portsConfig.getOutputPortLocation();
-                var indices = portLocations.get(m_portGroupId);
-                if (indices != null) {
-                    return indices.length;
-                }
-            } catch (IllegalStateException ex) {  // NOSONAR
-                // fall through to the fallback below if no ports configuration is available
-            }
-            return m_portGroupSide == PortGroupSide.INPUT ? parametersInput.getInPortTypes().length
-                : parametersInput.getOutPortTypes().length;
-        }
-    }
-
     private static final class RecursionPortSettingsValueProvider extends PerPortValueProvider<RecursionPortSettings> {
 
         RecursionPortSettingsValueProvider() {
@@ -237,17 +170,17 @@ final class RecursiveLoopEndDynamicNodeParameters implements NodeParameters {
         }
 
         @Override
-        Supplier<RecursionPortSettings[]> supplier(final StateProviderInitializer initializer) {
+        protected Supplier<RecursionPortSettings[]> supplier(final StateProviderInitializer initializer) {
             return initializer.getValueSupplier(RecursionPortSettingsParameterReference.class);
         }
 
         @Override
-        RecursionPortSettings[] newArray(final int size) {
+        protected RecursionPortSettings[] newArray(final int size) {
             return new RecursionPortSettings[size];
         }
 
         @Override
-        RecursionPortSettings newInstance() {
+        protected RecursionPortSettings newInstance() {
             return new RecursionPortSettings();
         }
     }
@@ -318,17 +251,17 @@ final class RecursiveLoopEndDynamicNodeParameters implements NodeParameters {
         }
 
         @Override
-        Supplier<DataCollectionPortSettings[]> supplier(final StateProviderInitializer initializer) {
+        protected Supplier<DataCollectionPortSettings[]> supplier(final StateProviderInitializer initializer) {
             return initializer.getValueSupplier(DataCollectionPortSettingsParameterReference.class);
         }
 
         @Override
-        DataCollectionPortSettings[] newArray(final int size) {
+        protected DataCollectionPortSettings[] newArray(final int size) {
             return new DataCollectionPortSettings[size];
         }
 
         @Override
-        DataCollectionPortSettings newInstance() {
+        protected DataCollectionPortSettings newInstance() {
             return new DataCollectionPortSettings();
         }
     }
