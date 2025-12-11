@@ -265,6 +265,7 @@
           "fileSystems" : [ "LOCAL", "SPACE", "EMBEDDED", "CONNECTED" ],
           "isLocal" : true,
           "isWriter" : true,
+          "selectionMode" : "FOLDER",
           "spaceFSOptions" : {
             "mountId" : "Local space"
           },
