@@ -1,0 +1,856 @@
+{
+  "data" : {
+    "model" : {
+      "sourceFileChooser" : {
+        "filterMode" : "FILE",
+        "path" : {
+          "fsCategory" : "LOCAL",
+          "path" : "",
+          "timeout" : 10000,
+          "context" : {
+            "fsToString" : "(LOCAL, )"
+          }
+        },
+        "includeSubfolders" : false,
+        "filters" : {
+          "filterMode" : "FILE",
+          "filterFilesExtension" : false,
+          "filesExtensionExpression" : "",
+          "filesExtensionCaseSensitive" : false,
+          "filterFilesName" : false,
+          "filesNameExpression" : "*",
+          "filesNameFilterType" : "WILDCARD",
+          "filesNameCaseSensitive" : false,
+          "includeHiddenFiles" : true,
+          "includeSpecialFiles" : true,
+          "filterFoldersName" : false,
+          "foldersNameExpression" : "*",
+          "foldersNameFilterType" : "WILDCARD",
+          "foldersNameCaseSensitive" : false,
+          "includeHiddenFolders" : true,
+          "followSymlinks" : false
+        }
+      },
+      "deleteSourceFilesAndFolders" : false,
+      "failOnUnsuccessfulDeletion" : false,
+      "targetFolder" : {
+        "file" : {
+          "path" : {
+            "fsCategory" : "LOCAL",
+            "path" : "",
+            "timeout" : 10000,
+            "context" : {
+              "fsToString" : "(LOCAL, )"
+            }
+          }
+        },
+        "createMissingFolders" : false
+      },
+      "detailedOutput" : false
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "deleteSourceFilesAndFolders" : {
+            "type" : "boolean",
+            "title" : "Delete source files / folders",
+            "description" : "Delete all files/folders that have been successfully copied from the source folder. The\noutput contains an additional column indicating if the file has been deleted (true) or\nnot (false).\n",
+            "default" : false
+          },
+          "destinationFileSystemManagedByPortMessage" : {
+            "type" : "object"
+          },
+          "destinationPath" : {
+            "oneOf" : [ {
+              "const" : "RELATIVE",
+              "title" : "File/folder only"
+            }, {
+              "const" : "KEEP",
+              "title" : "Full path"
+            }, {
+              "const" : "REMOVE_FOLDER_PREFIX",
+              "title" : "Path after prefix"
+            } ],
+            "title" : "Destination file path",
+            "description" : "Depending on the selected mode the location of the files/folders to be copied to the destination\nfolder will differ.\n\n<ul>\n<li><b>File/folder only</b>: Copy only the selected file/folder itself into the destination folder, without recreating any\nparent directories from the source path.\n</li>\n<li><b>Full path</b>: Recreate the full directory structure from the source path inside the destination folder.\nFor example, if the source is <i>src_folder/src_subfolder</i> and the destination is\n<i>dest_folder</i>, the content will be copied to <i>dest_folder/src_folder/src_subfolder</i>.\n</li>\n<li><b>Path after prefix</b>: Recreate the directory structure from the source path, but ignore the specified folder prefix.\nFor example, if the prefix is <i>src_folder</i> and the source path is\n<i>src_folder/src_subfolder</i>, the content will be copied to <i>dest_folder/src_subfolder</i>.\n<b>Note:</b> In special cases this option may attempt to copy the source to a location outside\nthe specified destination, in which case the node will fail.\n</li>\n</ul>"
+          },
+          "detailedOutput" : {
+            "type" : "boolean",
+            "title" : "Detailed output",
+            "description" : "If selected the output will not only show the folder that has been copied/moved but also all the\nfiles/folders it contains.\n",
+            "default" : false
+          },
+          "failOnUnsuccessfulDeletion" : {
+            "type" : "boolean",
+            "title" : "Fail on unsuccessful deletion",
+            "description" : "If the 'Delete source files / folders' option is activated and something goes wrong during the\ndeletion process the node will fail.\n",
+            "default" : false
+          },
+          "folderPrefix" : {
+            "type" : "string",
+            "title" : "Folder prefix",
+            "description" : "The folder prefix (the beginning of the path) to be ignored when using 'Path after prefix' mode.\n"
+          },
+          "sourceFileChooser" : {
+            "type" : "object",
+            "properties" : {
+              "dummy" : {
+                "type" : "object"
+              },
+              "filterMode" : {
+                "oneOf" : [ {
+                  "const" : "FILE",
+                  "title" : "File"
+                }, {
+                  "const" : "FOLDER",
+                  "title" : "Folder"
+                }, {
+                  "const" : "FILES_IN_FOLDERS",
+                  "title" : "Files in folders"
+                }, {
+                  "const" : "FOLDERS",
+                  "title" : "Folders"
+                }, {
+                  "const" : "FILES_AND_FOLDERS",
+                  "title" : "Files and folders"
+                }, {
+                  "const" : "WORKFLOW",
+                  "title" : "Workflow"
+                } ],
+                "title" : "Type",
+                "description" : "The selection mode.\n<ul>\n<li><b>File</b>: Select a single file.</li>\n<li><b>Folder</b>: Select a single folder.</li>\n<li><b>Files in folders</b>: Select a folder and apply filters to select files within it.</li>\n</ul>",
+                "default" : "FILE"
+              },
+              "filters" : {
+                "type" : "object",
+                "properties" : {
+                  "filesExtensionCaseSensitive" : {
+                    "type" : "boolean",
+                    "title" : "Case sensitive (extensions)",
+                    "description" : "Treat the entered extensions as case sensitive when matching.",
+                    "default" : false
+                  },
+                  "filesExtensionExpression" : {
+                    "type" : "string",
+                    "title" : "File extensions",
+                    "description" : "Semicolon-separated list of file extensions to include (e.g. 'xlsx;xlsm;xls').\nCase-insensitive unless 'Case sensitive (extensions)' is enabled.\n",
+                    "default" : ""
+                  },
+                  "filesNameCaseSensitive" : {
+                    "type" : "boolean",
+                    "title" : "Case sensitive (names)",
+                    "description" : "Make file name filtering case sensitive.",
+                    "default" : false
+                  },
+                  "filesNameExpression" : {
+                    "type" : "string",
+                    "title" : "File name filter pattern",
+                    "description" : "Pattern for file name filtering. With type 'Wildcard', use '*' and '?'.\nWith type 'Regex', enter a Java regular expression.\n",
+                    "default" : "*"
+                  },
+                  "filesNameFilterType" : {
+                    "oneOf" : [ {
+                      "const" : "WILDCARD",
+                      "title" : "Wildcard"
+                    }, {
+                      "const" : "REGEX",
+                      "title" : "Regular Expression"
+                    } ],
+                    "title" : "File name filter type",
+                    "description" : "Choose how to interpret the file name pattern: wildcard or regular expression.",
+                    "default" : "WILDCARD"
+                  },
+                  "filterFilesExtension" : {
+                    "type" : "boolean",
+                    "title" : "Filter by file extension",
+                    "description" : "Enable filtering files by their extension (e.g. 'xlsx;xlsm').",
+                    "default" : false
+                  },
+                  "filterFilesName" : {
+                    "type" : "boolean",
+                    "title" : "Filter by file name",
+                    "description" : "Enable filtering by file name pattern with wildcards or regular expression.",
+                    "default" : false
+                  },
+                  "filterFoldersName" : {
+                    "type" : "boolean",
+                    "title" : "Filter by folder name",
+                    "description" : "Enable filtering of folders by name pattern before descending into them.",
+                    "default" : false
+                  },
+                  "filterMode" : {
+                    "oneOf" : [ {
+                      "const" : "FILE",
+                      "title" : "File"
+                    }, {
+                      "const" : "FOLDER",
+                      "title" : "Folder"
+                    }, {
+                      "const" : "FILES_IN_FOLDERS",
+                      "title" : "Files in folders"
+                    }, {
+                      "const" : "FOLDERS",
+                      "title" : "Folders"
+                    }, {
+                      "const" : "FILES_AND_FOLDERS",
+                      "title" : "Files and folders"
+                    }, {
+                      "const" : "WORKFLOW",
+                      "title" : "Workflow"
+                    } ],
+                    "default" : "FILE"
+                  },
+                  "foldersNameCaseSensitive" : {
+                    "type" : "boolean",
+                    "title" : "Case sensitive (folders)",
+                    "description" : "Make folder name filtering case sensitive.",
+                    "default" : false
+                  },
+                  "foldersNameExpression" : {
+                    "type" : "string",
+                    "title" : "Folder name pattern",
+                    "description" : "Pattern for folder name filtering. Use '*' and '?' with filter type 'Wildcard'.\nWith type 'Regex', enter a Java regular expression.\n",
+                    "default" : "*"
+                  },
+                  "foldersNameFilterType" : {
+                    "oneOf" : [ {
+                      "const" : "WILDCARD",
+                      "title" : "Wildcard"
+                    }, {
+                      "const" : "REGEX",
+                      "title" : "Regular Expression"
+                    } ],
+                    "title" : "Folder name filter type",
+                    "description" : "Choose how to interpret the folder name pattern: wildcard or regular expression.",
+                    "default" : "WILDCARD"
+                  },
+                  "followSymlinks" : {
+                    "type" : "boolean",
+                    "title" : "Follow symlinks",
+                    "description" : "Follow symbolic links while traversing folders (only relevant when selecting a folder).",
+                    "default" : false
+                  },
+                  "includeHiddenFiles" : {
+                    "type" : "boolean",
+                    "title" : "Include hidden files",
+                    "description" : "Include hidden files in the selection.",
+                    "default" : true
+                  },
+                  "includeHiddenFolders" : {
+                    "type" : "boolean",
+                    "title" : "Include hidden folders",
+                    "description" : "Descend into folders that are hidden (if they otherwise pass filters).",
+                    "default" : true
+                  },
+                  "includeSpecialFiles" : {
+                    "type" : "boolean",
+                    "title" : "Include special files",
+                    "description" : "Include special file types (workflows etc).",
+                    "default" : true
+                  }
+                },
+                "default" : {
+                  "filterMode" : "FILE",
+                  "filterFilesExtension" : false,
+                  "filesExtensionExpression" : "",
+                  "filesExtensionCaseSensitive" : false,
+                  "filterFilesName" : false,
+                  "filesNameExpression" : "*",
+                  "filesNameFilterType" : "WILDCARD",
+                  "filesNameCaseSensitive" : false,
+                  "includeHiddenFiles" : true,
+                  "includeSpecialFiles" : true,
+                  "filterFoldersName" : false,
+                  "foldersNameExpression" : "*",
+                  "foldersNameFilterType" : "WILDCARD",
+                  "foldersNameCaseSensitive" : false,
+                  "includeHiddenFolders" : true,
+                  "followSymlinks" : false
+                }
+              },
+              "includeSubfolders" : {
+                "type" : "boolean",
+                "title" : "Include subfolders",
+                "description" : "Whether to include subfolders when selecting multiple files within a folder.",
+                "default" : false
+              },
+              "path" : {
+                "type" : "object",
+                "title" : "Source",
+                "description" : "The path to the file or folder to select."
+              }
+            },
+            "default" : {
+              "filterMode" : "FILE",
+              "path" : {
+                "fsCategory" : "LOCAL",
+                "path" : "",
+                "timeout" : 10000,
+                "context" : {
+                  "fsToString" : "(LOCAL, )"
+                }
+              },
+              "includeSubfolders" : false,
+              "filters" : {
+                "filterMode" : "FILE",
+                "filterFilesExtension" : false,
+                "filesExtensionExpression" : "",
+                "filesExtensionCaseSensitive" : false,
+                "filterFilesName" : false,
+                "filesNameExpression" : "*",
+                "filesNameFilterType" : "WILDCARD",
+                "filesNameCaseSensitive" : false,
+                "includeHiddenFiles" : true,
+                "includeSpecialFiles" : true,
+                "filterFoldersName" : false,
+                "foldersNameExpression" : "*",
+                "foldersNameFilterType" : "WILDCARD",
+                "foldersNameCaseSensitive" : false,
+                "includeHiddenFolders" : true,
+                "followSymlinks" : false
+              }
+            }
+          },
+          "sourceFileSystemManagedByPortMessage" : {
+            "type" : "object"
+          },
+          "targetFolder" : {
+            "type" : "object",
+            "properties" : {
+              "createMissingFolders" : {
+                "type" : "boolean",
+                "title" : "Create missing folders",
+                "description" : "If enabled, missing folders in the specified path will be created automatically.",
+                "default" : false
+              },
+              "file" : {
+                "type" : "object",
+                "properties" : {
+                  "path" : {
+                    "type" : "object",
+                    "default" : {
+                      "fsCategory" : "LOCAL",
+                      "path" : "",
+                      "timeout" : 10000,
+                      "context" : {
+                        "fsToString" : "(LOCAL, )"
+                      }
+                    }
+                  }
+                },
+                "title" : "Destination path",
+                "description" : "Select a file system and destination to copy/move files/folders to.",
+                "default" : {
+                  "path" : {
+                    "fsCategory" : "LOCAL",
+                    "path" : "",
+                    "timeout" : 10000,
+                    "context" : {
+                      "fsToString" : "(LOCAL, )"
+                    }
+                  }
+                }
+              }
+            },
+            "default" : {
+              "file" : {
+                "path" : {
+                  "fsCategory" : "LOCAL",
+                  "path" : "",
+                  "timeout" : 10000,
+                  "context" : {
+                    "fsToString" : "(LOCAL, )"
+                  }
+                }
+              },
+              "createMissingFolders" : false
+            }
+          },
+          "transferPolicy" : {
+            "oneOf" : [ {
+              "const" : "FAIL",
+              "title" : "Fail"
+            }, {
+              "const" : "IGNORE",
+              "title" : "Ignore"
+            }, {
+              "const" : "OVERWRITE",
+              "title" : "Overwrite"
+            }, {
+              "const" : "OVERWRITE_IF_NEWER",
+              "title" : "Overwrite if newer"
+            } ],
+            "title" : "Overwrite policy",
+            "description" : "How to handle files to be copied already existing in destination folder\n\n<ul>\n<li><b>Fail</b>: Will issue an error during the node's execution (to prevent unintentional overwrite).\n</li>\n<li><b>Ignore</b>: Will ignore if a file already exists and continue the copying process.\n</li>\n<li><b>Overwrite</b>: Will replace any existing file.</li>\n<li><b>Overwrite if newer</b>: Will replace any existing file if the source file's last modified date is after the\ndestination file's last modified date, otherwise the file will not be overwritten and the\ncopy process will continue.\n</li>\n</ul>"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "label" : "Source",
+      "type" : "Section",
+      "description" : "Configure the source file/folder to be copied/moved",
+      "elements" : [ {
+        "type" : "Control",
+        "id" : "#/properties/model/properties/sourceFileSystemManagedByPortMessage",
+        "options" : {
+          "format" : "textMessage"
+        },
+        "providedOptions" : [ "message" ]
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/sourceFileChooser",
+        "options" : {
+          "fileSystems" : [ "CONNECTED", "LOCAL", "SPACE", "EMBEDDED", "CUSTOM_URL" ],
+          "filters" : {
+            "classId" : "org.knime.node.parameters.persistence.legacy.LegacyMultiFileSelection$MultiFileChooserFilters",
+            "uiSchema" : {
+              "elements" : [ {
+                "label" : "File filter options",
+                "type" : "Section",
+                "rule" : {
+                  "effect" : "HIDE",
+                  "condition" : {
+                    "scope" : "#/properties/filterMode",
+                    "schema" : {
+                      "oneOf" : [ {
+                        "const" : "FOLDERS"
+                      } ]
+                    }
+                  }
+                },
+                "elements" : [ {
+                  "type" : "Control",
+                  "scope" : "#/properties/filterFilesExtension",
+                  "options" : {
+                    "format" : "checkbox"
+                  }
+                }, {
+                  "type" : "Control",
+                  "scope" : "#/properties/filesExtensionExpression",
+                  "rule" : {
+                    "effect" : "SHOW",
+                    "condition" : {
+                      "scope" : "#/properties/filterFilesExtension",
+                      "schema" : {
+                        "const" : true
+                      }
+                    }
+                  }
+                }, {
+                  "type" : "Control",
+                  "scope" : "#/properties/filesExtensionCaseSensitive",
+                  "options" : {
+                    "format" : "checkbox"
+                  },
+                  "rule" : {
+                    "effect" : "SHOW",
+                    "condition" : {
+                      "scope" : "#/properties/filterFilesExtension",
+                      "schema" : {
+                        "const" : true
+                      }
+                    }
+                  }
+                }, {
+                  "type" : "Control",
+                  "scope" : "#/properties/filterFilesName",
+                  "options" : {
+                    "format" : "checkbox"
+                  }
+                }, {
+                  "type" : "Control",
+                  "scope" : "#/properties/filesNameExpression",
+                  "rule" : {
+                    "effect" : "SHOW",
+                    "condition" : {
+                      "scope" : "#/properties/filterFilesName",
+                      "schema" : {
+                        "const" : true
+                      }
+                    }
+                  }
+                }, {
+                  "type" : "Control",
+                  "scope" : "#/properties/filesNameFilterType",
+                  "options" : {
+                    "format" : "valueSwitch"
+                  },
+                  "rule" : {
+                    "effect" : "SHOW",
+                    "condition" : {
+                      "scope" : "#/properties/filterFilesName",
+                      "schema" : {
+                        "const" : true
+                      }
+                    }
+                  }
+                }, {
+                  "type" : "Control",
+                  "scope" : "#/properties/filesNameCaseSensitive",
+                  "options" : {
+                    "format" : "checkbox"
+                  },
+                  "rule" : {
+                    "effect" : "SHOW",
+                    "condition" : {
+                      "scope" : "#/properties/filterFilesName",
+                      "schema" : {
+                        "const" : true
+                      }
+                    }
+                  }
+                }, {
+                  "type" : "Control",
+                  "scope" : "#/properties/includeHiddenFiles",
+                  "options" : {
+                    "format" : "checkbox"
+                  }
+                }, {
+                  "type" : "Control",
+                  "scope" : "#/properties/includeSpecialFiles",
+                  "options" : {
+                    "format" : "checkbox"
+                  }
+                } ]
+              }, {
+                "label" : "Folder filter options",
+                "type" : "Section",
+                "elements" : [ {
+                  "type" : "Control",
+                  "scope" : "#/properties/filterFoldersName",
+                  "options" : {
+                    "format" : "checkbox"
+                  }
+                }, {
+                  "type" : "Control",
+                  "scope" : "#/properties/foldersNameExpression",
+                  "rule" : {
+                    "effect" : "ENABLE",
+                    "condition" : {
+                      "scope" : "#/properties/filterFoldersName",
+                      "schema" : {
+                        "const" : true
+                      }
+                    }
+                  }
+                }, {
+                  "type" : "Control",
+                  "scope" : "#/properties/foldersNameFilterType",
+                  "options" : {
+                    "format" : "valueSwitch"
+                  },
+                  "rule" : {
+                    "effect" : "ENABLE",
+                    "condition" : {
+                      "scope" : "#/properties/filterFoldersName",
+                      "schema" : {
+                        "const" : true
+                      }
+                    }
+                  }
+                }, {
+                  "type" : "Control",
+                  "scope" : "#/properties/foldersNameCaseSensitive",
+                  "options" : {
+                    "format" : "checkbox"
+                  },
+                  "rule" : {
+                    "effect" : "ENABLE",
+                    "condition" : {
+                      "scope" : "#/properties/filterFoldersName",
+                      "schema" : {
+                        "const" : true
+                      }
+                    }
+                  }
+                }, {
+                  "type" : "Control",
+                  "scope" : "#/properties/includeHiddenFolders",
+                  "options" : {
+                    "format" : "checkbox"
+                  }
+                } ]
+              }, {
+                "label" : "Link options",
+                "type" : "Section",
+                "elements" : [ {
+                  "type" : "Control",
+                  "scope" : "#/properties/followSymlinks",
+                  "options" : {
+                    "format" : "checkbox"
+                  }
+                } ]
+              } ]
+            }
+          },
+          "isLocal" : true,
+          "possibleFilterModes" : [ "FILE", "FOLDER", "FILES_IN_FOLDERS" ],
+          "spaceFSOptions" : {
+            "mountId" : "Local space"
+          },
+          "format" : "multiFileChooser"
+        },
+        "providedOptions" : [ "connectedFSOptions" ]
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/deleteSourceFilesAndFolders",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/failOnUnsuccessfulDeletion",
+        "options" : {
+          "format" : "checkbox"
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/deleteSourceFilesAndFolders",
+            "schema" : {
+              "const" : true
+            }
+          }
+        }
+      } ]
+    }, {
+      "label" : "Destination",
+      "type" : "Section",
+      "description" : "Configure the destination folder to be copied/moved to",
+      "elements" : [ {
+        "type" : "Control",
+        "id" : "#/properties/model/properties/destinationFileSystemManagedByPortMessage",
+        "options" : {
+          "format" : "textMessage"
+        },
+        "providedOptions" : [ "message" ]
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/targetFolder/properties/file",
+        "options" : {
+          "fileSystems" : [ "LOCAL", "SPACE", "EMBEDDED", "CONNECTED" ],
+          "isLocal" : true,
+          "isWriter" : true,
+          "selectionMode" : "FOLDER",
+          "spaceFSOptions" : {
+            "mountId" : "Local space"
+          },
+          "format" : "fileChooser"
+        },
+        "providedOptions" : [ "connectedFSOptions" ]
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/targetFolder/properties/createMissingFolders",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/transferPolicy",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/destinationPath",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/folderPrefix",
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/destinationPath",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "REMOVE_FOLDER_PREFIX"
+              } ]
+            }
+          }
+        }
+      } ]
+    }, {
+      "label" : "Output",
+      "type" : "Section",
+      "options" : {
+        "isAdvanced" : true
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/sourceFileChooser",
+          "schema" : {
+            "properties" : {
+              "filterMode" : {
+                "oneOf" : [ {
+                  "const" : "FOLDER"
+                } ]
+              }
+            },
+            "required" : [ "filterMode" ]
+          }
+        }
+      },
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/detailedOutput",
+        "options" : {
+          "format" : "checkbox"
+        }
+      } ]
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "sourceFileSystemManagedByPortMessage" : { },
+          "sourceFileChooser" : {
+            "type" : "object",
+            "properties" : {
+              "filterMode" : {
+                "configKey" : "filter_mode",
+                "route" : [ "filter_mode" ]
+              },
+              "path" : { },
+              "includeSubfolders" : {
+                "configPaths" : [ [ "include_subfolders" ] ],
+                "route" : [ "filter_mode" ]
+              },
+              "filters" : {
+                "type" : "object",
+                "properties" : {
+                  "filterMode" : {
+                    "configPaths" : [ ]
+                  },
+                  "filterFilesExtension" : {
+                    "configKey" : "filter_files_extension"
+                  },
+                  "filesExtensionExpression" : {
+                    "configKey" : "files_extension_expression"
+                  },
+                  "filesExtensionCaseSensitive" : {
+                    "configKey" : "files_extension_case_sensitive"
+                  },
+                  "filterFilesName" : {
+                    "configKey" : "filter_files_name"
+                  },
+                  "filesNameExpression" : {
+                    "configKey" : "files_name_expression"
+                  },
+                  "filesNameFilterType" : {
+                    "configKey" : "files_name_filter_type"
+                  },
+                  "filesNameCaseSensitive" : {
+                    "configKey" : "files_name_case_sensitive"
+                  },
+                  "includeHiddenFiles" : {
+                    "configKey" : "include_hidden_files"
+                  },
+                  "includeSpecialFiles" : {
+                    "configKey" : "include_special_files"
+                  },
+                  "filterFoldersName" : {
+                    "configKey" : "filter_folders_name"
+                  },
+                  "foldersNameExpression" : {
+                    "configKey" : "folders_name_expression"
+                  },
+                  "foldersNameFilterType" : {
+                    "configKey" : "folders_name_filter_type"
+                  },
+                  "foldersNameCaseSensitive" : {
+                    "configKey" : "folders_name_case_sensitive"
+                  },
+                  "includeHiddenFolders" : {
+                    "configKey" : "include_hidden_folders"
+                  },
+                  "followSymlinks" : {
+                    "configKey" : "follow_links"
+                  }
+                },
+                "configKey" : "filter_options",
+                "route" : [ "filter_mode" ]
+              },
+              "dummy" : {
+                "configPaths" : [ ]
+              }
+            },
+            "configKey" : "source_location"
+          },
+          "deleteSourceFilesAndFolders" : {
+            "configKey" : "delete_source_files_folders"
+          },
+          "failOnUnsuccessfulDeletion" : {
+            "configKey" : "fail_on_unsuccessful_deletion"
+          },
+          "destinationFileSystemManagedByPortMessage" : { },
+          "targetFolder" : {
+            "type" : "object",
+            "properties" : {
+              "file" : {
+                "configPaths" : [ [ "path" ] ]
+              },
+              "createMissingFolders" : {
+                "configKey" : "create_missing_folders"
+              }
+            },
+            "configKey" : "destination_location"
+          },
+          "transferPolicy" : {
+            "configKey" : "transfer_policy"
+          },
+          "destinationPath" : {
+            "configKey" : "destination_file_path"
+          },
+          "folderPrefix" : {
+            "configKey" : "folder_prefix"
+          },
+          "detailedOutput" : {
+            "configKey" : "detailed_output"
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/sourceFileChooser",
+    "providedOptionName" : "connectedFSOptions",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : null
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/targetFolder/properties/file",
+    "providedOptionName" : "connectedFSOptions",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : null
+    } ]
+  }, {
+    "id" : "#/properties/model/properties/destinationFileSystemManagedByPortMessage",
+    "providedOptionName" : "message",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : null
+    } ]
+  }, {
+    "id" : "#/properties/model/properties/sourceFileSystemManagedByPortMessage",
+    "providedOptionName" : "message",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : null
+    } ]
+  } ]
+}
