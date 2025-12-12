@@ -45,7 +45,7 @@
       },
       "providedOptions" : [ "message" ]
     }, {
-      "label" : "Column selection",
+      "label" : "Column Selection",
       "type" : "Section",
       "elements" : [ {
         "type" : "Control",
