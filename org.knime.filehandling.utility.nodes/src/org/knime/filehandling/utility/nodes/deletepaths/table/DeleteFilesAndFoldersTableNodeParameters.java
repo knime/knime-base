@@ -78,7 +78,7 @@ class DeleteFilesAndFoldersTableNodeParameters implements NodeParameters {
 
     private static final String CFG_FAIL_IF_DELETE_FAILS = "fail_if_delete_fails";
 
-    @Section(title = "Column selection")
+    @Section(title = "Column Selection")
     interface ColumnSelectionSection {
     }
 
