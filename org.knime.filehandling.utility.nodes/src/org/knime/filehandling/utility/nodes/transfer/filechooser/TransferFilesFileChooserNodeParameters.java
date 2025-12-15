@@ -46,10 +46,12 @@
 
 package org.knime.filehandling.utility.nodes.transfer.filechooser;
 
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelectionWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSystemOption;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.InputFSPortProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelectionMode;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelectionWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.SingleFileSelectionMode;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.WithFileSystem;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification.WidgetGroupModifier;
@@ -99,7 +101,7 @@ class TransferFilesFileChooserNodeParameters implements NodeParameters {
     private interface Source {
     }
 
-    @Section(title = "Destination", description = "Configure the destination file/folder to be copied/moved to")
+    @Section(title = "Destination", description = "Configure the destination folder to be copied/moved to")
     @After(Source.class)
     private interface Destination {
     }
@@ -176,6 +178,9 @@ class TransferFilesFileChooserNodeParameters implements NodeParameters {
                 .withProperty("title", "Destination path") //
                 .withProperty("description", "Select a file system and destination to copy/move files/folders to.") //
                 .modify();
+            fileSelection.addAnnotation(FileSelectionWidget.class) //
+                .withProperty("value", SingleFileSelectionMode.FOLDER) //
+                .modify();
             fileSelection.addAnnotation(WithFileSystem.class) //
                 .withProperty("value",
                     new FileSystemOption[]{FileSystemOption.LOCAL, FileSystemOption.SPACE, FileSystemOption.EMBEDDED,
@@ -193,7 +198,7 @@ class TransferFilesFileChooserNodeParameters implements NodeParameters {
     }
 
     @Widget(title = "Overwrite policy", description = """
-                How to handle files to be copied already existing in destination folder
+            How to handle files to be copied already existing in destination folder
             """)
     @Layout(Destination.class)
     @ValueSwitchWidget
