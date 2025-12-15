@@ -388,7 +388,7 @@
               "title" : "Overwrite if newer"
             } ],
             "title" : "Overwrite policy",
-            "description" : "    How to handle files to be copied already existing in destination folder\n\n<ul>\n<li><b>Fail</b>: Will issue an error during the node's execution (to prevent unintentional overwrite).\n</li>\n<li><b>Ignore</b>: Will ignore if a file already exists and continue the copying process.\n</li>\n<li><b>Overwrite</b>: Will replace any existing file.</li>\n<li><b>Overwrite if newer</b>: Will replace any existing file if the source file's last modified date is after the\ndestination file's last modified date, otherwise the file will not be overwritten and the\ncopy process will continue.\n</li>\n</ul>"
+            "description" : "How to handle files to be copied already existing in destination folder\n\n<ul>\n<li><b>Fail</b>: Will issue an error during the node's execution (to prevent unintentional overwrite).\n</li>\n<li><b>Ignore</b>: Will ignore if a file already exists and continue the copying process.\n</li>\n<li><b>Overwrite</b>: Will replace any existing file.</li>\n<li><b>Overwrite if newer</b>: Will replace any existing file if the source file's last modified date is after the\ndestination file's last modified date, otherwise the file will not be overwritten and the\ncopy process will continue.\n</li>\n</ul>"
           }
         }
       }
@@ -626,7 +626,7 @@
     }, {
       "label" : "Destination",
       "type" : "Section",
-      "description" : "Configure the destination file/folder to be copied/moved to",
+      "description" : "Configure the destination folder to be copied/moved to",
       "elements" : [ {
         "type" : "Control",
         "id" : "#/properties/model/properties/destinationFileSystemManagedByPortMessage",
@@ -641,6 +641,7 @@
           "fileSystems" : [ "LOCAL", "SPACE", "EMBEDDED", "CONNECTED" ],
           "isLocal" : true,
           "isWriter" : true,
+          "selectionMode" : "FOLDER",
           "spaceFSOptions" : {
             "mountId" : "Local space"
           },
@@ -685,6 +686,22 @@
       "type" : "Section",
       "options" : {
         "isAdvanced" : true
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/sourceFileChooser",
+          "schema" : {
+            "properties" : {
+              "filterMode" : {
+                "oneOf" : [ {
+                  "const" : "FOLDER"
+                } ]
+              }
+            },
+            "required" : [ "filterMode" ]
+          }
+        }
       },
       "elements" : [ {
         "type" : "Control",
