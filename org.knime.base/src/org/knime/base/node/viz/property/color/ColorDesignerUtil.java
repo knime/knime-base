@@ -49,6 +49,7 @@
 package org.knime.base.node.viz.property.color;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -59,7 +60,7 @@ import org.knime.core.data.property.ColorHandler;
 import org.knime.core.data.property.ColorModel;
 
 /**
- * Common functionality of the Color Gradient Designer and Color Palette Designer.
+ * Common functionality of the Color Gradient Designer, Color Palette Designer, and Color Designer (Apply).
  *
  * @author Robin Gerling, KNIME GmbH, Konstanz, Germany
  */
@@ -96,29 +97,32 @@ final class ColorDesignerUtil {
     }
 
     static OutputSpecification createOutputSpecs(final DataTableSpec spec,
-        final List<DataColumnSpec> selectedColumnSpecs, final ColorModel colorModel) {
+        final List<DataColumnSpec> selectedColumnSpecs, final ColorModel colorModel, final boolean applyToColumnNames) {
         final var colorHandler = new ColorHandler(colorModel);
         final var outputModelSpec = createOutputModelSpec(colorHandler, "Color handler");
         final var outputTableSpec = createOutputTableSpec(spec, selectedColumnSpecs, colorHandler);
-        final var portSummary = createPortSummary(selectedColumnSpecs);
+        final var portSummary = createPortSummary(selectedColumnSpecs, applyToColumnNames);
         return new OutputSpecification(outputTableSpec, outputModelSpec, portSummary);
     }
 
     private static final int MAX_COLUMNS_IN_SUMMARY = 3;
 
-    private static String createPortSummary(final List<DataColumnSpec> columnSpecs) {
-        final var quotedColumnNames = columnSpecs.stream().map(colSpec -> "\"" + colSpec.getName() + "\"").toList();
-        final int numColumns = quotedColumnNames.size();
-        if (numColumns == 0) {
-            throw new IllegalStateException("At least one column is required to create a port summary.");
+    static String createPortSummary(final List<DataColumnSpec> columnSpecs, final boolean applyToColumnNames) {
+        final var summaryValues = Stream.concat( //
+            applyToColumnNames ? Stream.of("column names") : Stream.empty(),
+            columnSpecs.stream().map(colSpec -> "\"" + colSpec.getName() + "\"")).toList();
+        final int numValues = summaryValues.size();
+        if (numValues == 0) {
+            throw new IllegalStateException(
+                "At least one column or applying color to column names is required to create a port summary.");
         }
 
-        if (numColumns <= MAX_COLUMNS_IN_SUMMARY) {
-            return "Coloring on " + joinOxford(quotedColumnNames);
+        if (numValues <= MAX_COLUMNS_IN_SUMMARY) {
+            return "Coloring on " + joinOxford(summaryValues);
         }
 
-        final var shown = String.join(", ", quotedColumnNames.subList(0, MAX_COLUMNS_IN_SUMMARY));
-        final int remaining = numColumns - MAX_COLUMNS_IN_SUMMARY;
+        final var shown = String.join(", ", summaryValues.subList(0, MAX_COLUMNS_IN_SUMMARY));
+        final int remaining = numValues - MAX_COLUMNS_IN_SUMMARY;
         return "Coloring on " + shown + ", and " + remaining + " more column" + (remaining > 1 ? "s" : "");
     }
 

@@ -46,19 +46,33 @@
 
 package org.knime.base.node.viz.property.color;
 
+import java.awt.Color;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnDomain;
 import org.knime.core.data.DataColumnDomainCreator;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
+import org.knime.core.data.MissingCell;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.StringCell;
+import org.knime.core.data.property.ColorAttr;
+import org.knime.core.data.property.ColorGradient;
+import org.knime.core.data.property.ColorHandler;
+import org.knime.core.data.property.ColorModel;
+import org.knime.core.data.property.ColorModelNominal;
+import org.knime.core.data.property.ColorModelRange2;
+import org.knime.core.data.property.ColorModelRange2.SpecialColorType;
+import org.knime.core.node.BufferedDataTable;
 import org.knime.testing.util.TableTestUtil;
+import org.knime.testing.util.TableTestUtil.TableBuilder;
 
 /**
  * Shared test utilities for {@link ColorPaletteDesignerNodeFactory} tests.
@@ -122,4 +136,49 @@ final class TestHelper {
         specCreator.setDomain(domain);
         return specCreator.createSpec();
     }
+
+    static BufferedDataTable createTestTable(final DataColumnSpec[] colSpecs, final Object[][] rowValues) {
+        final var tableBuilder = new TableBuilder(new DataTableSpec(colSpecs));
+        for (final var rowValue : rowValues) {
+            tableBuilder.addRow(rowValue);
+        }
+        return tableBuilder.buildDataTable();
+    }
+
+    static final Map<DataCell, ColorAttr> INITIIAL_COLOR_MAP = Map.<DataCell, ColorAttr> of( //
+        new StringCell("A"), ColorPaletteOption.BREWER_SET1_COLORS9.getPaletteAsColorAttr()[0], //
+        new StringCell("B"), ColorPaletteOption.BREWER_SET1_COLORS9.getPaletteAsColorAttr()[1], //
+        new MissingCell(null), ColorPaletteDesignerNodeFactory.hexToColorAttr("#808080"));
+
+    static DataTableSpec createModelSpecWithNominalColorHandler() {
+        final var colorModel = new ColorModelNominal(INITIIAL_COLOR_MAP,
+            ColorPaletteOption.BREWER_SET1_COLORS9.getPaletteAsColorAttr(), Set.of(new MissingCell(null)));
+        return createModelSpec(colorModel);
+    }
+
+    static DataTableSpec createModelSpecWithNumericPercentageColorHandler() {
+        final var colorModel = new ColorModelRange2(SPECIAL_COLORS, ColorGradient.PURPLE_GREEN_5);
+        return createModelSpec(colorModel);
+    }
+
+    static DataTableSpec createModelSpecWithNumericAbsoluteColorHandler() {
+        final var colorModel = new ColorModelRange2(SPECIAL_COLORS, ColorGradient.PURPLE_GREEN_5).applyToDomain(0, 1);
+        return createModelSpec(colorModel);
+    }
+
+    private static DataTableSpec createModelSpec(final ColorModel colorModel) {
+        final var colorHandler = new ColorHandler(colorModel);
+        final var colSpec = new DataColumnSpecCreator("Color", StringCell.TYPE).createSpec();
+        final var colSpecWithHandler = new DataColumnSpecCreator(colSpec);
+        colSpecWithHandler.setColorHandler(colorHandler);
+        return new DataTableSpec(colSpecWithHandler.createSpec());
+    }
+
+    static final Map<SpecialColorType, Color> SPECIAL_COLORS = Map.of(//
+        SpecialColorType.MISSING, Color.BLACK, //
+        SpecialColorType.NAN, Color.DARK_GRAY, //
+        SpecialColorType.NEGATIVE_INFINITY, Color.WHITE, //
+        SpecialColorType.BELOW_MIN, Color.LIGHT_GRAY, //
+        SpecialColorType.ABOVE_MAX, Color.GRAY, //
+        SpecialColorType.POSITIVE_INFINITY, Color.YELLOW);
 }
