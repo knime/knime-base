@@ -49,6 +49,8 @@ package org.knime.base.node.viz.property.color;
 import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.knime.base.node.viz.property.color.ColorDesignerTestHelper.TestConfigureInput;
+import static org.knime.base.node.viz.property.color.ColorDesignerTestHelper.TestConfigureOutput;
 import static org.knime.base.node.viz.property.color.TestHelper.COLUMNS_WITH_DOMAIN;
 
 import java.util.HashMap;
@@ -285,72 +287,4 @@ final class ColorPaletteDesignerNodeFactoryConfigureTest {
         assertEquals(receivedColorModel, expectedColorModel);
     }
 
-    // Test implementation of ConfigureInput that only implements the methods used by the factory
-    private static final class TestConfigureInput implements ConfigureInput {
-        private final NodeParameters m_parameters;
-
-        private final DataTableSpec[] m_inTableSpecs;
-
-        TestConfigureInput(final NodeParameters parameters, final DataTableSpec[] inTableSpecs) {
-            m_parameters = parameters;
-            m_inTableSpecs = inTableSpecs;
-        }
-
-        @Override
-        public <S extends NodeParameters> S getParameters() {
-            @SuppressWarnings("unchecked")
-            final S result = (S)m_parameters;
-            return result;
-        }
-
-        @Override
-        public DataTableSpec[] getInTableSpecs() {
-            return m_inTableSpecs;
-        }
-
-        // Unused methods can return null
-        @Override
-        public PortObjectSpec[] getInPortSpecs() {
-            return null;
-        }
-
-        @Override
-        public <S extends PortObjectSpec> S getInPortSpec(final int index) {
-            return null;
-        }
-
-        @Override
-        public DataTableSpec getInTableSpec(final int portIndex) {
-            return null;
-        }
-
-        @Override
-        public PortType[] getOutPortTypes() {
-            return null;
-        }
-
-        @Override
-        public PortsConfiguration getPortsConfiguration() {
-            return null;
-        }
-    }
-
-    // Test implementation of ConfigureOutput that only implements the methods used by the factory
-    private static final class TestConfigureOutput implements ConfigureOutput {
-        PortObjectSpec[] m_outSpecs;
-
-        @Override
-        public <S extends PortObjectSpec> void setOutSpecs(final S... specs) {
-            m_outSpecs = specs;
-        }
-
-        // Unused methods can be empty
-        @Override
-        public <S extends PortObjectSpec> void setOutSpec(final int index, final S spec) {
-        }
-
-        @Override
-        public void setWarningMessage(final String message) {
-        }
-    }
 }

@@ -47,6 +47,8 @@
 package org.knime.base.node.viz.property.color;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.knime.base.node.viz.property.color.ColorDesignerTestHelper.TestExecuteInput;
+import static org.knime.base.node.viz.property.color.ColorDesignerTestHelper.TestExecuteOutput;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -159,86 +161,4 @@ final class ColorPaletteDesignerNodeFactoryExecuteTest {
         assertEquals("Coloring on column names", colorHandlerPort.getSummary());
     }
 
-    // Test implementation of ExecuteInput that only implements the methods used by the factory
-    private static final class TestExecuteInput implements ExecuteInput {
-        private final NodeParameters m_parameters;
-
-        private final BufferedDataTable[] m_inTables;
-
-        private final ExecutionContext m_executionContext;
-
-        TestExecuteInput(final NodeParameters parameters, final BufferedDataTable[] inTables) {
-            m_parameters = parameters;
-            m_inTables = inTables;
-            m_executionContext = mock(ExecutionContext.class);
-            Mockito.when(m_executionContext.createSpecReplacerTable(ArgumentMatchers.any(BufferedDataTable.class),
-                ArgumentMatchers.any(DataTableSpec.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        }
-
-        @Override
-        public <S extends NodeParameters> S getParameters() {
-            @SuppressWarnings("unchecked")
-            final S result = (S)m_parameters;
-            return result;
-        }
-
-        @Override
-        public BufferedDataTable[] getInTables() {
-            return m_inTables;
-        }
-
-        @Override
-        public ExecutionContext getExecutionContext() {
-            return m_executionContext;
-        }
-
-        // Unused methods can return null
-        @Override
-        public PortObject[] getInPortObjects() {
-            return null;
-        }
-
-        @Override
-        public <D extends PortObject> D getInPortObject(final int portIndex) {
-            return null;
-        }
-
-        @Override
-        public BufferedDataTable getInTable(final int portIndex) {
-            return null;
-        }
-
-        @Override
-        public PortType[] getOutPortTypes() {
-            return null;
-        }
-
-        @Override
-        public PortsConfiguration getPortsConfiguration() {
-            return null;
-        }
-    }
-
-    // Test implementation of ExecuteOutput that only implements the methods used by the factory
-    private static final class TestExecuteOutput implements ExecuteOutput {
-        PortObject[] m_outData;
-
-        @Override
-        public <D extends PortObject> void setOutData(final D... data) {
-            m_outData = data;
-        }
-
-        // Unused methods can be empty
-        @Override
-        public <D extends PortObject> void setOutData(final int index, final D data) {
-        }
-
-        @Override
-        public <D extends PortObject> void setInternalData(final D... data) {
-        }
-
-        @Override
-        public void setWarningMessage(final String message) {
-        }
-    }
 }
