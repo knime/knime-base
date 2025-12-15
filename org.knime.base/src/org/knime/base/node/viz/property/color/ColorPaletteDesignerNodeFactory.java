@@ -203,6 +203,36 @@ public final class ColorPaletteDesignerNodeFactory extends DefaultNodeFactory {
         }
     }
 
+    static List<DataColumnSpec> getSelectedColumnsWithDomain(final ColumnFilter columnFilter,
+        final DataTableSpec spec) {
+        final var selectedColumns = columnFilter.filterFromFullSpec(spec);
+        return Arrays.stream(selectedColumns) //
+            .map(spec::getColumnSpec) //
+            .filter(colSpec -> colSpec.getDomain().hasValues()) //
+            .toList();
+    }
+
+    static List<DataCell> computeDomainValues(final List<DataColumnSpec> selectedColumnSpecsWithDomain) {
+        return selectedColumnSpecsWithDomain.stream() //
+            .map(DataColumnSpec::getDomain) //
+            .map(DataColumnDomain::getValues) //
+            .flatMap(Set::stream) //
+            .distinct() //
+            .sorted((a, b) -> String.CASE_INSENSITIVE_ORDER.compare(a.toString(), b.toString())) //
+            .toList();
+    }
+
+    static List<DataCell> computeColumnNames(final DataTableSpec spec) {
+        return Arrays.stream(spec.getColumnNames()).map(s -> (DataCell)new StringCell(s)).toList();
+    }
+
+    static DataTableSpec createSpecWithColumnsNamesColorHandler(final DataTableSpec spec,
+        final ColorHandler colorHandler) {
+        final var tableSpecCreator = new DataTableSpecCreator(spec);
+        tableSpecCreator.setColumnNamesColorHandler(colorHandler);
+        return tableSpecCreator.createSpec();
+    }
+
     private static OutputSpecification computeOutputSpecs(final ColorPaletteDesignerNodeParameters parameters,
         final DataTableSpec spec) {
 
@@ -236,31 +266,22 @@ public final class ColorPaletteDesignerNodeFactory extends DefaultNodeFactory {
         final ColorPaletteDesignerNodeParameters parameters, final DataTableSpec spec,
         final Map<DataCell, ColorAttr> assignedColors, final ColorAttr[] colorPalette) {
         final var selectedColumnSpecsWithDomain = getSelectedColumnsWithDomain(parameters.m_columnFilter, spec);
-        final var domainValues = selectedColumnSpecsWithDomain.stream() //
-            .map(DataColumnSpec::getDomain) //
-            .map(DataColumnDomain::getValues) //
-            .flatMap(Set::stream) //
-            .distinct() //
-            .sorted((a, b) -> String.CASE_INSENSITIVE_ORDER.compare(a.toString(), b.toString())) //
-            .toList();
-
+        final var domainValues = computeDomainValues(selectedColumnSpecsWithDomain);
         final var colorModel = createColorModelForValues(assignedColors, colorPalette, domainValues);
-        return createOutputSpecs(spec, selectedColumnSpecsWithDomain, colorModel);
+        return createOutputSpecs(spec, selectedColumnSpecsWithDomain, colorModel, false);
     }
 
     private static OutputSpecification computeOutputSpecsForColumnNameColoring(final DataTableSpec spec,
         final Map<DataCell, ColorAttr> assignedColors, final ColorAttr[] colorPalette) {
-        final var columnNames = Arrays.stream(spec.getColumnNames()).map(s -> (DataCell)new StringCell(s)).toList();
+        final var columnNames = computeColumnNames(spec);
         final var colorModel = createColorModelForValues(assignedColors, colorPalette, columnNames);
         final var colorHandler = new ColorHandler(colorModel);
 
-        final var tableSpecCreator = new DataTableSpecCreator(spec);
-        tableSpecCreator.setColumnNamesColorHandler(colorHandler);
+        final var outputTableSpec = createSpecWithColumnsNamesColorHandler(spec, colorHandler);
         final var colorColSpec = new DataColumnSpecCreator("Column names color handler", StringCell.TYPE);
         colorColSpec.setDomain(new DataColumnDomainCreator(columnNamesToDataCellSet(spec)).createDomain());
         colorColSpec.setColorHandler(colorHandler);
         final var outputColumnSpec = colorColSpec.createSpec();
-        final var outputTableSpec = tableSpecCreator.createSpec();
         return new OutputSpecification(outputTableSpec, new DataTableSpec(outputColumnSpec),
             "Coloring on column names");
     }
@@ -279,15 +300,6 @@ public final class ColorPaletteDesignerNodeFactory extends DefaultNodeFactory {
 
     static ColorAttr hexToColorAttr(final String hex) {
         return ColorAttr.getInstance(Color.decode(hex));
-    }
-
-    private static List<DataColumnSpec> getSelectedColumnsWithDomain(final ColumnFilter columnFilter,
-        final DataTableSpec spec) {
-        final var selectedColumns = columnFilter.filterFromFullSpec(spec);
-        return Arrays.stream(selectedColumns) //
-            .map(spec::getColumnSpec) //
-            .filter(colSpec -> colSpec.getDomain().hasValues()) //
-            .toList();
     }
 
     private static void validateParameters(final ColorPaletteDesignerNodeParameters parameters,

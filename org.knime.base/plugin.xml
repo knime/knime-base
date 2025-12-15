@@ -549,6 +549,10 @@
             hidden="true"/>
       <node
             category-path="/view/property"
+            factory-class="org.knime.base.node.viz.property.color.ColorDesignerApplyNodeFactory"
+            hidden="true"/>
+      <node
+            category-path="/view/property"
             factory-class="org.knime.base.node.viz.format.number.NumberFormatManagerNodeFactory">
       </node>
       <node
