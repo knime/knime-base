@@ -74,6 +74,7 @@ import org.knime.node.parameters.updates.EffectPredicate;
 import org.knime.node.parameters.updates.EffectPredicateProvider;
 import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.updates.legacy.LegacyPredicateInitializer;
 import org.knime.node.parameters.updates.util.BooleanReference;
 import org.knime.node.parameters.widget.choices.Label;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
@@ -106,10 +107,23 @@ class TransferFilesFileChooserNodeParameters implements NodeParameters {
     private interface Destination {
     }
 
+    // TODO UIEXT-1547: There is presently a bug in which "show advanced options" will display even
+    // if the advanced options section is empty. This occurs in this case when the Output section is
+    // hidden
     @Section(title = "Output")
     @After(Destination.class)
+    @Effect(predicate = SourceFilterModeIsFolder.class, type = EffectType.SHOW)
     @Advanced()
     private interface Output {
+    }
+
+    private static final class SourceFilterModeIsFolder implements EffectPredicateProvider {
+        @Override
+        public EffectPredicate init(final PredicateInitializer i) {
+            var res = ((LegacyPredicateInitializer)i).getLegacyMultiFileSelection(SourceFileChooserRef.class)
+                    .getSelectionMode().isOneOf(MultiFileSelectionMode.FOLDER);
+            return res;
+        }
     }
 
     // ====== Settings
