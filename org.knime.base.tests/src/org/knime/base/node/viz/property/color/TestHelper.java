@@ -55,8 +55,10 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
+import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.StringCell;
+import org.knime.testing.util.TableTestUtil;
 
 /**
  * Shared test utilities for {@link ColorPaletteDesignerNodeFactory} tests.
@@ -86,6 +88,24 @@ final class TestHelper {
     }
 
     static final String[] COLUMNS_WITH_DOMAIN = new String[]{"Column 1", "Column 2"};
+
+    /**
+     * Creates a test table spec with numeric columns for gradient testing.
+     *
+     * @return a test table spec with numeric columns
+     */
+    static DataTableSpec createNumericTestTableSpec() {
+        final var col0Spec = TableTestUtil.createColumnSpecWithDomain(0.0, 50.0, "Double Column 1");
+        final var col1Spec = TableTestUtil.createColumnSpecWithDomain(-50.0, 25.0, "Double Column 2");
+        final var col2Spec = new DataColumnSpecCreator("Double Column 3", DoubleCell.TYPE).createSpec();
+        final var col3Spec = new DataColumnSpecCreator("String Column", StringCell.TYPE).createSpec();
+
+        return new DataTableSpec(new DataColumnSpec[]{col0Spec, col1Spec, col2Spec, col3Spec});
+    }
+
+    static final String[] NUMERIC_COLUMNS_WITH_DOMAIN = new String[]{"Double Column 1", "Double Column 2"};
+
+    static final String[] NUMERIC_COLUMNS_WITHOUT_DOMAIN = new String[]{"Double Column 3"};
 
     /**
      * Creates a column spec with a domain containing the specified values.

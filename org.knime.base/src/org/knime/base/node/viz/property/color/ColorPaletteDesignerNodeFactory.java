@@ -48,6 +48,9 @@
  */
 package org.knime.base.node.viz.property.color;
 
+import static org.knime.base.node.viz.property.color.ColorDesignerUtil.createOutputModelSpec;
+import static org.knime.base.node.viz.property.color.ColorDesignerUtil.createOutputSpecs;
+
 import java.awt.Color;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -58,6 +61,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.knime.base.node.viz.property.color.ColorDesignerUtil.OutputSpecification;
 import org.knime.base.node.viz.property.color.ColorPaletteDesignerNodeParameters.ApplyColorTo;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnDomain;
@@ -70,6 +74,7 @@ import org.knime.core.data.MissingCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.data.property.ColorAttr;
 import org.knime.core.data.property.ColorHandler;
+import org.knime.core.data.property.ColorModel;
 import org.knime.core.data.property.ColorModelNominal;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.InvalidSettingsException;
@@ -184,9 +189,9 @@ public final class ColorPaletteDesignerNodeFactory extends DefaultNodeFactory {
         final var computedOutputSpecs = computeOutputSpecs(parameters, inTableSpec);
 
         final var exec = in.getExecutionContext();
-        final var outTableSpec = computedOutputSpecs.dataSpec;
+        final var outTableSpec = computedOutputSpecs.dataSpec();
         final var outputModel =
-            new ColorHandlerPortObject(computedOutputSpecs.modelSpec, computedOutputSpecs.portSummary);
+            new ColorHandlerPortObject(computedOutputSpecs.modelSpec(), computedOutputSpecs.portSummary());
 
         if (hasInputTable) {
             final var outputTable =
@@ -217,23 +222,14 @@ public final class ColorPaletteDesignerNodeFactory extends DefaultNodeFactory {
         assignedColors.put(new MissingCell(null), hexToColorAttr(parameters.m_missingValueColor));
 
         if (spec == null) {
-            final var colorHandler = createColorHandlerForValues(assignedColors, colorPalette, List.of());
-            final var modelSpec = computeOutputModelSpec(colorHandler, "Color handler");
+            final var colorModel = createColorModelForValues(assignedColors, colorPalette, List.of());
+            final var modelSpec = createOutputModelSpec(new ColorHandler(colorModel), "Color handler");
             return new OutputSpecification(null, modelSpec, null);
         }
 
         return parameters.m_applyTo == ApplyColorTo.VALUES
             ? computeOutputSpecsForColumnValueColoring(parameters, spec, assignedColors, colorPalette)
             : computeOutputSpecsForColumnNameColoring(spec, assignedColors, colorPalette);
-    }
-
-    private static DataTableSpec computeOutputModelSpec(final ColorHandler colorHandler, final String columnName) {
-        final var modelSpecCreator = new DataTableSpecCreator();
-        final var columnSpecCreator = new DataColumnSpecCreator(columnName, StringCell.TYPE);
-        columnSpecCreator.setColorHandler(colorHandler);
-        final var outputColumnSpec = columnSpecCreator.createSpec();
-        modelSpecCreator.addColumns(outputColumnSpec);
-        return modelSpecCreator.createSpec();
     }
 
     private static OutputSpecification computeOutputSpecsForColumnValueColoring(
@@ -248,27 +244,15 @@ public final class ColorPaletteDesignerNodeFactory extends DefaultNodeFactory {
             .sorted((a, b) -> String.CASE_INSENSITIVE_ORDER.compare(a.toString(), b.toString())) //
             .toList();
 
-        final var colorHandler = createColorHandlerForValues(assignedColors, colorPalette, domainValues);
-        final var outputModelSpec = computeOutputModelSpec(colorHandler, "Column values color handler");
-
-        final var tableSpecCreator = new DataTableSpecCreator(spec);
-        selectedColumnSpecsWithDomain.stream().forEach(columnSpec -> {
-            final var columnSpecCreator = new DataColumnSpecCreator(columnSpec);
-            columnSpecCreator.setColorHandler(colorHandler);
-
-            final var colIndex = spec.findColumnIndex(columnSpec.getName());
-            final var outputColumnSpec = columnSpecCreator.createSpec();
-            tableSpecCreator.replaceColumn(colIndex, outputColumnSpec);
-        });
-        final var portSummary = createPortSummary(selectedColumnSpecsWithDomain);
-        final var outputTableSpec = tableSpecCreator.createSpec();
-        return new OutputSpecification(outputTableSpec, outputModelSpec, portSummary);
+        final var colorModel = createColorModelForValues(assignedColors, colorPalette, domainValues);
+        return createOutputSpecs(spec, selectedColumnSpecsWithDomain, colorModel);
     }
 
     private static OutputSpecification computeOutputSpecsForColumnNameColoring(final DataTableSpec spec,
         final Map<DataCell, ColorAttr> assignedColors, final ColorAttr[] colorPalette) {
         final var columnNames = Arrays.stream(spec.getColumnNames()).map(s -> (DataCell)new StringCell(s)).toList();
-        final var colorHandler = createColorHandlerForValues(assignedColors, colorPalette, columnNames);
+        final var colorModel = createColorModelForValues(assignedColors, colorPalette, columnNames);
+        final var colorHandler = new ColorHandler(colorModel);
 
         final var tableSpecCreator = new DataTableSpecCreator(spec);
         tableSpecCreator.setColumnNamesColorHandler(colorHandler);
@@ -281,10 +265,10 @@ public final class ColorPaletteDesignerNodeFactory extends DefaultNodeFactory {
             "Coloring on column names");
     }
 
-    private static ColorHandler createColorHandlerForValues(final Map<DataCell, ColorAttr> assignedColors,
+    private static ColorModel createColorModelForValues(final Map<DataCell, ColorAttr> assignedColors,
         final ColorAttr[] colorPalette, final List<DataCell> valuesToColor) {
         final var assignedColorsModel = new ColorModelNominal(assignedColors, colorPalette, assignedColors.keySet());
-        return new ColorHandler(assignedColorsModel.applyToNewValues(valuesToColor));
+        return assignedColorsModel.applyToNewValues(valuesToColor);
     }
 
     private static Set<DataCell> columnNamesToDataCellSet(final DataTableSpec dts) {
@@ -293,41 +277,11 @@ public final class ColorPaletteDesignerNodeFactory extends DefaultNodeFactory {
             .collect(Collectors.toCollection(LinkedHashSet<DataCell>::new));
     }
 
-    private static final int MAX_COLUMNS_IN_SUMMARY = 3;
-
-    private static String createPortSummary(final List<DataColumnSpec> columnSpecs) {
-        final var columnNames = columnSpecs.stream().map(s -> "\"" + s.getName() + "\"").toList();
-        final int numColumns = columnNames.size();
-        if (numColumns == 0) {
-            throw new IllegalStateException("At least one column is required to create a port summary.");
-        }
-
-        if (numColumns <= MAX_COLUMNS_IN_SUMMARY) {
-            return "Coloring on " + joinOxford(columnNames);
-        }
-
-        final var shown = String.join(", ", columnNames.subList(0, MAX_COLUMNS_IN_SUMMARY));
-        final int remaining = numColumns - MAX_COLUMNS_IN_SUMMARY;
-        return "Coloring on " + shown + ", and " + remaining + " more column" + (remaining > 1 ? "s" : "");
-    }
-
-    private static String joinOxford(final List<String> items) {
-        return switch (items.size()) {
-            case 0 -> "";
-            case 1 -> items.get(0);
-            case 2 -> items.get(0) + " and " + items.get(1);
-            default -> String.join(", ", items.subList(0, items.size() - 1)) + ", and " + items.get(items.size() - 1);
-        };
-    }
-
     static ColorAttr hexToColorAttr(final String hex) {
         return ColorAttr.getInstance(Color.decode(hex));
     }
 
-    record OutputSpecification(DataTableSpec dataSpec, DataTableSpec modelSpec, String portSummary) {
-    }
-
-    static List<DataColumnSpec> getSelectedColumnsWithDomain(final ColumnFilter columnFilter,
+    private static List<DataColumnSpec> getSelectedColumnsWithDomain(final ColumnFilter columnFilter,
         final DataTableSpec spec) {
         final var selectedColumns = columnFilter.filterFromFullSpec(spec);
         return Arrays.stream(selectedColumns) //
