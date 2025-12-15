@@ -51,8 +51,10 @@ import java.util.List;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelectionWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSystemOption;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.InputFSPortProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.SingleFileSelectionMode;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.WithFileSystem;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification.WidgetGroupModifier;
@@ -216,6 +218,9 @@ class TransferFilesTableNodeParameters implements NodeParameters {
             fileSelection.modifyAnnotation(Widget.class) //
                 .withProperty("title", "Destination path") //
                 .withProperty("description", "Select a file system and destination to copy/move files/folders to.") //
+                .modify();
+            fileSelection.addAnnotation(FileSelectionWidget.class) //
+                .withProperty("value", SingleFileSelectionMode.FOLDER) //
                 .modify();
             fileSelection.addAnnotation(WithFileSystem.class) //
                 .withProperty("value",
