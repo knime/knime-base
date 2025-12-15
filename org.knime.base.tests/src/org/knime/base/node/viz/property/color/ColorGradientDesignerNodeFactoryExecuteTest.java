@@ -58,7 +58,6 @@ import org.knime.base.node.viz.property.color.ColorDesignerTestHelper.TestExecut
 import org.knime.base.node.viz.property.color.ColorDesignerTestHelper.TestExecuteOutput;
 import org.knime.base.node.viz.property.color.ColorGradientDesignerNodeParameters.ColorGradientWrapper;
 import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.MissingCell;
 import org.knime.core.data.property.ColorGradient;
 import org.knime.core.data.property.ColorModelRange2;
@@ -68,7 +67,6 @@ import org.knime.core.node.KNIMEException;
 import org.knime.core.node.port.viewproperty.ColorHandlerPortObject;
 import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
 import org.knime.testing.util.TableTestUtil;
-import org.knime.testing.util.TableTestUtil.TableBuilder;
 
 /**
  * Tests for {@link ColorGradientDesignerNodeFactory#execute}.
@@ -134,16 +132,10 @@ final class ColorGradientDesignerNodeFactoryExecuteTest {
             "because they do not have a domain and the column values are either missing or NaN");
     }
 
-    private static BufferedDataTable[] createTestTable(final DataColumnSpec[] colSpecs, final Object[][] rowValues) {
-        final var tableBuilder = new TableBuilder(new DataTableSpec(colSpecs));
-        for (final var rowValue : rowValues) {
-            tableBuilder.addRow(rowValue);
-        }
-        return new BufferedDataTable[]{tableBuilder.buildDataTable()};
-    }
-
     private static void testExecuteThrows(final Object[][] rowValues, final String messagePart) {
-        testExecuteThrows(createTestTable(new DataColumnSpec[]{TableTestUtil.createColumnWithNoDomain()}, rowValues),
+        testExecuteThrows(
+            new BufferedDataTable[]{
+                TestHelper.createTestTable(new DataColumnSpec[]{TableTestUtil.createColumnWithNoDomain()}, rowValues)},
             messagePart);
     }
 
