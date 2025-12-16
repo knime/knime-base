@@ -87,7 +87,6 @@ import org.knime.node.parameters.persistence.NodeParametersPersistor;
 import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.persistence.legacy.LegacyFileWriterWithCreateMissingFolders;
-import org.knime.node.parameters.persistence.legacy.LegacyFileWriterWithOverwritePolicyOptions;
 import org.knime.node.parameters.persistence.legacy.LegacyMultiFileSelection;
 import org.knime.node.parameters.updates.Effect;
 import org.knime.node.parameters.updates.Effect.EffectType;
@@ -200,7 +199,7 @@ class CompressFileChooserNodeParameters implements NodeParameters {
     @Effect(predicate = SourceFilterModeIsFolder.class, type = EffectType.SHOW)
     boolean m_includeEmptyFolders;
 
-    private static class OutputLocationModification implements LegacyFileWriterWithOverwritePolicyOptions.Modifier {
+    private static class OutputLocationModification implements LegacyFileWriterWithCreateMissingFolders.Modifier {
 
         @Override
         public void modify(final WidgetGroupModifier group) {
