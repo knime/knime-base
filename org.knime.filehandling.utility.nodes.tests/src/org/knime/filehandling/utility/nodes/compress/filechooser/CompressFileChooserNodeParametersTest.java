@@ -62,7 +62,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
-import org.knime.node.parameters.persistence.legacy.LegacyFileWriterWithOverwritePolicyOptions;
+import org.knime.node.parameters.persistence.legacy.LegacyFileWriterWithCreateMissingFolders;
 import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
 import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 import org.knime.testing.node.dialog.updates.DialogUpdateSimulator;
@@ -115,8 +115,7 @@ final class CompressFileChooserNodeParametersTest extends DefaultNodeSettingsSna
         var settings = new CompressFileChooserNodeParameters();
         var outputFile = new FSLocation(FSCategory.LOCAL, "archive.zip");
         var fileSelection = new FileSelection(outputFile);
-        settings.m_outputLocation = new LegacyFileWriterWithOverwritePolicyOptions(fileSelection, true,
-            LegacyFileWriterWithOverwritePolicyOptions.OverwritePolicy.overwrite);
+        settings.m_outputLocation = new LegacyFileWriterWithCreateMissingFolders(fileSelection, true);
         var simulator = new DialogUpdateSimulator(settings, null);
 
         // when
@@ -136,8 +135,7 @@ final class CompressFileChooserNodeParametersTest extends DefaultNodeSettingsSna
         var settings = new CompressFileChooserNodeParameters();
         var outputFile = new FSLocation(FSCategory.LOCAL, "archive.txt");
         var fileSelection = new FileSelection(outputFile);
-        settings.m_outputLocation = new LegacyFileWriterWithOverwritePolicyOptions(fileSelection, true,
-            LegacyFileWriterWithOverwritePolicyOptions.OverwritePolicy.overwrite);
+        settings.m_outputLocation = new LegacyFileWriterWithCreateMissingFolders(fileSelection, true);
         var simulator = new DialogUpdateSimulator(settings, null);
 
         // when

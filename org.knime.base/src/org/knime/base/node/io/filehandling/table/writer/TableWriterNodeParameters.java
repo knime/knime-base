@@ -52,13 +52,11 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileWriterWi
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification.WidgetGroupModifier;
 import org.knime.node.parameters.NodeParameters;
-import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
 import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.legacy.LegacyFileWriterWithOverwritePolicyOptions;
-import org.knime.node.parameters.widget.choices.ChoicesProvider;
-import org.knime.node.parameters.widget.choices.EnumChoicesProvider;
+import org.knime.node.parameters.persistence.legacy.LegacyFileWriterWithOverwritePolicyOptions.OverwritePolicy;
 
 /**
  * Node parameters for Table Writer.
@@ -75,11 +73,10 @@ class TableWriterNodeParameters implements NodeParameters {
     LegacyFileWriterWithOverwritePolicyOptions m_outputFile = new LegacyFileWriterWithOverwritePolicyOptions();
 
     private static final class TableWriterOverwritePolicyChoicesProvider
-        implements EnumChoicesProvider<LegacyFileWriterWithOverwritePolicyOptions.OverwritePolicy> {
+        extends LegacyFileWriterWithOverwritePolicyOptions.OverwritePolicyChoicesProvider {
 
         @Override
-        public List<LegacyFileWriterWithOverwritePolicyOptions.OverwritePolicy>
-            choices(final NodeParametersInput context) {
+        protected List<OverwritePolicy> getChoices() {
             return List.of(//
                 LegacyFileWriterWithOverwritePolicyOptions.OverwritePolicy.fail, //
                 LegacyFileWriterWithOverwritePolicyOptions.OverwritePolicy.overwrite //
@@ -102,20 +99,7 @@ class TableWriterNodeParameters implements NodeParameters {
                 .withProperty("fileExtension", "table") //
                 .modify();
 
-            final var overwritePolicy = findOverwritePolicy(group);
-            overwritePolicy //
-                .addAnnotation(ChoicesProvider.class) //
-                .withProperty("value", TableWriterOverwritePolicyChoicesProvider.class) //
-                .modify();
-            overwritePolicy //
-                .modifyAnnotation(Widget.class) //
-                .withProperty("description",
-                    "Specify the behavior of the node in case the output file already exists. " + "<ul>"
-                        + "<li><b>Fail</b>: Will issue an error during the node's execution "
-                        + "(to prevent unintentional overwrite).</li>" //
-                        + "<li><b>Overwrite</b>: Will replace any existing file.</li>" //
-                        + "</ul>")
-                .modify();
+            restrictOverwritePolicyOptions(group, TableWriterOverwritePolicyChoicesProvider.class);
         }
     }
 
