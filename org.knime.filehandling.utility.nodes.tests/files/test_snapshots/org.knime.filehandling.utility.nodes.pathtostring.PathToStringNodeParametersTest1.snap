@@ -1,0 +1,129 @@
+{
+  "data" : {
+    "model" : {
+      "selectedColumn" : "Path",
+      "outputMode" : "APPEND_NEW",
+      "appendedColumnName" : "Location",
+      "createKNIMEUrl" : true
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "appendedColumnName" : {
+            "type" : "string",
+            "title" : "Output column name",
+            "description" : "The name of the new column to be created.\n",
+            "default" : "Location"
+          },
+          "createKNIMEUrl" : {
+            "type" : "boolean",
+            "title" : "Create KNIME URL for 'Relative to' and 'Mountpoint' file systems",
+            "description" : "This option is only relevant for paths with the Relative to workflow data area,\nRelative to workflow, Relative to mountpoint or Mountpoint file system. If checked,\na String is created that contains a KNIME URL. Such a KNIME URL starts with \"knime://\"\nand can be used to e.g. control legacy reader nodes via flow variables. If unchecked,\na String is created that contains solely the path, i.e. without the knime protocol\nand hostname. Such a String can e.g. be used for manipulations and converted back to\na Path using the String to Path node.\n",
+            "default" : true
+          },
+          "outputMode" : {
+            "oneOf" : [ {
+              "const" : "APPEND_NEW",
+              "title" : "Append column"
+            }, {
+              "const" : "REPLACE_SELECTED",
+              "title" : "Replace selected column"
+            } ],
+            "title" : "Output mode",
+            "description" : "Choose whether to append a new column or replace the selected column.\n\n<ul>\n<li><b>Append column</b>: Append the new column to the table.</li>\n<li><b>Replace selected column</b>: Replace the selected column with the new String column.</li>\n</ul>",
+            "default" : "APPEND_NEW"
+          },
+          "selectedColumn" : {
+            "type" : "string",
+            "title" : "Path column",
+            "description" : "The Path column that will be converted to a String column.\n"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/selectedColumn",
+      "options" : {
+        "format" : "dropDown"
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/outputMode",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/appendedColumnName",
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/outputMode",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "APPEND_NEW"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/createKNIMEUrl",
+      "options" : {
+        "format" : "checkbox"
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "selectedColumn" : {
+            "configKey" : "selected_column_name"
+          },
+          "outputMode" : {
+            "configKey" : "generated_column_mode"
+          },
+          "appendedColumnName" : {
+            "configKey" : "appended_column_name"
+          },
+          "createKNIMEUrl" : {
+            "configKey" : "create_knime_url"
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/selectedColumn",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Path",
+        "text" : "Path",
+        "type" : {
+          "id" : "org.knime.filehandling.core.data.location.FSLocationValue",
+          "text" : "Path"
+        }
+      } ]
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "id" : "after-open-dialog"
+    },
+    "triggerInitially" : true,
+    "dependencies" : [ "#/properties/model/properties/selectedColumn" ]
+  } ]
+}

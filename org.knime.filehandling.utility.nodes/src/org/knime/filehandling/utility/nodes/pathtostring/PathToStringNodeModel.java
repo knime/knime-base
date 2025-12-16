@@ -102,13 +102,13 @@ import org.knime.filehandling.core.util.PathToStringUtils;
  */
 final class PathToStringNodeModel extends NodeModel {
 
-    private static final String CFG_SELECTED_COLUMN_NAME = "selected_column_name";
+    static final String CFG_SELECTED_COLUMN_NAME = "selected_column_name";
 
-    private static final String CFG_GENERATED_COLUMN_MODE = "generated_column_mode";
+    static final String CFG_GENERATED_COLUMN_MODE = "generated_column_mode";
 
-    private static final String CFG_APPENDED_COLUMN_NAME = "appended_column_name";
+    static final String CFG_APPENDED_COLUMN_NAME = "appended_column_name";
 
-    private static final String CFG_CREATE_KNIME_URL = "create_knime_url";
+    static final String CFG_CREATE_KNIME_URL = "create_knime_url";
 
     private final SettingsModelString m_selectedColumn = createSettingsModelColumnName();
 
