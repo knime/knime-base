@@ -71,9 +71,12 @@
                 }, {
                   "const" : "ignore",
                   "title" : "Ignore"
+                }, {
+                  "const" : "append",
+                  "title" : "Append"
                 } ],
                 "title" : "If exists",
-                "description" : "Specify the behavior of the node in case the output file already exists. <ul><li><b>Fail</b>: Will issue an error during the node's execution (to prevent unintentional overwrite).</li><li><b>Overwrite</b>: Will replace any existing file.</li></ul>",
+                "description" : "Specify the behavior of the node in case the output file already exists.<ul><li><b>Fail</b>: Will issue an error during the node's execution (to prevent unintentional overwrite).</li><li><b>Overwrite</b>: Will replace any existing file.</li></ul>",
                 "default" : "overwrite"
               }
             },
