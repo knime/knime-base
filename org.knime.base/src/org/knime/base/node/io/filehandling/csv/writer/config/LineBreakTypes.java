@@ -53,6 +53,7 @@ import java.util.Arrays;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.node.parameters.widget.choices.Label;
 
 /**
  * Variants of line brakes across different operating systems.
@@ -61,15 +62,19 @@ import org.knime.core.node.NodeSettingsWO;
  */
 public enum LineBreakTypes {
         /** System default from System.getProperty("line.separator") */
+        @Label(value="System Default", description="Use the line break of the operating system.")
         SYS_DEFAULT(System.getProperty("line.separator"), "System Default"),
 
         /** Linux and Unix line brakes, LF only. */
+        @Label(value="Linux/Unix Line break", description="Use newline (\\n) as row delimiter.")
         UNIX_LINUX(new String(new char[]{10}), "Linux/Unix Line break"),
 
         /** Windows style line breaks CR + LF. */
+        @Label(value="Windows Line break", description="Use carriage return + newline (\\r\\n) as row delimiter.")
         WINDOWS(new String(new char[]{13, 10}), "Windows Line break"),
 
         /** Old Mac OS style (until Mac OS9), CR only */
+        @Label(value="Mac OS9 Line break", description="Use carriage return (\\r) as row delimiter.")
         MAC_OS9(new String(new char[]{13}), "Mac OS9 Line break");
 
     private static final String CFG_LINE_ENDING_MODE = "row_delimiter";
