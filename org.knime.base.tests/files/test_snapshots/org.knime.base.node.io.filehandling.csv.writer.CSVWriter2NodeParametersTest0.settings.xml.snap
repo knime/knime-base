@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
+    <config key="settings">
+        <config key="file_chooser_settings">
+            <config key="path">
+                <entry key="location_present" type="xboolean" value="true"/>
+                <entry key="file_system_type" type="xstring" value="LOCAL"/>
+                <entry key="path" type="xstring" value="/tmp/foo/test.csv"/>
+            </config>
+            <config key="file_system_chooser__Internals">
+                <entry key="has_fs_port" type="xboolean" value="false"/>
+                <entry key="overwritten_by_variable" type="xboolean" value="false"/>
+                <entry key="convenience_fs_category" type="xstring" value="LOCAL"/>
+                <entry key="relative_to" type="xstring" value="knime.workflow"/>
+                <entry key="mountpoint" type="xstring" value="LOCAL"/>
+                <entry key="spaceId" type="xstring" value=""/>
+                <entry key="spaceName" type="xstring" value=""/>
+                <entry key="custom_url_timeout" type="xint" value="1000"/>
+                <entry key="connected_fs" type="xboolean" value="true"/>
+            </config>
+            <entry key="create_missing_folders" type="xboolean" value="true"/>
+            <entry key="if_path_exists" type="xstring" value="overwrite"/>
+        </config>
+        <entry key="column_delimiter" type="xstring" value="%%00009"/>
+        <entry key="row_delimiter" type="xstring" value="%%00010"/>
+        <entry key="quote_char" type="xchar" value="&quot;"/>
+        <entry key="quote_escape_char" type="xchar" value="&quot;"/>
+        <entry key="write_column_header" type="xboolean" value="true"/>
+        <entry key="skip_column_header_on_append" type="xboolean" value="false"/>
+        <entry key="write_row_header" type="xboolean" value="false"/>
+    </config>
+    <config key="encoding">
+        <entry key="character_set" type="xstring" value="UTF-8"/>
+    </config>
+    <config key="advanced_settings">
+        <entry key="compress_with_gzip" type="xboolean" value="false"/>
+        <entry key="quote_mode" type="xstring" value="STRINGS_ONLY"/>
+        <entry key="separator_replacement" type="xstring" value=""/>
+        <entry key="missing_value_pattern" type="xstring" value=""/>
+        <entry key="decimal_separator" type="xchar" value="."/>
+        <entry key="use_scientific_format" type="xboolean" value="false"/>
+        <entry key="keep_trailing_zero_in_decimals" type="xboolean" value="false"/>
+    </config>
+    <config key="comment_header_settings">
+        <entry key="add_user_to_comment" type="xboolean" value="false"/>
+        <entry key="add_time_to_comment" type="xboolean" value="false"/>
+        <entry key="add_table_name_to_comment" type="xboolean" value="false"/>
+        <entry key="add_custom_text_to_comment" type="xboolean" value="false"/>
+        <entry key="custom_comment_text" type="xstring" value=""/>
+        <entry key="comment_line_marker" type="xstring" value="#"/>
+        <entry key="comment_indentation" type="xstring" value="%%00009"/>
+    </config>
+    <entry key="performNewValidation" type="xboolean" value="true"/>
+</config>

@@ -84,6 +84,7 @@ import org.knime.core.node.streamable.PortInput;
 import org.knime.core.node.streamable.PortOutput;
 import org.knime.core.node.streamable.RowInput;
 import org.knime.core.node.streamable.StreamableOperator;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.filehandling.core.connections.FSFiles;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.FileOverwritePolicy;
@@ -266,8 +267,13 @@ final class CSVWriter2NodeModel extends NodeModel {
     }
 
     @Override
+    @SuppressWarnings("restriction")
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_writerConfig.validateSettingsForModel(settings);
+
+        if (settings.getBoolean("performNewValidation", false)) {
+            NodeParametersUtil.loadSettings(settings, CSVWriter2NodeParameters.class).validate();
+        }
     }
 
     @Override
