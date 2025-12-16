@@ -52,6 +52,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.node.parameters.widget.choices.Label;
 
 /**
  * Advanced setting configurations for CSV writer node
@@ -66,13 +67,26 @@ public final class AdvancedConfig implements SimpleConfig {
      * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany
      */
     public enum QuoteMode {
-            /** use quotes only if a value contains a column separator */
-            IF_NEEDED,
             /** use quotes always on non-numerical data. */
+            @Label(value = "Strings only",
+                description = "Integer and floating point numbers are not quoted, all other data items are. "
+                    + "(Selecting the decimal point as data separator will lead to an output that can't be read in "
+                    + "again.) The quote character is escaped in quoted items.")
             STRINGS_ONLY,
+            /** use quotes only if a value contains a column separator */
+            @Label(value = "If needed",
+                description = "Quotes are only placed around a data item that contains the data separator "
+                    + "or if it equals the missing value pattern. The quote character will be escaped if it "
+                    + "appears in a quoted data item.")
+            IF_NEEDED,
             /** always put quotes around the data. */
+            @Label(value = "Always", description = "Every data item written out is placed between quotation marks. "
+                + "(The missing value pattern is not quoted though.)")
             ALWAYS,
             /** don't use quotes, replace separator pattern in data. */
+            @Label(value = "Never",
+                description = "No data item is placed between quotation marks. You should specify a replacement "
+                    + "pattern for the column delimiter, if it occurs in the data item.")
             NEVER
     }
 

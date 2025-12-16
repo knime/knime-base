@@ -83,28 +83,28 @@ final class CSVWriter2Config {
 
     static final String CFG_SETTINGS_TAB = "settings";
 
-    private static final String CFG_ADVANCED = "advanced_settings";
+    static final String CFG_ADVANCED = "advanced_settings";
 
-    private static final String CFG_COMMENT = "comment_header_settings";
+    static final String CFG_COMMENT = "comment_header_settings";
 
-    private static final String CFG_ENCODING = "encoding";
+    static final String CFG_ENCODING = "encoding";
 
     /** The settings key for the file chooser dialog */
     public static final String CFG_FILE_CHOOSER = "file_chooser_settings";
 
-    private static final String CFG_COLUMN_DELIMITER = "column_delimiter";
+    static final String CFG_COLUMN_DELIMITER = "column_delimiter";
 
-    private static final String CFG_QUOTE_CHAR = "quote_char";
+    static final String CFG_QUOTE_CHAR = "quote_char";
 
-    private static final String CFG_QUOTE_ESCAPE_CHAR = "quote_escape_char";
+    static final String CFG_QUOTE_ESCAPE_CHAR = "quote_escape_char";
 
-    private static final String CFG_WRITE_COLUMN_HEADER = "write_column_header";
+    static final String CFG_WRITE_COLUMN_HEADER = "write_column_header";
 
-    private static final String CFG_SKIP_COLUMN_HEADER_ON_APPEND = "skip_column_header_on_append";
+    static final String CFG_SKIP_COLUMN_HEADER_ON_APPEND = "skip_column_header_on_append";
 
-    private static final String CFG_WRITE_ROW_HEADER = "write_row_header";
+    static final String CFG_WRITE_ROW_HEADER = "write_row_header";
 
-    private static final String CFG_CHAR_ENCODING = "character_set";
+    static final String CFG_CHAR_ENCODING = "character_set";
 
     private static final String DEFAULT_COLUMN_DELIMITER = ",";
 
