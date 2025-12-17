@@ -44,22 +44,66 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   15 Dec 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   22 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.base.data.aggregation;
 
+import java.util.function.Supplier;
+
+import org.knime.core.data.DataType;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.StateProvider;
+
 /**
- * Interface to define optional parameters for aggregation operators. Implement this interface, then overwrite
- * your operator's {@link AggregationOperator#getParametersClass()} method to return your class.
- * If your operator has optional parameters, but does not define a class of this type, a fallback dialog is
- * generated to display the optional operator parameters.
+ * Selects the default aggregation method based on the type, if a method is not already provided.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  *
- * @noreference pending API
- * @noimplement pending API
+ * @since 5.10
  */
-@SuppressWarnings("restriction") // webui
-public interface AggregationOperatorParameters extends AggregationFunctionParameters {
+public abstract class DefaultAggregationMethodProvider implements StateProvider<String> {
+
+    /** The currently selected method to avoid updating it if it is already set. */
+    private Supplier<String> m_methodSelf;
+
+    private Supplier<DataType> m_typeSupplier;
+
+    /**
+     * @return type provider class to obtain method for
+     */
+    protected abstract Class<? extends ParameterReference<DataType>> getTypeProvider();
+
+    /**
+     * @return self reference for the method to not override if already set
+     */
+    protected abstract Class<? extends ParameterReference<String>> getMethodSelfProvider();
+
+    /**
+     * Gets the default aggregation function for the given data type.
+     * @param parametersInput input for node parameters creation
+     * @param type the data type
+     * @return the default aggregation function
+     */
+    protected abstract AggFunction getDefault(NodeParametersInput parametersInput, DataType type);
+
+    @Override
+    public final void init(final StateProviderInitializer initializer) {
+        m_methodSelf = initializer.getValueSupplier(getMethodSelfProvider());
+        m_typeSupplier = initializer.computeFromValueSupplier(getTypeProvider());
+    }
+
+    @SuppressWarnings("restriction")
+    @Override
+    public final String computeState(final NodeParametersInput parametersInput)
+        throws StateComputationFailureException {
+        if (m_methodSelf.get() != null) {
+            throw new StateComputationFailureException();
+        }
+        final var type = m_typeSupplier.get();
+        // there always is a default, even if it is just "First"
+        return getDefault(parametersInput, type).id();
+    }
 
 }

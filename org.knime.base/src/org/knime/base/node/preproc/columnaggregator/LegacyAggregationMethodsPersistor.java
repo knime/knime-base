@@ -50,8 +50,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.knime.base.data.aggregation.AggregationMethods;
+import org.knime.base.data.aggregation.FallbackAggregationOperatorParameters;
 import org.knime.base.data.aggregation.NamedAggregationOperator;
-import org.knime.base.node.preproc.groupby.common.LegacyAggregationOperatorParameters;
 import org.knime.base.node.preproc.groupby.common.MissingValueOption;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
@@ -89,7 +89,7 @@ public final class LegacyAggregationMethodsPersistor implements NodeParametersPe
                     element.m_parameters = NodeParametersUtil.loadSettings(operatorSettings, optionalParamsClass);
                 } else {
                     // fallback for operators without custom parameters
-                    element.m_parameters = new LegacyAggregationOperatorParameters(operatorSettings);
+                    element.m_parameters = new FallbackAggregationOperatorParameters(operatorSettings);
                 }
             }
             elements.add(element);
@@ -117,7 +117,7 @@ public final class LegacyAggregationMethodsPersistor implements NodeParametersPe
             if (elem.m_parameters != null) {
                 final var key = createSettingsKey(elem.m_aggregationMethod, elem.m_resultColName);
                 final var operatorSettings = subSettings.addNodeSettings(key);
-                if (elem.m_parameters instanceof LegacyAggregationOperatorParameters legacyParams) {
+                if (elem.m_parameters instanceof FallbackAggregationOperatorParameters legacyParams) {
                     final var extractedSettings = legacyParams.getNodeSettings();
                     extractedSettings.copyTo(operatorSettings);
                 } else {

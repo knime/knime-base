@@ -49,19 +49,24 @@
 package org.knime.base.node.preproc.groupby.common;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
+import org.knime.base.data.aggregation.AggFunction;
+import org.knime.base.data.aggregation.AggregationFunctionParameters;
+import org.knime.base.data.aggregation.AggregationFunctionParametersProvider.AggregationMethodRef;
+import org.knime.base.data.aggregation.AggregationMethod;
 import org.knime.base.data.aggregation.AggregationMethods;
-import org.knime.base.data.aggregation.AggregationOperatorParameters;
-import org.knime.base.node.preproc.groupby.common.AggregationOperatorParametersProvider.AggregationMethodRef;
+import org.knime.base.data.aggregation.DefaultPatternAggregationMethodProvider;
+import org.knime.base.data.aggregation.HasOperatorParameters;
+import org.knime.base.data.aggregation.PatternType;
 import org.knime.base.node.preproc.groupby.common.LegacyPatternAggregatorsArrayPersistor.IndexedElement;
 import org.knime.base.node.preproc.groupby.common.LegacyPatternAggregatorsArrayPersistor.PatternAggregatorElementDTO;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.PersistArrayElement;
-import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.custom.CustomValidation;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.custom.CustomValidationProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.custom.ValidationCallback;
@@ -74,7 +79,6 @@ import org.knime.node.parameters.layout.SubParameters;
 import org.knime.node.parameters.updates.Effect;
 import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.updates.ParameterReference;
-import org.knime.node.parameters.updates.StateProvider;
 import org.knime.node.parameters.updates.ValueProvider;
 import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
@@ -115,12 +119,28 @@ public class PatternAggregatorElement implements NodeParameters {
     static final class PatternAggregationRef implements AggregationMethodRef {
     } //
 
+    static final class PatternAggregationDefault extends DefaultPatternAggregationMethodProvider {
+
+        @Override
+        protected Class<? extends AggregationMethodRef> getMethodSelfProvider() {
+            return PatternAggregationRef.class;
+        }
+
+        @Override
+        protected AggFunction getDefaultMethod() {
+            // parsing `null` will select "First"
+            final var fn = AggregationMethods.getInstance().getDefaultFunction(null);
+            return new AggFunction(fn.getId(), fn.getLabel(), fn.hasOptionalSettings());
+        }
+
+    }
+
     @Widget(title = "Aggregation", description = "The aggregation method to use")
     @SubParameters(subLayoutRoot = PatternOperatorParametersRef.class,
         showSubParametersProvider = HasPatternOperatorParameters.class)
     @ValueReference(PatternAggregationRef.class)
     @ChoicesProvider(PatternAggregationChoices.class)
-    @ValueProvider(DefaultPatternAggregationMethodProvider.class)
+    @ValueProvider(PatternAggregationDefault.class)
     @PersistArrayElement(LegacyPatternAggregatorsArrayPersistor.AggregationMethodPersistor.class)
     String m_aggregationMethod = AggregationMethods.getInstance().getDefaultFunction(null).getId();
 
@@ -136,6 +156,11 @@ public class PatternAggregatorElement implements NodeParameters {
         @Override
         protected Class<? extends ParameterReference<String>> getMethodReference() {
             return PatternAggregationRef.class;
+        }
+
+        @Override
+        protected Optional<AggregationMethod> lookupMethodById(final String id) {
+            return AggregationMethodsUtil.lookupMethodById(id);
         }
     }
 
@@ -156,7 +181,7 @@ public class PatternAggregatorElement implements NodeParameters {
     @Effect(type = EffectType.SHOW, predicate = SupportsMissingValueOptions.class)
     MissingValueOption m_includeMissing = MissingValueOption.EXCLUDE;
 
-    static final class PatternOperatorParametersRef implements ParameterReference<AggregationOperatorParameters> {
+    static final class PatternOperatorParametersRef implements ParameterReference<AggregationFunctionParameters> {
     } //
 
     @DynamicParameters(value = PatternAggregationOperatorParametersProvider.class,
@@ -167,7 +192,7 @@ public class PatternAggregatorElement implements NodeParameters {
     @ValueReference(PatternOperatorParametersRef.class)
     @Layout(PatternOperatorParametersRef.class)
     @PersistArrayElement(LegacyPatternAggregatorsArrayPersistor.OperatorParametersPersistor.class)
-    AggregationOperatorParameters m_parameters;
+    AggregationFunctionParameters m_parameters;
 
     /* ===== Providers ===== */
 
@@ -177,11 +202,16 @@ public class PatternAggregatorElement implements NodeParameters {
         protected Class<? extends AggregationMethodRef> getAggregationMethodRefClass() {
             return PatternAggregationRef.class;
         }
+
+        @Override
+        protected Optional<AggFunction> lookupFunctionById(final NodeParametersInput in, final String id) {
+            return AggregationMethodsUtil.lookupFunctionById(id);
+        }
     }
 
-    static final class PatternAggregationOperatorParametersProvider extends AggregationOperatorParametersProvider {
+    static final class PatternAggregationOperatorParametersProvider extends AggregationMethodParametersProvider {
         @Override
-        protected Class<? extends ParameterReference<AggregationOperatorParameters>> getParameterRefClass() {
+        protected Class<? extends ParameterReference<AggregationFunctionParameters>> getParameterRefClass() {
             return PatternOperatorParametersRef.class;
         }
 
@@ -202,26 +232,6 @@ public class PatternAggregatorElement implements NodeParameters {
         public List<StringChoice> computeState(final NodeParametersInput parametersInput) {
             return AggregationMethods.getAvailableMethods().stream()
                 .map(agg -> new StringChoice(agg.getId(), agg.getLabel())).toList();
-        }
-
-    }
-
-    static final class DefaultPatternAggregationMethodProvider implements StateProvider<String> {
-
-        private Supplier<String> m_methodSelf;
-
-        @Override
-        public void init(final StateProviderInitializer initializer) {
-            m_methodSelf = initializer.getValueSupplier(PatternAggregationRef.class);
-        }
-
-        @Override
-        public String computeState(final NodeParametersInput parametersInput) throws StateComputationFailureException {
-            if (m_methodSelf.get() != null) {
-                throw new StateComputationFailureException();
-            }
-            // parsing `null` will select "First"
-            return AggregationMethods.getInstance().getDefaultFunction(null).getId();
         }
 
     }

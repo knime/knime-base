@@ -46,27 +46,27 @@
  * History
  *   20 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.groupby.common;
+package org.knime.base.data.aggregation;
 
-import org.knime.base.data.aggregation.AggregationOperatorParameters;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.webui.node.dialog.FallbackDialogNodeParameters;
 
 /**
- * Parameters to display legacy operator settings in "fallback style".
+ * Parameters to display operator settings in "fallback style".
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ * @since 5.10
  */
 @SuppressWarnings("restriction")
-public final class LegacyAggregationOperatorParameters extends FallbackDialogNodeParameters
-    implements AggregationOperatorParameters {
+public final class FallbackAggregationOperatorParameters extends FallbackDialogNodeParameters
+    implements AggregationFunctionParameters {
 
     /**
      * Creates parameters from the given node settings.
      *
      * @param nodeSettings the node settings to read from
      */
-    public LegacyAggregationOperatorParameters(final NodeSettingsRO nodeSettings) {
+    public FallbackAggregationOperatorParameters(final NodeSettingsRO nodeSettings) {
         super(nodeSettings);
     }
 
