@@ -895,29 +895,24 @@ public class Pivot2NodeModel extends GroupByNodeModel {
 
     @Override
     protected void validateManualColumnAggregators(final NodeSettingsRO settings, final List<String> groupByCols,
-        final List<ColumnAggregator> aggregators) throws IllegalArgumentException {
-        try {
-            if (settings.getBoolean(CFG_VALIDATE_AGGREGATION_COLUMNS, false)) {
-                final var aggrCols =
-                    aggregators.stream().map(ColumnAggregator::getOriginalColName).collect(Collectors.toSet());
-                for (final String groupByCol : groupByCols) {
-                    if (aggrCols.contains(groupByCol)) {
-                        throw new InvalidSettingsException(
-                            "Column '" + groupByCol + "' is selected both as group-by column and for aggregation.");
-                    }
-                }
-                final List<String> pivotCols = loadTmpPivotSettings(settings);
-                for (final String pivotCol : pivotCols) {
-                    if (aggrCols.contains(pivotCol)) {
-                        throw new InvalidSettingsException(
-                            "Column '" + pivotCol + "' is selected both as pivot column and for aggregation.");
-                    }
+        final List<ColumnAggregator> aggregators) throws InvalidSettingsException {
+        if (settings.getBoolean(CFG_VALIDATE_AGGREGATION_COLUMNS, false)) {
+            final var aggrCols =
+                aggregators.stream().map(ColumnAggregator::getOriginalColName).collect(Collectors.toSet());
+            for (final String groupByCol : groupByCols) {
+                if (aggrCols.contains(groupByCol)) {
+                    throw new InvalidSettingsException(
+                        "Column '" + groupByCol + "' is selected both as group-by column and for aggregation.");
                 }
             }
-        } catch (final InvalidSettingsException e) {
-            throw new IllegalArgumentException(e.getMessage(), e);
+            final List<String> pivotCols = loadTmpPivotSettings(settings);
+            for (final String pivotCol : pivotCols) {
+                if (aggrCols.contains(pivotCol)) {
+                    throw new InvalidSettingsException(
+                        "Column '" + pivotCol + "' is selected both as pivot column and for aggregation.");
+                }
+            }
         }
-
     }
 
     private static List<String> loadTmpPivotSettings(final NodeSettingsRO settings) throws InvalidSettingsException {

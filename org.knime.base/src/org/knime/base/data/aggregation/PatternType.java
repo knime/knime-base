@@ -44,20 +44,34 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   27 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   22 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.base.data.aggregation;
 
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
+import org.knime.node.parameters.widget.choices.Label;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 
 /**
- * Common dynamic parameters interface to define optional parameters for aggregation functions.
+ * Pattern type for pattern-based aggregations.
+ *
+ * Prefer this enum over the {@link org.knime.base.node.util.regex.PatternType} if you want a {@link ValueSwitchWidget}
+ * that displays only these two options.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  *
- * @noreference Pending API
- * @noimplement Pending API
- *
+ * @since 5.11
  */
-public interface AggregationOperatorParameters extends DynamicParameters.DynamicNodeParameters {
+public enum PatternType {
+
+    /**
+     * Wildcard pattern type.
+     */
+    @Label("Wildcard")
+    WILDCARD, //
+    /**
+     * Regular expression pattern type.
+     */
+    @Label("Regular Expression")
+    REGEX
+
 }

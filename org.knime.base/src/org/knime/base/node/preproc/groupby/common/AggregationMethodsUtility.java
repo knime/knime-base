@@ -26,7 +26,7 @@
  *  you the additional permission to use and propagate KNIME together with
  *  ECLIPSE with only the license terms in place for ECLIPSE applying to
  *  ECLIPSE and the GNU GPL Version 3 applying for KNIME, provided the
- *  license terms of KNIME themselves allow for the respective use and
+ *  license terms of ECLIPSE themselves allow for the respective use and
  *  propagation of ECLIPSE together with KNIME.
  *
  *  Additional permission relating to nodes for KNIME that extend the Node
@@ -41,7 +41,71 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * ------------------------------------------------------------------------
+ * ---------------------------------------------------------------------
+ *
+ * History
+ *   15 Dec 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
+package org.knime.base.node.preproc.groupby.common;
 
-package org.knime.base.node.preproc.groupby;
+import java.util.Optional;
+import java.util.stream.Stream;
+
+import org.knime.base.data.aggregation.AggregationFunctionsUtility;
+import org.knime.base.data.aggregation.AggregationMethod;
+import org.knime.base.data.aggregation.AggregationMethods;
+import org.knime.base.data.aggregation.AggregationOperatorParameters;
+import org.knime.base.data.aggregation.AggregationSpec;
+import org.knime.core.data.DataType;
+
+/**
+ * Utility for native (as in "not-DB") aggregation methods.
+ *
+ * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ *
+ * @since 5.10
+ */
+public final class AggregationMethodsUtility extends AggregationFunctionsUtility<AggregationMethod> {
+
+    private static final AggregationMethodsUtility INSTANCE = new AggregationMethodsUtility();
+
+    /**
+     * Gets the singleton instance of this utility.
+     *
+     * @return the singleton instance
+     */
+    public static AggregationMethodsUtility getInstance() {
+        return INSTANCE;
+    }
+
+    private AggregationMethodsUtility() {
+        // singleton
+    }
+
+    @Override
+    protected AggregationMethod getFunction(final String id) {
+        return AggregationMethods.getMethod4Id(id);
+    }
+
+    @Override
+    protected Stream<AggregationMethod> getCompatibleAggregationFunctions(final DataType type, final boolean sorted) {
+        return AggregationMethods.getCompatibleMethods(type, sorted).stream();
+    }
+
+    @Override
+    protected Stream<AggregationMethod> getFunctions(final boolean sorted) {
+        return AggregationMethods.getInstance().getFunctions(sorted).stream();
+    }
+
+    @Override
+    protected Optional<AggregationMethod> getDefaultFunction(final DataType type) {
+        return Optional.ofNullable(AggregationMethods.getInstance().getDefaultFunction(type));
+    }
+
+    @Override
+    public Optional<Class<? extends AggregationOperatorParameters>>
+        lookupParametersForFunction(final AggregationSpec fun) {
+        return AggregationMethods.getInstance().getParametersClassFor(fun.id());
+    }
+
+}

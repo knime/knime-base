@@ -122,8 +122,7 @@
                     "aggregationMethod" : {
                       "type" : "string",
                       "title" : "Aggregation",
-                      "description" : "The aggregation method to use",
-                      "default" : "First"
+                      "description" : "The aggregation method to use"
                     },
                     "dataType" : {
                       "type" : "string",
