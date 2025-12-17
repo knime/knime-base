@@ -136,11 +136,21 @@ public final class ReaderSpecific {
 
     }
 
-    static final class ExternalDataTypeParseException extends RuntimeException {
+    /**
+     * Exception to indicate that parsing an external data type failed.
+     */
+    public static final class ExternalDataTypeParseException extends RuntimeException {
         private static final long serialVersionUID = 1L;
 
         ExternalDataTypeParseException(final String message, final Throwable cause) {
             super(message, cause);
+        }
+
+        /**
+         * @param message the exception message
+         */
+        public ExternalDataTypeParseException(final String message) {
+            super(message);
         }
     }
 
