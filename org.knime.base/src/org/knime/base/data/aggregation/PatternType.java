@@ -26,7 +26,7 @@
  *  you the additional permission to use and propagate KNIME together with
  *  ECLIPSE with only the license terms in place for ECLIPSE applying to
  *  ECLIPSE and the GNU GPL Version 3 applying for KNIME, provided the
- *  license terms of KNIME themselves allow for the respective use and
+ *  license terms of ECLIPSE themselves allow for the respective use and
  *  propagation of ECLIPSE together with KNIME.
  *
  *  Additional permission relating to nodes for KNIME that extend the Node
@@ -41,7 +41,37 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * ------------------------------------------------------------------------
+ * ---------------------------------------------------------------------
+ *
+ * History
+ *   22 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
+package org.knime.base.data.aggregation;
 
-package org.knime.base.node.preproc.groupby;
+import org.knime.node.parameters.widget.choices.Label;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
+
+/**
+ * Pattern type for pattern-based aggregations.
+ *
+ * Prefer this enum over the {@link org.knime.base.node.util.regex.PatternType} if you want a {@link ValueSwitchWidget}
+ * that displays only these two options.
+ *
+ * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ *
+ * @since 5.10
+ */
+public enum PatternType {
+
+    /**
+     * Wildcard pattern type.
+     */
+    @Label("Wildcard")
+    WILDCARD, //
+    /**
+     * Regular expression pattern type.
+     */
+    @Label("Regular Expression")
+    REGEX
+
+}

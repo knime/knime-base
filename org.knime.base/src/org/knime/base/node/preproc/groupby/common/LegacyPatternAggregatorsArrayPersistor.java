@@ -51,8 +51,10 @@ package org.knime.base.node.preproc.groupby.common;
 import java.util.Comparator;
 import java.util.List;
 
+import org.knime.base.data.aggregation.AggregationFunctionParameters;
 import org.knime.base.data.aggregation.AggregationMethods;
-import org.knime.base.data.aggregation.AggregationOperatorParameters;
+import org.knime.base.data.aggregation.FallbackAggregationOperatorParameters;
+import org.knime.base.data.aggregation.PatternType;
 import org.knime.base.data.aggregation.dialogutil.pattern.PatternAggregator;
 import org.knime.base.node.preproc.groupby.common.LegacyPatternAggregatorsArrayPersistor.IndexedElement;
 import org.knime.base.node.preproc.groupby.common.LegacyPatternAggregatorsArrayPersistor.PatternAggregatorElementDTO;
@@ -66,7 +68,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.Array
 import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.ElementFieldPersistor;
 
 /**
- * Persistor for legacy pattern aggregators array.
+ * Persistor for legacy pattern aggregators array in the GroupBy, Pivot, and Column Aggregator nodes.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
@@ -164,10 +166,10 @@ public final class LegacyPatternAggregatorsArrayPersistor
     }
 
     static final class OperatorParametersPersistor
-        implements ElementFieldPersistor<AggregationOperatorParameters, IndexedElement, PatternAggregatorElementDTO> {
+        implements ElementFieldPersistor<AggregationFunctionParameters, IndexedElement, PatternAggregatorElementDTO> {
 
         @Override
-        public AggregationOperatorParameters load(final NodeSettingsRO nodeSettings, final IndexedElement loadContext)
+        public AggregationFunctionParameters load(final NodeSettingsRO nodeSettings, final IndexedElement loadContext)
             throws InvalidSettingsException {
             final var aggr = loadContext.getAggregator();
             if (!aggr.hasOptionalSettings()) {
@@ -181,7 +183,7 @@ public final class LegacyPatternAggregatorsArrayPersistor
             if (paramClass != null) {
                 return NodeParametersUtil.loadSettings(cfg, paramClass);
             }
-            return new LegacyAggregationOperatorParameters(cfg);
+            return new FallbackAggregationOperatorParameters(cfg);
         }
 
         @Override
@@ -191,7 +193,7 @@ public final class LegacyPatternAggregatorsArrayPersistor
         }
 
         @Override
-        public void save(final AggregationOperatorParameters param, final PatternAggregatorElementDTO saveDTO) {
+        public void save(final AggregationFunctionParameters param, final PatternAggregatorElementDTO saveDTO) {
             saveDTO.m_element.m_parameters = param;
         }
     }
@@ -268,7 +270,7 @@ public final class LegacyPatternAggregatorsArrayPersistor
         final var params = elem.m_parameters;
         if (params != null) {
             final NodeSettings functionSettings;
-            if (elem.m_parameters instanceof LegacyAggregationOperatorParameters legacyParams) {
+            if (elem.m_parameters instanceof FallbackAggregationOperatorParameters legacyParams) {
                 // the fallback just wraps
                 functionSettings = legacyParams.getNodeSettings();
             } else {

@@ -44,22 +44,43 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   22 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   17 Dec 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.groupby.common;
+package org.knime.base.data.aggregation;
 
-import org.knime.node.parameters.widget.choices.Label;
+import java.util.function.Supplier;
+
+import org.knime.base.data.aggregation.AggregationFunctionParametersProvider.AggregationMethodRef;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.updates.StateProvider;
 
 /**
- * Pattern type for pattern-based aggregations.
+ * Selects the default aggregation method if no method is already selected for aggregation of columns based on
+ * column name patterns.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ * @since 5.10
  */
-enum PatternType {
+public abstract class DefaultPatternAggregationMethodProvider implements StateProvider<String> {
 
-    @Label("Wildcard")
-    WILDCARD, //
-    @Label("Regular Expression")
-    REGEX
+    private Supplier<String> m_methodSelf;
+
+    protected abstract Class<? extends AggregationMethodRef> getMethodSelfProvider();
+
+    protected abstract AggFunction getDefaultMethod();
+
+    @Override
+    public void init(final StateProviderInitializer initializer) {
+        m_methodSelf = initializer.getValueSupplier(getMethodSelfProvider());
+    }
+
+    @Override
+    public String computeState(final NodeParametersInput parametersInput) throws StateComputationFailureException {
+        if (m_methodSelf.get() != null) {
+            throw new StateComputationFailureException();
+        }
+        return getDefaultMethod().id();
+    }
 
 }

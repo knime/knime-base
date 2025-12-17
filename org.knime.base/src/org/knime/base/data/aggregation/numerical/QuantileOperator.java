@@ -55,7 +55,7 @@ import org.apache.commons.math3.stat.descriptive.rank.Percentile;
 import org.apache.commons.math3.stat.descriptive.rank.Percentile.EstimationType;
 import org.apache.commons.math3.util.KthSelector;
 import org.knime.base.data.aggregation.AggregationOperator;
-import org.knime.base.data.aggregation.AggregationOperatorParameters;
+import org.knime.base.data.aggregation.AggregationFunctionParameters;
 import org.knime.base.data.aggregation.GlobalSettings;
 import org.knime.base.data.aggregation.OperatorColumnSettings;
 import org.knime.base.data.aggregation.OperatorData;
@@ -301,14 +301,14 @@ public class QuantileOperator extends StoreResizableDoubleArrayOperator {
     }
 
     @Override
-    public Class<? extends AggregationOperatorParameters> getParametersClass() {
+    public Class<? extends AggregationFunctionParameters> getParametersClass() {
         return QuantileOperatorParameters.class;
     }
 
     /**
      * Node parameters for the {@link QuantileOperator}.
      */
-    static final class QuantileOperatorParameters implements AggregationOperatorParameters {
+    static final class QuantileOperatorParameters implements AggregationFunctionParameters {
 
         @Widget(title = "Quantile", description = DESC_DETAIL_QUANT)
         @Persist(configKey = QuantileFuntionSettings.CFG_CUSTOM_QUANTILE)

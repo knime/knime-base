@@ -54,6 +54,7 @@ import java.util.Map;
 
 import org.knime.base.data.aggregation.AggregationMethods;
 import org.knime.base.data.aggregation.ColumnAggregator;
+import org.knime.base.data.aggregation.FallbackAggregationOperatorParameters;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
@@ -108,7 +109,7 @@ public final class LegacyColumnAggregatorsPersistor implements NodeParametersPer
                     element.m_parameters = NodeParametersUtil.loadSettings(operatorSettings, optionalParamsClass);
                 } else {
                     // nothing custom, so fallback
-                    element.m_parameters = new LegacyAggregationOperatorParameters(operatorSettings);
+                    element.m_parameters = new FallbackAggregationOperatorParameters(operatorSettings);
                 }
             }
             elements.add(element);
@@ -134,7 +135,7 @@ public final class LegacyColumnAggregatorsPersistor implements NodeParametersPer
             }
             final var settingsToSaveInto =
                 new NodeSettings(createSettingsKey(idMap, elem.m_aggregationMethod, elem.m_column));
-            if (elem.m_parameters instanceof LegacyAggregationOperatorParameters legacyParams) {
+            if (elem.m_parameters instanceof FallbackAggregationOperatorParameters legacyParams) {
                 final var extractedSettings = legacyParams.getNodeSettings();
                 extractedSettings.copyTo(settingsToSaveInto);
             } else {

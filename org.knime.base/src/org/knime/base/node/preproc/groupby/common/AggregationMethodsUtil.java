@@ -44,48 +44,81 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   20 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   15 Dec 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.base.node.preproc.groupby.common;
 
-import java.util.function.Supplier;
+import java.util.Optional;
+import java.util.stream.Stream;
 
+import org.knime.base.data.aggregation.AggFunction;
+import org.knime.base.data.aggregation.AggregationMethod;
 import org.knime.base.data.aggregation.AggregationMethods;
-import org.knime.base.node.preproc.groupby.common.AggregationOperatorParametersProvider.AggregationMethodRef;
-import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
-import org.knime.node.parameters.NodeParametersInput;
-import org.knime.node.parameters.updates.StateProvider;
+import org.knime.core.data.DataType;
 
 /**
- * Indicator that the selected aggregation method has optional settings.
+ * Utility for native (as in "not-DB") aggregation methods to be used when abstracting from the aggregation function
+ * "source", e.g. native methods or DB methods.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ *
+ * @since 5.10
  */
-@SuppressWarnings("restriction")
-public abstract class HasOperatorParameters implements StateProvider<Boolean> {
+public final class AggregationMethodsUtil {
 
-    private Supplier<String> m_agg;
-
-    /**
-     * Gets the class of the {@link AggregationMethodRef} to use.
-     *
-     * @return the class of the {@link AggregationMethodRef} to use
-     */
-    protected abstract Class<? extends AggregationMethodRef> getAggregationMethodRefClass();
-
-    @Override
-    public final void init(final StateProviderInitializer init) {
-        init.computeBeforeOpenDialog();
-        m_agg = init.computeFromValueSupplier(getAggregationMethodRefClass());
+    private AggregationMethodsUtil() {
+        // utility class
     }
 
-    @Override
-    public final Boolean computeState(final NodeParametersInput in) throws StateComputationFailureException {
-        final var id = m_agg.get();
-        if (id == null) {
-            throw new StateComputationFailureException();
+    /**
+     * Looks up an aggregation method by its ID.
+     *
+     * @param id the ID of the aggregation method
+     * @return the aggregation method, or {@link Optional#empty()} if no such method exists
+     */
+    public static Optional<AggregationMethod> lookupMethodById(final String id) {
+        try {
+            return Optional.of(AggregationMethods.getMethod4Id(id));
+        } catch (final IllegalArgumentException e) { // NOSONAR we map this exception to empty optional
+            return Optional.empty();
         }
-        return AggregationMethods.getMethod4Id(id).hasOptionalSettings();
+    }
+
+    /**
+     * Looks up an aggregation method by its ID and returns it as an {@link AggFunction}.
+     *
+     * @param id the ID of the aggregation method
+     * @return the aggregation function, or {@link Optional#empty()} if no such method exists
+     */
+    public static Optional<AggFunction> lookupFunctionById(final String id) {
+        try {
+            return lookupMethodById(id)
+                .map(method -> new AggFunction(id, method.getLabel(), method.hasOptionalSettings()));
+        } catch (final IllegalArgumentException e) { // NOSONAR we map this exception to empty optional
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * Returns all aggregation functions that are compatible with the given data type.
+     *
+     * @param type the data type
+     * @return a stream of compatible aggregation functions
+     */
+    public static Stream<AggFunction> getCompatibleFunctions(final DataType type) {
+        return AggregationMethods.getCompatibleMethods(type, true).stream() //
+            .map(am -> new AggFunction(am.getId(), am.getLabel(), am.hasOptionalSettings()));
+    }
+
+    /**
+     * Returns the default aggregation function for the given data type.
+     *
+     * @param type data type
+     * @return default aggregation function
+     */
+    public static AggFunction getDefaultFunction(final DataType type) {
+        final var agg = AggregationMethods.getInstance().getDefaultFunction(type);
+        return new AggFunction(agg.getId(), agg.getLabel(), agg.hasOptionalSettings());
     }
 
 }

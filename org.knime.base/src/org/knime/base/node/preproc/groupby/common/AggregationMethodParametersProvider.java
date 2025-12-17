@@ -44,22 +44,41 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   15 Dec 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   16 Dec 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.data.aggregation;
+package org.knime.base.node.preproc.groupby.common;
+
+import java.util.Collection;
+import java.util.Optional;
+
+import org.knime.base.data.aggregation.AggFunctions;
+import org.knime.base.data.aggregation.AggregationFunctionParameters;
+import org.knime.base.data.aggregation.AggregationFunctionParametersProvider;
+import org.knime.base.data.aggregation.AggregationMethod;
+import org.knime.base.data.aggregation.AggregationMethods;
+import org.knime.node.parameters.NodeParametersInput;
 
 /**
- * Interface to define optional parameters for aggregation operators. Implement this interface, then overwrite
- * your operator's {@link AggregationOperator#getParametersClass()} method to return your class.
- * If your operator has optional parameters, but does not define a class of this type, a fallback dialog is
- * generated to display the optional operator parameters.
+ * Provider for function parameters of native (i.e. non-DB) aggregation methods.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
- *
- * @noreference pending API
- * @noimplement pending API
  */
-@SuppressWarnings("restriction") // webui
-public interface AggregationOperatorParameters extends AggregationFunctionParameters {
+public abstract class AggregationMethodParametersProvider
+    extends AggregationFunctionParametersProvider<AggregationMethod> {
 
+    @Override
+    protected final AggFunctions<AggregationMethod>
+        getFunctionUtility(final NodeParametersInput parametersInput) {
+        return new AggFunctions<>(AggregationMethods.getInstance(),
+            fun -> {
+                final Optional<Class<? extends AggregationFunctionParameters>> clazz =
+                        AggregationMethods.getInstance().getParametersClassFor(fun.id());
+                return clazz;
+            });
+    }
+
+    @Override
+    protected final Collection<Class<? extends AggregationFunctionParameters>> getAllParameterClasses() {
+        return AggregationMethods.getAllParameterClasses();
+    }
 }
