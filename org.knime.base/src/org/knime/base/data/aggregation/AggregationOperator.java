@@ -575,7 +575,7 @@ public abstract class AggregationOperator implements AggregationMethod {
     }
 
     /**
-     * Overwrite thie method if the operator has optional settings.
+     * Overwrite the method if the operator has optional settings.
      * If the operator has optional settings and this method is not overwritten, a fallback dialog is displayed from the
      * node settings.
      *

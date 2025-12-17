@@ -116,8 +116,7 @@
                     "aggregationMethod" : {
                       "type" : "string",
                       "title" : "Aggregation",
-                      "description" : "The aggregation method to use",
-                      "default" : "First"
+                      "description" : "The aggregation method to use"
                     },
                     "dataType" : {
                       "type" : "string",
@@ -897,7 +896,5 @@
       "scope" : "#/properties/model/properties/performanceParameters/properties/processInMemory"
     },
     "dependencies" : [ "#/properties/model/properties/performanceParameters/properties/processInMemory", "#/properties/model/properties/performanceParameters/properties/retainOrder" ]
-  } ]
-}etainOrder" ]
   } ]
 }

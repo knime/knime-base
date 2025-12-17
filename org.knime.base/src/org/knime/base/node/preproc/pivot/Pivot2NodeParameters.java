@@ -243,7 +243,7 @@ class Pivot2NodeParameters implements NodeParameters {
     @Migration(LegacyColumnAggregatorsMigration.class) // ...because then we could not deprecate keys here
     @Modification(ColumnAggregatorElementModifier.class)
     @ArrayWidget(addButtonText = "Add aggregation",
-        // TODO disable "add" button based on input (e.g. no table connected)
+        // TODO (blocked) disable "add" button based on input (e.g. no table connected)
         elementDefaultValueProvider = DefaultColumnAggregatorElementProvider.class)
     ColumnAggregatorElement[] m_columnAggregators = new ColumnAggregatorElement[0];
 

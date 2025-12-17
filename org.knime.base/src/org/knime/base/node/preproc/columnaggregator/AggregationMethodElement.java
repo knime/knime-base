@@ -49,19 +49,23 @@
 package org.knime.base.node.preproc.columnaggregator;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.knime.base.data.aggregation.AggregationMethod;
 import org.knime.base.data.aggregation.AggregationMethods;
 import org.knime.base.data.aggregation.AggregationOperatorParameters;
+import org.knime.base.data.aggregation.parameters.AggregationSpec;
+import org.knime.base.data.aggregation.parameters.HasOperatorParameters;
+import org.knime.base.data.aggregation.parameters.AggregationFunctionParametersProvider.AggregationMethodRef;
 import org.knime.base.node.preproc.columnaggregator.ColumnAggregatorNodeParameters.AggregationColumnsRef;
-import org.knime.base.node.preproc.groupby.common.AggregationOperatorParametersProvider;
-import org.knime.base.node.preproc.groupby.common.AggregationOperatorParametersProvider.AggregationMethodRef;
-import org.knime.base.node.preproc.groupby.common.HasOperatorParameters;
+import org.knime.base.node.preproc.groupby.common.AggregationMethodParametersProvider;
+import org.knime.base.node.preproc.groupby.common.AggregationMethodsUtility;
 import org.knime.base.node.preproc.groupby.common.MissingValueOption;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.node.parameters.NodeParameters;
@@ -97,6 +101,12 @@ final class AggregationMethodElement implements NodeParameters {
         protected Class<? extends AggregationMethodRef> getAggregationMethodRefClass() {
             return ColumnAggregationMethodRef.class;
         }
+
+        @Override
+        protected Optional<AggregationSpec> lookupFunctionById(final PortObjectSpec spec, final String id) {
+            final var util = AggregationMethodsUtility.getInstance();
+            return util.lookupFunctionById(id).map(util::mapToSpec);
+        }
     }
 
     @Widget(title = "Aggregation method",
@@ -128,7 +138,7 @@ final class AggregationMethodElement implements NodeParameters {
                 .filter(isAggregationColumn).map(DataColumnSpec::getType).collect(Collectors.toSet());
             final var allMethods = AggregationMethods.getAvailableMethods();
             return allMethods.stream().filter(method -> dataTypes.stream().allMatch(method::isCompatible))
-                .map(method -> new StringChoice(method.getId(), method.getLabel())).collect(Collectors.toList());
+                .map(method -> new StringChoice(method.getId(), method.getLabel())).toList();
         }
 
     }
@@ -161,10 +171,15 @@ final class AggregationMethodElement implements NodeParameters {
     @ValueProvider(SetFromAggregationMethod.class)
     String m_resultColName;
 
-    public static final class SupportsMissingValueOptions extends MissingValueOption.SupportsMissingValueOptions {
+    static final class SupportsMissingValueOptions extends MissingValueOption.SupportsMissingValueOptions {
         @Override
         protected Class<? extends ParameterReference<String>> getMethodReference() {
             return ColumnAggregationMethodRef.class;
+        }
+
+        @Override
+        protected Optional<AggregationMethod> lookupMethodById(final String id) {
+            return AggregationMethodsUtility.getInstance().lookupFunctionById(id);
         }
     }
 
@@ -199,7 +214,7 @@ final class AggregationMethodElement implements NodeParameters {
     /**
      * Provider that ties the aggregation method and the optional parameters field together.
      */
-    static final class ColumnAggregationOperatorParametersProvider extends AggregationOperatorParametersProvider {
+    static final class ColumnAggregationOperatorParametersProvider extends AggregationMethodParametersProvider {
         @Override
         protected Class<? extends ParameterReference<AggregationOperatorParameters>> getParameterRefClass() {
             return ColumnAggregationOperatorParametersRef.class;

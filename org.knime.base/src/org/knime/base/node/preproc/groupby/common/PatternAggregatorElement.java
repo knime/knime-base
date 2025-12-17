@@ -49,23 +49,23 @@
 package org.knime.base.node.preproc.groupby.common;
 
 import java.util.List;
-import java.util.function.Supplier;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
+import java.util.Optional;
 
+import org.knime.base.data.aggregation.AggregationMethod;
 import org.knime.base.data.aggregation.AggregationMethods;
 import org.knime.base.data.aggregation.AggregationOperatorParameters;
-import org.knime.base.node.preproc.groupby.common.AggregationOperatorParametersProvider.AggregationMethodRef;
+import org.knime.base.data.aggregation.parameters.AggregationSpec;
+import org.knime.base.data.aggregation.parameters.DefaultPatternAggregationMethodProvider;
+import org.knime.base.data.aggregation.parameters.HasOperatorParameters;
+import org.knime.base.data.aggregation.parameters.PatternType;
+import org.knime.base.data.aggregation.parameters.AggregationFunctionParametersProvider.AggregationMethodRef;
+import org.knime.base.data.aggregation.parameters.StateAndChoicesProviders.WildcardOrRegexPatternValidation;
 import org.knime.base.node.preproc.groupby.common.LegacyPatternAggregatorsArrayPersistor.IndexedElement;
 import org.knime.base.node.preproc.groupby.common.LegacyPatternAggregatorsArrayPersistor.PatternAggregatorElementDTO;
-import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.PersistArrayElement;
-import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.custom.CustomValidation;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.custom.CustomValidationProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.custom.ValidationCallback;
-import org.knime.filehandling.core.util.WildcardToRegexUtil;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
@@ -74,7 +74,6 @@ import org.knime.node.parameters.layout.SubParameters;
 import org.knime.node.parameters.updates.Effect;
 import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.updates.ParameterReference;
-import org.knime.node.parameters.updates.StateProvider;
 import org.knime.node.parameters.updates.ValueProvider;
 import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
@@ -97,7 +96,7 @@ public class PatternAggregatorElement implements NodeParameters {
     @Widget(title = "Search pattern", description = "Wildcard or regular expression pattern")
     @PersistArrayElement(LegacyPatternAggregatorsArrayPersistor.PatternPersistor.class)
     @ValueReference(PatternRef.class)
-    @CustomValidation(WildcardOrRegexPatternValidation.class)
+    @CustomValidation(PatternValidation.class)
     String m_pattern = ".*";
 
     static final class PatternTypeRef implements ParameterReference<PatternType> {
@@ -120,7 +119,7 @@ public class PatternAggregatorElement implements NodeParameters {
         showSubParametersProvider = HasPatternOperatorParameters.class)
     @ValueReference(PatternAggregationRef.class)
     @ChoicesProvider(PatternAggregationChoices.class)
-    @ValueProvider(DefaultPatternAggregationMethodProvider.class)
+    @ValueProvider(PatternAggregationDefault.class)
     @PersistArrayElement(LegacyPatternAggregatorsArrayPersistor.AggregationMethodPersistor.class)
     String m_aggregationMethod = AggregationMethods.getInstance().getDefaultFunction(null).getId();
 
@@ -129,13 +128,6 @@ public class PatternAggregatorElement implements NodeParameters {
         @Override
         protected Boolean getLoadDefault() {
             return false;
-        }
-    }
-
-    static final class SupportsMissingValueOptions extends MissingValueOption.SupportsMissingValueOptions {
-        @Override
-        protected Class<? extends ParameterReference<String>> getMethodReference() {
-            return PatternAggregationRef.class;
         }
     }
 
@@ -177,9 +169,15 @@ public class PatternAggregatorElement implements NodeParameters {
         protected Class<? extends AggregationMethodRef> getAggregationMethodRefClass() {
             return PatternAggregationRef.class;
         }
+
+        @Override
+        protected Optional<AggregationSpec> lookupFunctionById(final PortObjectSpec spec, final String id) {
+            final var util = AggregationMethodsUtility.getInstance();
+            return util.lookupFunctionById(id).map(util::mapToSpec);
+        }
     }
 
-    static final class PatternAggregationOperatorParametersProvider extends AggregationOperatorParametersProvider {
+    static final class PatternAggregationOperatorParametersProvider extends AggregationMethodParametersProvider {
         @Override
         protected Class<? extends ParameterReference<AggregationOperatorParameters>> getParameterRefClass() {
             return PatternOperatorParametersRef.class;
@@ -189,6 +187,21 @@ public class PatternAggregatorElement implements NodeParameters {
         protected Class<? extends AggregationMethodRef> getMethodParameterRefClass() {
             return PatternAggregationRef.class;
         }
+    }
+
+    static final class PatternAggregationDefault extends DefaultPatternAggregationMethodProvider<AggregationMethod> {
+
+        @Override
+        protected Class<? extends AggregationMethodRef> getMethodSelfProvider() {
+            return PatternAggregationRef.class;
+        }
+
+        @Override
+        protected Optional<AggregationMethod> getDefaultMethod(final PortObjectSpec spec) {
+            // derived from PatternAggregationPanel
+            return Optional.of(AggregationMethods.getDefaultNotNumericalMethod());
+        }
+
     }
 
     static final class PatternAggregationChoices implements StringChoicesProvider {
@@ -206,58 +219,23 @@ public class PatternAggregatorElement implements NodeParameters {
 
     }
 
-    static final class DefaultPatternAggregationMethodProvider implements StateProvider<String> {
-
-        private Supplier<String> m_methodSelf;
-
+    static final class SupportsMissingValueOptions extends MissingValueOption.SupportsMissingValueOptions {
         @Override
-        public void init(final StateProviderInitializer initializer) {
-            m_methodSelf = initializer.getValueSupplier(PatternAggregationRef.class);
+        protected Class<? extends ParameterReference<String>> getMethodReference() {
+            return PatternAggregationRef.class;
         }
 
         @Override
-        public String computeState(final NodeParametersInput parametersInput) throws StateComputationFailureException {
-            if (m_methodSelf.get() != null) {
-                throw new StateComputationFailureException();
-            }
-            // parsing `null` will select "First"
-            return AggregationMethods.getInstance().getDefaultFunction(null).getId();
+        protected Optional<AggregationMethod> lookupMethodById(final String id) {
+            return AggregationMethodsUtility.getInstance().lookupFunctionById(id);
         }
-
     }
 
-    static final class WildcardOrRegexPatternValidation implements CustomValidationProvider<String> {
-
-        private Supplier<PatternType> m_patternType;
+    static final class PatternValidation extends WildcardOrRegexPatternValidation {
 
         @Override
-        public void init(final StateProviderInitializer initializer) {
-            m_patternType = initializer.getValueSupplier(PatternTypeRef.class);
-        }
-
-        @Override
-        public ValidationCallback<String> computeValidationCallback(final NodeParametersInput parametersInput) {
-            final var patternType = m_patternType.get();
-            return switch (patternType) {
-                case REGEX -> WildcardOrRegexPatternValidation::validateRegexPattern;
-                case WILDCARD -> WildcardOrRegexPatternValidation::validateWildcardPattern;
-            };
-        }
-
-        private static void validateWildcardPattern(final String wildcard) throws InvalidSettingsException {
-            try {
-                Pattern.compile(WildcardToRegexUtil.wildcardToRegex(wildcard));
-            } catch (final PatternSyntaxException e) {
-                throw new InvalidSettingsException("The wildcard pattern is invalid: " + e.getMessage(), e);
-            }
-        }
-
-        private static void validateRegexPattern(final String regex) throws InvalidSettingsException {
-            try {
-                Pattern.compile(regex);
-            } catch (final PatternSyntaxException e) {
-                throw new InvalidSettingsException("The regular expression pattern is invalid: " + e.getMessage(), e);
-            }
+        protected Class<? extends ParameterReference<PatternType>> getPatternTypeRefClass() {
+            return PatternTypeRef.class;
         }
     }
 }
