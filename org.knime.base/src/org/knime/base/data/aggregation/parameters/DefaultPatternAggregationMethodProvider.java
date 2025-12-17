@@ -44,48 +44,66 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   20 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   17 Dec 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.groupby.common;
+package org.knime.base.data.aggregation.parameters;
 
+import java.util.Optional;
 import java.util.function.Supplier;
 
-import org.knime.base.data.aggregation.AggregationMethods;
-import org.knime.base.node.preproc.groupby.common.AggregationOperatorParametersProvider.AggregationMethodRef;
+import org.knime.base.data.aggregation.parameters.AggregationFunctionParametersProvider.AggregationMethodRef;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.port.database.aggregation.AggregationFunction;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.updates.StateProvider;
 
 /**
- * Indicator that the selected aggregation method has optional settings.
+ * Selects the default aggregation method if no method is already selected for aggregation of columns based on
+ * column name patterns.
+ *
+ * @param <F> the type of the aggregation function provided as default
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ *
+ * @since 5.11
  */
-@SuppressWarnings("restriction")
-public abstract class HasOperatorParameters implements StateProvider<Boolean> {
+public abstract class DefaultPatternAggregationMethodProvider<F extends AggregationFunction>
+        implements StateProvider<String> {
 
-    private Supplier<String> m_agg;
+    private Supplier<String> m_methodSelf;
 
     /**
-     * Gets the class of the {@link AggregationMethodRef} to use.
+     * Self-reference to aggregation method.
      *
-     * @return the class of the {@link AggregationMethodRef} to use
+     * @return the self-reference
      */
-    protected abstract Class<? extends AggregationMethodRef> getAggregationMethodRefClass();
+    protected abstract Class<? extends AggregationMethodRef> getMethodSelfProvider();
+
+    /**
+     * Gets the default method to use if no method is already selected.
+     *
+     * @param spec the {@code null}-able input spec to derive available functions from
+     * @return default aggregation function
+     */
+    protected abstract Optional<F> getDefaultMethod(PortObjectSpec spec);
 
     @Override
-    public final void init(final StateProviderInitializer init) {
-        init.computeBeforeOpenDialog();
-        m_agg = init.computeFromValueSupplier(getAggregationMethodRefClass());
+    public void init(final StateProviderInitializer initializer) {
+        m_methodSelf = initializer.getValueSupplier(getMethodSelfProvider());
     }
 
     @Override
-    public final Boolean computeState(final NodeParametersInput in) throws StateComputationFailureException {
-        final var id = m_agg.get();
-        if (id == null) {
+    public String computeState(final NodeParametersInput context) throws StateComputationFailureException {
+        if (m_methodSelf.get() != null) {
+            // only set default if no method is already selected
             throw new StateComputationFailureException();
         }
-        return AggregationMethods.getMethod4Id(id).hasOptionalSettings();
+        final var spec = context.getInPortSpec(0).orElse(null);
+        return getDefaultMethod(spec) //
+                .map(F::getId) //
+                // if there is no default available, we clear the selection
+                .orElse(null);
     }
 
 }

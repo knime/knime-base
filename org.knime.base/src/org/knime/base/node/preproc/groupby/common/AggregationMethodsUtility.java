@@ -44,22 +44,68 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   22 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   15 Dec 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.base.node.preproc.groupby.common;
 
-import org.knime.node.parameters.widget.choices.Label;
+import java.util.Optional;
+import java.util.stream.Stream;
+
+import org.knime.base.data.aggregation.AggregationMethod;
+import org.knime.base.data.aggregation.AggregationMethods;
+import org.knime.base.data.aggregation.AggregationOperatorParameters;
+import org.knime.base.data.aggregation.parameters.AggregationFunctionsUtility;
+import org.knime.base.data.aggregation.parameters.AggregationSpec;
+import org.knime.core.data.DataType;
 
 /**
- * Pattern type for pattern-based aggregations.
+ * Utility for native (as in "not-DB") aggregation methods.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ *
+ * @since 5.10
  */
-enum PatternType {
+public final class AggregationMethodsUtility extends AggregationFunctionsUtility<AggregationMethod> {
 
-    @Label("Wildcard")
-    WILDCARD, //
-    @Label("Regular Expression")
-    REGEX
+    private static final AggregationMethodsUtility INSTANCE = new AggregationMethodsUtility();
+
+    /**
+     * Gets the singleton instance of this utility.
+     *
+     * @return the singleton instance
+     */
+    public static AggregationMethodsUtility getInstance() {
+        return INSTANCE;
+    }
+
+    private AggregationMethodsUtility() {
+        // singleton
+    }
+
+    @Override
+    protected AggregationMethod getFunction(final String id) {
+        return AggregationMethods.getMethod4Id(id);
+    }
+
+    @Override
+    public Stream<AggregationMethod> getCompatibleAggregationFunctions(final DataType type, final boolean sorted) {
+        return AggregationMethods.getCompatibleMethods(type, sorted).stream();
+    }
+
+    @Override
+    protected Stream<AggregationMethod> getFunctions(final boolean sorted) {
+        return AggregationMethods.getInstance().getFunctions(sorted).stream();
+    }
+
+    @Override
+    public Optional<AggregationMethod> getDefaultFunction(final DataType type) {
+        return Optional.ofNullable(AggregationMethods.getInstance().getDefaultFunction(type));
+    }
+
+    @Override
+    public Optional<Class<? extends AggregationOperatorParameters>>
+        lookupParametersForFunction(final AggregationSpec fun) {
+        return AggregationMethods.getInstance().getParametersClassFor(fun.id());
+    }
 
 }

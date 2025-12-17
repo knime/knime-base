@@ -46,55 +46,32 @@
  * History
  *   22 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.groupby.common;
+package org.knime.base.data.aggregation.parameters;
 
-import java.util.function.Supplier;
-
-import org.knime.base.data.aggregation.AggregationMethods;
-import org.knime.core.data.DataType;
-import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
-import org.knime.node.parameters.NodeParametersInput;
-import org.knime.node.parameters.updates.ParameterReference;
-import org.knime.node.parameters.updates.StateProvider;
+import org.knime.node.parameters.widget.choices.Label;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 
 /**
- * Selects the default aggregation method based on the type, if a method is not already provided.
+ * Pattern type for pattern-based aggregations.
+ *
+ * Prefer this enum over the {@link org.knime.base.node.util.regex.PatternType} if you want a {@link ValueSwitchWidget}
+ * that displays only these two options.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ *
+ * @since 5.11
  */
-abstract class DefaultAggregationMethodProvider implements StateProvider<String> {
-
-    /** The currently selected method to avoid updating it if it is already set. */
-    private Supplier<String> m_methodSelf;
-
-    private Supplier<DataType> m_typeSupplier;
+public enum PatternType {
 
     /**
-     * @return type provider class to obtain method for
+     * Wildcard pattern type.
      */
-    abstract Class<? extends ParameterReference<DataType>> getTypeProvider();
-
+    @Label("Wildcard")
+    WILDCARD, //
     /**
-     * @return self reference for the method to not override if already set
+     * Regular expression pattern type.
      */
-    abstract Class<? extends ParameterReference<String>> getMethodSelfProvider();
-
-    @Override
-    public final void init(final StateProviderInitializer initializer) {
-        m_methodSelf = initializer.getValueSupplier(getMethodSelfProvider());
-        m_typeSupplier = initializer.computeFromValueSupplier(getTypeProvider());
-    }
-
-    @SuppressWarnings("restriction")
-    @Override
-    public final String computeState(final NodeParametersInput parametersInput)
-        throws StateComputationFailureException {
-        if (m_methodSelf.get() != null) {
-            throw new StateComputationFailureException();
-        }
-        final var type = m_typeSupplier.get();
-        // there always is a default, even if it is just "First"
-        return AggregationMethods.getInstance().getDefaultFunction(type).getId();
-    }
+    @Label("Regular Expression")
+    REGEX
 
 }

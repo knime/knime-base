@@ -51,7 +51,7 @@ import java.util.List;
 
 import org.knime.base.data.aggregation.AggregationMethods;
 import org.knime.base.data.aggregation.NamedAggregationOperator;
-import org.knime.base.node.preproc.groupby.common.LegacyAggregationOperatorParameters;
+import org.knime.base.data.aggregation.parameters.FallbackAggregationOperatorParameters;
 import org.knime.base.node.preproc.groupby.common.MissingValueOption;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
@@ -61,7 +61,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.node.parameters.persistence.NodeParametersPersistor;
 
 /**
- * Legacy persistor for aggregation methods in Column Aggregator node.
+ * Legacy persistor for aggregation methods in Column Aggregator node,
+ * which are persisted slightly differently to manual aggregation methods of the GroupBy node:
+ * optional settings are keyed by "operatorId_resultColName" instead of just "operatorId" nested in "functionSettings".
  *
  * @author Paul Baernreuther, KNIME GmbH, Germany
  */
@@ -89,7 +91,9 @@ public final class LegacyAggregationMethodsPersistor implements NodeParametersPe
                     element.m_parameters = NodeParametersUtil.loadSettings(operatorSettings, optionalParamsClass);
                 } else {
                     // fallback for operators without custom parameters
-                    element.m_parameters = new LegacyAggregationOperatorParameters(operatorSettings);
+                    // we use this transient key, since the real save key is `createSettingsKey(..)` below
+                    element.m_parameters =
+                        new FallbackAggregationOperatorParameters("_optionalSettings", operatorSettings);
                 }
             }
             elements.add(element);
@@ -100,10 +104,9 @@ public final class LegacyAggregationMethodsPersistor implements NodeParametersPe
     @SuppressWarnings("restriction")
     @Override
     public void save(final AggregationMethodElement[] elems, final NodeSettingsWO settings) {
-        final List<NamedAggregationOperator> methods = new ArrayList<>();
-        List<String> operatorIds = new ArrayList<>();
-        List<String> resultColNames = new ArrayList<>();
-        List<Boolean> includeMissingVals = new ArrayList<>();
+        final var operatorIds = new ArrayList<String>();
+        final var resultColNames = new ArrayList<String>();
+        final var includeMissingVals = new ArrayList<Boolean>();
         final var subSettings = settings.addNodeSettings(ColumnAggregatorNodeModel.CFG_AGGREGATION_METHODS);
         for (final var elem : elems) {
             if (elem.m_aggregationMethod == null) {
@@ -117,24 +120,22 @@ public final class LegacyAggregationMethodsPersistor implements NodeParametersPe
             if (elem.m_parameters != null) {
                 final var key = createSettingsKey(elem.m_aggregationMethod, elem.m_resultColName);
                 final var operatorSettings = subSettings.addNodeSettings(key);
-                if (elem.m_parameters instanceof LegacyAggregationOperatorParameters legacyParams) {
+                if (elem.m_parameters instanceof FallbackAggregationOperatorParameters legacyParams) {
                     final var extractedSettings = legacyParams.getNodeSettings();
                     extractedSettings.copyTo(operatorSettings);
                 } else {
                     NodeParametersUtil.saveSettings(elem.m_parameters.getClass(), elem.m_parameters, operatorSettings);
                 }
-
             }
         }
         subSettings.addStringArray("resultColName", resultColNames.toArray(new String[0]));
         subSettings.addStringArray("aggregationMethod", operatorIds.toArray(new String[0]));
         subSettings.addBooleanArray("inclMissingVals", toPrimitiveBooleanArray(includeMissingVals));
-
     }
 
     private static boolean[] toPrimitiveBooleanArray(final List<Boolean> booleanList) {
-        final boolean[] primitiveArray = new boolean[booleanList.size()];
-        for (int i = 0; i < booleanList.size(); i++) {
+        final var primitiveArray = new boolean[booleanList.size()];
+        for (var i = 0; i < booleanList.size(); i++) {
             primitiveArray[i] = booleanList.get(i);
         }
         return primitiveArray;

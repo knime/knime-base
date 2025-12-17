@@ -44,53 +44,40 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 13, 2025 (Paul Bärnreuther): created
+ *   15 Dec 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.groupby;
+package org.knime.base.data.aggregation.parameters;
 
-import org.knime.node.parameters.Advanced;
-import org.knime.node.parameters.layout.After;
-import org.knime.node.parameters.layout.Section;
+import org.knime.core.node.NodeSettingsRO;
 
 /**
- * Sections for GroupBy node dialog (+ related nodes, e.g. Pivot).
+ * Specification for an aggregation function used in an aggregation node (GroupBy, Pivot, ...).
  *
- * @author Paul Bärnreuther
- * @since 5.10
+ * It contains enough information to persist and reconstruct the function and is generic enough to be used in the base
+ * aggregation and DB aggregation nodes.
+ *
+ * @param id aggregation function/method ID
+ * @param label user-facing label
+ * @param hasOptionalSettings indicates whether the function has optional settings
+ * @param optionalSettings the function's current optional settings, or {@code null} if the function has no settings
+ *            (either not at all or currently none)
+ *
+ * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ *
+ * @since 5.11
  */
-public interface Sections {
+// this exists because the `AggregationFunction` interface is in core and core cannot depend on core-ui
+// (for the aggregation parameters class)
+public record AggregationSpec(String id, String label, boolean hasOptionalSettings, NodeSettingsRO optionalSettings) {
 
-    @SuppressWarnings("javadoc")
-    @Section(title = "Aggregation")
-    interface Aggregation {
-    }
-
-    @SuppressWarnings("javadoc")
-    @Section(title = "Pattern Based Aggregation")
-    @After(Sections.Aggregation.class)
-    interface PatternAggregation {
-
-    }
-
-    @SuppressWarnings("javadoc")
-    @Section(title = "Type Based Aggregation")
-    @After(Sections.PatternAggregation.class)
-    interface TypeAggregation {
-    }
-
-    @SuppressWarnings("javadoc")
-    @Section(title = "Output")
-    @After(Sections.TypeAggregation.class)
-    interface Output {
-    }
-
-    @SuppressWarnings("javadoc")
-    @Section(title = "Performance", description = """
-            The performance settings allow to optimize memory consumption and configure settings that may
-            negatively affect performance and are therefore disabled by default.
-            """)
-    @After(Sections.Output.class)
-    @Advanced
-    interface Performance {
+    /**
+     * Creates a new aggregation function without optional settings.
+     *
+     * @param id aggregation function/method ID
+     * @param label user-facing label
+     * @param hasOptionalSettings indicates whether the function has optional settings
+     */
+    public AggregationSpec(final String id, final String label, final boolean hasOptionalSettings) {
+        this(id, label, hasOptionalSettings, null);
     }
 }
