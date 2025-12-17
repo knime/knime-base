@@ -48,8 +48,8 @@
  */
 package org.knime.base.node.viz.property.color;
 
-import static org.knime.base.node.viz.property.color.ColorDesignerUtil.computeOutputModelSpec;
-import static org.knime.base.node.viz.property.color.ColorDesignerUtil.createOutputSpecification;
+import static org.knime.base.node.viz.property.color.ColorDesignerUtil.createOutputModelSpec;
+import static org.knime.base.node.viz.property.color.ColorDesignerUtil.createOutputSpecs;
 
 import java.awt.Color;
 import java.util.Arrays;
@@ -223,7 +223,7 @@ public final class ColorGradientDesignerNodeFactory extends DefaultNodeFactory {
             } else {
                 colorModel = new ColorModelRange(specialColors, parameters.m_gradient.getColorGradient());
             }
-            final var modelSpec = computeOutputModelSpec(new ColorHandler(colorModel), "Range color handler");
+            final var modelSpec = createOutputModelSpec(new ColorHandler(colorModel), "Color handler");
             return new OutputSpecification(null, modelSpec, null);
         }
 
@@ -234,7 +234,7 @@ public final class ColorGradientDesignerNodeFactory extends DefaultNodeFactory {
             final var stopColors = extractStopColors(parameters);
             if (parameters.m_valueScale == ValueScale.ABSOLUTE) {
                 colorModel = new ColorModelRange(specialColors, stopValues, stopColors, false);
-                return createOutputSpecification(spec, selectedColumnSpecs, colorModel);
+                return createOutputSpecs(spec, selectedColumnSpecs, colorModel, false);
             }
             colorModel = new ColorModelRange(specialColors, stopValues, stopColors, true);
         } else {
@@ -245,10 +245,10 @@ public final class ColorGradientDesignerNodeFactory extends DefaultNodeFactory {
         if (minMax.length == 2) {
             colorModel = colorModel.applyToDomain(minMax[0], minMax[1]);
         }
-        return createOutputSpecification(spec, selectedColumnSpecs, colorModel);
+        return createOutputSpecs(spec, selectedColumnSpecs, colorModel, false);
     }
 
-    private static double[] extractMinMaxFromDomainAndTable(final List<DataColumnSpec> selectedColumnSpecs,
+    static double[] extractMinMaxFromDomainAndTable(final List<DataColumnSpec> selectedColumnSpecs,
         final BufferedDataTable table, final DataTableSpec spec, final ExecutionContext exec)
         throws CanceledExecutionException, KNIMEException {
         final var columnSpecsPartitionedHasDomain = selectedColumnSpecs.stream() //
@@ -334,8 +334,7 @@ public final class ColorGradientDesignerNodeFactory extends DefaultNodeFactory {
             .toArray(Color[]::new);
     }
 
-    private static List<DataColumnSpec> getSelectedNumericColumns(final ColumnFilter columnFilter,
-        final DataTableSpec spec) {
+    static List<DataColumnSpec> getSelectedNumericColumns(final ColumnFilter columnFilter, final DataTableSpec spec) {
         final var selectedColumns = columnFilter.filterFromFullSpec(spec);
         return Arrays.stream(selectedColumns) //
             .map(spec::getColumnSpec) //

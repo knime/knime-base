@@ -49,8 +49,6 @@ package org.knime.base.node.viz.property.color;
 import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.knime.base.node.viz.property.color.ColorDesignerTestHelper.TestConfigureInput;
-import static org.knime.base.node.viz.property.color.ColorDesignerTestHelper.TestConfigureOutput;
 import static org.knime.base.node.viz.property.color.TestHelper.COLUMNS_WITH_DOMAIN;
 
 import java.util.HashMap;
@@ -65,6 +63,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.knime.base.node.viz.property.color.ColorDesignerTestHelper.TestConfigureInput;
+import org.knime.base.node.viz.property.color.ColorDesignerTestHelper.TestConfigureOutput;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.MissingCell;
@@ -73,12 +73,6 @@ import org.knime.core.data.property.ColorAttr;
 import org.knime.core.data.property.ColorModel;
 import org.knime.core.data.property.ColorModelNominal;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.context.ports.PortsConfiguration;
-import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.node.port.PortType;
-import org.knime.node.DefaultModel.ConfigureInput;
-import org.knime.node.DefaultModel.ConfigureOutput;
-import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
 
 @SuppressWarnings("static-method")

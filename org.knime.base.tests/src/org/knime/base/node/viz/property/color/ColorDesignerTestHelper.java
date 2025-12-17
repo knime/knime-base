@@ -64,8 +64,8 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 /**
- * Shared test helper classes for Color Designer node tests, providing reusable test implementations
- * of ConfigureInput, ConfigureOutput, ExecuteInput, and ExecuteOutput.
+ * Shared test helper classes for Color Designer node tests, providing reusable test implementations of ConfigureInput,
+ * ConfigureOutput, ExecuteInput, and ExecuteOutput.
  *
  * @author Robin Gerling, KNIME GmbH, Konstanz, Germany
  */
@@ -81,11 +81,11 @@ final class ColorDesignerTestHelper {
     static final class TestConfigureInput implements ConfigureInput {
         private final NodeParameters m_parameters;
 
-        private final DataTableSpec[] m_inTableSpecs;
+        private final PortObjectSpec[] m_inPortSpecs;
 
-        TestConfigureInput(final NodeParameters parameters, final DataTableSpec[] inTableSpecs) {
+        TestConfigureInput(final NodeParameters parameters, final PortObjectSpec[] inPortSpecs) {
             m_parameters = parameters;
-            m_inTableSpecs = inTableSpecs;
+            m_inPortSpecs = inPortSpecs;
         }
 
         @Override
@@ -97,25 +97,25 @@ final class ColorDesignerTestHelper {
 
         @Override
         public DataTableSpec[] getInTableSpecs() {
-            return m_inTableSpecs;
+            return (DataTableSpec[])m_inPortSpecs;
         }
 
-        // Unused methods can return null
         @Override
         public PortObjectSpec[] getInPortSpecs() {
-            return null;
+            return m_inPortSpecs;
         }
 
         @Override
         public <S extends PortObjectSpec> S getInPortSpec(final int index) {
-            return null;
+            return (S)m_inPortSpecs[index];
         }
 
         @Override
         public DataTableSpec getInTableSpec(final int portIndex) {
-            return null;
+            return (DataTableSpec)m_inPortSpecs[portIndex];
         }
 
+        // Unused methods can return null
         @Override
         public PortType[] getOutPortTypes() {
             return null;
@@ -154,13 +154,13 @@ final class ColorDesignerTestHelper {
     static final class TestExecuteInput implements ExecuteInput {
         private final NodeParameters m_parameters;
 
-        private final BufferedDataTable[] m_inTables;
+        private final PortObject[] m_inPortObjects;
 
         private final ExecutionContext m_executionContext;
 
-        TestExecuteInput(final NodeParameters parameters, final BufferedDataTable[] inTables) {
+        TestExecuteInput(final NodeParameters parameters, final PortObject[] inPortObjects) {
             m_parameters = parameters;
-            m_inTables = inTables;
+            m_inPortObjects = inPortObjects;
             m_executionContext = mock(ExecutionContext.class);
             Mockito.when(m_executionContext.createSpecReplacerTable(ArgumentMatchers.any(BufferedDataTable.class),
                 ArgumentMatchers.any(DataTableSpec.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -175,7 +175,7 @@ final class ColorDesignerTestHelper {
 
         @Override
         public BufferedDataTable[] getInTables() {
-            return m_inTables;
+            return (BufferedDataTable[])m_inPortObjects;
         }
 
         @Override
@@ -183,22 +183,22 @@ final class ColorDesignerTestHelper {
             return m_executionContext;
         }
 
-        // Unused methods can return null
         @Override
         public PortObject[] getInPortObjects() {
-            return null;
+            return m_inPortObjects;
         }
 
         @Override
         public <D extends PortObject> D getInPortObject(final int portIndex) {
-            return null;
+            return (D)m_inPortObjects[portIndex];
         }
 
         @Override
         public BufferedDataTable getInTable(final int portIndex) {
-            return null;
+            return (BufferedDataTable)m_inPortObjects[portIndex];
         }
 
+        // Unused methods can return null
         @Override
         public PortType[] getOutPortTypes() {
             return null;

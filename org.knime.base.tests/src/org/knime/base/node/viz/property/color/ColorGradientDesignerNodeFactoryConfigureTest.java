@@ -75,7 +75,7 @@ import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
 @SuppressWarnings("static-method")
 final class ColorGradientDesignerNodeFactoryConfigureTest {
 
-    private static Map<SpecialColorType, Color>
+    static Map<SpecialColorType, Color>
         createSpecialColors(final ColorGradientDesignerNodeParameters parameters) {
         return Map.of(//
             SpecialColorType.MISSING, Color.decode(parameters.m_missingValueColor), //
