@@ -44,20 +44,35 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   27 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   16 Dec 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.data.aggregation;
+package org.knime.base.node.preproc.groupby.common;
 
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
+import java.util.Collection;
+
+import org.knime.base.data.aggregation.AggregationFunctionParametersProvider;
+import org.knime.base.data.aggregation.AggregationFunctionsUtility;
+import org.knime.base.data.aggregation.AggregationMethod;
+import org.knime.base.data.aggregation.AggregationMethods;
+import org.knime.base.data.aggregation.AggregationOperatorParameters;
+import org.knime.node.parameters.NodeParametersInput;
 
 /**
- * Common dynamic parameters interface to define optional parameters for aggregation functions.
+ * Provider for function parameters of native (i.e. non-DB) aggregation methods.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
- *
- * @noreference Pending API
- * @noimplement Pending API
- *
  */
-public interface AggregationOperatorParameters extends DynamicParameters.DynamicNodeParameters {
+public abstract class AggregationMethodParametersProvider
+    extends AggregationFunctionParametersProvider<AggregationMethod> {
+
+    @Override
+    protected final AggregationFunctionsUtility<AggregationMethod>
+        getFunctionUtility(final NodeParametersInput parametersInput) {
+        return AggregationMethodsUtility.getInstance();
+    }
+
+    @Override
+    protected final Collection<Class<? extends AggregationOperatorParameters>> getAllParameterClasses() {
+        return AggregationMethods.getAllParameterClasses();
+    }
 }
