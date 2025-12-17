@@ -44,54 +44,21 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 13, 2025 (Paul Bärnreuther): created
+ *   27 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.groupby;
+package org.knime.base.data.aggregation;
 
-import org.knime.node.parameters.Advanced;
-import org.knime.node.parameters.layout.After;
-import org.knime.node.parameters.layout.Section;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 
 /**
- * Sections for GroupBy node dialog. Public as they are intended to be used by related dialogs as well (e.g. Pivot).
+ * Common interface to define optional parameters for aggregation functions.
  *
- * @author Paul Bärnreuther
+ * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  *
- * @since 5.10
+ * @noreference pending API
+ * @noimplement pending API
  */
-public interface Sections {
+@SuppressWarnings("restriction") // webui
+public interface AggregationFunctionParameters extends DynamicParameters.DynamicNodeParameters {
 
-    @SuppressWarnings("javadoc")
-    @Section(title = "Aggregation")
-    interface Aggregation {
-    }
-
-    @SuppressWarnings("javadoc")
-    @Section(title = "Pattern Based Aggregation")
-    @After(Sections.Aggregation.class)
-    interface PatternAggregation {
-
-    }
-
-    @SuppressWarnings("javadoc")
-    @Section(title = "Type Based Aggregation")
-    @After(Sections.PatternAggregation.class)
-    interface TypeAggregation {
-    }
-
-    @SuppressWarnings("javadoc")
-    @Section(title = "Output")
-    @After(Sections.TypeAggregation.class)
-    interface Output {
-    }
-
-    @SuppressWarnings("javadoc")
-    @Section(title = "Performance", description = """
-            The performance settings allow to optimize memory consumption and configure settings that may
-            negatively affect performance and are therefore disabled by default.
-            """)
-    @After(Sections.Output.class)
-    @Advanced
-    interface Performance {
-    }
 }

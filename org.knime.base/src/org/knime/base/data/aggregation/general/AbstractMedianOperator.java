@@ -55,7 +55,7 @@ import java.util.Map;
 import javax.swing.JPanel;
 
 import org.knime.base.data.aggregation.AggregationOperator;
-import org.knime.base.data.aggregation.AggregationOperatorParameters;
+import org.knime.base.data.aggregation.AggregationFunctionParameters;
 import org.knime.base.data.aggregation.GlobalSettings;
 import org.knime.base.data.aggregation.OperatorColumnSettings;
 import org.knime.base.data.aggregation.OperatorData;
@@ -221,7 +221,7 @@ public abstract class AbstractMedianOperator extends SortedListCellOperator {
      * @since 5.9
      */
     @Override
-    public Class<? extends AggregationOperatorParameters> getParametersClass() {
+    public Class<? extends AggregationFunctionParameters> getParametersClass() {
         return AbstractMedianOperatorParameters.class;
     }
 
@@ -617,7 +617,7 @@ public abstract class AbstractMedianOperator extends SortedListCellOperator {
     /**
      * Operator parameters for {@link AbstractMedianOperator}.
      */
-    static final class AbstractMedianOperatorParameters implements AggregationOperatorParameters {
+    static final class AbstractMedianOperatorParameters implements AggregationFunctionParameters {
 
         @Widget(title = "Median method", description = "Method to use for calculating median of even-sized groups.")
         @RadioButtonsWidget

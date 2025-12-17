@@ -48,18 +48,35 @@
  */
 package org.knime.base.data.aggregation;
 
+import org.knime.core.node.NodeSettingsRO;
+
 /**
- * Interface to define optional parameters for aggregation operators. Implement this interface, then overwrite
- * your operator's {@link AggregationOperator#getParametersClass()} method to return your class.
- * If your operator has optional parameters, but does not define a class of this type, a fallback dialog is
- * generated to display the optional operator parameters.
+ * Abstraction for an aggregation function used in an aggregation node (GroupBy, Pivot, ...).
+ *
+ * It contains enough information to persist and reconstruct the function and is generic enough to be used in the base
+ * aggregation and DB aggregation nodes.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  *
- * @noreference pending API
- * @noimplement pending API
+ * @param id aggregation function/method ID
+ * @param label user-facing label
+ * @param hasOptionalSettings indicates whether the function has optional settings
+ * @param optionalSettings the function's current optional settings, or {@code null} if the function has no settings
+ *            (either not at all or currently none)
+ * @since 5.10
  */
-@SuppressWarnings("restriction") // webui
-public interface AggregationOperatorParameters extends AggregationFunctionParameters {
+// this exists because the `AggregationFunction` interface is in core and core cannot depend on core-ui
+// (for the aggregation parameters class)
+public record AggFunction(String id, String label, boolean hasOptionalSettings, NodeSettingsRO optionalSettings) {
 
+    /**
+     * Creates a new aggregation function without optional settings.
+     *
+     * @param id aggregation function/method ID
+     * @param label user-facing label
+     * @param hasOptionalSettings indicates whether the function has optional settings
+     */
+    public AggFunction(final String id, final String label, final boolean hasOptionalSettings) {
+        this(id, label, hasOptionalSettings, null);
+    }
 }

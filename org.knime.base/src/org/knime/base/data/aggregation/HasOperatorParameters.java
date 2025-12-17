@@ -44,57 +44,59 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   22 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   20 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.groupby.common;
+package org.knime.base.data.aggregation;
 
+import java.util.Optional;
 import java.util.function.Supplier;
 
-import org.knime.base.data.aggregation.AggregationMethods;
-import org.knime.core.data.DataType;
+import org.knime.base.data.aggregation.AggregationFunctionParametersProvider.AggregationMethodRef;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.node.parameters.NodeParametersInput;
-import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.StateProvider;
 
 /**
- * Selects the default aggregation method based on the type, if a method is not already provided.
+ * Indicator that the selected aggregation method has optional settings.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ *
+ * @since 5.10
  */
-abstract class DefaultAggregationMethodProvider implements StateProvider<String> {
+@SuppressWarnings("restriction")
+public abstract class HasOperatorParameters implements StateProvider<Boolean> {
 
-    /** The currently selected method to avoid updating it if it is already set. */
-    private Supplier<String> m_methodSelf;
-
-    private Supplier<DataType> m_typeSupplier;
+    private Supplier<String> m_agg;
 
     /**
-     * @return type provider class to obtain method for
+     * Gets the class of the {@link AggregationMethodRef} to use.
+     *
+     * @return the class of the {@link AggregationMethodRef} to use
      */
-    abstract Class<? extends ParameterReference<DataType>> getTypeProvider();
+    protected abstract Class<? extends AggregationMethodRef> getAggregationMethodRefClass();
 
     /**
-     * @return self reference for the method to not override if already set
+     * Looks up an aggregation function by its ID to determine if it has optional parameters.
+     * @param in the node parameters input
+     * @param id the ID of the aggregation function
+     * @return the aggregation function, or {@link Optional#empty()} if no such function exists
      */
-    abstract Class<? extends ParameterReference<String>> getMethodSelfProvider();
+    protected abstract Optional<AggFunction> lookupFunctionById(NodeParametersInput in, String id);
 
     @Override
-    public final void init(final StateProviderInitializer initializer) {
-        m_methodSelf = initializer.getValueSupplier(getMethodSelfProvider());
-        m_typeSupplier = initializer.computeFromValueSupplier(getTypeProvider());
+    public final void init(final StateProviderInitializer init) {
+        init.computeBeforeOpenDialog();
+        m_agg = init.computeFromValueSupplier(getAggregationMethodRefClass());
     }
 
-    @SuppressWarnings("restriction")
     @Override
-    public final String computeState(final NodeParametersInput parametersInput)
-        throws StateComputationFailureException {
-        if (m_methodSelf.get() != null) {
+    public final Boolean computeState(final NodeParametersInput in) throws StateComputationFailureException {
+        final var id = m_agg.get();
+        if (id == null) {
             throw new StateComputationFailureException();
         }
-        final var type = m_typeSupplier.get();
-        // there always is a default, even if it is just "First"
-        return AggregationMethods.getInstance().getDefaultFunction(type).getId();
+        // unknown aggregation function has no optional settings
+        return lookupFunctionById(in, id).map(AggFunction::hasOptionalSettings).orElse(false);
     }
 
 }

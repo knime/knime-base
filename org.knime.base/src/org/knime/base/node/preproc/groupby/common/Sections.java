@@ -44,22 +44,53 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   15 Dec 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   Nov 13, 2025 (Paul Bärnreuther): created
  */
-package org.knime.base.data.aggregation;
+package org.knime.base.node.preproc.groupby.common;
+
+import org.knime.node.parameters.Advanced;
+import org.knime.node.parameters.layout.After;
+import org.knime.node.parameters.layout.Section;
 
 /**
- * Interface to define optional parameters for aggregation operators. Implement this interface, then overwrite
- * your operator's {@link AggregationOperator#getParametersClass()} method to return your class.
- * If your operator has optional parameters, but does not define a class of this type, a fallback dialog is
- * generated to display the optional operator parameters.
+ * Sections for GroupBy node dialog (+ related nodes, e.g. Pivot).
  *
- * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
- *
- * @noreference pending API
- * @noimplement pending API
+ * @author Paul Bärnreuther
+ * @since 5.10
  */
-@SuppressWarnings("restriction") // webui
-public interface AggregationOperatorParameters extends AggregationFunctionParameters {
+public interface Sections {
 
+    @SuppressWarnings("javadoc")
+    @Section(title = "Aggregation")
+    interface Aggregation {
+    }
+
+    @SuppressWarnings("javadoc")
+    @Section(title = "Pattern Based Aggregation")
+    @After(Sections.Aggregation.class)
+    interface PatternAggregation {
+
+    }
+
+    @SuppressWarnings("javadoc")
+    @Section(title = "Type Based Aggregation")
+    @After(Sections.PatternAggregation.class)
+    interface TypeAggregation {
+    }
+
+    @SuppressWarnings("javadoc")
+    @Section(title = "Output")
+    @After(Sections.TypeAggregation.class)
+    interface Output {
+    }
+
+    @SuppressWarnings("javadoc")
+    @Section(title = "Performance", description = """
+            The performance settings allow to optimize memory consumption and configure settings that may
+            negatively affect performance and are therefore disabled by default.
+            """)
+    @After(Sections.Output.class)
+    @Advanced
+    interface Performance {
+    }
 }
