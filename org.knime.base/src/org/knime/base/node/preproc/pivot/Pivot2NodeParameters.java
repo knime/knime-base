@@ -51,13 +51,13 @@ import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import org.knime.base.node.preproc.groupby.Sections;
 import org.knime.base.node.preproc.groupby.common.ColumnAggregatorElement;
 import org.knime.base.node.preproc.groupby.common.ColumnNamePolicyParameters;
 import org.knime.base.node.preproc.groupby.common.GlobalAggregationMethodParameters;
 import org.knime.base.node.preproc.groupby.common.GroupByPerformanceParameters;
 import org.knime.base.node.preproc.groupby.common.LegacyColumnAggregatorsMigration;
 import org.knime.base.node.preproc.groupby.common.LegacyColumnAggregatorsPersistor;
-import org.knime.base.node.preproc.groupby.common.Sections;
 import org.knime.base.node.preproc.pivot.Pivot2NodeModel.ColNameOption;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.node.InvalidSettingsException;
