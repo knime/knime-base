@@ -46,7 +46,7 @@
  * History
  *   Nov 13, 2025 (Paul Bärnreuther): created
  */
-package org.knime.base.node.preproc.groupby.common;
+package org.knime.base.node.preproc.groupby;
 
 import org.knime.node.parameters.Advanced;
 import org.knime.node.parameters.layout.After;

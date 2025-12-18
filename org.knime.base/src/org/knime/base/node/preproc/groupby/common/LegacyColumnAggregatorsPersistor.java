@@ -109,7 +109,8 @@ public final class LegacyColumnAggregatorsPersistor implements NodeParametersPer
                     element.m_parameters = NodeParametersUtil.loadSettings(operatorSettings, optionalParamsClass);
                 } else {
                     // nothing custom, so fallback
-                    element.m_parameters = new FallbackAggregationOperatorParameters(operatorSettings);
+                    element.m_parameters =
+                        new FallbackAggregationOperatorParameters(CNFG_AGGREGATION_OPERATOR_SETTINGS, operatorSettings);
                 }
             }
             elements.add(element);

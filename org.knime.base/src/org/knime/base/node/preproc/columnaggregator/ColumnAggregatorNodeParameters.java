@@ -51,8 +51,8 @@ import java.util.function.Supplier;
 
 import org.knime.base.data.aggregation.AggregationMethods;
 import org.knime.base.node.preproc.columnaggregator.AggregationMethodElement.AggregationMethodAvailableForAllSelectedColumns;
+import org.knime.base.node.preproc.groupby.Sections;
 import org.knime.base.node.preproc.groupby.common.GlobalAggregationMethodParameters;
-import org.knime.base.node.preproc.groupby.common.Sections;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.PersistWithin.PersistEmbedded;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.node.parameters.NodeParameters;

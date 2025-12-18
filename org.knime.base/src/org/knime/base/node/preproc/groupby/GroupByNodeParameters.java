@@ -60,7 +60,6 @@ import org.knime.base.node.preproc.groupby.common.LegacyColumnAggregatorsMigrati
 import org.knime.base.node.preproc.groupby.common.LegacyColumnAggregatorsPersistor;
 import org.knime.base.node.preproc.groupby.common.LegacyPatternAggregatorsArrayPersistor;
 import org.knime.base.node.preproc.groupby.common.PatternAggregatorElement;
-import org.knime.base.node.preproc.groupby.common.Sections;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.PersistArray;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.PersistWithin.PersistEmbedded;

@@ -146,6 +146,8 @@ public final class LegacyDataTypeAggregatorsArrayPersistor
     static final class OperatorParametersPersistor
         implements ElementFieldPersistor<AggregationFunctionParameters, IndexedElement, DataTypeAggregatorElementDTO> {
 
+        static final String CFG_FUNCTION_SETTINGS = "functionSettings";
+
         @Override
         public AggregationFunctionParameters load(final NodeSettingsRO nodeSettings, final IndexedElement loadContext)
             throws InvalidSettingsException {
@@ -156,12 +158,12 @@ public final class LegacyDataTypeAggregatorsArrayPersistor
             final var cfg = nodeSettings //
                 .getNodeSettings(CFG_DATA_TYPE_AGGREGATORS) //
                 .getNodeSettings("f_" + loadContext.m_index) //
-                .getNodeSettings("functionSettings");
+                .getNodeSettings(CFG_FUNCTION_SETTINGS);
             final var paramClass = AggregationMethods.getInstance().getParametersClassFor(aggr.getId()).orElse(null);
             if (paramClass != null) {
                 return NodeParametersUtil.loadSettings(cfg, paramClass);
             }
-            return new FallbackAggregationOperatorParameters(cfg);
+            return new FallbackAggregationOperatorParameters(CFG_FUNCTION_SETTINGS, cfg);
         }
 
         @Override
