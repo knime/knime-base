@@ -131,34 +131,12 @@ public abstract class AggregationFunctionParametersProvider<F extends Aggregatio
     protected abstract Collection<Class<? extends AggregationFunctionParameters>> getAllParameterClasses();
 
     /**
-     * Creates legacy parameters in case no parameter class is registered for the selected aggregation method.
+     * Gets the default key under which optional function settings are stored.
      *
-     * @param functions
-     *
-     * @param functionId the ID of the selected aggregation function
-     * @param functions the aggregation function utility
-     * @param currentParameters the currently present, {@code null}able aggregation function parameters, if any
-     * @return the created fallback parameters
-     * @throws StateComputationFailureException
+     * @return the non-{@code null} default key for optional function settings
      */
-    private final AggregationFunctionParameters createFallbackParameters(final AggFunctions<F> functions,
-        final String functionId, final AggregationFunctionParameters currentValue)
-        throws StateComputationFailureException {
-        final F method = lookupById(functions, functionId).orElseThrow(StateComputationFailureException::new);
-        if (currentValue instanceof FallbackAggregationOperatorParameters legacy) {
-            final var paramSettings = legacy.getNodeSettings();
-            try {
-                method.validateSettings(paramSettings);
-                method.loadValidatedSettings(paramSettings);
-                return new FallbackAggregationOperatorParameters(paramSettings);
-            } catch (final InvalidSettingsException e) { // NOSONAR best-effort
-                // fall-through: cannot re-use settings
-            }
-        }
-
-        final var settings = new NodeSettings("extracted model settings");
-        method.saveSettingsTo(settings);
-        return new FallbackAggregationOperatorParameters(settings);
+    public String getFunctionSettingsKey() {
+        return "functionSettings";
     }
 
     /**
@@ -219,9 +197,44 @@ public abstract class AggregationFunctionParametersProvider<F extends Aggregatio
         return createFallbackParameters(functions, currentMethod, currentValue);
     }
 
+    /**
+     * Creates legacy parameters in case no parameter class is registered for the selected aggregation method.
+     *
+     * @param functions
+     *
+     * @param functionId the ID of the selected aggregation function
+     * @param functions the aggregation function utility
+     * @param currentParameters the currently present, {@code null}able aggregation function parameters, if any
+     * @return the created fallback parameters
+     * @throws StateComputationFailureException
+     */
+    private final AggregationFunctionParameters createFallbackParameters(
+        final AggFunctions<F> functions,
+        final String functionId, final AggregationFunctionParameters currentValue)
+        throws StateComputationFailureException {
+        final F method = lookupById(functions, functionId).orElseThrow(StateComputationFailureException::new);
+
+        // try to re-use the settings from existing fallback parameters
+        if (currentValue instanceof FallbackAggregationOperatorParameters fallbackParams) {
+            final var paramSettings = fallbackParams.getNodeSettings();
+            try {
+                method.validateSettings(paramSettings);
+                method.loadValidatedSettings(paramSettings);
+                return fallbackParams;
+            } catch (final InvalidSettingsException e) { // NOSONAR best-effort
+                // fall-through: cannot re-use settings
+            }
+        }
+
+        // cannot re-use existing settings, we need to create new ones based on the defaults from the method
+//        final var settings = new NodeSettings("extracted model settings");
+//        method.saveSettingsTo(settings);
+        return FallbackAggregationOperatorParameters.withInitial(getFunctionSettingsKey(), method::saveSettingsTo);
+    }
+
     @Override
     public final NodeSettings computeFallbackSettings(final NodeParametersInput parametersInput)
-        throws StateComputationFailureException {
+            throws StateComputationFailureException {
         final var params = computeParameters(parametersInput);
         if (params instanceof FallbackAggregationOperatorParameters legacy) {
             return legacy.getNodeSettings();
@@ -232,6 +245,6 @@ public abstract class AggregationFunctionParametersProvider<F extends Aggregatio
 
     @Override
     public final FallbackDialogNodeParameters getParametersFromFallback(final NodeSettingsRO fallbackSettings) {
-        return new FallbackAggregationOperatorParameters(fallbackSettings);
+        return new FallbackAggregationOperatorParameters(getFunctionSettingsKey(), fallbackSettings);
     }
 }

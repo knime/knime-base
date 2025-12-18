@@ -50,6 +50,7 @@ package org.knime.base.node.preproc.groupby.common;
 
 import org.apache.commons.lang.StringEscapeUtils;
 import org.knime.base.data.aggregation.GlobalSettings;
+import org.knime.base.node.preproc.groupby.Sections;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;

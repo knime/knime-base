@@ -50,6 +50,7 @@ package org.knime.base.node.preproc.groupby.common;
 
 import java.util.function.Supplier;
 
+import org.knime.base.node.preproc.groupby.Sections;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;

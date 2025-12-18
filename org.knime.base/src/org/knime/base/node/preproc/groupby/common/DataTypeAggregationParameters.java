@@ -48,6 +48,7 @@
  */
 package org.knime.base.node.preproc.groupby.common;
 
+import org.knime.base.node.preproc.groupby.Sections;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
