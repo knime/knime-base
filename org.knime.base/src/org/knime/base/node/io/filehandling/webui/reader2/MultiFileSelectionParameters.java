@@ -90,7 +90,19 @@ public final class MultiFileSelectionParameters implements NodeParameters {
         m_source = new MultiFileSelection<>(MultiFileSelectionMode.FILE, new DefaultFileChooserFilters(), fsLocation);
     }
 
-    static FSLocation urlToSupportedFSLocation(final URL url) {
+    /**
+     * Transforms the given URL into a custom url in case the URL points to a file system that is not supported. Not
+     * supported in modern ui are:
+     * <ul>
+     * <li>MOUNTPOINT</li>
+     * <li>HUB_SPACE</li>
+     * <li>RELATIVE to MOUNTPOINT</li>
+     * </ul>
+     *
+     * @param url the URL to transform
+     * @return the supported FSLocation
+     */
+    public static FSLocation urlToSupportedFSLocation(final URL url) {
         var fsLocation = FSLocationUtil.createFromURL(url.toString());
         /**
          * We don't support MOUNTPOINT or HUB_SPACE as source selection in readers using
