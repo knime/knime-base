@@ -56,9 +56,12 @@ import static org.mockito.Mockito.when;
 import org.junit.jupiter.api.Test;
 import org.knime.base.node.viz.property.color.ColorDesignerTestHelper.TestExecuteInput;
 import org.knime.base.node.viz.property.color.ColorDesignerTestHelper.TestExecuteOutput;
+import org.knime.base.node.viz.property.color.ColorGradientDesignerNodeParameters.ColorGradientWrapper;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.MissingCell;
+import org.knime.core.data.property.ColorGradient;
+import org.knime.core.data.property.ColorModelRange2;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.KNIMEException;
@@ -90,6 +93,7 @@ final class ColorGradientDesignerNodeFactoryExecuteTest {
     @Test
     void testExecuteWithInputTableProducesBothOutputs() throws CanceledExecutionException, KNIMEException {
         final var parameters = new ColorGradientDesignerNodeParameters();
+        parameters.m_gradient = ColorGradientWrapper.CIVIDIS;
         parameters.m_columnFilter = new ColumnFilter(NUMERIC_COLUMNS_WITH_DOMAIN);
 
         final var inputTable = mock(BufferedDataTable.class);
@@ -101,21 +105,16 @@ final class ColorGradientDesignerNodeFactoryExecuteTest {
 
         ColorGradientDesignerNodeFactory.execute(executeInput, executeOutput);
 
+        final var outputModelObj = (ColorHandlerPortObject)executeOutput.m_outData[1];
+        final var outputModel = outputModelObj.getSpec().getColumnSpec(0).getColorHandler().getColorModel();
+        final var specialColors = ColorGradientDesignerNodeFactoryConfigureTest.createSpecialColors(parameters);
+        final var expectedColorModel =
+            new ColorModelRange2(specialColors, ColorGradient.CIVIDIS).applyToDomain(-50, 50);
+
         assertEquals(2, executeOutput.m_outData.length);
         assertEquals(BufferedDataTable.class, executeOutput.m_outData[0].getClass());
-        assertEquals(ColorHandlerPortObject.class, executeOutput.m_outData[1].getClass());
-    }
-
-    @Test
-    void testExecuteThrowsWhenPercentageStopsAndDomainMinimumIsNegativeInfinity() {
-        testExecuteThrows(createTestTable(new DataColumnSpec[]{TableTestUtil.createColumnWithNoDomain()},
-            new Object[][]{{Double.NEGATIVE_INFINITY}}), "because their domain includes infinity");
-    }
-
-    @Test
-    void testExecuteThrowsWhenPercentageStopsAndDomainMaximumIsPositiveInfinity() {
-        testExecuteThrows(createTestTable(new DataColumnSpec[]{TableTestUtil.createColumnWithNoDomain()},
-            new Object[][]{{Double.POSITIVE_INFINITY}}), "because their domain includes infinity");
+        assertEquals(ColorHandlerPortObject.class, outputModelObj.getClass());
+        assertEquals(expectedColorModel, outputModel);
     }
 
     @Test

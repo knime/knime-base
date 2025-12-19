@@ -48,16 +48,15 @@
  */
 package org.knime.base.node.viz.property.color;
 
-import static org.knime.base.node.viz.property.color.ColorDesignerUtil.computeOutputModelSpec;
-import static org.knime.base.node.viz.property.color.ColorDesignerUtil.createOutputSpecification;
+import static org.knime.base.node.viz.property.color.ColorDesignerUtil.createOutputModelSpec;
+import static org.knime.base.node.viz.property.color.ColorDesignerUtil.createOutputSpecs;
+import static org.knime.base.node.viz.property.color.ColorDesignerUtil.createOutputTableSpec;
 
 import java.awt.Color;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
-import org.knime.base.node.viz.property.color.ColorDesignerUtil.OutputSpecification;
 import org.knime.base.node.viz.property.color.ColorGradientDesignerNodeParameters.ColorGradientWrapper;
 import org.knime.base.node.viz.property.color.ColorGradientDesignerNodeParameters.ValueScale;
 import org.knime.core.data.DataCell;
@@ -65,9 +64,8 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DoubleValue;
 import org.knime.core.data.property.ColorHandler;
-import org.knime.core.data.property.ColorModel;
-import org.knime.core.data.property.ColorModelRange;
-import org.knime.core.data.property.ColorModelRange.SpecialColorType;
+import org.knime.core.data.property.ColorModelRange2;
+import org.knime.core.data.property.ColorModelRange2.SpecialColorType;
 import org.knime.core.data.v2.RowRead;
 import org.knime.core.data.v2.RowReadUtil;
 import org.knime.core.data.v2.TableExtractorUtil;
@@ -103,13 +101,22 @@ public final class ColorGradientDesignerNodeFactory extends DefaultNodeFactory {
         .shortDescription("Creates a color gradient for numerical values.") //
         .fullDescription("""
                 Creates a customizable gradient-based color mapping for numeric values. Colors are assigned by mapping \
-                each value to a position on a selected or user-defined gradient. The same gradient is applied to all \
-                selected columns.<br/>
-                Assignment behavior:<br/>
-                Values are colorized based on their position within the chosen gradient scale (percentage or \
-                absolute). For a percentage based scale, the joint domain of the selected columns is used to transform \
-                it into an absolute scale. Special values such as missing values, NaN, or infinities can be assigned \
-                specific colors. Out-of-bounds values can also be assigned specific colors.""") //
+                each value to a position on a selected or user-defined gradient. If a table is connected, the same \
+                gradient will be applied to all selected columns.<br/>
+                <h3>Assignment behavior:</h3>
+                Values are colorized based on their position within the chosen gradient scale. Special values such as \
+                missing values, NaN, infinities, or out-of bounds values can be assigned specific colors.
+                <h3>Modes:</h3>
+                <ul>
+                <li><b>Without input table:</b> Generates a standalone color gradient model that needs to be applied \
+                later via the Color Designer (Apply) node.
+                </li>
+                <li><b>With input table:</b> Applies the gradient directly to the selected columns of the input table. \
+                If the columns have defined domains, their joint domain will be used to map values to the color \
+                gradient. For columns without domain, the node will compute a temporary domain during execution.
+                </li>
+                </ul>
+                """) //
         .sinceVersion(5, 10, 0) //
         .dynamicPorts(p -> p //
             .addInputAndOutputPortGroup("Table", ColorGradientDesignerNodeFactory::createInputOutputTablePortGroup)
@@ -146,180 +153,191 @@ public final class ColorGradientDesignerNodeFactory extends DefaultNodeFactory {
             .fixed(ColorHandlerPortObject.TYPE);
     }
 
+    record ColorModelAndDependentSpecs(ColorModelRange2 colorModel, List<DataColumnSpec> specs) {
+    }
+
+    record MinMax(Double min, Double max) {
+    }
+
     static void configure(final ConfigureInput in, final ConfigureOutput out) throws InvalidSettingsException {
         final var parameters = in.<ColorGradientDesignerNodeParameters> getParameters();
         final var specs = in.getInTableSpecs();
-        final var hasInputTable = specs.length > 0;
-        final var inTableSpec = hasInputTable ? specs[0] : null;
+        final var inTableSpec = specs.length > 0 ? specs[0] : null;
 
-        if (inTableSpec != null) {
-            /** see {@link ColorGradientDesignerNodeParameters#validate()} for spec independent parameter validation */
-            validateParameters(parameters, inTableSpec);
+        if (inTableSpec == null) {
+            out.setOutSpecs(computeModelSpecWithoutInputSpec(parameters));
+            return;
         }
 
-        try {
-            final var computedOutputSpecs = computeOutputSpecs(parameters, inTableSpec, null, null);
-            final DataTableSpec[] outSpecs = hasInputTable //
-                ? new DataTableSpec[]{computedOutputSpecs.dataSpec(), computedOutputSpecs.modelSpec()}
-                : new DataTableSpec[]{computedOutputSpecs.modelSpec()};
+        /** see {@link ColorGradientDesignerNodeParameters#validate()} for spec independent parameter validation */
+        validateParameters(parameters, inTableSpec);
 
-            out.setOutSpecs(outSpecs);
-        } catch (final CanceledExecutionException | KNIMEException e) { // NOSONAR
-            /**
-             * Both exceptions can only occur during execution when the table passed to {@link computeOutputSpecs} is
-             * not null, which is not the case during configure.
-             */
+        final var colorModelAndSpecs = computeModelWithInputSpec(parameters, inTableSpec);
+        var colorModel = colorModelAndSpecs.colorModel();
+        if (colorModel.isPercentageBased()) {
+            final var minMax = extractMinMaxFromDomain(colorModelAndSpecs.specs());
+            final var min = minMax.min();
+            final var max = minMax.max();
+            if (min != null && Double.isInfinite(min) || max != null && Double.isInfinite(max)) {
+                throw new InvalidSettingsException(String.format(
+                    "Cannot compute color gradient for selected columns, because their domain includes infinity"
+                        + " (minimum: %s, maximum: %s). Remove the affected columns or adjust their domains.",
+                    formatDouble(min), formatDouble(max)));
+            }
+            // if the previous node is not executed, no domain is available, so we cannot apply
+            if (min != null && max != null) {
+                colorModel = colorModel.applyToDomain(min, max);
+            }
         }
+        final var colorHandler = new ColorHandler(colorModel);
+        final var outputModelSpec = createOutputModelSpec(colorHandler, "Color gradient");
+        out.setOutSpecs(createOutputTableSpec(inTableSpec, colorModelAndSpecs.specs(), colorHandler), outputModelSpec);
     }
 
     static void execute(final ExecuteInput in, final ExecuteOutput out)
         throws CanceledExecutionException, KNIMEException {
         final var parameters = in.<ColorGradientDesignerNodeParameters> getParameters();
         final var inTables = in.getInTables();
-        final var hasInputTable = inTables.length > 0;
-
-        final var inTable = hasInputTable ? inTables[0] : null;
+        final var inTable = inTables.length > 0 ? inTables[0] : null;
         final var inTableSpec = inTable == null ? null : inTable.getDataTableSpec();
-
-        final var computedOutputSpecs = computeOutputSpecs(parameters, inTableSpec, inTable, in.getExecutionContext());
-
         final var exec = in.getExecutionContext();
-        final var outTableSpec = computedOutputSpecs.dataSpec();
-        final var outputModel =
-            new ColorHandlerPortObject(computedOutputSpecs.modelSpec(), computedOutputSpecs.portSummary());
 
-        if (hasInputTable) {
-            final var outputTable =
-                outTableSpec.equals(inTableSpec) ? inTable : exec.createSpecReplacerTable(inTable, outTableSpec);
-
-            out.setOutData(outputTable, outputModel);
-        } else {
+        if (inTable == null) {
+            final var outputModelSpec = computeModelSpecWithoutInputSpec(parameters);
+            final var outputModel =
+                new ColorHandlerPortObject(outputModelSpec, outputModelSpec.getColumnSpec(0).getName());
             out.setOutData(outputModel);
+            return;
         }
+
+        final var colorModelAndSpecs = computeModelWithInputSpec(parameters, inTableSpec);
+        var colorModel = colorModelAndSpecs.colorModel();
+        if (colorModelAndSpecs.colorModel().isPercentageBased()) {
+            final var domainMinMax = extractMinMaxFromDomain(colorModelAndSpecs.specs());
+            if (inTable.size() == 0 && (domainMinMax.min() == null || domainMinMax.max() == null)) {
+                throw new KNIMEException("Cannot compute color gradient for selected columns, because they do not"
+                    + " have a domain and the input table is empty.");
+            }
+            final var extractedMinMax = extractMinMaxFromTable(colorModelAndSpecs.specs, inTableSpec, inTable, exec);
+            final var combinedMinMax = combineDomainAndExtractedMinMax(extractedMinMax, domainMinMax);
+            colorModel = colorModel.applyToDomain(combinedMinMax.min(), combinedMinMax.max());
+        }
+
+        final var outputSpecs = createOutputSpecs(inTableSpec, colorModelAndSpecs.specs(), colorModel);
+        final var outTableSpec = outputSpecs.dataSpec();
+        final var outputTable =
+            outTableSpec.equals(inTableSpec) ? inTable : exec.createSpecReplacerTable(inTable, outTableSpec);
+        final var outputModel = new ColorHandlerPortObject(outputSpecs.modelSpec(), outputSpecs.portSummary());
+        out.setOutData(outputTable, outputModel);
     }
 
     private static double extractDoubleFromCell(final DataCell cell) {
         return ((DoubleValue)cell).getDoubleValue();
     }
 
-    private static OutputSpecification computeOutputSpecs(final ColorGradientDesignerNodeParameters parameters,
-        final DataTableSpec spec, final BufferedDataTable table, final ExecutionContext exec)
-        throws CanceledExecutionException, KNIMEException {
-        final var specialColors = Map.of( //
+    private static Map<SpecialColorType, Color>
+        computeSpecialColors(final ColorGradientDesignerNodeParameters parameters) {
+        return Map.of( //
             SpecialColorType.MISSING, Color.decode(parameters.m_missingValueColor), //
             SpecialColorType.NAN, Color.decode(parameters.m_nanColor), //
             SpecialColorType.NEGATIVE_INFINITY, Color.decode(parameters.m_negativeInfinityColor), //
             SpecialColorType.BELOW_MIN, Color.decode(parameters.m_belowMinColor), //
             SpecialColorType.ABOVE_MAX, Color.decode(parameters.m_aboveMaxColor), //
             SpecialColorType.POSITIVE_INFINITY, Color.decode(parameters.m_positiveInfinityColor));
+    }
 
-        if (spec == null) {
-            final ColorModel colorModel;
-            if (parameters.m_gradient == ColorGradientWrapper.CUSTOM) {
-                final var stopValues = extractStopValues(parameters);
-                final var stopColors = extractStopColors(parameters);
-                colorModel = new ColorModelRange(specialColors, stopValues, stopColors,
-                    parameters.m_valueScale == ValueScale.PERCENTAGE);
-            } else {
-                colorModel = new ColorModelRange(specialColors, parameters.m_gradient.getColorGradient());
-            }
-            final var modelSpec = computeOutputModelSpec(new ColorHandler(colorModel), "Range color handler");
-            return new OutputSpecification(null, modelSpec, null);
-        }
-
-        final var selectedColumnSpecs = getSelectedNumericColumns(parameters.m_columnFilter, spec);
-        ColorModelRange colorModel;
+    private static DataTableSpec
+        computeModelSpecWithoutInputSpec(final ColorGradientDesignerNodeParameters parameters) {
+        final var specialColors = computeSpecialColors(parameters);
+        final ColorModelRange2 colorModel;
         if (parameters.m_gradient == ColorGradientWrapper.CUSTOM) {
             final var stopValues = extractStopValues(parameters);
             final var stopColors = extractStopColors(parameters);
-            if (parameters.m_valueScale == ValueScale.ABSOLUTE) {
-                colorModel = new ColorModelRange(specialColors, stopValues, stopColors, false);
-                return createOutputSpecification(spec, selectedColumnSpecs, colorModel);
-            }
-            colorModel = new ColorModelRange(specialColors, stopValues, stopColors, true);
+            colorModel = new ColorModelRange2(specialColors, stopValues, stopColors,
+                parameters.m_valueScale == ValueScale.PERCENTAGE);
         } else {
-            colorModel = new ColorModelRange(specialColors, parameters.m_gradient.getColorGradient());
+            colorModel = new ColorModelRange2(specialColors, parameters.m_gradient.getColorGradient());
         }
+        final var colorHandler = new ColorHandler(colorModel);
+        return createOutputModelSpec(colorHandler,
+            colorModel.isPercentageBased() ? "Percentage based color gradient" : "Color gradient");
 
-        final var minMax = extractMinMaxFromDomainAndTable(selectedColumnSpecs, table, spec, exec);
-        if (minMax.length == 2) {
-            colorModel = colorModel.applyToDomain(minMax[0], minMax[1]);
-        }
-        return createOutputSpecification(spec, selectedColumnSpecs, colorModel);
     }
 
-    private static double[] extractMinMaxFromDomainAndTable(final List<DataColumnSpec> selectedColumnSpecs,
-        final BufferedDataTable table, final DataTableSpec spec, final ExecutionContext exec)
-        throws CanceledExecutionException, KNIMEException {
-        final var columnSpecsPartitionedHasDomain = selectedColumnSpecs.stream() //
-            .collect(Collectors.partitioningBy(col -> col.getDomain().hasBounds()));
+    private static ColorModelAndDependentSpecs
+        computeModelWithInputSpec(final ColorGradientDesignerNodeParameters parameters, final DataTableSpec spec) {
+        final var specialColors = computeSpecialColors(parameters);
+        final var selectedColumnSpecs = getSelectedNumericColumns(parameters.m_columnFilter, spec);
+        ColorModelRange2 colorModel;
+        if (parameters.m_gradient == ColorGradientWrapper.CUSTOM) {
+            final var stopValues = extractStopValues(parameters);
+            final var stopColors = extractStopColors(parameters);
+            colorModel = new ColorModelRange2(specialColors, stopValues, stopColors,
+                parameters.m_valueScale == ValueScale.PERCENTAGE);
+        } else {
+            colorModel = new ColorModelRange2(specialColors, parameters.m_gradient.getColorGradient());
+        }
+        return new ColorModelAndDependentSpecs(colorModel, selectedColumnSpecs);
+    }
 
-        final var domainMinimum = columnSpecsPartitionedHasDomain.get(true).stream() //
+    private static MinMax extractMinMaxFromDomain(final List<DataColumnSpec> selectedColumnSpecs) {
+        final var columnSpecsWithDomain =
+            selectedColumnSpecs.stream().filter(spec -> spec.getDomain().hasBounds()).toList();
+
+        final var domainMinimum = columnSpecsWithDomain.stream() //
             .map(DataColumnSpec::getDomain) //
             .map(domain -> extractDoubleFromCell(domain.getLowerBound())) //
             .min(Double::compare).orElse(null); //
 
-        final var domainMaximum = columnSpecsPartitionedHasDomain.get(true).stream() //
+        final var domainMaximum = columnSpecsWithDomain.stream() //
             .map(DataColumnSpec::getDomain) //
             .map(domain -> extractDoubleFromCell(domain.getUpperBound())) //
             .max(Double::compare).orElse(null); //
 
-        if ((domainMinimum != null && Double.isInfinite(domainMinimum))
-            || (domainMaximum != null && Double.isInfinite(domainMaximum))) {
-            throw new KNIMEException(String.format(
-                "Cannot compute color gradient for selected columns, because their domain"
-                    + " includes infinity (minimum: %s, maximum: %s).",
-                formatDouble(domainMinimum), formatDouble(domainMaximum)));
-        }
-
-        final var hasCommonDomain = domainMinimum != null && domainMaximum != null;
-        if (table == null) {
-            return hasCommonDomain ? new double[]{domainMinimum, domainMaximum} : new double[0];
-        }
-
-        if (table.size() == 0) {
-            if (hasCommonDomain) {
-                return new double[]{domainMinimum, domainMaximum};
-            }
-            throw new KNIMEException("Cannot compute color gradient for selected columns, because they do not"
-                + " have a domain and the input table is empty.");
-        }
-        return extractMinMaxFromTable(columnSpecsPartitionedHasDomain, domainMinimum, domainMaximum, spec, table, exec);
+        return new MinMax(domainMinimum, domainMaximum);
     }
 
-    private static double[] extractMinMaxFromTable(
-        final Map<Boolean, List<DataColumnSpec>> columnSpecsPartitionedHasDomain, final Double domainMinimum,
-        final Double domainMaximum, final DataTableSpec spec, final BufferedDataTable table,
-        final ExecutionContext exec) throws KNIMEException, CanceledExecutionException {
-        final var columnIndices = columnSpecsPartitionedHasDomain.get(false).stream() //
+    private static MinMax extractMinMaxFromTable(final List<DataColumnSpec> columnSpecs, final DataTableSpec spec,
+        final BufferedDataTable table, final ExecutionContext exec) throws KNIMEException, CanceledExecutionException {
+        final var columnIndices = columnSpecs.stream() //
+            .filter(colSpec -> !colSpec.getDomain().hasBounds()) //
             .map(DataColumnSpec::getName) //
             .mapToInt(spec::findColumnIndex).toArray();
+        if (columnIndices.length == 0) {
+            return null;
+        }
         final var extractor = new CommonMinMaxExtractor(columnIndices);
         TableExtractorUtil.extractData(table, exec, extractor);
         final var extractedMinMax = extractor.getResult();
+        return extractedMinMax == null ? null : new MinMax(extractedMinMax[0], extractedMinMax[1]);
+    }
 
+    private static MinMax combineDomainAndExtractedMinMax(final MinMax extractedMinMax, final MinMax domainMinMax)
+        throws KNIMEException {
+        final var domainMin = domainMinMax.min();
+        final var domainMax = domainMinMax.max();
         if (extractedMinMax == null) {
-            if (domainMinimum == null || domainMaximum == null) {
+            if (domainMin == null || domainMax == null) {
                 throw new KNIMEException(
                     "Cannot compute color gradient for selected columns, because they do not have a"
                         + " domain and the column values are either missing or NaN.");
             }
-            return new double[]{domainMinimum, domainMaximum};
+            return domainMinMax;
         }
 
-        final var computedMinimum = extractedMinMax[0];
-        final var minimum = domainMinimum == null ? computedMinimum : Math.min(domainMinimum, computedMinimum);
+        final var extractedMin = extractedMinMax.min();
+        final var minimum = domainMin == null ? extractedMin : Math.min(domainMin, extractedMin);
 
-        final var computedMaximum = extractedMinMax[1];
-        final var maximum = domainMaximum == null ? computedMaximum : Math.max(domainMaximum, computedMaximum);
+        final var extractedMax = extractedMinMax.max();
+        final var maximum = domainMax == null ? extractedMax : Math.max(domainMax, extractedMax);
 
         if (Double.isInfinite(minimum) || Double.isInfinite(maximum)) {
             throw new KNIMEException(String.format(
                 "Cannot compute color gradient for selected columns, because at least one column"
                     + " value is infinite (minimum: %s, maximum: %s).",
-                formatDouble(computedMinimum), formatDouble(computedMaximum)));
+                formatDouble(extractedMin), formatDouble(extractedMax)));
         }
-        return new double[]{minimum, maximum};
+        return new MinMax(minimum, maximum);
     }
 
     private static double[] extractStopValues(final ColorGradientDesignerNodeParameters parameters) {

@@ -187,7 +187,7 @@
               }
             },
             "title" : "Custom gradient",
-            "description" : "Define your own gradient using one or more color stops. Each stop consists of:",
+            "description" : "Define your own gradient using one or more color stops. Each stop consists of a value and a color.",
             "default" : [ {
               "stopValue" : 0.0,
               "color" : "#FF0000"
@@ -277,13 +277,13 @@
           "valueScale" : {
             "oneOf" : [ {
               "const" : "PERCENTAGE",
-              "title" : "Percentage (0-100%)"
+              "title" : "Percentage"
             }, {
               "const" : "ABSOLUTE",
               "title" : "Absolute values"
             } ],
             "title" : "Value scale",
-            "description" : "Select how values should be scaled across the gradient range:\n<ul>\n<li><b>Percentage (0-100%)</b>: Map values based on normalized percentage from 0% (minimum) to 100% (maximum).</li>\n<li><b>Absolute values</b>: Map values based on their actual numeric values without normalization.</li>\n</ul>",
+            "description" : "Select how values should be scaled across the gradient range:\n<ul>\n<li><b>Percentage</b>: Map values based on normalized percentage from 0% (minimum) to 100% (maximum). If the node has an input port, during execution, the joint domain of the selected columns will be used to transform the scale into an absolute scale.</li>\n<li><b>Absolute values</b>: Map values based on their actual numeric values without normalization.</li>\n</ul>",
             "default" : "PERCENTAGE"
           }
         }

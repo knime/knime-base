@@ -49,6 +49,7 @@
 package org.knime.base.node.viz.property.color;
 
 import java.awt.Color;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
@@ -152,7 +153,8 @@ final class ColorGradientDesignerNodeParameters implements NodeParameters {
     ValueScale m_valueScale = ValueScale.PERCENTAGE;
 
     @Widget(title = "Custom gradient",
-        description = "Define your own gradient using one or more color stops. Each stop consists of:")
+        description = "Define your own gradient using one or more color stops."
+            + " Each stop consists of a value and a color.")
     @ArrayWidget(addButtonText = "Add color", elementLayout = ElementLayout.HORIZONTAL_SINGLE_LINE,
         showSortButtons = true)
     @Effect(predicate = IsCustomGradient.class, type = EffectType.SHOW)
@@ -197,8 +199,10 @@ final class ColorGradientDesignerNodeParameters implements NodeParameters {
     String m_positiveInfinityColor = "#DD691B";
 
     enum ValueScale {
-            @Label(value = "Percentage (0-100%)",
-                description = "Map values based on normalized percentage from 0% (minimum) to 100% (maximum).")
+            @Label(value = "Percentage",
+                description = "Map values based on normalized percentage from 0% (minimum) to 100% (maximum). If"
+                    + " the node has an input port, during execution, the joint domain of the selected columns will be"
+                    + " used to transform the scale into an absolute scale.")
             PERCENTAGE,
 
             @Label(value = "Absolute values",
@@ -341,7 +345,12 @@ final class ColorGradientDesignerNodeParameters implements NodeParameters {
             CheckUtils.check(
                 IntStream.range(1, m_customGradient.length)
                     .allMatch(i -> m_customGradient[i - 1].m_stopValue <= m_customGradient[i].m_stopValue),
-                IllegalArgumentException::new, () -> "Stop values must be sorted in non-decreasing order.");
+                InvalidSettingsException::new, () -> "Stop values must be sorted in non-decreasing order.");
+            if (m_valueScale == ValueScale.PERCENTAGE) {
+                CheckUtils.check(
+                    Arrays.stream(m_customGradient).map(svc -> svc.m_stopValue).allMatch(v -> v >= 0 && v <= 100),
+                    InvalidSettingsException::new, () -> "Stop values must be in the range [0, 100].");
+            }
         }
 
         throwOnInvalidColor(m_missingValueColor,

@@ -47,8 +47,6 @@
 package org.knime.base.node.viz.property.color;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.knime.base.node.viz.property.color.ColorDesignerTestHelper.TestExecuteInput;
-import static org.knime.base.node.viz.property.color.ColorDesignerTestHelper.TestExecuteOutput;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -60,21 +58,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.knime.base.node.viz.property.color.ColorDesignerTestHelper.TestExecuteInput;
+import org.knime.base.node.viz.property.color.ColorDesignerTestHelper.TestExecuteOutput;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.BufferedDataTable;
-import org.knime.core.node.ExecutionContext;
-import org.knime.core.node.context.ports.PortsConfiguration;
-import org.knime.core.node.port.PortObject;
-import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.viewproperty.ColorHandlerPortObject;
-import org.knime.node.DefaultModel.ExecuteInput;
-import org.knime.node.DefaultModel.ExecuteOutput;
-import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
-import org.mockito.ArgumentMatchers;
-import org.mockito.Mockito;
 
 @SuppressWarnings("static-method")
 final class ColorPaletteDesignerNodeFactoryExecuteTest {

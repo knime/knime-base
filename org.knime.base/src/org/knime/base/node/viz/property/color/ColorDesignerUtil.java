@@ -72,7 +72,7 @@ final class ColorDesignerUtil {
     record OutputSpecification(DataTableSpec dataSpec, DataTableSpec modelSpec, String portSummary) {
     }
 
-    static DataTableSpec computeOutputModelSpec(final ColorHandler colorHandler, final String columnName) {
+    static DataTableSpec createOutputModelSpec(final ColorHandler colorHandler, final String columnName) {
         final var modelSpecCreator = new DataTableSpecCreator();
         final var columnSpecCreator = new DataColumnSpecCreator(columnName, StringCell.TYPE);
         columnSpecCreator.setColorHandler(colorHandler);
@@ -81,11 +81,8 @@ final class ColorDesignerUtil {
         return modelSpecCreator.createSpec();
     }
 
-    static OutputSpecification createOutputSpecification(final DataTableSpec spec,
-        final List<DataColumnSpec> selectedColumnSpecs, final ColorModel colorModel) {
-        final var colorHandler = new ColorHandler(colorModel);
-        final var outputModelSpec = computeOutputModelSpec(colorHandler, "Column values color handler");
-
+    static DataTableSpec createOutputTableSpec(final DataTableSpec spec, final List<DataColumnSpec> selectedColumnSpecs,
+        final ColorHandler colorHandler) {
         final var tableSpecCreator = new DataTableSpecCreator(spec);
         selectedColumnSpecs.stream().forEach(columnSpec -> {
             final var columnSpecCreator = new DataColumnSpecCreator(columnSpec);
@@ -95,8 +92,15 @@ final class ColorDesignerUtil {
             final var outputColumnSpec = columnSpecCreator.createSpec();
             tableSpecCreator.replaceColumn(colIndex, outputColumnSpec);
         });
+        return tableSpecCreator.createSpec();
+    }
+
+    static OutputSpecification createOutputSpecs(final DataTableSpec spec,
+        final List<DataColumnSpec> selectedColumnSpecs, final ColorModel colorModel) {
+        final var colorHandler = new ColorHandler(colorModel);
+        final var outputModelSpec = createOutputModelSpec(colorHandler, "Color handler");
+        final var outputTableSpec = createOutputTableSpec(spec, selectedColumnSpecs, colorHandler);
         final var portSummary = createPortSummary(selectedColumnSpecs);
-        final var outputTableSpec = tableSpecCreator.createSpec();
         return new OutputSpecification(outputTableSpec, outputModelSpec, portSummary);
     }
 

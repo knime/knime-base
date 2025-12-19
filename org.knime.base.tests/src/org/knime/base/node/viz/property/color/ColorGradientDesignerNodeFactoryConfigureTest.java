@@ -47,6 +47,7 @@
 package org.knime.base.node.viz.property.color;
 
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.knime.base.node.viz.property.color.TestHelper.NUMERIC_COLUMNS_WITHOUT_DOMAIN;
@@ -62,10 +63,11 @@ import org.knime.base.node.viz.property.color.ColorDesignerTestHelper.TestConfig
 import org.knime.base.node.viz.property.color.ColorGradientDesignerNodeParameters.ColorGradientWrapper;
 import org.knime.base.node.viz.property.color.ColorGradientDesignerNodeParameters.ValueScale;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.property.ColorModelRange;
-import org.knime.core.data.property.ColorModelRange.SpecialColorType;
+import org.knime.core.data.property.ColorModelRange2;
+import org.knime.core.data.property.ColorModelRange2.SpecialColorType;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
+import org.knime.testing.util.TableTestUtil;
 
 /**
  * Tests for {@link ColorGradientDesignerNodeFactory#configure}.
@@ -75,7 +77,7 @@ import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
 @SuppressWarnings("static-method")
 final class ColorGradientDesignerNodeFactoryConfigureTest {
 
-    private static Map<SpecialColorType, Color>
+    static Map<SpecialColorType, Color>
         createSpecialColors(final ColorGradientDesignerNodeParameters parameters) {
         return Map.of(//
             SpecialColorType.MISSING, Color.decode(parameters.m_missingValueColor), //
@@ -117,9 +119,35 @@ final class ColorGradientDesignerNodeFactoryConfigureTest {
     }
 
     @Test
+    void testConfigureThrowsWhenPercentageStopsAndDomainMinimumIsNegativeInfinity() {
+        final var parameters = new ColorGradientDesignerNodeParameters();
+        parameters.m_columnFilter = new ColumnFilter(new String[]{"Double Column 1"});
+        final var tableSpec = new DataTableSpec(
+            TableTestUtil.createColumnSpecWithDomain(Double.NEGATIVE_INFINITY, 50.0, "Double Column 1"));
+        final var configureInput = new TestConfigureInput(parameters, new DataTableSpec[]{tableSpec});
+        final var configureOutput = new TestConfigureOutput();
+        final var exception = assertThrows(InvalidSettingsException.class,
+            () -> ColorGradientDesignerNodeFactory.configure(configureInput, configureOutput));
+        assertTrue(exception.getMessage().contains("because their domain includes infinity"));
+    }
+
+    @Test
+    void testExecuteThrowsWhenPercentageStopsAndDomainMaximumIsPositiveInfinity() {
+        final var parameters = new ColorGradientDesignerNodeParameters();
+        parameters.m_columnFilter = new ColumnFilter(new String[]{"Double Column 1"});
+        final var tableSpec =
+            new DataTableSpec(TableTestUtil.createColumnSpecWithDomain(0, Double.POSITIVE_INFINITY, "Double Column 1"));
+        final var configureInput = new TestConfigureInput(parameters, new DataTableSpec[]{tableSpec});
+        final var configureOutput = new TestConfigureOutput();
+        final var exception = assertThrows(InvalidSettingsException.class,
+            () -> ColorGradientDesignerNodeFactory.configure(configureInput, configureOutput));
+        assertTrue(exception.getMessage().contains("because their domain includes infinity"));
+    }
+
+    @Test
     void testConfigureWithoutInputTablePortAndCustomPercentageGradient() throws InvalidSettingsException {
         final var parameters = new ColorGradientDesignerNodeParameters();
-        final var expectedColorModel = new ColorModelRange(createSpecialColors(parameters),
+        final var expectedColorModel = new ColorModelRange2(createSpecialColors(parameters),
             createStopValues(parameters), createStopColors(parameters), true);
         assertColorModelWithoutInputTable(parameters, expectedColorModel);
     }
@@ -128,7 +156,7 @@ final class ColorGradientDesignerNodeFactoryConfigureTest {
     void testConfigureWithoutInputTablePortAndCustomAbsoluteGradient() throws InvalidSettingsException {
         final var parameters = new ColorGradientDesignerNodeParameters();
         parameters.m_valueScale = ValueScale.ABSOLUTE;
-        final var expectedColorModel = new ColorModelRange(createSpecialColors(parameters),
+        final var expectedColorModel = new ColorModelRange2(createSpecialColors(parameters),
             createStopValues(parameters), createStopColors(parameters), false);
         assertColorModelWithoutInputTable(parameters, expectedColorModel);
     }
@@ -138,12 +166,12 @@ final class ColorGradientDesignerNodeFactoryConfigureTest {
         final var parameters = new ColorGradientDesignerNodeParameters();
         parameters.m_gradient = ColorGradientWrapper.VIRIDIS;
         final var expectedColorModel =
-            new ColorModelRange(createSpecialColors(parameters), ColorGradientWrapper.VIRIDIS.getColorGradient());
+            new ColorModelRange2(createSpecialColors(parameters), ColorGradientWrapper.VIRIDIS.getColorGradient());
         assertColorModelWithoutInputTable(parameters, expectedColorModel);
     }
 
     private static void assertColorModelWithoutInputTable(final ColorGradientDesignerNodeParameters parameters,
-        final ColorModelRange expectedColorModel) throws InvalidSettingsException {
+        final ColorModelRange2 expectedColorModel) throws InvalidSettingsException {
         final var configureInput = new TestConfigureInput(parameters, new DataTableSpec[0]);
         final var configureOutput = new TestConfigureOutput();
 
@@ -160,7 +188,7 @@ final class ColorGradientDesignerNodeFactoryConfigureTest {
         final var selectedColumns = NUMERIC_COLUMNS_WITHOUT_DOMAIN;
         final var parameters = new ColorGradientDesignerNodeParameters();
         parameters.m_columnFilter = new ColumnFilter(selectedColumns);
-        final var expectedColorModel = new ColorModelRange(createSpecialColors(parameters),
+        final var expectedColorModel = new ColorModelRange2(createSpecialColors(parameters),
             createStopValues(parameters), createStopColors(parameters), true);
         assertColorModelWithInputTable(parameters, expectedColorModel, selectedColumns);
     }
@@ -172,7 +200,7 @@ final class ColorGradientDesignerNodeFactoryConfigureTest {
         parameters.m_valueScale = ValueScale.ABSOLUTE;
         parameters.m_columnFilter = new ColumnFilter(selectedColumns);
 
-        final var expectedColorModel = new ColorModelRange(createSpecialColors(parameters),
+        final var expectedColorModel = new ColorModelRange2(createSpecialColors(parameters),
             createStopValues(parameters), createStopColors(parameters), false);
         assertColorModelWithInputTable(parameters, expectedColorModel, selectedColumns);
     }
@@ -184,7 +212,7 @@ final class ColorGradientDesignerNodeFactoryConfigureTest {
         parameters.m_gradient = ColorGradientWrapper.MATPLOTLIB_TWILIGHT;
         parameters.m_columnFilter = new ColumnFilter(selectedColumns);
 
-        final var expectedColorModel = new ColorModelRange(createSpecialColors(parameters),
+        final var expectedColorModel = new ColorModelRange2(createSpecialColors(parameters),
             ColorGradientWrapper.MATPLOTLIB_TWILIGHT.getColorGradient());
         assertColorModelWithInputTable(parameters, expectedColorModel, selectedColumns);
     }
@@ -194,7 +222,7 @@ final class ColorGradientDesignerNodeFactoryConfigureTest {
         final var selectedColumns = new String[]{NUMERIC_COLUMNS_WITH_DOMAIN[0]};
         final var parameters = new ColorGradientDesignerNodeParameters();
         parameters.m_columnFilter = new ColumnFilter(selectedColumns);
-        final var expectedColorModel = new ColorModelRange(createSpecialColors(parameters), new double[]{0, 50},
+        final var expectedColorModel = new ColorModelRange2(createSpecialColors(parameters), new double[]{0, 50},
             createStopColors(parameters), false);
         assertColorModelWithInputTable(parameters, expectedColorModel, selectedColumns);
     }
@@ -206,7 +234,7 @@ final class ColorGradientDesignerNodeFactoryConfigureTest {
         parameters.m_valueScale = ValueScale.ABSOLUTE;
         parameters.m_columnFilter = new ColumnFilter(selectedColumns);
 
-        final var expectedColorModel = new ColorModelRange(createSpecialColors(parameters),
+        final var expectedColorModel = new ColorModelRange2(createSpecialColors(parameters),
             createStopValues(parameters), createStopColors(parameters), false);
         assertColorModelWithInputTable(parameters, expectedColorModel, selectedColumns);
     }
@@ -218,7 +246,7 @@ final class ColorGradientDesignerNodeFactoryConfigureTest {
         parameters.m_gradient = ColorGradientWrapper.PURPLE_ORANGE_5;
         parameters.m_columnFilter = new ColumnFilter(selectedColumns);
 
-        final var expectedColorModel = new ColorModelRange(createSpecialColors(parameters),
+        final var expectedColorModel = new ColorModelRange2(createSpecialColors(parameters),
             ColorGradientWrapper.PURPLE_ORANGE_5.getColorGradient()).applyToDomain(-50, 25);
         assertColorModelWithInputTable(parameters, expectedColorModel, selectedColumns);
     }
@@ -230,14 +258,14 @@ final class ColorGradientDesignerNodeFactoryConfigureTest {
         parameters.m_gradient = ColorGradientWrapper.PURPLE_ORANGE_5;
         parameters.m_columnFilter = new ColumnFilter(selectedColumns);
 
-        final var expectedColorModel = new ColorModelRange(createSpecialColors(parameters),
+        final var expectedColorModel = new ColorModelRange2(createSpecialColors(parameters),
             // uses combined domains of both columns (1. 0<->50 2. -50<->25 Result: -50<->50
             ColorGradientWrapper.PURPLE_ORANGE_5.getColorGradient()).applyToDomain(-50, 50);
         assertColorModelWithInputTable(parameters, expectedColorModel, selectedColumns);
     }
 
     private static void assertColorModelWithInputTable(final ColorGradientDesignerNodeParameters parameters,
-        final ColorModelRange expectedColorModel, final String[] columnsWithColorModel)
+        final ColorModelRange2 expectedColorModel, final String[] columnsWithColorModel)
         throws InvalidSettingsException {
         final var testTableSpec = TestHelper.createNumericTestTableSpec();
         final var configureInput = new TestConfigureInput(parameters, new DataTableSpec[]{testTableSpec});

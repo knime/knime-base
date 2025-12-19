@@ -48,8 +48,8 @@
  */
 package org.knime.base.node.viz.property.color;
 
-import static org.knime.base.node.viz.property.color.ColorDesignerUtil.computeOutputModelSpec;
-import static org.knime.base.node.viz.property.color.ColorDesignerUtil.createOutputSpecification;
+import static org.knime.base.node.viz.property.color.ColorDesignerUtil.createOutputModelSpec;
+import static org.knime.base.node.viz.property.color.ColorDesignerUtil.createOutputSpecs;
 
 import java.awt.Color;
 import java.util.Arrays;
@@ -223,7 +223,7 @@ public final class ColorPaletteDesignerNodeFactory extends DefaultNodeFactory {
 
         if (spec == null) {
             final var colorModel = createColorModelForValues(assignedColors, colorPalette, List.of());
-            final var modelSpec = computeOutputModelSpec(new ColorHandler(colorModel), "Color handler");
+            final var modelSpec = createOutputModelSpec(new ColorHandler(colorModel), "Color handler");
             return new OutputSpecification(null, modelSpec, null);
         }
 
@@ -245,7 +245,7 @@ public final class ColorPaletteDesignerNodeFactory extends DefaultNodeFactory {
             .toList();
 
         final var colorModel = createColorModelForValues(assignedColors, colorPalette, domainValues);
-        return createOutputSpecification(spec, selectedColumnSpecsWithDomain, colorModel);
+        return createOutputSpecs(spec, selectedColumnSpecsWithDomain, colorModel);
     }
 
     private static OutputSpecification computeOutputSpecsForColumnNameColoring(final DataTableSpec spec,
