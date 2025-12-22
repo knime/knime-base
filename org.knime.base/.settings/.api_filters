@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<component id="org.knime.base" version="2">
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.base.data.aggregation.AggregationOperatorParameters">
+        <filter comment="Renamed (non-)API class" id="305324134">
+            <message_arguments>
+                <message_argument value="org.knime.base.data.aggregation.AggregationOperatorParameters"/>
+                <message_argument value="org.knime.base_5.10.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/data/aggregation/AggregationFunctionParameters.java" type="org.knime.base.data.aggregation.AggregationFunctionParameters">
+        <filter comment="our own API" id="576720909">
+            <message_arguments>
+                <message_argument value="DynamicNodeParameters"/>
+                <message_argument value="AggregationFunctionParameters"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/org/knime/base/data/aggregation/general/ColumnSelectorOperator.java" type="org.knime.base.data.aggregation.general.ColumnSelectorOperator$ColumnSelectorOperatorParameters">
+        <filter comment="Rename in pending API" id="337682486">
+            <message_arguments>
+                <message_argument value="org.knime.base.data.aggregation.general.ColumnSelectorOperator.ColumnSelectorOperatorParameters"/>
+                <message_argument value="org.knime.base.data.aggregation.AggregationOperatorParameters"/>
+            </message_arguments>
+        </filter>
+    </resource>
+</component>
