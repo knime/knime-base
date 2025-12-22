@@ -318,6 +318,8 @@ public abstract class ColumnSelectorOperator extends AggregationOperator {
      * to set the UI of the column selection.
      *
      * @since 5.10
+     * @noreference pending API
+     * @noimplement pending API
      */
     @SuppressWarnings("restriction")
     public static class ColumnSelectorOperatorParameters implements AggregationFunctionParameters {
