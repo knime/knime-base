@@ -46,18 +46,19 @@
  * History
  *   20 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.groupby.common;
+package org.knime.base.data.aggregation;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Supplier;
 
-import org.knime.base.data.aggregation.AggregationMethods;
-import org.knime.base.data.aggregation.AggregationOperatorParameters;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.port.database.aggregation.AggregationFunction;
 import org.knime.core.webui.node.dialog.FallbackDialogNodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.ClassIdStrategy;
@@ -68,27 +69,79 @@ import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.updates.ParameterReference;
 
 /**
- * Provider for aggregation operator parameters (aka optional parameters), which depend on the selected aggregation
- * method and currently present operator parameters.
+ * Provider for aggregation operator parameters (aka optional parameters), which depend on the
+ * selected aggregation method and currently present operator parameters.
  *
- * In case no default dialog is registered via the extension point, the fallback dialog is shown.
+ * In case no default dialog is registered via the extension point, a fallback dialog is shown.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ * @since 5.10
  */
 @SuppressWarnings({"restriction"})
-public abstract class AggregationOperatorParametersProvider
+public abstract class AggregationFunctionParametersProvider<F extends AggregationFunction>
     implements DynamicParameters.DynamicParametersWithFallbackProvider<AggregationOperatorParameters> {
 
-    private static final NodeLogger LOGGER = NodeLogger.getLogger(AggregationOperatorParametersProvider.class);
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(AggregationFunctionParametersProvider.class);
 
-    private Supplier<AggregationOperatorParameters> m_optionalParametersSupplier;
+    private Supplier<? extends AggregationOperatorParameters> m_optionalParametersSupplier;
 
     private Supplier<String> m_aggregationMethodSupplier;
 
-    protected abstract Class<? extends ParameterReference<AggregationOperatorParameters>> getParameterRefClass();
+    protected final Optional<F> lookupById(final AggFunctions<F> functions, final String id) {
+        return functions.lookupById(id);
+    }
 
+    protected final Optional<AggFunction> lookupFunctionById(final AggFunctions<F> functions, final String id) {
+        return functions.lookupFunctionById(id);
+    }
+
+    protected final Optional<Class<? extends AggregationOperatorParameters>>
+        lookupParametersForId(final AggFunctions<F> functions, final String id) {
+        return functions.lookupFunctionById(id).flatMap(functions::lookupParametersForFunction);
+    }
+
+    /**
+     * Gets the function utility to use for looking up aggregation functions and parameter classes.
+     *
+     * @param parametersInput node parameters input
+     * @return utility for aggregation functions and parameter classes
+     */
+    protected abstract AggFunctions<F> getFunctionUtility(final NodeParametersInput parametersInput);
+
+    /**
+     * Gets the reference to use for optional aggregation parameters.
+     *
+     * @return the reference for optional aggregation parameters
+     */
+    protected abstract Class<? extends ParameterReference<? extends AggregationOperatorParameters>>
+        getParameterRefClass();
+
+    /**
+     * Gets the reference to use for the selected aggregation method.
+     *
+     * @return the reference for the selected aggregation method
+     */
     protected abstract Class<? extends AggregationMethodRef> getMethodParameterRefClass();
 
+    /**
+     * Gets all aggregation function parameter classes (without the "fallback" class).
+     *
+     * @return all aggregation function parameter classes
+     */
+    protected abstract Collection<Class<? extends AggregationOperatorParameters>> getAllParameterClasses();
+
+    /**
+     * Gets the default key under which optional function settings are stored.
+     *
+     * @return the non-{@code null} default key for optional function settings
+     */
+    public String getFunctionSettingsKey() {
+        return "functionSettings";
+    }
+
+    /**
+     * Marker type for aggregation method references.
+     */
     public interface AggregationMethodRef extends ParameterReference<String> {
     } //
 
@@ -102,8 +155,8 @@ public abstract class AggregationOperatorParametersProvider
     @Override
     public final ClassIdStrategy<AggregationOperatorParameters> getClassIdStrategy() {
         final List<Class<? extends AggregationOperatorParameters>> allClasses = new ArrayList<>();
-        allClasses.add(LegacyAggregationOperatorParameters.class);
-        allClasses.addAll(AggregationMethods.getAllParameterClasses());
+        allClasses.add(FallbackAggregationOperatorParameters.class);
+        allClasses.addAll(getAllParameterClasses());
         return new DefaultClassIdStrategy<>(allClasses);
     }
 
@@ -115,18 +168,20 @@ public abstract class AggregationOperatorParametersProvider
             // no method selected yet, abort update
             throw new StateComputationFailureException();
         }
-        final var method = AggregationMethods.getMethod4Id(currentMethod);
-        if (method == null) {
+        final var functions = getFunctionUtility(parametersInput);
+        final var methodOpt = lookupFunctionById(functions, currentMethod);
+        if (methodOpt.isEmpty()) {
             LOGGER.warn("Unknown aggregation method: " + currentMethod);
             throw new StateComputationFailureException();
         }
+        final var method = methodOpt.get();
         if (!method.hasOptionalSettings()) {
             throw new StateComputationFailureException();
         }
 
         final var currentValue = m_optionalParametersSupplier.get();
 
-        final var paramClass = AggregationMethods.getInstance().getParametersClassFor(method.getId()).orElse(null);
+        final var paramClass = lookupParametersForId(functions, method.id()).orElse(null);
         if (paramClass != null && currentValue != null && paramClass.isInstance(currentValue)) {
             return currentValue;
         } else if (paramClass != null) {
@@ -139,27 +194,49 @@ public abstract class AggregationOperatorParametersProvider
             }
         }
 
-        if (currentValue instanceof LegacyAggregationOperatorParameters legacy) {
-            final var paramSettings = legacy.getNodeSettings();
+        return createFallbackParameters(functions, currentMethod, currentValue);
+    }
+
+    /**
+     * Creates legacy parameters in case no parameter class is registered for the selected aggregation method.
+     *
+     * @param functions
+     *
+     * @param functionId the ID of the selected aggregation function
+     * @param functions the aggregation function utility
+     * @param currentParameters the currently present, {@code null}able aggregation function parameters, if any
+     * @return the created fallback parameters
+     * @throws StateComputationFailureException
+     */
+    private final AggregationOperatorParameters createFallbackParameters(
+        final AggFunctions<F> functions,
+        final String functionId, final AggregationOperatorParameters currentValue)
+        throws StateComputationFailureException {
+        final F method = lookupById(functions, functionId).orElseThrow(StateComputationFailureException::new);
+
+        // try to re-use the settings from existing fallback parameters
+        if (currentValue instanceof FallbackAggregationOperatorParameters fallbackParams) {
+            final var paramSettings = fallbackParams.getNodeSettings();
             try {
                 method.validateSettings(paramSettings);
                 method.loadValidatedSettings(paramSettings);
-                return new LegacyAggregationOperatorParameters(paramSettings);
+                return fallbackParams;
             } catch (final InvalidSettingsException e) { // NOSONAR best-effort
                 // fall-through: cannot re-use settings
             }
         }
 
-        final var settings = new NodeSettings("extracted model settings");
-        method.saveSettingsTo(settings);
-        return new LegacyAggregationOperatorParameters(settings);
+        // cannot re-use existing settings, we need to create new ones based on the defaults from the method
+//        final var settings = new NodeSettings("extracted model settings");
+//        method.saveSettingsTo(settings);
+        return FallbackAggregationOperatorParameters.withInitial(getFunctionSettingsKey(), method::saveSettingsTo);
     }
 
     @Override
     public final NodeSettings computeFallbackSettings(final NodeParametersInput parametersInput)
-        throws StateComputationFailureException {
+            throws StateComputationFailureException {
         final var params = computeParameters(parametersInput);
-        if (params instanceof LegacyAggregationOperatorParameters legacy) {
+        if (params instanceof FallbackAggregationOperatorParameters legacy) {
             return legacy.getNodeSettings();
         }
         // no fallback "dialog" needed (no operator parameters or new parameters based)
@@ -168,6 +245,6 @@ public abstract class AggregationOperatorParametersProvider
 
     @Override
     public final FallbackDialogNodeParameters getParametersFromFallback(final NodeSettingsRO fallbackSettings) {
-        return new LegacyAggregationOperatorParameters(fallbackSettings);
+        return new FallbackAggregationOperatorParameters(getFunctionSettingsKey(), fallbackSettings);
     }
 }

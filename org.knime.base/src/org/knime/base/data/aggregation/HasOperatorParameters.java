@@ -44,20 +44,59 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   27 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   20 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.base.data.aggregation;
 
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
+import java.util.Optional;
+import java.util.function.Supplier;
+
+import org.knime.base.data.aggregation.AggregationFunctionParametersProvider.AggregationMethodRef;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.updates.StateProvider;
 
 /**
- * Common interface to define optional parameters for aggregation functions.
+ * Indicator that the selected aggregation method has optional settings.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  *
  * @since 5.10
  */
-@SuppressWarnings("restriction") // webui
-public interface AggregationOperatorParameters extends DynamicParameters.DynamicNodeParameters {
+@SuppressWarnings("restriction")
+public abstract class HasOperatorParameters implements StateProvider<Boolean> {
+
+    private Supplier<String> m_agg;
+
+    /**
+     * Gets the class of the {@link AggregationMethodRef} to use.
+     *
+     * @return the class of the {@link AggregationMethodRef} to use
+     */
+    protected abstract Class<? extends AggregationMethodRef> getAggregationMethodRefClass();
+
+    /**
+     * Looks up an aggregation function by its ID to determine if it has optional parameters.
+     * @param in the node parameters input
+     * @param id the ID of the aggregation function
+     * @return the aggregation function, or {@link Optional#empty()} if no such function exists
+     */
+    protected abstract Optional<AggFunction> lookupFunctionById(NodeParametersInput in, String id);
+
+    @Override
+    public final void init(final StateProviderInitializer init) {
+        init.computeBeforeOpenDialog();
+        m_agg = init.computeFromValueSupplier(getAggregationMethodRefClass());
+    }
+
+    @Override
+    public final Boolean computeState(final NodeParametersInput in) throws StateComputationFailureException {
+        final var id = m_agg.get();
+        if (id == null) {
+            throw new StateComputationFailureException();
+        }
+        // unknown aggregation function has no optional settings
+        return lookupFunctionById(in, id).map(AggFunction::hasOptionalSettings).orElse(false);
+    }
 
 }

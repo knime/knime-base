@@ -26,7 +26,7 @@
  *  you the additional permission to use and propagate KNIME together with
  *  ECLIPSE with only the license terms in place for ECLIPSE applying to
  *  ECLIPSE and the GNU GPL Version 3 applying for KNIME, provided the
- *  license terms of KNIME themselves allow for the respective use and
+ *  license terms of ECLIPSE themselves allow for the respective use and
  *  propagation of ECLIPSE together with KNIME.
  *
  *  Additional permission relating to nodes for KNIME that extend the Node
@@ -41,7 +41,38 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * ------------------------------------------------------------------------
+ * ---------------------------------------------------------------------
+ *
+ * History
+ *   16 Dec 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
+package org.knime.base.node.preproc.groupby.common;
 
-package org.knime.base.node.preproc.groupby;
+import java.util.Collection;
+
+import org.knime.base.data.aggregation.AggFunctions;
+import org.knime.base.data.aggregation.AggregationOperatorParameters;
+import org.knime.base.data.aggregation.AggregationFunctionParametersProvider;
+import org.knime.base.data.aggregation.AggregationMethod;
+import org.knime.base.data.aggregation.AggregationMethods;
+import org.knime.node.parameters.NodeParametersInput;
+
+/**
+ * Provider for function parameters of native (i.e. non-DB) aggregation methods.
+ *
+ * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ */
+public abstract class AggregationMethodParametersProvider
+    extends AggregationFunctionParametersProvider<AggregationMethod> {
+
+    @Override
+    protected final AggFunctions<AggregationMethod> getFunctionUtility(final NodeParametersInput parametersInput) {
+        return new AggFunctions<>(AggregationMethods.getInstance(),
+            fun -> AggregationMethods.getInstance().getParametersClassFor(fun.id()));
+    }
+
+    @Override
+    protected final Collection<Class<? extends AggregationOperatorParameters>> getAllParameterClasses() {
+        return AggregationMethods.getAllParameterClasses();
+    }
+}

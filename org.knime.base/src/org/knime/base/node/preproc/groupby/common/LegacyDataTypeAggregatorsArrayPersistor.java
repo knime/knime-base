@@ -51,8 +51,9 @@ package org.knime.base.node.preproc.groupby.common;
 import java.util.Comparator;
 import java.util.List;
 
-import org.knime.base.data.aggregation.AggregationMethods;
 import org.knime.base.data.aggregation.AggregationOperatorParameters;
+import org.knime.base.data.aggregation.AggregationMethods;
+import org.knime.base.data.aggregation.FallbackAggregationOperatorParameters;
 import org.knime.base.data.aggregation.dialogutil.type.DataTypeAggregator;
 import org.knime.base.node.preproc.groupby.common.LegacyDataTypeAggregatorsArrayPersistor.DataTypeAggregatorElementDTO;
 import org.knime.base.node.preproc.groupby.common.LegacyDataTypeAggregatorsArrayPersistor.IndexedElement;
@@ -67,7 +68,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.Array
 import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.ElementFieldPersistor;
 
 /**
- * Persistor for legacy data type aggregators array.
+ * Persistor for legacy data type aggregators array in the GroupBy, Pivot, and Column Aggregator nodes.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
@@ -145,6 +146,8 @@ public final class LegacyDataTypeAggregatorsArrayPersistor
     static final class OperatorParametersPersistor
         implements ElementFieldPersistor<AggregationOperatorParameters, IndexedElement, DataTypeAggregatorElementDTO> {
 
+        static final String CFG_FUNCTION_SETTINGS = "functionSettings";
+
         @Override
         public AggregationOperatorParameters load(final NodeSettingsRO nodeSettings, final IndexedElement loadContext)
             throws InvalidSettingsException {
@@ -155,12 +158,12 @@ public final class LegacyDataTypeAggregatorsArrayPersistor
             final var cfg = nodeSettings //
                 .getNodeSettings(CFG_DATA_TYPE_AGGREGATORS) //
                 .getNodeSettings("f_" + loadContext.m_index) //
-                .getNodeSettings("functionSettings");
+                .getNodeSettings(CFG_FUNCTION_SETTINGS);
             final var paramClass = AggregationMethods.getInstance().getParametersClassFor(aggr.getId()).orElse(null);
             if (paramClass != null) {
                 return NodeParametersUtil.loadSettings(cfg, paramClass);
             }
-            return new LegacyAggregationOperatorParameters(cfg);
+            return new FallbackAggregationOperatorParameters(CFG_FUNCTION_SETTINGS, cfg);
         }
 
         @Override
@@ -247,7 +250,7 @@ public final class LegacyDataTypeAggregatorsArrayPersistor
         final var params = elem.m_parameters;
         if (params != null) {
             final NodeSettings functionSettings;
-            if (elem.m_parameters instanceof LegacyAggregationOperatorParameters legacyParams) {
+            if (elem.m_parameters instanceof FallbackAggregationOperatorParameters legacyParams) {
                 // the fallback just wraps
                 functionSettings = legacyParams.getNodeSettings();
             } else {

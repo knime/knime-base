@@ -44,20 +44,39 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   27 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   15 Dec 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.base.data.aggregation;
 
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
+import org.knime.core.node.NodeSettingsRO;
 
 /**
- * Common interface to define optional parameters for aggregation functions.
+ * Abstraction for an aggregation function used in an aggregation node (GroupBy, Pivot, ...).
+ *
+ * It contains enough information to persist and reconstruct the function and is generic enough to be used in the base
+ * aggregation and DB aggregation nodes.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  *
+ * @param id aggregation function/method ID
+ * @param label user-facing label
+ * @param hasOptionalSettings indicates whether the function has optional settings
+ * @param optionalSettings the function's current optional settings, or {@code null} if the function has no settings
+ *            (either not at all or currently none)
  * @since 5.10
  */
-@SuppressWarnings("restriction") // webui
-public interface AggregationOperatorParameters extends DynamicParameters.DynamicNodeParameters {
+// this exists because the `AggregationFunction` interface is in core and core cannot depend on core-ui
+// (for the aggregation parameters class)
+public record AggFunction(String id, String label, boolean hasOptionalSettings, NodeSettingsRO optionalSettings) {
 
+    /**
+     * Creates a new aggregation function without optional settings.
+     *
+     * @param id aggregation function/method ID
+     * @param label user-facing label
+     * @param hasOptionalSettings indicates whether the function has optional settings
+     */
+    public AggFunction(final String id, final String label, final boolean hasOptionalSettings) {
+        this(id, label, hasOptionalSettings, null);
+    }
 }

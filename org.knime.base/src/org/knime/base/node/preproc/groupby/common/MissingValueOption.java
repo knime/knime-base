@@ -48,10 +48,12 @@
  */
 package org.knime.base.node.preproc.groupby.common;
 
+import java.util.Optional;
 import java.util.function.Supplier;
 
-import org.knime.base.data.aggregation.AggregationMethods;
+import org.knime.base.data.aggregation.AggregationMethod;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.ArrayPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.StateProvider;
@@ -101,6 +103,14 @@ public enum MissingValueOption {
 
         protected abstract Class<? extends ParameterReference<String>> getMethodReference();
 
+        /**
+         * Looks up the aggregation method by its ID.
+         *
+         * @param id the ID of the aggregation method
+         * @return the aggregation method, or an {@link Optional#empty()} if not found under the given id
+         */
+        protected abstract Optional<AggregationMethod> lookupMethodById(String id);
+
         @Override
         public final void init(final StateProviderInitializer initializer) {
             initializer.computeAfterOpenDialog();
@@ -108,13 +118,14 @@ public enum MissingValueOption {
         }
 
         @Override
-        public final Boolean computeState(final NodeParametersInput ignored) {
+        public final Boolean computeState(final NodeParametersInput ignored) throws StateComputationFailureException {
             final var id = m_methodSupplier.get();
             if (id == null) {
-                return false;
+                throw new StateComputationFailureException();
             }
-            final var method = AggregationMethods.getMethod4Id(id);
-            return method.supportsMissingValueOption();
+            return lookupMethodById(id) //
+                .map(AggregationMethod::supportsMissingValueOption) //
+                .orElseThrow(StateComputationFailureException::new);
         }
 
     }
