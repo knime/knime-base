@@ -53,12 +53,11 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.knime.core.data.DataType;
-import org.knime.core.data.def.StringCell;
 import org.knime.core.node.port.database.aggregation.AggregationFunction;
 import org.knime.core.node.port.database.aggregation.AggregationFunctionProvider;
 
 /**
- * Utility for DB (i.e. non-native) aggregation functions to be used when abstracting from the aggregation function
+ * Utility for aggregation functions and optional parameters to be used when abstracting from the aggregation function
  * "source", e.g. native methods or DB methods.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
@@ -116,17 +115,6 @@ public final class AggFunctions<F extends AggregationFunction> {
     public Stream<AggFunction> getCompatibleFunctions(final DataType type) {
         return m_functionProvider.getCompatibleFunctions(type, true).stream()
             .map(am -> new AggFunction(am.getId(), am.getLabel(), am.hasOptionalSettings()));
-    }
-
-    /**
-     * Returns the default aggregation function for the given data type.
-     *
-     * @param type data type
-     * @return default aggregation function
-     */
-    public AggFunction getDefaultFunction(final DataType type) {
-        final var def = m_functionProvider.getDefaultFunction(StringCell.TYPE);
-        return new AggFunction(def.getId(), def.getLabel(), def.hasOptionalSettings());
     }
 
     public Optional<Class<? extends AggregationFunctionParameters>> lookupParametersForFunction(final AggFunction fun) {

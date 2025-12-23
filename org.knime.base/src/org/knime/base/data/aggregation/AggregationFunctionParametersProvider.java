@@ -69,10 +69,10 @@ import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.updates.ParameterReference;
 
 /**
- * Provider for native (i.e. non-DB) aggregation operator parameters (aka optional parameters), which depend on the
+ * Provider for aggregation operator parameters (aka optional parameters), which depend on the
  * selected aggregation method and currently present operator parameters.
  *
- * In case no default dialog is registered via the extension point, the fallback dialog is shown.
+ * In case no default dialog is registered via the extension point, a fallback dialog is shown.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  * @since 5.10
