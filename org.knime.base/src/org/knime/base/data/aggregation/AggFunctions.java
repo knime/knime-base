@@ -70,10 +70,10 @@ public final class AggFunctions<F extends AggregationFunction> {
 
     private final AggregationFunctionProvider<F> m_functionProvider;
 
-    private Function<AggFunction, Optional<Class<? extends AggregationFunctionParameters>>> m_paramClassSupplier;
+    private Function<AggFunction, Optional<Class<? extends AggregationOperatorParameters>>> m_paramClassSupplier;
 
     public AggFunctions(final AggregationFunctionProvider<F> functionProvider,
-        final Function<AggFunction, Optional<Class<? extends AggregationFunctionParameters>>> paramClassSupplier) {
+        final Function<AggFunction, Optional<Class<? extends AggregationOperatorParameters>>> paramClassSupplier) {
         m_functionProvider = functionProvider;
         m_paramClassSupplier = paramClassSupplier;
     }
@@ -117,7 +117,7 @@ public final class AggFunctions<F extends AggregationFunction> {
             .map(am -> new AggFunction(am.getId(), am.getLabel(), am.hasOptionalSettings()));
     }
 
-    public Optional<Class<? extends AggregationFunctionParameters>> lookupParametersForFunction(final AggFunction fun) {
+    public Optional<Class<? extends AggregationOperatorParameters>> lookupParametersForFunction(final AggFunction fun) {
         return m_paramClassSupplier.apply(fun);
     }
 

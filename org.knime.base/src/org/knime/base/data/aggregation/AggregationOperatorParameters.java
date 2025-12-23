@@ -55,10 +55,10 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicPa
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  *
- * @noreference pending API
- * @noimplement pending API
+ * @noreference Pending API
+ * @noimplement Pending API
+ *
  */
-@SuppressWarnings("restriction") // webui
-public interface AggregationFunctionParameters extends DynamicParameters.DynamicNodeParameters {
+public interface AggregationOperatorParameters extends DynamicParameters.DynamicNodeParameters {
 
 }

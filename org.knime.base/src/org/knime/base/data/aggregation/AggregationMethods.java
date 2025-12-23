@@ -520,7 +520,7 @@ public final class AggregationMethods implements AggregationFunctionProvider<Agg
      *
      * @since 5.10
      */
-    public Optional<Class<? extends AggregationFunctionParameters>> getParametersClassFor(final String operatorID) {
+    public Optional<Class<? extends AggregationOperatorParameters>> getParametersClassFor(final String operatorID) {
         return Optional.ofNullable(getOperator(operatorID).getParametersClass());
     }
 
@@ -530,8 +530,8 @@ public final class AggregationMethods implements AggregationFunctionProvider<Agg
      * @return all registered parameter classes
      * @since 5.10
      */
-    public static Collection<Class<? extends AggregationFunctionParameters>> getAllParameterClasses() {
-        List<Class<? extends AggregationFunctionParameters>> paramClasses = new ArrayList<>();
+    public static Collection<Class<? extends AggregationOperatorParameters>> getAllParameterClasses() {
+        List<Class<? extends AggregationOperatorParameters>> paramClasses = new ArrayList<>();
         for (AggregationOperator operator : getInstance().getAllOperators()) {
             final var paramClass = operator.getParametersClass();
             if (paramClass != null) {

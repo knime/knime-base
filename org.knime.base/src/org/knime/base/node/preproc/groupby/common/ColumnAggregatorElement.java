@@ -54,7 +54,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import org.knime.base.data.aggregation.AggFunction;
-import org.knime.base.data.aggregation.AggregationFunctionParameters;
+import org.knime.base.data.aggregation.AggregationOperatorParameters;
 import org.knime.base.data.aggregation.AggregationFunctionParametersProvider.AggregationMethodRef;
 import org.knime.base.data.aggregation.AggregationMethod;
 import org.knime.base.data.aggregation.AggregationMethods;
@@ -170,7 +170,7 @@ public final class ColumnAggregatorElement implements NodeParameters {
     MissingValueOption m_includeMissing = MissingValueOption.EXCLUDE;
 
     private static final class ColumnAggregationOperatorParametersRef //
-        implements ParameterReference<AggregationFunctionParameters> {
+        implements ParameterReference<AggregationOperatorParameters> {
     } //
 
     @DynamicParameters(value = ColumnAggregationOperatorParametersProvider.class,
@@ -180,7 +180,7 @@ public final class ColumnAggregatorElement implements NodeParameters {
                 """))
     @ValueReference(ColumnAggregationOperatorParametersRef.class)
     @Layout(ColumnAggregationOperatorParametersRef.class)
-    AggregationFunctionParameters m_parameters;
+    AggregationOperatorParameters m_parameters;
 
     ColumnAggregatorElement() {
         // needed by framework
@@ -284,7 +284,7 @@ public final class ColumnAggregatorElement implements NodeParameters {
      */
     private static final class ColumnAggregationOperatorParametersProvider extends AggregationMethodParametersProvider {
         @Override
-        protected Class<? extends ParameterReference<AggregationFunctionParameters>> getParameterRefClass() {
+        protected Class<? extends ParameterReference<AggregationOperatorParameters>> getParameterRefClass() {
             return ColumnAggregationOperatorParametersRef.class;
         }
 

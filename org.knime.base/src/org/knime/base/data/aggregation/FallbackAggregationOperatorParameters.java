@@ -63,7 +63,7 @@ import org.knime.core.webui.node.dialog.FallbackDialogNodeParameters;
  */
 @SuppressWarnings("restriction")
 public final class FallbackAggregationOperatorParameters extends FallbackDialogNodeParameters
-    implements AggregationFunctionParameters {
+    implements AggregationOperatorParameters {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(FallbackAggregationOperatorParameters.class);
 
