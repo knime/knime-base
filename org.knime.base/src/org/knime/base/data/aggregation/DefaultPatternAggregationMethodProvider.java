@@ -51,6 +51,7 @@ package org.knime.base.data.aggregation;
 import java.util.function.Supplier;
 
 import org.knime.base.data.aggregation.AggregationFunctionParametersProvider.AggregationMethodRef;
+import org.knime.core.node.port.database.aggregation.AggregationFunction;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.updates.StateProvider;
@@ -59,16 +60,19 @@ import org.knime.node.parameters.updates.StateProvider;
  * Selects the default aggregation method if no method is already selected for aggregation of columns based on
  * column name patterns.
  *
+ * @param <F> the type of the aggregation function provided as default
+ *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  * @since 5.10
  */
-public abstract class DefaultPatternAggregationMethodProvider implements StateProvider<String> {
+public abstract class DefaultPatternAggregationMethodProvider<F extends AggregationFunction>
+        implements StateProvider<String> {
 
     private Supplier<String> m_methodSelf;
 
     protected abstract Class<? extends AggregationMethodRef> getMethodSelfProvider();
 
-    protected abstract AggFunction getDefaultMethod();
+    protected abstract F getDefaultMethod(NodeParametersInput context);
 
     @Override
     public void init(final StateProviderInitializer initializer) {
@@ -76,11 +80,11 @@ public abstract class DefaultPatternAggregationMethodProvider implements StatePr
     }
 
     @Override
-    public String computeState(final NodeParametersInput parametersInput) throws StateComputationFailureException {
+    public String computeState(final NodeParametersInput context) throws StateComputationFailureException {
         if (m_methodSelf.get() != null) {
             throw new StateComputationFailureException();
         }
-        return getDefaultMethod().id();
+        return getDefaultMethod(context).getId();
     }
 
 }

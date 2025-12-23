@@ -57,12 +57,15 @@ import org.knime.base.data.aggregation.AggFunction;
 import org.knime.base.data.aggregation.AggregationFunctionParameters;
 import org.knime.base.data.aggregation.AggregationFunctionParametersProvider.AggregationMethodRef;
 import org.knime.base.data.aggregation.AggregationMethod;
+import org.knime.base.data.aggregation.AggregationMethods;
 import org.knime.base.data.aggregation.DefaultAggregationMethodProvider;
 import org.knime.base.data.aggregation.HasOperatorParameters;
 import org.knime.base.data.aggregation.StateAndChoicesProviders.AggregationChoicesByTypeProvider;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.port.database.aggregation.AggregationFunctionProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
@@ -96,7 +99,7 @@ import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 @SuppressWarnings({"restriction", "javadoc"})
 public final class ColumnAggregatorElement implements NodeParameters {
 
-    static final class SelectedColumnRef implements ParameterReference<String>, Modification.Reference {
+    private static final class SelectedColumnRef implements ParameterReference<String>, Modification.Reference {
     } //
 
     @Widget(title = "Column", description = "The column to aggregate")
@@ -104,7 +107,7 @@ public final class ColumnAggregatorElement implements NodeParameters {
     @Modification.WidgetReference(SelectedColumnRef.class)
     String m_column;
 
-    static final class SelectedColumnTypeRef implements ParameterReference<DataType> {
+    private static final class SelectedColumnTypeRef implements ParameterReference<DataType> {
     } //
 
     /**
@@ -114,7 +117,7 @@ public final class ColumnAggregatorElement implements NodeParameters {
     @ValueReference(SelectedColumnTypeRef.class)
     DataType m_dataType;
 
-    static class ColumnAggregationMethodRef implements AggregationMethodRef {
+    private static class ColumnAggregationMethodRef implements AggregationMethodRef {
     } //
 
     static final class AggregationMethodChoices extends AggregationChoicesByTypeProvider {
@@ -166,7 +169,7 @@ public final class ColumnAggregatorElement implements NodeParameters {
     @Effect(type = EffectType.SHOW, predicate = SupportsMissingValueOptions.class)
     MissingValueOption m_includeMissing = MissingValueOption.EXCLUDE;
 
-    static final class ColumnAggregationOperatorParametersRef //
+    private static final class ColumnAggregationOperatorParametersRef //
         implements ParameterReference<AggregationFunctionParameters> {
     } //
 
@@ -196,7 +199,7 @@ public final class ColumnAggregatorElement implements NodeParameters {
 
     /* ===== Providers ===== */
 
-    static final class OptionalSelectedColumnTypeProvider implements StateProvider<Optional<DataType>> {
+    private static final class OptionalSelectedColumnTypeProvider implements StateProvider<Optional<DataType>> {
 
         private Supplier<String> m_columnNameSupplier;
 
@@ -219,7 +222,7 @@ public final class ColumnAggregatorElement implements NodeParameters {
     /**
      * Obtains the data type of the selected column.
      */
-    static final class SelectedColumnTypeProvider implements StateProvider<DataType> {
+    private static final class SelectedColumnTypeProvider implements StateProvider<DataType> {
 
         private Supplier<Optional<DataType>> m_optionalColumnTypeProvider;
 
@@ -239,7 +242,7 @@ public final class ColumnAggregatorElement implements NodeParameters {
     /**
      * Default provider if no method already set.
      */
-    static final class DefaultMethodProvider extends DefaultAggregationMethodProvider {
+    private static final class DefaultMethodProvider extends DefaultAggregationMethodProvider<AggregationMethod> {
 
         @Override
         protected Class<? extends ParameterReference<DataType>> getTypeProvider() {
@@ -252,8 +255,14 @@ public final class ColumnAggregatorElement implements NodeParameters {
         }
 
         @Override
-        protected AggFunction getDefault(final NodeParametersInput parametersInput, final DataType type) {
-            return AggregationMethodsUtil.getDefaultFunction(type);
+        protected Optional<AggregationFunctionProvider<AggregationMethod>>
+                getFunctionProvider(final PortObjectSpec spec) {
+            return Optional.of(AggregationMethods.getInstance());
+        }
+
+        @Override
+        protected AggregationMethod getDefaultFunction() {
+            return AggregationMethods.getInstance().getDefaultFunction(null);
         }
 
     }
@@ -273,7 +282,7 @@ public final class ColumnAggregatorElement implements NodeParameters {
     /**
      * Provider that ties the aggregation method and the optional parameters field together.
      */
-    static final class ColumnAggregationOperatorParametersProvider extends AggregationMethodParametersProvider {
+    private static final class ColumnAggregationOperatorParametersProvider extends AggregationMethodParametersProvider {
         @Override
         protected Class<? extends ParameterReference<AggregationFunctionParameters>> getParameterRefClass() {
             return ColumnAggregationOperatorParametersRef.class;
