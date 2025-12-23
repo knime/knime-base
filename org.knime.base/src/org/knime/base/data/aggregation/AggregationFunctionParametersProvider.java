@@ -79,11 +79,11 @@ import org.knime.node.parameters.updates.ParameterReference;
  */
 @SuppressWarnings({"restriction"})
 public abstract class AggregationFunctionParametersProvider<F extends AggregationFunction>
-    implements DynamicParameters.DynamicParametersWithFallbackProvider<AggregationFunctionParameters> {
+    implements DynamicParameters.DynamicParametersWithFallbackProvider<AggregationOperatorParameters> {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(AggregationFunctionParametersProvider.class);
 
-    private Supplier<? extends AggregationFunctionParameters> m_optionalParametersSupplier;
+    private Supplier<? extends AggregationOperatorParameters> m_optionalParametersSupplier;
 
     private Supplier<String> m_aggregationMethodSupplier;
 
@@ -95,7 +95,7 @@ public abstract class AggregationFunctionParametersProvider<F extends Aggregatio
         return functions.lookupFunctionById(id);
     }
 
-    protected final Optional<Class<? extends AggregationFunctionParameters>>
+    protected final Optional<Class<? extends AggregationOperatorParameters>>
         lookupParametersForId(final AggFunctions<F> functions, final String id) {
         return functions.lookupFunctionById(id).flatMap(functions::lookupParametersForFunction);
     }
@@ -113,7 +113,7 @@ public abstract class AggregationFunctionParametersProvider<F extends Aggregatio
      *
      * @return the reference for optional aggregation parameters
      */
-    protected abstract Class<? extends ParameterReference<? extends AggregationFunctionParameters>>
+    protected abstract Class<? extends ParameterReference<? extends AggregationOperatorParameters>>
         getParameterRefClass();
 
     /**
@@ -128,7 +128,7 @@ public abstract class AggregationFunctionParametersProvider<F extends Aggregatio
      *
      * @return all aggregation function parameter classes
      */
-    protected abstract Collection<Class<? extends AggregationFunctionParameters>> getAllParameterClasses();
+    protected abstract Collection<Class<? extends AggregationOperatorParameters>> getAllParameterClasses();
 
     /**
      * Gets the default key under which optional function settings are stored.
@@ -153,15 +153,15 @@ public abstract class AggregationFunctionParametersProvider<F extends Aggregatio
     }
 
     @Override
-    public final ClassIdStrategy<AggregationFunctionParameters> getClassIdStrategy() {
-        final List<Class<? extends AggregationFunctionParameters>> allClasses = new ArrayList<>();
+    public final ClassIdStrategy<AggregationOperatorParameters> getClassIdStrategy() {
+        final List<Class<? extends AggregationOperatorParameters>> allClasses = new ArrayList<>();
         allClasses.add(FallbackAggregationOperatorParameters.class);
         allClasses.addAll(getAllParameterClasses());
         return new DefaultClassIdStrategy<>(allClasses);
     }
 
     @Override
-    public final AggregationFunctionParameters computeParameters(final NodeParametersInput parametersInput)
+    public final AggregationOperatorParameters computeParameters(final NodeParametersInput parametersInput)
         throws StateComputationFailureException {
         final var currentMethod = m_aggregationMethodSupplier.get();
         if (currentMethod == null) {
@@ -208,9 +208,9 @@ public abstract class AggregationFunctionParametersProvider<F extends Aggregatio
      * @return the created fallback parameters
      * @throws StateComputationFailureException
      */
-    private final AggregationFunctionParameters createFallbackParameters(
+    private final AggregationOperatorParameters createFallbackParameters(
         final AggFunctions<F> functions,
-        final String functionId, final AggregationFunctionParameters currentValue)
+        final String functionId, final AggregationOperatorParameters currentValue)
         throws StateComputationFailureException {
         final F method = lookupById(functions, functionId).orElseThrow(StateComputationFailureException::new);
 

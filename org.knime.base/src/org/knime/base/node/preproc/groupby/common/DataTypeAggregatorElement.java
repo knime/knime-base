@@ -52,7 +52,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.knime.base.data.aggregation.AggFunction;
-import org.knime.base.data.aggregation.AggregationFunctionParameters;
+import org.knime.base.data.aggregation.AggregationOperatorParameters;
 import org.knime.base.data.aggregation.AggregationFunctionParametersProvider.AggregationMethodRef;
 import org.knime.base.data.aggregation.AggregationMethod;
 import org.knime.base.data.aggregation.AggregationMethods;
@@ -179,7 +179,7 @@ final class DataTypeAggregatorElement implements NodeParameters {
     @Effect(type = EffectType.SHOW, predicate = SupportsMissingValueOptions.class)
     MissingValueOption m_includeMissing = MissingValueOption.EXCLUDE;
 
-    static final class DataTypeOperatorParametersRef implements ParameterReference<AggregationFunctionParameters> {
+    static final class DataTypeOperatorParametersRef implements ParameterReference<AggregationOperatorParameters> {
     } //
 
     @DynamicParameters(value = DataTypeAggregationOperatorParametersProvider.class,
@@ -190,7 +190,7 @@ final class DataTypeAggregatorElement implements NodeParameters {
     @ValueReference(DataTypeOperatorParametersRef.class)
     @Layout(DataTypeOperatorParametersRef.class)
     @PersistArrayElement(LegacyDataTypeAggregatorsArrayPersistor.OperatorParametersPersistor.class)
-    AggregationFunctionParameters m_parameters;
+    AggregationOperatorParameters m_parameters;
 
     /* ===== Providers ===== */
 
@@ -238,7 +238,7 @@ final class DataTypeAggregatorElement implements NodeParameters {
 
     static final class DataTypeAggregationOperatorParametersProvider extends AggregationMethodParametersProvider {
         @Override
-        protected Class<? extends ParameterReference<AggregationFunctionParameters>> getParameterRefClass() {
+        protected Class<? extends ParameterReference<AggregationOperatorParameters>> getParameterRefClass() {
             return DataTypeOperatorParametersRef.class;
         }
 

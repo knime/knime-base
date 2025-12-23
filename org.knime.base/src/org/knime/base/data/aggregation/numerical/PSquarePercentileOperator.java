@@ -52,7 +52,7 @@ import javax.swing.JPanel;
 
 import org.apache.commons.math3.stat.descriptive.rank.PSquarePercentile;
 import org.knime.base.data.aggregation.AggregationOperator;
-import org.knime.base.data.aggregation.AggregationFunctionParameters;
+import org.knime.base.data.aggregation.AggregationOperatorParameters;
 import org.knime.base.data.aggregation.GlobalSettings;
 import org.knime.base.data.aggregation.OperatorColumnSettings;
 import org.knime.base.data.aggregation.OperatorData;
@@ -320,14 +320,14 @@ public class PSquarePercentileOperator extends StorelessUnivariantStatisticOpera
     }
 
     @Override
-    public Class<? extends AggregationFunctionParameters> getParametersClass() {
+    public Class<? extends AggregationOperatorParameters> getParametersClass() {
         return PSquarePercentileOperatorParameters.class;
     }
 
     /**
      * Operator parameters for {@link PSquarePercentileOperator}.
      */
-    static final class PSquarePercentileOperatorParameters implements AggregationFunctionParameters {
+    static final class PSquarePercentileOperatorParameters implements AggregationOperatorParameters {
 
         @Widget(title = "Percentile", description = "The percentile to compute (in [0, 100])")
         @NumberInputWidget(minValidation = NumberInputWidgetValidation.MinValidation.IsNonNegativeValidation.class,

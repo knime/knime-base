@@ -583,7 +583,7 @@ public abstract class AggregationOperator implements AggregationMethod {
      *
      * @since 5.10
      */
-    public Class<? extends AggregationFunctionParameters> getParametersClass() {
+    public Class<? extends AggregationOperatorParameters> getParametersClass() {
         return null;
     }
 
