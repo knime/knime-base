@@ -51,7 +51,7 @@ import java.util.LinkedList;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 
-import org.knime.base.data.aggregation.AggregationFunctionParameters;
+import org.knime.base.data.aggregation.AggregationOperatorParameters;
 import org.knime.base.data.aggregation.AggregationOperator;
 import org.knime.base.data.aggregation.GlobalSettings;
 import org.knime.base.data.aggregation.OperatorColumnSettings;
@@ -322,7 +322,7 @@ public abstract class ColumnSelectorOperator extends AggregationOperator {
      * @noimplement pending API
      */
     @SuppressWarnings("restriction")
-    public static class ColumnSelectorOperatorParameters implements AggregationFunctionParameters {
+    public static class ColumnSelectorOperatorParameters implements AggregationOperatorParameters {
 
         /**
          * Default constructor. No column is selected initially.

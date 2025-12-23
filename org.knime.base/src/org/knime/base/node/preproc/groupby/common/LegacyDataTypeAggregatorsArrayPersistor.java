@@ -51,7 +51,7 @@ package org.knime.base.node.preproc.groupby.common;
 import java.util.Comparator;
 import java.util.List;
 
-import org.knime.base.data.aggregation.AggregationFunctionParameters;
+import org.knime.base.data.aggregation.AggregationOperatorParameters;
 import org.knime.base.data.aggregation.AggregationMethods;
 import org.knime.base.data.aggregation.FallbackAggregationOperatorParameters;
 import org.knime.base.data.aggregation.dialogutil.type.DataTypeAggregator;
@@ -144,12 +144,12 @@ public final class LegacyDataTypeAggregatorsArrayPersistor
     }
 
     static final class OperatorParametersPersistor
-        implements ElementFieldPersistor<AggregationFunctionParameters, IndexedElement, DataTypeAggregatorElementDTO> {
+        implements ElementFieldPersistor<AggregationOperatorParameters, IndexedElement, DataTypeAggregatorElementDTO> {
 
         static final String CFG_FUNCTION_SETTINGS = "functionSettings";
 
         @Override
-        public AggregationFunctionParameters load(final NodeSettingsRO nodeSettings, final IndexedElement loadContext)
+        public AggregationOperatorParameters load(final NodeSettingsRO nodeSettings, final IndexedElement loadContext)
             throws InvalidSettingsException {
             final var aggr = loadContext.getAggregator();
             if (!aggr.hasOptionalSettings()) {
@@ -173,7 +173,7 @@ public final class LegacyDataTypeAggregatorsArrayPersistor
         }
 
         @Override
-        public void save(final AggregationFunctionParameters param, final DataTypeAggregatorElementDTO saveDTO) {
+        public void save(final AggregationOperatorParameters param, final DataTypeAggregatorElementDTO saveDTO) {
             saveDTO.m_element.m_parameters = param;
         }
     }

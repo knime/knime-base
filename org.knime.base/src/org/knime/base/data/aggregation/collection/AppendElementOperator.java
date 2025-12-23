@@ -51,7 +51,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 
 import org.knime.base.data.aggregation.AggregationOperator;
-import org.knime.base.data.aggregation.AggregationFunctionParameters;
+import org.knime.base.data.aggregation.AggregationOperatorParameters;
 import org.knime.base.data.aggregation.GlobalSettings;
 import org.knime.base.data.aggregation.OperatorColumnSettings;
 import org.knime.base.data.aggregation.OperatorData;
@@ -184,14 +184,14 @@ public class AppendElementOperator extends AggregationOperator {
     }
 
     @Override
-    public Class<? extends AggregationFunctionParameters> getParametersClass() {
+    public Class<? extends AggregationOperatorParameters> getParametersClass() {
         return AppendElementOperatorParameters.class;
     }
 
     /**
      * Operator parameters for {@link AppendElementOperator}.
      */
-    static final class AppendElementOperatorParameters implements AggregationFunctionParameters {
+    static final class AppendElementOperatorParameters implements AggregationOperatorParameters {
 
         @Widget(title = TITLE, description = DESCRIPTION)
         @Persist(configKey = CFG_IGNORE_MISSING)

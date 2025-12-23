@@ -51,7 +51,7 @@ package org.knime.base.node.preproc.groupby.common;
 import java.util.Collection;
 
 import org.knime.base.data.aggregation.AggFunctions;
-import org.knime.base.data.aggregation.AggregationFunctionParameters;
+import org.knime.base.data.aggregation.AggregationOperatorParameters;
 import org.knime.base.data.aggregation.AggregationFunctionParametersProvider;
 import org.knime.base.data.aggregation.AggregationMethod;
 import org.knime.base.data.aggregation.AggregationMethods;
@@ -72,7 +72,7 @@ public abstract class AggregationMethodParametersProvider
     }
 
     @Override
-    protected final Collection<Class<? extends AggregationFunctionParameters>> getAllParameterClasses() {
+    protected final Collection<Class<? extends AggregationOperatorParameters>> getAllParameterClasses() {
         return AggregationMethods.getAllParameterClasses();
     }
 }

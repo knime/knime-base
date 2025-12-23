@@ -56,7 +56,7 @@ import org.apache.commons.math.util.ResizableDoubleArray;
 import org.apache.commons.math3.stat.correlation.KendallsCorrelation;
 import org.apache.commons.math3.stat.correlation.SpearmansCorrelation;
 import org.knime.base.data.aggregation.AggregationOperator;
-import org.knime.base.data.aggregation.AggregationFunctionParameters;
+import org.knime.base.data.aggregation.AggregationOperatorParameters;
 import org.knime.base.data.aggregation.GlobalSettings;
 import org.knime.base.data.aggregation.OperatorColumnSettings;
 import org.knime.base.data.aggregation.OperatorData;
@@ -447,14 +447,14 @@ public class CorrelationOperator extends ColumnSelectorOperator {
     }
 
     @Override
-    public Class<? extends AggregationFunctionParameters> getParametersClass() {
+    public Class<? extends AggregationOperatorParameters> getParametersClass() {
         return CorrelationOperatorParameters.class;
     }
 
     /**
      * Operator parameters for {@link CorrelationOperator}.
      */
-    static final class CorrelationOperatorParameters implements AggregationFunctionParameters {
+    static final class CorrelationOperatorParameters implements AggregationOperatorParameters {
 
         CorrelationOperatorParameters() {
             // for framework
