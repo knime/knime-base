@@ -49,7 +49,6 @@
 package org.knime.base.node.preproc.groupby.common;
 
 import java.util.Collection;
-import java.util.Optional;
 
 import org.knime.base.data.aggregation.AggFunctions;
 import org.knime.base.data.aggregation.AggregationFunctionParameters;
@@ -67,14 +66,9 @@ public abstract class AggregationMethodParametersProvider
     extends AggregationFunctionParametersProvider<AggregationMethod> {
 
     @Override
-    protected final AggFunctions<AggregationMethod>
-        getFunctionUtility(final NodeParametersInput parametersInput) {
+    protected final AggFunctions<AggregationMethod> getFunctionUtility(final NodeParametersInput parametersInput) {
         return new AggFunctions<>(AggregationMethods.getInstance(),
-            fun -> {
-                final Optional<Class<? extends AggregationFunctionParameters>> clazz =
-                        AggregationMethods.getInstance().getParametersClassFor(fun.id());
-                return clazz;
-            });
+            fun -> AggregationMethods.getInstance().getParametersClassFor(fun.id()));
     }
 
     @Override
