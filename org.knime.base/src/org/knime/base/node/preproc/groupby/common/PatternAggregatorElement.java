@@ -119,21 +119,6 @@ public class PatternAggregatorElement implements NodeParameters {
     static final class PatternAggregationRef implements AggregationMethodRef {
     } //
 
-    static final class PatternAggregationDefault extends DefaultPatternAggregationMethodProvider {
-
-        @Override
-        protected Class<? extends AggregationMethodRef> getMethodSelfProvider() {
-            return PatternAggregationRef.class;
-        }
-
-        @Override
-        protected AggFunction getDefaultMethod() {
-            // parsing `null` will select "First"
-            final var fn = AggregationMethods.getInstance().getDefaultFunction(null);
-            return new AggFunction(fn.getId(), fn.getLabel(), fn.hasOptionalSettings());
-        }
-
-    }
 
     @Widget(title = "Aggregation", description = "The aggregation method to use")
     @SubParameters(subLayoutRoot = PatternOperatorParametersRef.class,
@@ -149,18 +134,6 @@ public class PatternAggregatorElement implements NodeParameters {
         @Override
         protected Boolean getLoadDefault() {
             return false;
-        }
-    }
-
-    static final class SupportsMissingValueOptions extends MissingValueOption.SupportsMissingValueOptions {
-        @Override
-        protected Class<? extends ParameterReference<String>> getMethodReference() {
-            return PatternAggregationRef.class;
-        }
-
-        @Override
-        protected Optional<AggregationMethod> lookupMethodById(final String id) {
-            return AggregationMethodsUtil.lookupMethodById(id);
         }
     }
 
@@ -221,6 +194,21 @@ public class PatternAggregatorElement implements NodeParameters {
         }
     }
 
+    static final class PatternAggregationDefault extends DefaultPatternAggregationMethodProvider<AggregationMethod> {
+
+        @Override
+        protected Class<? extends AggregationMethodRef> getMethodSelfProvider() {
+            return PatternAggregationRef.class;
+        }
+
+        @Override
+        protected AggregationMethod getDefaultMethod(final NodeParametersInput context) {
+            // parsing `null` will select "First"
+            return AggregationMethods.getInstance().getDefaultFunction(null);
+        }
+
+    }
+
     static final class PatternAggregationChoices implements StringChoicesProvider {
 
         @Override
@@ -234,6 +222,18 @@ public class PatternAggregatorElement implements NodeParameters {
                 .map(agg -> new StringChoice(agg.getId(), agg.getLabel())).toList();
         }
 
+    }
+
+    static final class SupportsMissingValueOptions extends MissingValueOption.SupportsMissingValueOptions {
+        @Override
+        protected Class<? extends ParameterReference<String>> getMethodReference() {
+            return PatternAggregationRef.class;
+        }
+
+        @Override
+        protected Optional<AggregationMethod> lookupMethodById(final String id) {
+            return AggregationMethodsUtil.lookupMethodById(id);
+        }
     }
 
     static final class WildcardOrRegexPatternValidation implements CustomValidationProvider<String> {
