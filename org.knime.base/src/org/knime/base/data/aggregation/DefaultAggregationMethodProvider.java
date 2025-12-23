@@ -48,22 +48,29 @@
  */
 package org.knime.base.data.aggregation;
 
+import java.util.Optional;
 import java.util.function.Supplier;
 
 import org.knime.core.data.DataType;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.port.database.aggregation.AggregationFunction;
+import org.knime.core.node.port.database.aggregation.AggregationFunctionProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.StateProvider;
 
 /**
- * Selects the default aggregation method based on the type, if a method is not already provided.
+ * Selects the default aggregation method based on the type, if a method is not already provided,
+ * by querying the function provider for the type, or ultimately falling back to a type-independent default.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ * @param <F> type of aggregation function provided as default
  *
  * @since 5.10
  */
-public abstract class DefaultAggregationMethodProvider implements StateProvider<String> {
+public abstract class DefaultAggregationMethodProvider<F extends AggregationFunction>
+        implements StateProvider<String> {
 
     /** The currently selected method to avoid updating it if it is already set. */
     private Supplier<String> m_methodSelf;
@@ -80,13 +87,10 @@ public abstract class DefaultAggregationMethodProvider implements StateProvider<
      */
     protected abstract Class<? extends ParameterReference<String>> getMethodSelfProvider();
 
-    /**
-     * Gets the default aggregation function for the given data type.
-     * @param parametersInput input for node parameters creation
-     * @param type the data type
-     * @return the default aggregation function
-     */
-    protected abstract AggFunction getDefault(NodeParametersInput parametersInput, DataType type);
+    protected abstract Optional<AggregationFunctionProvider<F>>
+        getFunctionProvider(PortObjectSpec spec);
+
+    protected abstract F getDefaultFunction();
 
     @Override
     public final void init(final StateProviderInitializer initializer) {
@@ -104,6 +108,21 @@ public abstract class DefaultAggregationMethodProvider implements StateProvider<
         final var type = m_typeSupplier.get();
         // there always is a default, even if it is just "First"
         return getDefault(parametersInput, type).id();
+    }
+
+    /**
+     * Gets the default aggregation function for the given data type.
+     *
+     * @param parametersInput input for node parameters creation
+     * @param type the data type
+     * @return the default aggregation function
+     */
+    private AggFunction getDefault(final NodeParametersInput parametersInput, final DataType type) {
+        final var def = parametersInput.getInPortSpec(0) //
+            .flatMap(this::getFunctionProvider) //
+            .map(provider -> provider.getDefaultFunction(type)) //
+            .orElseGet(this::getDefaultFunction);
+        return new AggFunction(def.getId(), def.getLabel(), def.hasOptionalSettings());
     }
 
 }

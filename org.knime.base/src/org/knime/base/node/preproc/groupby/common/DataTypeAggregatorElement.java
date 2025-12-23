@@ -65,6 +65,7 @@ import org.knime.base.node.preproc.groupby.common.LegacyDataTypeAggregatorsArray
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.def.StringCell;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.database.aggregation.AggregationFunctionProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.PersistArrayElement;
@@ -193,9 +194,11 @@ final class DataTypeAggregatorElement implements NodeParameters {
 
     /* ===== Providers ===== */
 
+    /**
+     * Default provider if no method already set.
+     */
+    private static final class DefaultMethodProvider extends DefaultAggregationMethodProvider<AggregationMethod> {
 
-
-    static final class DefaultMethodProvider extends DefaultAggregationMethodProvider {
         @Override
         protected Class<? extends ParameterReference<DataType>> getTypeProvider() {
             return DataTypeSelectedRef.class;
@@ -207,9 +210,16 @@ final class DataTypeAggregatorElement implements NodeParameters {
         }
 
         @Override
-        protected AggFunction getDefault(final NodeParametersInput parametersInput, final DataType type) {
-            return AggregationMethodsUtil.getDefaultFunction(type);
+        protected Optional<AggregationFunctionProvider<AggregationMethod>>
+                getFunctionProvider(final PortObjectSpec spec) {
+            return Optional.of(AggregationMethods.getInstance());
         }
+
+        @Override
+        protected AggregationMethod getDefaultFunction() {
+            return AggregationMethods.getInstance().getDefaultFunction(null);
+        }
+
     }
 
     static final class HasDataTypeOperatorParameters extends HasOperatorParameters {
