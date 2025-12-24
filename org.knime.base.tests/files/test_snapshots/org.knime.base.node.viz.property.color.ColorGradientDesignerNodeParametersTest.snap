@@ -1,0 +1,583 @@
+{
+  "data" : {
+    "model" : {
+      "columnFilter" : {
+        "mode" : "MANUAL",
+        "patternFilter" : {
+          "pattern" : "",
+          "isCaseSensitive" : false,
+          "isInverted" : false
+        },
+        "manualFilter" : {
+          "manuallySelected" : [ ],
+          "manuallyDeselected" : [ ],
+          "includeUnknownColumns" : false
+        },
+        "typeFilter" : {
+          "selectedTypes" : [ ],
+          "typeDisplays" : [ ]
+        }
+      },
+      "gradient" : "CUSTOM",
+      "valueScale" : "PERCENTAGE",
+      "customGradient" : [ {
+        "stopValue" : 0.0,
+        "color" : "#FF0000"
+      }, {
+        "stopValue" : 100.0,
+        "color" : "#0000FF"
+      } ],
+      "missingValueColor" : "#D30D52",
+      "nanColor" : "#77563C",
+      "negativeInfinityColor" : "#DD691B",
+      "belowMinColor" : "#FF9632",
+      "aboveMaxColor" : "#FF9632",
+      "positiveInfinityColor" : "#DD691B"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "aboveMaxColor" : {
+            "type" : "string",
+            "title" : "Top out-of-bounds color",
+            "description" : "Define the color assigned to values above the defined gradient range.",
+            "default" : "#FF9632"
+          },
+          "belowMinColor" : {
+            "type" : "string",
+            "title" : "Bottom out-of-bounds color",
+            "description" : "Define the color assigned to values below the defined gradient range.",
+            "default" : "#FF9632"
+          },
+          "columnFilter" : {
+            "type" : "object",
+            "properties" : {
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "includeUnknownColumns" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "manuallyDeselected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "manuallySelected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "manuallySelected" : [ ],
+                  "manuallyDeselected" : [ ],
+                  "includeUnknownColumns" : false
+                }
+              },
+              "mode" : {
+                "oneOf" : [ {
+                  "const" : "MANUAL",
+                  "title" : "Manual"
+                }, {
+                  "const" : "REGEX",
+                  "title" : "Regex"
+                }, {
+                  "const" : "WILDCARD",
+                  "title" : "Wildcard"
+                }, {
+                  "const" : "TYPE",
+                  "title" : "Type"
+                } ],
+                "default" : "MANUAL"
+              },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "isCaseSensitive" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "isInverted" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "pattern" : {
+                    "type" : "string",
+                    "default" : ""
+                  }
+                },
+                "default" : {
+                  "pattern" : "",
+                  "isCaseSensitive" : false,
+                  "isInverted" : false
+                }
+              },
+              "selected" : {
+                "type" : "array",
+                "items" : {
+                  "type" : "string"
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "selectedTypes" : [ ],
+                  "typeDisplays" : [ ]
+                }
+              }
+            },
+            "title" : "Numeric columns",
+            "description" : "Specify one or more numeric columns whose values will be mapped to a color gradient. The same gradient configuration will be applied to all selected columns.",
+            "default" : {
+              "mode" : "MANUAL",
+              "patternFilter" : {
+                "pattern" : "",
+                "isCaseSensitive" : false,
+                "isInverted" : false
+              },
+              "manualFilter" : {
+                "manuallySelected" : [ ],
+                "manuallyDeselected" : [ ],
+                "includeUnknownColumns" : false
+              },
+              "typeFilter" : {
+                "selectedTypes" : [ ],
+                "typeDisplays" : [ ]
+              }
+            }
+          },
+          "customGradient" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "color" : {
+                  "type" : "string",
+                  "title" : "Color",
+                  "description" : "The color to apply at the specified stop.",
+                  "default" : "#000000"
+                },
+                "stopValue" : {
+                  "type" : "number",
+                  "format" : "double",
+                  "title" : "Stop value",
+                  "description" : "The position of the color stop along the gradient range.",
+                  "default" : 0.0
+                }
+              }
+            },
+            "title" : "Custom gradient",
+            "description" : "Define your own gradient using one or more color stops. Each stop consists of a value and a color.",
+            "default" : [ {
+              "stopValue" : 0.0,
+              "color" : "#FF0000"
+            }, {
+              "stopValue" : 100.0,
+              "color" : "#0000FF"
+            } ]
+          },
+          "gradient" : {
+            "oneOf" : [ {
+              "const" : "CUSTOM",
+              "title" : "Custom"
+            }, {
+              "const" : "CIVIDIS",
+              "title" : "Cividis"
+            }, {
+              "const" : "VIRIDIS",
+              "title" : "Viridis"
+            }, {
+              "const" : "INFERNO",
+              "title" : "Inferno"
+            }, {
+              "const" : "MAGMA",
+              "title" : "Magma"
+            }, {
+              "const" : "PLASMA",
+              "title" : "Plasma"
+            }, {
+              "const" : "GRAYSCALE",
+              "title" : "Grayscale"
+            }, {
+              "const" : "SHORTENED_GRAYSCALE",
+              "title" : "Shortened Grayscale"
+            }, {
+              "const" : "PURPLE_ORANGE_5",
+              "title" : "Brewer PuOr (5 colors)"
+            }, {
+              "const" : "PURPLE_ORANGE_11",
+              "title" : "Brewer PuOr (11 colors)"
+            }, {
+              "const" : "RED_BLUE_5",
+              "title" : "Brewer RdBu (5 colors)"
+            }, {
+              "const" : "RED_BLUE_11",
+              "title" : "Brewer RdBu (11 colors)"
+            }, {
+              "const" : "PURPLE_GREEN_5",
+              "title" : "Brewer PuGn (5 colors)"
+            }, {
+              "const" : "PURPLE_GREEN_11",
+              "title" : "Brewer PuGn (11 colors)"
+            }, {
+              "const" : "MATPLOTLIB_TWILIGHT",
+              "title" : "Matplotlib Twilight"
+            }, {
+              "const" : "MATPLOTLIB_TWILIGHT_SHIFTED",
+              "title" : "Matplotlib Twilight Shifted"
+            } ],
+            "title" : "Gradient",
+            "description" : "Choose a predefined gradient (e.g., Viridis, Cividis) or define a custom gradient by specifying individual color stops.",
+            "default" : "CUSTOM"
+          },
+          "missingValueColor" : {
+            "type" : "string",
+            "title" : "Missing value color",
+            "description" : "Define the color assigned to missing values in the data.",
+            "default" : "#D30D52"
+          },
+          "nanColor" : {
+            "type" : "string",
+            "title" : "Not a number (NaN) color",
+            "description" : "Define the color assigned to NaN (Not a Number) values in the data.",
+            "default" : "#77563C"
+          },
+          "negativeInfinityColor" : {
+            "type" : "string",
+            "title" : "Negative infinity color",
+            "description" : "Define the color assigned to values representing negative infinity.",
+            "default" : "#DD691B"
+          },
+          "positiveInfinityColor" : {
+            "type" : "string",
+            "title" : "Positive infinity color",
+            "description" : "Define the color assigned to values representing positive infinity.",
+            "default" : "#DD691B"
+          },
+          "valueScale" : {
+            "oneOf" : [ {
+              "const" : "PERCENTAGE",
+              "title" : "Percentage"
+            }, {
+              "const" : "ABSOLUTE",
+              "title" : "Absolute values"
+            } ],
+            "title" : "Value scale",
+            "description" : "Select how values should be scaled across the gradient range:\n<ul>\n<li><b>Percentage</b>: Map values based on normalized percentage from 0% (minimum) to 100% (maximum). If the node has an input port, during execution, the joint domain of the selected columns will be used to transform the scale into an absolute scale.</li>\n<li><b>Absolute values</b>: Map values based on their actual numeric values without normalization.</li>\n</ul>",
+            "default" : "PERCENTAGE"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "label" : "Values",
+      "type" : "Section",
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "schema" : { }
+        }
+      },
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/columnFilter",
+        "options" : {
+          "format" : "typedStringFilter",
+          "unknownValuesText" : "Any unknown column",
+          "emptyStateLabel" : "No columns in this list."
+        },
+        "providedOptions" : [ "possibleValues" ]
+      } ]
+    }, {
+      "label" : "Color Gradient",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/gradient"
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/valueScale",
+        "options" : {
+          "format" : "valueSwitch"
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/gradient",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "CUSTOM"
+              } ]
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/customGradient",
+        "options" : {
+          "detail" : [ {
+            "type" : "HorizontalLayout",
+            "elements" : [ {
+              "type" : "Control",
+              "scope" : "#/properties/stopValue",
+              "providedOptions" : [ "validation.max", "validation.min" ]
+            }, {
+              "type" : "Control",
+              "scope" : "#/properties/color",
+              "options" : {
+                "validation" : {
+                  "pattern" : {
+                    "errorMessage" : "The field cannot be blank (it must contain at least one non-whitespace character).",
+                    "parameters" : {
+                      "pattern" : ".*\\S.*"
+                    }
+                  }
+                }
+              }
+            } ]
+          } ],
+          "addButtonText" : "Add color",
+          "elementLayout" : "HORIZONTAL_SINGLE_LINE",
+          "showSortButtons" : true
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/gradient",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "CUSTOM"
+              } ]
+            }
+          }
+        }
+      } ]
+    }, {
+      "label" : "Special Colors",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/missingValueColor",
+        "options" : {
+          "validation" : {
+            "pattern" : {
+              "errorMessage" : "The field cannot be blank (it must contain at least one non-whitespace character).",
+              "parameters" : {
+                "pattern" : ".*\\S.*"
+              }
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/nanColor",
+        "options" : {
+          "validation" : {
+            "pattern" : {
+              "errorMessage" : "The field cannot be blank (it must contain at least one non-whitespace character).",
+              "parameters" : {
+                "pattern" : ".*\\S.*"
+              }
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/negativeInfinityColor",
+        "options" : {
+          "validation" : {
+            "pattern" : {
+              "errorMessage" : "The field cannot be blank (it must contain at least one non-whitespace character).",
+              "parameters" : {
+                "pattern" : ".*\\S.*"
+              }
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/belowMinColor",
+        "options" : {
+          "validation" : {
+            "pattern" : {
+              "errorMessage" : "The field cannot be blank (it must contain at least one non-whitespace character).",
+              "parameters" : {
+                "pattern" : ".*\\S.*"
+              }
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/aboveMaxColor",
+        "options" : {
+          "validation" : {
+            "pattern" : {
+              "errorMessage" : "The field cannot be blank (it must contain at least one non-whitespace character).",
+              "parameters" : {
+                "pattern" : ".*\\S.*"
+              }
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/positiveInfinityColor",
+        "options" : {
+          "validation" : {
+            "pattern" : {
+              "errorMessage" : "The field cannot be blank (it must contain at least one non-whitespace character).",
+              "parameters" : {
+                "pattern" : ".*\\S.*"
+              }
+            }
+          }
+        }
+      } ]
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columnFilter" : {
+            "type" : "object",
+            "properties" : {
+              "selected" : {
+                "configPaths" : [ ]
+              },
+              "mode" : { },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "pattern" : { },
+                  "isCaseSensitive" : { },
+                  "isInverted" : { }
+                }
+              },
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "manuallySelected" : { },
+                  "manuallyDeselected" : { },
+                  "includeUnknownColumns" : { }
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : { }
+                }
+              }
+            }
+          },
+          "gradient" : { },
+          "valueScale" : { },
+          "customGradient" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "stopValue" : { },
+                "color" : { }
+              }
+            }
+          },
+          "missingValueColor" : { },
+          "nanColor" : { },
+          "negativeInfinityColor" : { },
+          "belowMinColor" : { },
+          "aboveMaxColor" : { },
+          "positiveInfinityColor" : { }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/columnFilter",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Double Column 1",
+        "text" : "Double Column 1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Double Column 2",
+        "text" : "Double Column 2",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Double Column 3",
+        "text" : "Double Column 3",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/customGradient/items/properties/stopValue",
+    "providedOptionName" : "validation.max",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : {
+        "parameters" : {
+          "max" : 100.0,
+          "isExclusive" : false
+        },
+        "errorMessage" : "The value must not exceed 100."
+      }
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/customGradient/items/properties/stopValue",
+    "providedOptionName" : "validation.min",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : {
+        "parameters" : {
+          "min" : 0.0,
+          "isExclusive" : false
+        },
+        "errorMessage" : "The value must be at least 0."
+      }
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/gradient"
+    },
+    "dependencies" : [ "#/properties/model/properties/customGradient", "#/properties/model/properties/gradient" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/valueScale"
+    },
+    "dependencies" : [ "#/properties/model/properties/valueScale" ]
+  } ]
+}
