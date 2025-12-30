@@ -51,6 +51,7 @@ package org.knime.base.node.meta.feature.selection.genetic;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.node.parameters.widget.choices.Label;
 
 import io.jenetics.ExponentialRankSelector;
 import io.jenetics.Gene;
@@ -69,6 +70,7 @@ import io.jenetics.TournamentSelector;
 public enum SelectionStrategy {
 
         /** Tournament Selection. */
+        @Label("Tournament")
         TOURNAMENT_SELECTION("Tournament", (byte)0) {
 
             @Override
@@ -77,6 +79,7 @@ public enum SelectionStrategy {
             }
         },
         /** Roulette Wheel Selection. */
+        @Label("Roulette Wheel")
         ROULETTEWHEEL_SELECTION("Roulette Wheel", (byte)1) {
 
             @Override
@@ -85,6 +88,7 @@ public enum SelectionStrategy {
             }
         },
         /** Stochastic Universal Selection. */
+        @Label("Stochastic Universal")
         STOCHASTIC_UNIVERSAL_SELECTION("Stochastic Universal", (byte)2) {
 
             @Override
@@ -93,6 +97,7 @@ public enum SelectionStrategy {
             }
         },
         /** Linear Rank Selection. */
+        @Label("Linear Rank")
         LINEAR_RANK_SELECTION("Linear Rank", (byte)3) {
 
             @Override
@@ -101,6 +106,7 @@ public enum SelectionStrategy {
             }
         },
         /** Exponential Rank Selection. */
+        @Label("Exponential Rank")
         EXPONENTIAL_RANK_SELECTION("Exponential Rank", (byte)4) {
 
             @Override

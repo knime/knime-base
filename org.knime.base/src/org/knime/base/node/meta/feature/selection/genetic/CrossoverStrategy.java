@@ -51,6 +51,7 @@ package org.knime.base.node.meta.feature.selection.genetic;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.node.parameters.widget.choices.Label;
 
 import io.jenetics.BitGene;
 import io.jenetics.Crossover;
@@ -67,6 +68,7 @@ import io.jenetics.UniformCrossover;
 public enum CrossoverStrategy {
 
         /** Uniform Crossover */
+        @Label("Uniform")
         UNIFORM_CROSSOVER("Uniform", (byte)0) {
             @Override
             <C extends Comparable<? super C>> Crossover<BitGene, C> getCrossover(final double crossoverRate) {
@@ -74,6 +76,7 @@ public enum CrossoverStrategy {
             }
         },
         /** Single-point Crossover */
+        @Label("Single-point")
         SINGLE_POINT_CROSSOVER("Single-point", (byte)1) {
             @Override
             <C extends Comparable<? super C>> Crossover<BitGene, C> getCrossover(final double crossoverRate) {
@@ -81,6 +84,7 @@ public enum CrossoverStrategy {
             }
         },
         /** Two-point Crossover */
+        @Label("Two-point")
         TWO_POINT_CROSSOVER("Two-point", (byte)2) {
             @Override
             <C extends Comparable<? super C>> Crossover<BitGene, C> getCrossover(final double crossoverRate) {

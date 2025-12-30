@@ -70,88 +70,88 @@ public class FeatureSelectionLoopStartSettings {
 
     // General
 
-    private static final String CFG_CONSTANT_COLUMNS_FILTER_CONFIG = "constantColumnsFilterConfig";
+    static final String CFG_CONSTANT_COLUMNS_FILTER_CONFIG = "constantColumnsFilterConfig";
 
     // Sequential Algorithm
 
-    private static final String CFG_NR_FEATURES_THRESHOLD = "nrFeatureThreshold";
+    static final String CFG_NR_FEATURES_THRESHOLD = "nrFeatureThreshold";
 
     // Genetic Algorithm
 
-    private static final String CFG_NR_FEATURES_LOWER_BOUND = "nrFeatureLowerBound";
+    static final String CFG_NR_FEATURES_LOWER_BOUND = "nrFeatureLowerBound";
 
-    private static final String CFG_NR_FEATURES_UPPER_BOUND = "nrFeatureUpperBound";
+    static final String CFG_NR_FEATURES_UPPER_BOUND = "nrFeatureUpperBound";
 
-    private static final String CFG_POP_SIZE = "popSize";
+    static final String CFG_POP_SIZE = "popSize";
 
-    private static final String CFG_MAX_NUM_GENERATIONS = "maxNumGenerations";
+    static final String CFG_MAX_NUM_GENERATIONS = "maxNumGenerations";
 
-    private static final String CFG_MAX_NUM_ITERATIONS = "maxNumIterations";
+    static final String CFG_MAX_NUM_ITERATIONS = "maxNumIterations";
 
-    private static final String CFG_USE_RANDOM_SEED = "useRandomSeed";
+    static final String CFG_USE_RANDOM_SEED = "useRandomSeed";
 
-    private static final String CFG_RANDOM_SEED = "randomSeed";
+    static final String CFG_RANDOM_SEED = "randomSeed";
 
-    private static final String CFG_SURVIVORS_FRACTION = "survivorsFraction";
+    static final String CFG_SURVIVORS_FRACTION = "survivorsFraction";
 
-    private static final String CFG_CROSSOVER_RATE = "crossoverRate";
+    static final String CFG_CROSSOVER_RATE = "crossoverRate";
 
-    private static final String CFG_MUTATION_RATE = "mutationRate";
+    static final String CFG_MUTATION_RATE = "mutationRate";
 
-    private static final String CFG_ELITISM_RATE = "elitismRate";
+    static final String CFG_ELITISM_RATE = "elitismRate";
 
-    private static final String CFG_EARLY_STOPPING_GENETIC = "earlyStopping";
+    static final String CFG_EARLY_STOPPING_GENETIC = "earlyStopping";
 
-    private static final String CFG_EARLY_STOPPING_RANDOM = "earlyStoppingRandom";
+    static final String CFG_EARLY_STOPPING_RANDOM = "earlyStoppingRandom";
 
-    private static final String CFG_EARLY_STOPPING_TOLERANCE = "earlyStoppingTolerance";
+    static final String CFG_EARLY_STOPPING_TOLERANCE = "earlyStoppingTolerance";
 
     // ===== Default values =====
 
     // General
 
-    private static final Strategy DEF_STRATEGY = Strategy.Random;
+    static final Strategy DEF_STRATEGY = Strategy.Random;
 
     // Sequential Algorithm
 
     // -1 stands for no threshold!
-    private static final int DEF_NR_FEATURES_THRESHOLD = -1;
+    static final int DEF_NR_FEATURES_THRESHOLD = -1;
 
     // Genetic Algorithm
 
     // -1 stands for no upper bound!
-    private static final int DEF_NR_FEATURES_LOWER_BOUND = -1;
+    static final int DEF_NR_FEATURES_LOWER_BOUND = -1;
 
     // -1 stands for no upper bound!
-    private static final int DEF_NR_FEATURES_UPPER_BOUND = -1;
+    static final int DEF_NR_FEATURES_UPPER_BOUND = -1;
 
-    private static final int DEF_POP_SIZE = 20;
+    static final int DEF_POP_SIZE = 20;
 
-    private static final int DEF_MAX_NUM_GENERATIONS = 10;
+    static final int DEF_MAX_NUM_GENERATIONS = 10;
 
-    private static final int DEF_MAX_NUM_ITERATIONS = 50;
+    static final int DEF_MAX_NUM_ITERATIONS = 50;
 
-    private static final long DEF_RANDOM_SEED = System.currentTimeMillis();
+    static final long DEF_RANDOM_SEED = 1767609157297L;
 
-    private static final boolean DEF_USE_RANODM_SEED = false;
+    static final boolean DEF_USE_RANDOM_SEED = false;
 
-    private static final double DEF_SURVIVORS_FRACTION = 0.4;
+    static final double DEF_SURVIVORS_FRACTION = 0.4;
 
-    private static final double DEF_CROSSOVER_RATE = 0.6;
+    static final double DEF_CROSSOVER_RATE = 0.6;
 
-    private static final double DEF_MUTATION_RATE = 0.01;
+    static final double DEF_MUTATION_RATE = 0.01;
 
-    private static final double DEF_ELITISM_RATE = 0.1;
+    static final double DEF_ELITISM_RATE = 0.1;
 
-    private static final int DEF_EARLY_STOPPING_GENETIC = -1;
+    static final int DEF_EARLY_STOPPING_GENETIC = -1;
 
-    private static final int DEF_EARLY_STOPPING_RANDOM = -1;
+    static final int DEF_EARLY_STOPPING_RANDOM = -1;
 
-    private static final double DEF_EARLY_STOPPING_TOLERANCE = 0.01;
+    static final double DEF_EARLY_STOPPING_TOLERANCE = 0.01;
 
-    private static final CrossoverStrategy DEF_CROSSOVER_STRATEGY = CrossoverStrategy.UNIFORM_CROSSOVER;
+    static final CrossoverStrategy DEF_CROSSOVER_STRATEGY = CrossoverStrategy.UNIFORM_CROSSOVER;
 
-    private static final SelectionStrategy DEF_SELECTION_STRATEGY = SelectionStrategy.TOURNAMENT_SELECTION;
+    static final SelectionStrategy DEF_SELECTION_STRATEGY = SelectionStrategy.TOURNAMENT_SELECTION;
 
     // ===== Variables =====
 
@@ -175,7 +175,7 @@ public class FeatureSelectionLoopStartSettings {
 
     private int m_maxNumIterations = DEF_MAX_NUM_ITERATIONS;
 
-    private boolean m_useRandomSeed = DEF_USE_RANODM_SEED;
+    private boolean m_useRandomSeed = DEF_USE_RANDOM_SEED;
 
     private long m_randomSeed = DEF_RANDOM_SEED;
 
@@ -553,7 +553,7 @@ public class FeatureSelectionLoopStartSettings {
         m_nrFeaturesUpperBound = settings.getInt(CFG_NR_FEATURES_UPPER_BOUND, DEF_NR_FEATURES_UPPER_BOUND);
         m_popSize = settings.getInt(CFG_POP_SIZE, DEF_POP_SIZE);
         m_maxNumGenerations = settings.getInt(CFG_MAX_NUM_GENERATIONS, DEF_MAX_NUM_GENERATIONS);
-        m_useRandomSeed = settings.getBoolean(CFG_USE_RANDOM_SEED, DEF_USE_RANODM_SEED);
+        m_useRandomSeed = settings.getBoolean(CFG_USE_RANDOM_SEED, DEF_USE_RANDOM_SEED);
         m_randomSeed = settings.getLong(CFG_RANDOM_SEED, DEF_RANDOM_SEED);
         m_survivorsFraction = settings.getDouble(CFG_SURVIVORS_FRACTION, DEF_SURVIVORS_FRACTION);
         m_crossoverRate = settings.getDouble(CFG_CROSSOVER_RATE, DEF_CROSSOVER_RATE);
@@ -592,7 +592,7 @@ public class FeatureSelectionLoopStartSettings {
         m_nrFeaturesUpperBound = settings.getInt(CFG_NR_FEATURES_UPPER_BOUND, DEF_NR_FEATURES_UPPER_BOUND);
         m_popSize = settings.getInt(CFG_POP_SIZE, DEF_POP_SIZE);
         m_maxNumGenerations = settings.getInt(CFG_MAX_NUM_GENERATIONS, DEF_MAX_NUM_GENERATIONS);
-        m_useRandomSeed = settings.getBoolean(CFG_USE_RANDOM_SEED, DEF_USE_RANODM_SEED);
+        m_useRandomSeed = settings.getBoolean(CFG_USE_RANDOM_SEED, DEF_USE_RANDOM_SEED);
         m_randomSeed = settings.getLong(CFG_RANDOM_SEED, DEF_RANDOM_SEED);
         m_survivorsFraction = settings.getDouble(CFG_SURVIVORS_FRACTION, DEF_SURVIVORS_FRACTION);
         m_crossoverRate = settings.getDouble(CFG_CROSSOVER_RATE, DEF_CROSSOVER_RATE);

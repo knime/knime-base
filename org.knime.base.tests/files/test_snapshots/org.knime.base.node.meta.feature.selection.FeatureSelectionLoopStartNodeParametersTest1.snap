@@ -1,0 +1,1013 @@
+{
+  "data" : {
+    "model" : {
+      "constantColumnsFilterConfig" : {
+        "mode" : "MANUAL",
+        "patternFilter" : {
+          "pattern" : "",
+          "isCaseSensitive" : true,
+          "isInverted" : false
+        },
+        "manualFilter" : {
+          "manuallySelected" : [ "Universe_0_0", "Universe_0_1", "Universe_1_0", "Universe_1_1", "Cluster Membership" ],
+          "manuallyDeselected" : [ ],
+          "includeUnknownColumns" : true
+        },
+        "typeFilter" : {
+          "selectedTypes" : [ ],
+          "typeDisplays" : [ ]
+        }
+      },
+      "strategy" : "Random",
+      "nrFeaturesThreshold" : null,
+      "nrFeaturesLowerBound" : null,
+      "nrFeaturesUpperBound" : null,
+      "popSize" : 20,
+      "maxNumGenerations" : 10,
+      "maxNumIterations" : 50,
+      "useRandomSeed" : false,
+      "randomSeed" : 1767020007997,
+      "selectionStrategy" : "TOURNAMENT_SELECTION",
+      "survivorsFraction" : 0.4,
+      "elitismRate" : 0.1,
+      "crossoverStrategy" : "UNIFORM_CROSSOVER",
+      "crossoverRate" : 0.6,
+      "mutationRate" : 0.01,
+      "earlyStoppingNumGenerations" : null,
+      "earlyStoppingRoundsRandom" : null,
+      "earlyStoppingTolerance" : 0.01
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "constantColumnsFilterConfig" : {
+            "type" : "object",
+            "properties" : {
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "includeUnknownColumns" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "manuallyDeselected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "manuallySelected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "manuallySelected" : [ ],
+                  "manuallyDeselected" : [ ],
+                  "includeUnknownColumns" : false
+                }
+              },
+              "mode" : {
+                "oneOf" : [ {
+                  "const" : "MANUAL",
+                  "title" : "Manual"
+                }, {
+                  "const" : "REGEX",
+                  "title" : "Regex"
+                }, {
+                  "const" : "WILDCARD",
+                  "title" : "Wildcard"
+                }, {
+                  "const" : "TYPE",
+                  "title" : "Type"
+                } ],
+                "default" : "MANUAL"
+              },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "isCaseSensitive" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "isInverted" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "pattern" : {
+                    "type" : "string",
+                    "default" : ""
+                  }
+                },
+                "default" : {
+                  "pattern" : "",
+                  "isCaseSensitive" : false,
+                  "isInverted" : false
+                }
+              },
+              "selected" : {
+                "type" : "array",
+                "items" : {
+                  "type" : "string"
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "selectedTypes" : [ ],
+                  "typeDisplays" : [ ]
+                }
+              }
+            },
+            "title" : "Static and variable features",
+            "description" : "Columns can be selected manually or by means of regular expressions. The columns in the left\npane are the static columns, those in the right pane the variable columns. If you want to\nlearn a supervised model (e.g. classification or regression), at least one static column and\nmore than one variable column will be needed. For an unsupervised model (e.g. clustering), no\nconstant column but only variable columns will be needed. Columns can be moved from one pane\nto the other by clicking on the appropriate button in the middle.\n"
+          },
+          "crossoverRate" : {
+            "type" : "number",
+            "format" : "double",
+            "title" : "Crossover rate",
+            "description" : "[Genetic Algorithm] Set the crossover rate used to alter offspring.\n",
+            "default" : 0.6
+          },
+          "crossoverStrategy" : {
+            "oneOf" : [ {
+              "const" : "UNIFORM_CROSSOVER",
+              "title" : "Uniform"
+            }, {
+              "const" : "SINGLE_POINT_CROSSOVER",
+              "title" : "Single-point"
+            }, {
+              "const" : "TWO_POINT_CROSSOVER",
+              "title" : "Two-point"
+            } ],
+            "title" : "Crossover strategy",
+            "description" : "[Genetic Algorithm] Choose the strategy to use for\n<a href=\"https://en.wikipedia.org/wiki/Crossover_(genetic_algorithm)\"> crossover</a>.\n",
+            "default" : "UNIFORM_CROSSOVER"
+          },
+          "earlyStoppingNumGenerations" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int32",
+            "title" : "Number of generations without improvement",
+            "description" : "[Genetic Algorithm] Check this option if you want to enable early stopping which means that the algorithm\nstops after a specified number of generations without improvement. This is based on a moving average whereby\n the size of the moving window is the same number as the specified number of iterations.\n",
+            "default" : 3
+          },
+          "earlyStoppingRoundsRandom" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int32",
+            "title" : "Number of iterations without improvement",
+            "description" : "[Random] Check this option if you want to enable early stopping which means that the algorithm stops after\na specified number of iterations without improvement. This is based on a moving average whereby the size of\nthe moving window is the same number as the specified number of iterations.\n",
+            "default" : 5
+          },
+          "earlyStoppingTolerance" : {
+            "type" : [ "number", "null" ],
+            "format" : "double",
+            "title" : "Tolerance",
+            "description" : "[Random] Check this option if you want to enable early stopping which means that the algorithm stops after\na specified number of iterations without improvement. If the ratio of improvement is lower than a specified\ntolerance, the search stops.\n",
+            "default" : 0.01
+          },
+          "elitismRate" : {
+            "type" : "number",
+            "format" : "double",
+            "title" : "Elitism rate",
+            "description" : "[Genetic Algorithm] Set the fraction of the best individuals within a generation that are transferred to the\n next generation without alternation.\n",
+            "default" : 0.1
+          },
+          "maxNumGenerations" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Max. number of generations",
+            "description" : "[Genetic Algorithm] Set the number of generations. Changing this value directly influences the maximal\nnumber of loop iterations which is <i>Population size * (Number of generations + 1)</i>. This is just an\nupper bound, usually less iterations will be necessary.\n",
+            "default" : 10
+          },
+          "maxNumIterations" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Max. number of iterations",
+            "description" : "[Random] Set the number of iterations. This is an upper bound. If the same feature subset is randomly\ngenerated for a second time, it won't be processed again but will be counted as iteration.\nFurthermore, if early stopping is enabled, the algorithm may stop before the max. number of\niterations is reached.\n",
+            "default" : 50
+          },
+          "mutationRate" : {
+            "type" : "number",
+            "format" : "double",
+            "title" : "Mutation rate",
+            "description" : "[Genetic Algorithm] Set the mutation rate used to alter offspring.\n",
+            "default" : 0.01
+          },
+          "nrFeaturesLowerBound" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int32",
+            "title" : "Lower bound for number of features",
+            "description" : "[Genetic Algorithm, Random] Check this option if you want to set a lower bound for the number of\nselected features.\n",
+            "default" : 2
+          },
+          "nrFeaturesThreshold" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int32",
+            "title" : "Threshold for number of features",
+            "description" : "[Forward Feature Selection, Backward Feature Elimination] Check this option if you want to set a bound\nfor the number of selected features. Since Forward Feature Selection adds features while Backward\nFeature Elimination subtracts them, this will be an upper bound for Forward Feature Selection and a\nlower bound for Backward Feature Elimination.\n",
+            "default" : 20
+          },
+          "nrFeaturesUpperBound" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int32",
+            "title" : "Upper bound for number of features",
+            "description" : "[Genetic Algorithm, Random] Check this option if you want to set an upper bound for the number of\nselected features.\n",
+            "default" : 20
+          },
+          "popSize" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Population size",
+            "description" : "[Genetic Algorithm] Set the number of individuals in each population. Changing this value directly\ninfluences the maximal number of loop iterations which is <i>Population size * (Number of generations + 1)\n</i>. This is just an upper bound, usually less iterations will be necessary.\n",
+            "default" : 20
+          },
+          "randomSeed" : {
+            "type" : "integer",
+            "format" : "int64",
+            "title" : "Random seed",
+            "description" : "The random seed value for reproducible results.\n",
+            "default" : 1767609157297
+          },
+          "selectionStrategy" : {
+            "oneOf" : [ {
+              "const" : "TOURNAMENT_SELECTION",
+              "title" : "Tournament"
+            }, {
+              "const" : "ROULETTEWHEEL_SELECTION",
+              "title" : "Roulette Wheel"
+            }, {
+              "const" : "STOCHASTIC_UNIVERSAL_SELECTION",
+              "title" : "Stochastic Universal"
+            }, {
+              "const" : "LINEAR_RANK_SELECTION",
+              "title" : "Linear Rank"
+            }, {
+              "const" : "EXPONENTIAL_RANK_SELECTION",
+              "title" : "Exponential Rank"
+            } ],
+            "title" : "Selection strategy",
+            "description" : "[Genetic Algorithm] Choose the strategy to use for the\n<a href=\"https://en.wikipedia.org/wiki/Selection_(genetic_algorithm)\">selection of offspring</a>.\n",
+            "default" : "TOURNAMENT_SELECTION"
+          },
+          "strategy" : {
+            "oneOf" : [ {
+              "const" : "ForwardFeatureSelection",
+              "title" : "Forward Feature Selection"
+            }, {
+              "const" : "BackwardFeatureElimination",
+              "title" : "Backward Feature Elimination"
+            }, {
+              "const" : "GeneticAlgorithm",
+              "title" : "Genetic Algorithm"
+            }, {
+              "const" : "Random",
+              "title" : "Random"
+            } ],
+            "title" : "Feature selection strategy",
+            "description" : "Here you can choose between the selection strategies: Forward Feature Selection, Backward Feature\nElimination, <a href=\"https://en.wikipedia.org/wiki/Genetic_algorithm\">Genetic Algorithm</a> and Random.\n",
+            "default" : "Random"
+          },
+          "survivorsFraction" : {
+            "type" : "number",
+            "format" : "double",
+            "title" : "Fraction of survivors",
+            "description" : "[Genetic Algorithm] Set the fraction of survivors during evaluation of the next generation.\n<i>1 - fraction of survivors</i> defines the fraction of offspring which is evaluated for the next\ngeneration.\n",
+            "default" : 0.4
+          },
+          "useRandomSeed" : {
+            "type" : "boolean",
+            "title" : "Use static random seed",
+            "description" : "[Genetic Algorithm, Random] Choose a seed to get reproducible results.\n",
+            "default" : false
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/constantColumnsFilterConfig",
+      "options" : {
+        "format" : "typedStringFilter",
+        "unknownValuesText" : "Any unknown column",
+        "emptyStateLabel" : "No columns in this list.",
+        "hideTypeFilter" : true,
+        "includedLabel" : "Variable columns",
+        "excludedLabel" : "Static columns"
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/strategy"
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/nrFeaturesThreshold",
+      "options" : {
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 2147483647.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 2.147483647E9
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 1.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 1.0
+            }
+          }
+        },
+        "hideOnNull" : true
+      },
+      "providedOptions" : [ "default" ],
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/strategy",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "ForwardFeatureSelection"
+            }, {
+              "const" : "BackwardFeatureElimination"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/nrFeaturesLowerBound",
+      "options" : {
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 2147483647.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 2.147483647E9
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 2.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 2.0
+            }
+          }
+        },
+        "hideOnNull" : true
+      },
+      "providedOptions" : [ "default" ],
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/strategy",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "GeneticAlgorithm"
+            }, {
+              "const" : "Random"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/nrFeaturesUpperBound",
+      "options" : {
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 2147483647.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 2.147483647E9
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 1.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 1.0
+            }
+          }
+        },
+        "hideOnNull" : true
+      },
+      "providedOptions" : [ "default" ],
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/strategy",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "GeneticAlgorithm"
+            }, {
+              "const" : "Random"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/popSize",
+      "options" : {
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 2147483647.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 2.147483647E9
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 2.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 2.0
+            }
+          }
+        }
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/strategy",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "GeneticAlgorithm"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/maxNumGenerations",
+      "options" : {
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 2147483647.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 2.147483647E9
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 1.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 1.0
+            }
+          }
+        }
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/strategy",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "GeneticAlgorithm"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/maxNumIterations",
+      "options" : {
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 2147483647.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 2.147483647E9
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 1.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 1.0
+            }
+          }
+        }
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/strategy",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "Random"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/useRandomSeed",
+      "options" : {
+        "format" : "checkbox"
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/strategy",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "GeneticAlgorithm"
+            }, {
+              "const" : "Random"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/randomSeed",
+      "options" : {
+        "validation" : {
+          "max" : {
+            "errorMessage" : "Value too large to process without risking precision loss (> 9007199254740991).",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 9.007199254740991E15
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 1.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 1.0
+            }
+          }
+        }
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "type" : "AND",
+          "conditions" : [ {
+            "scope" : "#/properties/model/properties/strategy",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "GeneticAlgorithm"
+              }, {
+                "const" : "Random"
+              } ]
+            }
+          }, {
+            "scope" : "#/properties/model/properties/useRandomSeed",
+            "schema" : {
+              "const" : true
+            }
+          } ]
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/selectionStrategy",
+      "options" : {
+        "isAdvanced" : true
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/strategy",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "GeneticAlgorithm"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/survivorsFraction",
+      "options" : {
+        "stepSize" : 0.1,
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 1.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 1.0
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 0.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 0.0
+            }
+          }
+        },
+        "isAdvanced" : true
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/strategy",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "GeneticAlgorithm"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/elitismRate",
+      "options" : {
+        "stepSize" : 0.1,
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 1.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 1.0
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 0.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 0.0
+            }
+          }
+        },
+        "isAdvanced" : true
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/strategy",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "GeneticAlgorithm"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/crossoverStrategy",
+      "options" : {
+        "isAdvanced" : true
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/strategy",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "GeneticAlgorithm"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/crossoverRate",
+      "options" : {
+        "stepSize" : 0.1,
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 1.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 1.0
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 0.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 0.0
+            }
+          }
+        },
+        "isAdvanced" : true
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/strategy",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "GeneticAlgorithm"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/mutationRate",
+      "options" : {
+        "stepSize" : 0.1,
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 1.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 1.0
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 0.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 0.0
+            }
+          }
+        },
+        "isAdvanced" : true
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/strategy",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "GeneticAlgorithm"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/earlyStoppingNumGenerations",
+      "options" : {
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 2147483647.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 2.147483647E9
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 1.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 1.0
+            }
+          }
+        },
+        "isAdvanced" : true,
+        "hideOnNull" : true
+      },
+      "providedOptions" : [ "default" ],
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/strategy",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "GeneticAlgorithm"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/earlyStoppingRoundsRandom",
+      "options" : {
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 2147483647.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 2.147483647E9
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 1.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 1.0
+            }
+          }
+        },
+        "isAdvanced" : true,
+        "hideOnNull" : true
+      },
+      "providedOptions" : [ "default" ],
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/strategy",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "Random"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/earlyStoppingTolerance",
+      "options" : {
+        "stepSize" : 0.01,
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 100.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 100.0
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 0.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 0.0
+            }
+          }
+        },
+        "isAdvanced" : true,
+        "hideOnNull" : true
+      },
+      "providedOptions" : [ "default" ],
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/strategy",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "Random"
+            } ]
+          }
+        }
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "constantColumnsFilterConfig" : {
+            "configPaths" : [ [ "constantColumnsFilterConfig", "filter-type" ], [ "constantColumnsFilterConfig", "included_names" ], [ "constantColumnsFilterConfig", "excluded_names" ], [ "constantColumnsFilterConfig", "enforce_option" ], [ "constantColumnsFilterConfig", "name_pattern", "pattern" ], [ "constantColumnsFilterConfig", "name_pattern", "type" ], [ "constantColumnsFilterConfig", "name_pattern", "caseSensitive" ], [ "constantColumnsFilterConfig", "name_pattern", "excludeMatching" ] ]
+          },
+          "strategy" : {
+            "configPaths" : [ [ "selectionStrategy" ] ]
+          },
+          "nrFeaturesThreshold" : {
+            "configPaths" : [ [ "nrFeatureThreshold" ] ]
+          },
+          "nrFeaturesLowerBound" : {
+            "configPaths" : [ [ "nrFeatureLowerBound" ] ]
+          },
+          "nrFeaturesUpperBound" : {
+            "configPaths" : [ [ "nrFeatureUpperBound" ] ]
+          },
+          "popSize" : {
+            "configKey" : "popSize"
+          },
+          "maxNumGenerations" : {
+            "configKey" : "maxNumGenerations"
+          },
+          "maxNumIterations" : {
+            "configKey" : "maxNumIterations"
+          },
+          "useRandomSeed" : {
+            "configKey" : "useRandomSeed"
+          },
+          "randomSeed" : {
+            "configKey" : "randomSeed"
+          },
+          "selectionStrategy" : {
+            "configPaths" : [ [ "ga_selectionStrategy" ] ]
+          },
+          "survivorsFraction" : {
+            "configKey" : "survivorsFraction"
+          },
+          "elitismRate" : {
+            "configKey" : "elitismRate"
+          },
+          "crossoverStrategy" : {
+            "configPaths" : [ [ "ga_crossoverStrategy" ] ]
+          },
+          "crossoverRate" : {
+            "configKey" : "crossoverRate"
+          },
+          "mutationRate" : {
+            "configKey" : "mutationRate"
+          },
+          "earlyStoppingNumGenerations" : {
+            "configPaths" : [ [ "earlyStopping" ] ]
+          },
+          "earlyStoppingRoundsRandom" : {
+            "configPaths" : [ [ "earlyStoppingRandom" ] ]
+          },
+          "earlyStoppingTolerance" : {
+            "configPaths" : [ [ "earlyStoppingTolerance" ] ]
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/constantColumnsFilterConfig",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Universe_0_0",
+        "text" : "Universe_0_0",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Universe_0_1",
+        "text" : "Universe_0_1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Universe_1_0",
+        "text" : "Universe_1_0",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Universe_1_1",
+        "text" : "Universe_1_1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Cluster Membership",
+        "text" : "Cluster Membership",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/earlyStoppingNumGenerations",
+    "providedOptionName" : "default",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : 3
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/earlyStoppingRoundsRandom",
+    "providedOptionName" : "default",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : 5
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/earlyStoppingTolerance",
+    "providedOptionName" : "default",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : 0.01
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/nrFeaturesLowerBound",
+    "providedOptionName" : "default",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : 2
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/nrFeaturesThreshold",
+    "providedOptionName" : "default",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : 20
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/nrFeaturesUpperBound",
+    "providedOptionName" : "default",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : 20
+    } ]
+  } ]
+}
