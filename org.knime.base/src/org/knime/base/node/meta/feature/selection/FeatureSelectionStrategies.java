@@ -54,6 +54,7 @@ import org.knime.base.node.meta.feature.selection.genetic.GeneticStrategy;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.node.parameters.widget.choices.Label;
 
 /**
  *
@@ -71,20 +72,24 @@ public class FeatureSelectionStrategies {
              * Forward Feature Selection. Starts from an empty set and iteratively adds the feature that provides the
              * best gain
              */
+            @Label("Forward Feature Selection")
             ForwardFeatureSelection("Forward Feature Selection", StrategyType.Sequential, (byte)0),
             /**
              * Backward Feature Elimination. Starts from the full set and iteratively removes the feature whose removal
              * yields the smallest loss.
              */
+            @Label("Backward Feature Elimination")
             BackwardFeatureElimination("Backward Feature Elimination", StrategyType.Sequential, (byte)1),
             /**
              * Genetic Algorithm for Feature Selection. Binary chromosomes represent which features to include and which
              * to exclude.
              */
+            @Label("Genetic Algorithm")
             GeneticAlgorithm("Genetic Algorithm", StrategyType.Genetic, (byte)2),
             /**
              * Random strategy. Tries randomly generated feature subsets.
              */
+            @Label("Random")
             Random("Random", StrategyType.Random, (byte)3);
 
         private final String m_string;
