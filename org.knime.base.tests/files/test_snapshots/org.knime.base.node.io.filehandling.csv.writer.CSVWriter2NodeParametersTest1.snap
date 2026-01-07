@@ -1,0 +1,794 @@
+{
+  "data" : {
+    "model" : {
+      "outputFile" : {
+        "file" : {
+          "path" : {
+            "fsCategory" : "LOCAL",
+            "path" : "/tmp/foo/test.csv",
+            "timeout" : 10000,
+            "context" : {
+              "fsToString" : "(LOCAL, /tmp/foo/test.csv)"
+            }
+          }
+        },
+        "createMissingFolders" : true,
+        "overwritePolicy" : "overwrite"
+      },
+      "fileEncoding" : {
+        "fileEncoding" : "UTF-8"
+      },
+      "compressWithGzip" : false,
+      "columnDelimiter" : "\\t",
+      "rowDelimiter" : "UNIX_LINUX",
+      "quoteChar" : "\"",
+      "quoteEscapeChar" : "\"",
+      "writeColumnHeader" : true,
+      "skipColumnHeaderOnAppend" : false,
+      "writeRowHeader" : false,
+      "quoteMode" : "STRINGS_ONLY",
+      "separatorReplacement" : "",
+      "missingValuePattern" : "",
+      "decimalSeparator" : ".",
+      "useScientificFormat" : false,
+      "keepTrailingZero" : false,
+      "addUserToComment" : false,
+      "addTimeToComment" : false,
+      "addTableNameToComment" : false,
+      "addCustomTextToComment" : false,
+      "customCommentText" : "",
+      "commentLineMarker" : "#",
+      "commentIndent" : "\\t",
+      "performNewValidation" : true
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "addCustomTextToComment" : {
+            "type" : "boolean",
+            "title" : "Write custom text",
+            "description" : "If you check this, you can enter any free text, that will be added then to the comment header.",
+            "default" : false
+          },
+          "addTableNameToComment" : {
+            "type" : "boolean",
+            "title" : "Write input table name",
+            "description" : "If checked, a comment line is added showing the name of the table the data was read from.",
+            "default" : false
+          },
+          "addTimeToComment" : {
+            "type" : "boolean",
+            "title" : "Write execution time",
+            "description" : "If checked, a comment line with the current execution time and date is added.",
+            "default" : false
+          },
+          "addUserToComment" : {
+            "type" : "boolean",
+            "title" : "Write name of file creator (KNIME username)",
+            "description" : "If checked, the login name of the user that created the file (probably you!) is inserted.",
+            "default" : false
+          },
+          "columnDelimiter" : {
+            "type" : "string",
+            "title" : "Column delimiter",
+            "description" : "The character string delimiting columns. A single tab character can be entered as '\\t'",
+            "default" : ","
+          },
+          "commentIndent" : {
+            "type" : "string",
+            "title" : "Comment indentation",
+            "description" : "Specify an indentation string, i.e., a prefix for every comment line.A single tab character can be entered as '\\t'.",
+            "default" : "\\t"
+          },
+          "commentLineMarker" : {
+            "type" : "string",
+            "title" : "Comment line marker",
+            "description" : "If you have checked at least one of the content options, you must provide a comment line marker that is used as a prefix for each comment line.",
+            "default" : "#"
+          },
+          "compressWithGzip" : {
+            "type" : "boolean",
+            "title" : "Compress file (gzip)",
+            "description" : "Check this if you want to compress the output file using gzip compression.",
+            "default" : false
+          },
+          "customCommentText" : {
+            "type" : "string",
+            "title" : "Custom text",
+            "description" : "Enter the custom text to be added to the comment header.",
+            "default" : ""
+          },
+          "decimalSeparator" : {
+            "type" : "string",
+            "title" : "Number decimal separator",
+            "description" : "Specify a character that is used as decimal separator for floating point numbers.",
+            "default" : "."
+          },
+          "fileEncoding" : {
+            "type" : "object",
+            "properties" : {
+              "characterSetValidationMessage" : {
+                "type" : "object"
+              },
+              "fileEncoding" : {
+                "type" : "string",
+                "title" : "File encoding",
+                "description" : "You can select a predefined character set (UTF-8, UTF-16, etc.), or specify any other encoding supported by\nyour Java VM. The OS default uses the default encoding of the Java VM, which may depend on the locale or the\nJava property \"file.encoding\".",
+                "default" : "UTF-8"
+              }
+            },
+            "default" : {
+              "fileEncoding" : "UTF-8"
+            }
+          },
+          "keepTrailingZero" : {
+            "type" : "boolean",
+            "title" : "Append .0 suffix for decimal numbers without fractions",
+            "description" : "Check this if you want to write every decimal value with .0 suffix even though the value doesn't contain\nany fractional part. (e.g., the value 12 will be written as 12.0 if it is coming from a decimal column).\nUse with caution as this could lead to unnecessary increase of the file size. This doesn't affect the way\nto write values from integer columns. The option is ignored if we are using a scientific format.\n",
+            "default" : false
+          },
+          "missingValuePattern" : {
+            "type" : "string",
+            "title" : "Replace missing values with",
+            "description" : "Set this option to replace missing values from the input table with specific text when writing.",
+            "default" : ""
+          },
+          "outputFile" : {
+            "type" : "object",
+            "properties" : {
+              "createMissingFolders" : {
+                "type" : "boolean",
+                "title" : "Create missing folders",
+                "description" : "If enabled, missing folders in the specified path will be created automatically.",
+                "default" : false
+              },
+              "file" : {
+                "type" : "object",
+                "properties" : {
+                  "path" : {
+                    "type" : "object",
+                    "default" : {
+                      "fsCategory" : "LOCAL",
+                      "path" : "",
+                      "timeout" : 10000,
+                      "context" : {
+                        "fsToString" : "(LOCAL, )"
+                      }
+                    }
+                  }
+                },
+                "title" : "Output file",
+                "description" : "The CSV file to write the data to.",
+                "default" : {
+                  "path" : {
+                    "fsCategory" : "LOCAL",
+                    "path" : "",
+                    "timeout" : 10000,
+                    "context" : {
+                      "fsToString" : "(LOCAL, )"
+                    }
+                  }
+                }
+              },
+              "overwritePolicy" : {
+                "oneOf" : [ {
+                  "const" : "fail",
+                  "title" : "Fail"
+                }, {
+                  "const" : "overwrite",
+                  "title" : "Overwrite"
+                }, {
+                  "const" : "ignore",
+                  "title" : "Ignore"
+                }, {
+                  "const" : "append",
+                  "title" : "Append"
+                } ],
+                "title" : "If exists",
+                "description" : "Specify the behavior of the node in case the output file already exists.<ul><li><b>Fail</b>: Will issue an error during the node's execution (to prevent unintentional overwrite).</li><li><b>Overwrite</b>: Will replace any existing file.</li><li><b>Append</b>: Will append the input data to an existing file.</li></ul>",
+                "default" : "overwrite"
+              }
+            },
+            "default" : {
+              "file" : {
+                "path" : {
+                  "fsCategory" : "LOCAL",
+                  "path" : "",
+                  "timeout" : 10000,
+                  "context" : {
+                    "fsToString" : "(LOCAL, )"
+                  }
+                }
+              },
+              "createMissingFolders" : false,
+              "overwritePolicy" : "overwrite"
+            }
+          },
+          "performNewValidation" : {
+            "type" : "boolean",
+            "default" : true
+          },
+          "quoteChar" : {
+            "type" : "string",
+            "title" : "Quote character",
+            "description" : "The quote character used to enclose values with. See the \"Quote values\" option to specify what kind of values should be enclosed within quotes.",
+            "default" : "\""
+          },
+          "quoteEscapeChar" : {
+            "type" : "string",
+            "title" : "Quote escape character",
+            "description" : "The character is used for escaping quotes inside an already quoted value.",
+            "default" : "\""
+          },
+          "quoteMode" : {
+            "oneOf" : [ {
+              "const" : "STRINGS_ONLY",
+              "title" : "Strings only"
+            }, {
+              "const" : "IF_NEEDED",
+              "title" : "If needed"
+            }, {
+              "const" : "ALWAYS",
+              "title" : "Always"
+            }, {
+              "const" : "NEVER",
+              "title" : "Never"
+            } ],
+            "title" : "Quote values",
+            "description" : "Specify when to enclose values with quotes:\n<ul>\n<li><b>Strings only</b>: Integer and floating point numbers are not quoted, all other data items are. (Selecting the decimal point as data separator will lead to an output that can't be read in again.) The quote character is escaped in quoted items.</li>\n<li><b>If needed</b>: Quotes are only placed around a data item that contains the data separator or if it equals the missing value pattern. The quote character will be escaped if it appears in a quoted data item.</li>\n<li><b>Always</b>: Every data item written out is placed between quotation marks. (The missing value pattern is not quoted though.)</li>\n<li><b>Never</b>: No data item is placed between quotation marks. You should specify a replacement pattern for the column delimiter, if it occurs in the data item.</li>\n</ul>",
+            "default" : "STRINGS_ONLY"
+          },
+          "rowDelimiter" : {
+            "oneOf" : [ {
+              "const" : "SYS_DEFAULT",
+              "title" : "System Default"
+            }, {
+              "const" : "UNIX_LINUX",
+              "title" : "Linux/Unix Line break"
+            }, {
+              "const" : "WINDOWS",
+              "title" : "Windows Line break"
+            }, {
+              "const" : "MAC_OS9",
+              "title" : "Mac OS9 Line break"
+            } ],
+            "title" : "Row delimiter",
+            "description" : "Select the line break variation you want to use as row delimiter while writing the CSV file.\n<ul>\n<li><b>System Default</b>: Use the line break of the operating system.</li>\n<li><b>Linux/Unix Line break</b>: Use newline (\\n) as row delimiter.</li>\n<li><b>Windows Line break</b>: Use carriage return + newline (\\r\\n) as row delimiter.</li>\n<li><b>Mac OS9 Line break</b>: Use carriage return (\\r) as row delimiter.</li>\n</ul>",
+            "default" : "SYS_DEFAULT"
+          },
+          "separatorReplacement" : {
+            "type" : "string",
+            "title" : "Replace column separator with",
+            "description" : "Specify a replacement for the value used as a column separator. Used only if the 'Never' option is selected for Quote values.",
+            "default" : ""
+          },
+          "skipColumnHeaderOnAppend" : {
+            "type" : "boolean",
+            "title" : "Don't write column headers if file exists",
+            "description" : "If checked, the column headers will not be written when the output is appended to the already\nexisting output file. This is particularly useful when the CSV Writer is used in a loop to report\nthe results of each iteration.\n",
+            "default" : false
+          },
+          "useScientificFormat" : {
+            "type" : "boolean",
+            "title" : "Use scientific format for very large and very small numbers",
+            "description" : "Check this if you want very large and very small floating point numbers to be written in scientific notation (e.g., 1.0E9 instead of 1,000,000,000).",
+            "default" : false
+          },
+          "writeColumnHeader" : {
+            "type" : "boolean",
+            "title" : "Write column headers",
+            "description" : "If checked, the column names will be written out in the first line of the output file.",
+            "default" : true
+          },
+          "writeRowHeader" : {
+            "type" : "boolean",
+            "title" : "Write RowIDs",
+            "description" : "If checked, the RowIDs will be added to the output, as first item in each line.",
+            "default" : false
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "label" : "Output File",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/outputFile/properties/file",
+        "options" : {
+          "fileExtension" : "csv",
+          "isLocal" : true,
+          "isWriter" : true,
+          "spaceFSOptions" : {
+            "mountId" : "Local space"
+          },
+          "format" : "fileChooser"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/outputFile/properties/createMissingFolders",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/outputFile/properties/overwritePolicy",
+        "options" : {
+          "format" : "valueSwitch"
+        },
+        "providedOptions" : [ "possibleValues" ]
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/fileEncoding/properties/fileEncoding",
+        "options" : {
+          "isAdvanced" : true,
+          "format" : "dropDown",
+          "allowNewValue" : true
+        },
+        "providedOptions" : [ "possibleValues" ]
+      }, {
+        "type" : "Control",
+        "id" : "#/properties/model/properties/fileEncoding/properties/characterSetValidationMessage",
+        "options" : {
+          "format" : "textMessage",
+          "isAdvanced" : true
+        },
+        "providedOptions" : [ "message" ]
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/compressWithGzip",
+        "options" : {
+          "format" : "checkbox",
+          "isAdvanced" : true
+        }
+      } ]
+    }, {
+      "label" : "File Format",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/columnDelimiter"
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/rowDelimiter",
+        "options" : {
+          "isAdvanced" : true
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/writeColumnHeader",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/skipColumnHeaderOnAppend",
+        "options" : {
+          "format" : "checkbox"
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/outputFile",
+            "schema" : {
+              "properties" : {
+                "overwritePolicy" : {
+                  "oneOf" : [ {
+                    "const" : "append"
+                  } ]
+                }
+              },
+              "required" : [ "overwritePolicy" ]
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/writeRowHeader",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "HorizontalLayout",
+        "elements" : [ {
+          "type" : "Control",
+          "scope" : "#/properties/model/properties/quoteChar",
+          "options" : {
+            "validation" : {
+              "pattern" : {
+                "errorMessage" : "This field must contain a single character. A limited set of escape sequences (\\t, \\n, \\r, \\r\\n) is supported.",
+                "parameters" : {
+                  "pattern" : "(\\\\t|\\\\n|\\\\r|\\\\r\\\\n|.)"
+                }
+              }
+            },
+            "isAdvanced" : true
+          }
+        }, {
+          "type" : "Control",
+          "scope" : "#/properties/model/properties/quoteEscapeChar",
+          "options" : {
+            "validation" : {
+              "pattern" : {
+                "errorMessage" : "This field must contain a single character. A limited set of escape sequences (\\t, \\n, \\r, \\r\\n) is supported.",
+                "parameters" : {
+                  "pattern" : "(\\\\t|\\\\n|\\\\r|\\\\r\\\\n|.)"
+                }
+              }
+            },
+            "isAdvanced" : true
+          }
+        } ]
+      } ]
+    }, {
+      "label" : "Values",
+      "type" : "Section",
+      "options" : {
+        "isAdvanced" : true
+      },
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/quoteMode",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/separatorReplacement",
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/quoteMode",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "NEVER"
+              } ]
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/missingValuePattern"
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/decimalSeparator",
+        "options" : {
+          "validation" : {
+            "pattern" : {
+              "errorMessage" : "The string must be a single character.",
+              "parameters" : {
+                "pattern" : "^.$"
+              }
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/useScientificFormat",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/keepTrailingZero",
+        "options" : {
+          "format" : "checkbox"
+        }
+      } ]
+    }, {
+      "label" : "Comment Header",
+      "type" : "Section",
+      "options" : {
+        "isAdvanced" : true
+      },
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/addUserToComment",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/addTimeToComment",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/addTableNameToComment",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/addCustomTextToComment",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/customCommentText",
+        "options" : {
+          "rows" : 4,
+          "format" : "textArea"
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/addCustomTextToComment",
+            "schema" : {
+              "const" : true
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/commentLineMarker",
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "type" : "OR",
+            "conditions" : [ {
+              "type" : "OR",
+              "conditions" : [ {
+                "type" : "OR",
+                "conditions" : [ {
+                  "scope" : "#/properties/model/properties/addUserToComment",
+                  "schema" : {
+                    "const" : true
+                  }
+                }, {
+                  "scope" : "#/properties/model/properties/addTimeToComment",
+                  "schema" : {
+                    "const" : true
+                  }
+                } ]
+              }, {
+                "scope" : "#/properties/model/properties/addTableNameToComment",
+                "schema" : {
+                  "const" : true
+                }
+              } ]
+            }, {
+              "scope" : "#/properties/model/properties/addCustomTextToComment",
+              "schema" : {
+                "const" : true
+              }
+            } ]
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/commentIndent",
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "type" : "OR",
+            "conditions" : [ {
+              "type" : "OR",
+              "conditions" : [ {
+                "type" : "OR",
+                "conditions" : [ {
+                  "scope" : "#/properties/model/properties/addUserToComment",
+                  "schema" : {
+                    "const" : true
+                  }
+                }, {
+                  "scope" : "#/properties/model/properties/addTimeToComment",
+                  "schema" : {
+                    "const" : true
+                  }
+                } ]
+              }, {
+                "scope" : "#/properties/model/properties/addTableNameToComment",
+                "schema" : {
+                  "const" : true
+                }
+              } ]
+            }, {
+              "scope" : "#/properties/model/properties/addCustomTextToComment",
+              "schema" : {
+                "const" : true
+              }
+            } ]
+          }
+        }
+      } ]
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "outputFile" : {
+            "type" : "object",
+            "properties" : {
+              "file" : {
+                "configPaths" : [ [ "path" ] ]
+              },
+              "createMissingFolders" : {
+                "configKey" : "create_missing_folders"
+              },
+              "overwritePolicy" : {
+                "configKey" : "if_path_exists"
+              }
+            },
+            "configKey" : "file_chooser_settings",
+            "route" : [ "settings" ]
+          },
+          "fileEncoding" : {
+            "type" : "object",
+            "properties" : {
+              "fileEncoding" : {
+                "configPaths" : [ [ "character_set" ] ]
+              },
+              "characterSetValidationMessage" : { }
+            },
+            "configKey" : "encoding"
+          },
+          "compressWithGzip" : {
+            "configKey" : "compress_with_gzip",
+            "route" : [ "advanced_settings" ]
+          },
+          "columnDelimiter" : {
+            "configPaths" : [ [ "column_delimiter" ] ],
+            "route" : [ "settings" ]
+          },
+          "rowDelimiter" : {
+            "configPaths" : [ [ "row_delimiter" ] ],
+            "route" : [ "settings" ]
+          },
+          "quoteChar" : {
+            "configPaths" : [ [ "quote_char" ] ],
+            "route" : [ "settings" ]
+          },
+          "quoteEscapeChar" : {
+            "configPaths" : [ [ "quote_escape_char" ] ],
+            "route" : [ "settings" ]
+          },
+          "writeColumnHeader" : {
+            "configKey" : "write_column_header",
+            "route" : [ "settings" ]
+          },
+          "skipColumnHeaderOnAppend" : {
+            "configKey" : "skip_column_header_on_append",
+            "route" : [ "settings" ]
+          },
+          "writeRowHeader" : {
+            "configKey" : "write_row_header",
+            "route" : [ "settings" ]
+          },
+          "quoteMode" : {
+            "configKey" : "quote_mode",
+            "route" : [ "advanced_settings" ]
+          },
+          "separatorReplacement" : {
+            "configKey" : "separator_replacement",
+            "route" : [ "advanced_settings" ]
+          },
+          "missingValuePattern" : {
+            "configKey" : "missing_value_pattern",
+            "route" : [ "advanced_settings" ]
+          },
+          "decimalSeparator" : {
+            "configKey" : "decimal_separator",
+            "route" : [ "advanced_settings" ]
+          },
+          "useScientificFormat" : {
+            "configKey" : "use_scientific_format",
+            "route" : [ "advanced_settings" ]
+          },
+          "keepTrailingZero" : {
+            "configKey" : "keep_trailing_zero_in_decimals",
+            "route" : [ "advanced_settings" ]
+          },
+          "addUserToComment" : {
+            "configKey" : "add_user_to_comment",
+            "route" : [ "comment_header_settings" ]
+          },
+          "addTimeToComment" : {
+            "configKey" : "add_time_to_comment",
+            "route" : [ "comment_header_settings" ]
+          },
+          "addTableNameToComment" : {
+            "configKey" : "add_table_name_to_comment",
+            "route" : [ "comment_header_settings" ]
+          },
+          "addCustomTextToComment" : {
+            "configKey" : "add_custom_text_to_comment",
+            "route" : [ "comment_header_settings" ]
+          },
+          "customCommentText" : {
+            "configKey" : "custom_comment_text",
+            "route" : [ "comment_header_settings" ]
+          },
+          "commentLineMarker" : {
+            "configKey" : "comment_line_marker",
+            "route" : [ "comment_header_settings" ]
+          },
+          "commentIndent" : {
+            "configPaths" : [ [ "comment_indentation" ] ],
+            "route" : [ "comment_header_settings" ]
+          },
+          "performNewValidation" : {
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ ]
+            } ]
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/fileEncoding/properties/fileEncoding",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "OS default (UTF-8)",
+        "text" : "OS default (UTF-8)"
+      }, {
+        "id" : "ISO-8859-1",
+        "text" : "ISO-8859-1"
+      }, {
+        "id" : "US-ASCII",
+        "text" : "US-ASCII"
+      }, {
+        "id" : "UTF-8",
+        "text" : "UTF-8"
+      }, {
+        "id" : "UTF-16",
+        "text" : "UTF-16"
+      }, {
+        "id" : "UTF-16BE",
+        "text" : "UTF-16BE"
+      }, {
+        "id" : "UTF-16LE",
+        "text" : "UTF-16LE"
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/outputFile/properties/overwritePolicy",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "fail",
+        "text" : "Fail"
+      }, {
+        "id" : "overwrite",
+        "text" : "Overwrite"
+      }, {
+        "id" : "append",
+        "text" : "Append"
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/performNewValidation",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : true
+    } ]
+  }, {
+    "id" : "#/properties/model/properties/fileEncoding/properties/characterSetValidationMessage",
+    "providedOptionName" : "message",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : null
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/fileEncoding/properties/fileEncoding"
+    },
+    "dependencies" : [ "#/properties/model/properties/fileEncoding/properties/fileEncoding" ]
+  } ]
+}
