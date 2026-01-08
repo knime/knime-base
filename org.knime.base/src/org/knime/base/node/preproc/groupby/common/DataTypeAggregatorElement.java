@@ -48,22 +48,25 @@
  */
 package org.knime.base.node.preproc.groupby.common;
 
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.function.Supplier;
+import java.util.Optional;
 import java.util.stream.Stream;
 
-import org.knime.base.data.aggregation.AggregationMethods;
+import org.knime.base.data.aggregation.AggFunction;
 import org.knime.base.data.aggregation.AggregationOperatorParameters;
-import org.knime.base.node.preproc.groupby.common.AggregationOperatorParametersProvider.AggregationMethodRef;
+import org.knime.base.data.aggregation.AggregationFunctionParametersProvider.AggregationMethodRef;
+import org.knime.base.data.aggregation.AggregationMethod;
+import org.knime.base.data.aggregation.AggregationMethods;
+import org.knime.base.data.aggregation.DefaultAggregationMethodProvider;
+import org.knime.base.data.aggregation.HasOperatorParameters;
+import org.knime.base.data.aggregation.StateAndChoicesProviders.AggregationChoicesByTypeRef;
+import org.knime.base.data.aggregation.StateAndChoicesProviders.RegisteredTypesChoicesProvider;
 import org.knime.base.node.preproc.groupby.common.LegacyDataTypeAggregatorsArrayPersistor.DataTypeAggregatorElementDTO;
 import org.knime.base.node.preproc.groupby.common.LegacyDataTypeAggregatorsArrayPersistor.IndexedElement;
-import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataType;
-import org.knime.core.data.DataTypeRegistry;
 import org.knime.core.data.def.StringCell;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.port.database.aggregation.AggregationFunctionProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.PersistArrayElement;
 import org.knime.node.parameters.NodeParameters;
@@ -77,9 +80,6 @@ import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.ValueProvider;
 import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
-import org.knime.node.parameters.widget.choices.DataTypeChoicesProvider;
-import org.knime.node.parameters.widget.choices.StringChoice;
-import org.knime.node.parameters.widget.choices.StringChoicesProvider;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 
 /**
@@ -93,6 +93,15 @@ final class DataTypeAggregatorElement implements NodeParameters {
     static final class DataTypeSelectedRef implements ParameterReference<DataType> {
     } //
 
+    static final class DataTypesProvider extends RegisteredTypesChoicesProvider {
+        @Override
+        protected Stream<DataType> getInputTypes(final NodeParametersInput context) {
+            return context.getInTableSpec(0).stream() //
+                    .flatMap(dts -> dts.stream()) //
+                    .map(DataColumnSpec::getType);
+        }
+    }
+
     @Widget(title = "Data Type", description = """
             Select the data type to apply the aggregation on.
             You can add the same data type multiple times.
@@ -101,13 +110,28 @@ final class DataTypeAggregatorElement implements NodeParameters {
     // Note: the old dialog listed only "standard types" and all types of input table, but this behavior could be
     // annoying if the input table is temporarily missing some columns. The search makes it easy to find the desired
     // type even if the list is large.
-    @ChoicesProvider(RegisteredTypesChoicesProvider.class)
+    @ChoicesProvider(DataTypesProvider.class)
     @ValueReference(DataTypeSelectedRef.class)
     @PersistArrayElement(LegacyDataTypeAggregatorsArrayPersistor.DataTypePersistor.class)
     DataType m_dataType = StringCell.TYPE;
 
     static final class DataTypeAggregationRef implements AggregationMethodRef {
     } //
+
+    static final class DataTypeAggregationChoices extends AggregationChoicesByTypeRef<AggregationMethod> {
+
+        @Override
+        protected Class<? extends ParameterReference<DataType>> getTypeProvider() {
+            return DataTypeSelectedRef.class;
+        }
+
+        @Override
+        protected AggregationFunctionProvider<AggregationMethod>
+            getFunctionsProvider(final NodeParametersInput parametersInput) {
+            return AggregationMethods.getInstance();
+        }
+
+    }
 
     @Widget(title = "Aggregation", description = "The aggregation method to use")
     @SubParameters(subLayoutRoot = DataTypeOperatorParametersRef.class,
@@ -130,6 +154,11 @@ final class DataTypeAggregatorElement implements NodeParameters {
         @Override
         protected Class<? extends ParameterReference<String>> getMethodReference() {
             return DataTypeAggregationRef.class;
+        }
+
+        @Override
+        protected Optional<AggregationMethod> lookupMethodById(final String id) {
+            return AggregationMethodsUtil.lookupMethodById(id);
         }
     }
 
@@ -165,52 +194,11 @@ final class DataTypeAggregatorElement implements NodeParameters {
 
     /* ===== Providers ===== */
 
-    static final class RegisteredTypesChoicesProvider implements DataTypeChoicesProvider {
+    /**
+     * Default provider if no method already set.
+     */
+    private static final class DefaultMethodProvider extends DefaultAggregationMethodProvider<AggregationMethod> {
 
-        @Override
-        public void init(final StateProviderInitializer initializer) {
-            initializer.computeAfterOpenDialog();
-        }
-
-        @Override
-        public List<DataType> choices(final NodeParametersInput context) {
-            final var registered = new HashSet<>(DataTypeRegistry.getInstance().availableDataTypes());
-            registered.add(DataType.getType(DataCell.class)); // plain DataCell for backwards-compatibility
-            final var fromInput = context.getInTableSpec(0).stream() //
-                .flatMap(dts -> dts.stream()).map(DataColumnSpec::getType) //
-                .distinct() //
-                .map(t -> {
-                    registered.remove(t);
-                    return t;
-                }).toList();
-            return Stream.concat(
-                // first distinct types from input table (this also includes Collection types of present columns)
-                fromInput.stream(),
-                // fill up with all remaining registered types
-                registered.stream().sorted(Comparator.comparing(DataType::getName))) //
-                .toList();
-        }
-    }
-
-    static final class DataTypeAggregationChoices implements StringChoicesProvider {
-
-        private Supplier<DataType> m_type;
-
-        @Override
-        public void init(final StateProviderInitializer initializer) {
-            initializer.computeAfterOpenDialog();
-            m_type = initializer.computeFromValueSupplier(DataTypeSelectedRef.class);
-        }
-
-        @Override
-        public List<StringChoice> computeState(final NodeParametersInput parametersInput) {
-            return AggregationMethods.getCompatibleMethods(m_type.get(), true).stream()
-                .map(agg -> new StringChoice(agg.getId(), agg.getLabel())).toList();
-        }
-
-    }
-
-    static final class DefaultMethodProvider extends DefaultAggregationMethodProvider {
         @Override
         protected Class<? extends ParameterReference<DataType>> getTypeProvider() {
             return DataTypeSelectedRef.class;
@@ -220,6 +208,18 @@ final class DataTypeAggregatorElement implements NodeParameters {
         protected Class<? extends ParameterReference<String>> getMethodSelfProvider() {
             return DataTypeAggregationRef.class;
         }
+
+        @Override
+        protected Optional<AggregationFunctionProvider<AggregationMethod>>
+                getFunctionProvider(final PortObjectSpec spec) {
+            return Optional.of(AggregationMethods.getInstance());
+        }
+
+        @Override
+        protected AggregationMethod getDefaultFunction() {
+            return AggregationMethods.getInstance().getDefaultFunction(null);
+        }
+
     }
 
     static final class HasDataTypeOperatorParameters extends HasOperatorParameters {
@@ -229,9 +229,14 @@ final class DataTypeAggregatorElement implements NodeParameters {
             return DataTypeAggregationRef.class;
         }
 
+        @Override
+        protected Optional<AggFunction> lookupFunctionById(final NodeParametersInput in, final String id) {
+            return AggregationMethodsUtil.lookupFunctionById(id);
+        }
+
     }
 
-    static final class DataTypeAggregationOperatorParametersProvider extends AggregationOperatorParametersProvider {
+    static final class DataTypeAggregationOperatorParametersProvider extends AggregationMethodParametersProvider {
         @Override
         protected Class<? extends ParameterReference<AggregationOperatorParameters>> getParameterRefClass() {
             return DataTypeOperatorParametersRef.class;

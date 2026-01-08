@@ -46,28 +46,54 @@
  * History
  *   20 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.groupby.common;
+package org.knime.base.data.aggregation;
 
-import org.knime.base.data.aggregation.AggregationOperatorParameters;
+import java.util.function.Consumer;
+
+import org.knime.core.node.NodeLogger;
+import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.webui.node.dialog.FallbackDialogNodeParameters;
 
 /**
- * Parameters to display legacy operator settings in "fallback style".
+ * Parameters to display operator settings in "fallback style".
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ * @since 5.10
  */
 @SuppressWarnings("restriction")
-public final class LegacyAggregationOperatorParameters extends FallbackDialogNodeParameters
+public final class FallbackAggregationOperatorParameters extends FallbackDialogNodeParameters
     implements AggregationOperatorParameters {
+
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(FallbackAggregationOperatorParameters.class);
 
     /**
      * Creates parameters from the given node settings.
      *
+     * @param key settings key under which the contained settings are stored
      * @param nodeSettings the node settings to read from
      */
-    public LegacyAggregationOperatorParameters(final NodeSettingsRO nodeSettings) {
-        super(nodeSettings);
+    public FallbackAggregationOperatorParameters(final String key, final NodeSettingsRO nodeSettings) {
+        super(createNodeSettings(key, nodeSettings));
     }
 
+    private static NodeSettings createNodeSettings(final String key, final NodeSettingsRO nodeSettings) {
+        final var settings = new NodeSettings(key);
+        nodeSettings.copyTo(settings);
+        return settings;
+    }
+
+    /**
+     * Creates new fallback parameters with settings initialized via the given initializer.
+     *
+     * @param key settings key under which the contained settings are stored
+     * @param settingsInitializer the initializer for the contained settings
+     * @return the created parameters
+     */
+    public static FallbackAggregationOperatorParameters withInitial(final String key,
+        final Consumer<NodeSettings> settingsInitializer) {
+        final var settings = new NodeSettings(key);
+        settingsInitializer.accept(settings);
+        return new FallbackAggregationOperatorParameters(key, settings);
+    }
 }

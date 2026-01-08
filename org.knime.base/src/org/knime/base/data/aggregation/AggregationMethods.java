@@ -515,8 +515,7 @@ public final class AggregationMethods implements AggregationFunctionProvider<Agg
      *
      * @since 5.10
      */
-    public Optional<Class<? extends AggregationOperatorParameters>>
-            getParametersClassFor(final String operatorID) {
+    public Optional<Class<? extends AggregationOperatorParameters>> getParametersClassFor(final String operatorID) {
         return Optional.ofNullable(getOperator(operatorID).getParametersClass());
     }
 

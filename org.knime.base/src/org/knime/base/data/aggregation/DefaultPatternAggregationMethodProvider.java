@@ -44,20 +44,47 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   27 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   17 Dec 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.base.data.aggregation;
 
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
+import java.util.function.Supplier;
+
+import org.knime.base.data.aggregation.AggregationFunctionParametersProvider.AggregationMethodRef;
+import org.knime.core.node.port.database.aggregation.AggregationFunction;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.updates.StateProvider;
 
 /**
- * Common interface to define optional parameters for aggregation functions.
+ * Selects the default aggregation method if no method is already selected for aggregation of columns based on
+ * column name patterns.
+ *
+ * @param <F> the type of the aggregation function provided as default
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
- *
  * @since 5.10
  */
-@SuppressWarnings("restriction") // webui
-public interface AggregationOperatorParameters extends DynamicParameters.DynamicNodeParameters {
+public abstract class DefaultPatternAggregationMethodProvider<F extends AggregationFunction>
+        implements StateProvider<String> {
+
+    private Supplier<String> m_methodSelf;
+
+    protected abstract Class<? extends AggregationMethodRef> getMethodSelfProvider();
+
+    protected abstract F getDefaultMethod(NodeParametersInput context);
+
+    @Override
+    public void init(final StateProviderInitializer initializer) {
+        m_methodSelf = initializer.getValueSupplier(getMethodSelfProvider());
+    }
+
+    @Override
+    public String computeState(final NodeParametersInput context) throws StateComputationFailureException {
+        if (m_methodSelf.get() != null) {
+            throw new StateComputationFailureException();
+        }
+        return getDefaultMethod(context).getId();
+    }
 
 }
