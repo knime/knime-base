@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
+    <entry key="Epochs" type="xint" value="50"/>
+    <entry key="OutDims" type="xint" value="2"/>
+    <entry key="Learningrate" type="xdouble" value="1.0"/>
+    <entry key="Seed" type="xint" value="1000000"/>
+    <entry key="Distance" type="xstring" value="Euclidean"/>
+    <entry key="ProjectOnly" type="xboolean" value="true"/>
+    <entry key="UseMaxRows" type="xboolean" value="true"/>
+    <entry key="Rows" type="xint" value="1000"/>
+    <config key="Cols">
+        <entry key="keep_all_columns_selected" type="xboolean" value="false"/>
+        <config key="InclList">
+            <entry key="array-size" type="xint" value="3"/>
+            <entry key="0" type="xstring" value="Weight_bottom"/>
+            <entry key="1" type="xstring" value="Spread_bottom"/>
+            <entry key="2" type="xstring" value="Variance_bottom"/>
+        </config>
+        <config key="ExclList">
+            <entry key="array-size" type="xint" value="1"/>
+            <entry key="0" type="xstring" value="Features_bottom"/>
+        </config>
+    </config>
+    <config key="FixedCols">
+        <entry key="keep_all_columns_selected" type="xboolean" value="false"/>
+        <config key="InclList">
+            <entry key="array-size" type="xint" value="2"/>
+            <entry key="0" type="xstring" value="Spread_top"/>
+            <entry key="1" type="xstring" value="Variance_top"/>
+        </config>
+        <config key="ExclList">
+            <entry key="array-size" type="xint" value="2"/>
+            <entry key="0" type="xstring" value="Weight_top"/>
+            <entry key="1" type="xstring" value="Features_top"/>
+        </config>
+    </config>
+</config>

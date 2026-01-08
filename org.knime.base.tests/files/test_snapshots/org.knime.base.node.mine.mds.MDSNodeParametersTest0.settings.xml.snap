@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
+    <entry key="Epochs" type="xint" value="50"/>
+    <entry key="OutDims" type="xint" value="2"/>
+    <entry key="Learningrate" type="xdouble" value="1.0"/>
+    <entry key="Seed" type="xint" value="1000000"/>
+    <entry key="Distance" type="xstring" value="Euclidean"/>
+    <entry key="UseMaxRows" type="xboolean" value="true"/>
+    <entry key="Rows" type="xint" value="1000"/>
+    <config key="Cols">
+        <entry key="keep_all_columns_selected" type="xboolean" value="false"/>
+        <config key="InclList">
+            <entry key="array-size" type="xint" value="2"/>
+            <entry key="0" type="xstring" value="Universe_0_1"/>
+            <entry key="1" type="xstring" value="Universe_1_0"/>
+        </config>
+        <config key="ExclList">
+            <entry key="array-size" type="xint" value="6"/>
+            <entry key="0" type="xstring" value="Universe_0_0"/>
+            <entry key="1" type="xstring" value="Universe_1_1"/>
+            <entry key="2" type="xstring" value="Weight"/>
+            <entry key="3" type="xstring" value="Spread"/>
+            <entry key="4" type="xstring" value="Features"/>
+            <entry key="5" type="xstring" value="Variance"/>
+        </config>
+    </config>
+</config>

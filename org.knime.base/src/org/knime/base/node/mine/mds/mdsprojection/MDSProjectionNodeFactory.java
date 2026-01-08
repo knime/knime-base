@@ -41,31 +41,46 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- * 
+ *
  * History
  *   07.04.2008 (Kilian Thiel): created
  */
 package org.knime.base.node.mine.mds.mdsprojection;
 
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
 
 /**
  * The node factory of the mds projection node.
- * 
+ *
  * @author Kilian Thiel, University of Konstanz
+ * @author Robin Gerling, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.2
  */
-public class MDSProjectionNodeFactory extends 
-NodeFactory<MDSProjectionNodeModel> {
+@SuppressWarnings("restriction")
+public class MDSProjectionNodeFactory extends NodeFactory<MDSProjectionNodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     /**
      * {@inheritDoc}
      */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new MDSProjectionNodeDialog();
-    }
 
     /**
      * {@inheritDoc}
@@ -79,8 +94,7 @@ NodeFactory<MDSProjectionNodeModel> {
      * {@inheritDoc}
      */
     @Override
-    public NodeView<MDSProjectionNodeModel> createNodeView(final int index, 
-            final MDSProjectionNodeModel model) {
+    public NodeView<MDSProjectionNodeModel> createNodeView(final int index, final MDSProjectionNodeModel model) {
         return null;
     }
 
@@ -98,5 +112,79 @@ NodeFactory<MDSProjectionNodeModel> {
     @Override
     protected boolean hasDialog() {
         return true;
+    }
+
+    private static final String NODE_NAME = "MDS Projection";
+
+    private static final String NODE_ICON = "./mds.png";
+
+    private static final String SHORT_DESCRIPTION = """
+            Multi dimensional scaling node, mapping data of a high dimensional space onto a lower dimensional space
+                by applying a modified Sammons mapping with respect to a given set of fixed points.
+            """;
+
+    private static final String FULL_DESCRIPTION = """
+            This node maps data of a high dimensional space onto a lower (usually 2 or 3) dimensional space with
+                respect to a set of fixed data points. Therefore modified Sammons mapping is applied, which iteratively
+                decreases the difference of the distances of high and low dimensional data. When adjusting the position
+                a low dimensional data point by default not its neighbors (or all other data points) are taken into
+                account but a specified set of fixed data points which are not modified. Additionally the data points
+                (and not only the fixed points) can be taken into account when adjusting its positions, therefore the
+                setting "Project only" has to be unchecked. If the setting is checked the data points will be mapped
+                only with respect to the fixed data, which we call a projection. The algorithm converges like a common
+                mds algorithm due to a decreasing learning rate.
+            """;
+
+    private static final List<PortDescription> INPUT_PORTS = List.of(fixedPort("Any input table", """
+            Data table containing the fixed data points.
+            """), fixedPort("Any input table", """
+            Data table containing the data to map.
+            """));
+
+    private static final List<PortDescription> OUTPUT_PORTS =
+        List.of(fixedPort("The input data and the mapped data", """
+                The input data and the mapped data.
+                """));
+
+    /**
+     * @since 5.10
+     */
+    @Override
+    public NodeDialogPane createNodeDialogPane() {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    /**
+     * @since 5.10
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, MDSProjectionNodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription( //
+            NODE_NAME, //
+            NODE_ICON, //
+            INPUT_PORTS, //
+            OUTPUT_PORTS, //
+            SHORT_DESCRIPTION, //
+            FULL_DESCRIPTION, //
+            List.of(), //
+            MDSProjectionNodeParameters.class, //
+            null, //
+            NodeType.Learner, //
+            List.of(), //
+            null //
+        );
+    }
+
+    /**
+     * @since 5.10
+     */
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, MDSProjectionNodeParameters.class));
     }
 }
