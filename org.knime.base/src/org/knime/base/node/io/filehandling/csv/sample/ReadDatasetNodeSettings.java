@@ -90,7 +90,16 @@ final class ReadDatasetNodeSettings implements NodeParameters {
                     <a href="https://creativecommons.org/licenses/by/4.0/deed.en">Creative Commons Attribution 4.0
                     license</a>.
                     """)
-            ADULT("adult.table");
+            ADULT("adult.table"),
+            @Label(value = "Air quality data", description = """
+                    Contains the responses of a gas multisensor device deployed on the field in an Italian city. Hourly responses averages are recorded along with gas concentrations references from a certified analyzer.
+                    Published by
+                    <a href="https://archive.ics.uci.edu/dataset/360/air+quality">
+                    https://archive.ics.uci.edu/dataset/360/air+quality</a> under the
+                    <a href="https://creativecommons.org/licenses/by/4.0/legalcode">Creative Commons Attribution 4.0 International
+                    license</a>.
+                    """)
+            AIR_QUALITY("air_quality.table");
 
         private final String m_path;
 
