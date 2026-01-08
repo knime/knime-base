@@ -180,7 +180,7 @@ final class RecursiveLoopEndDynamicNodeParameters implements NodeParameters {
         }
 
         @Override
-        protected RecursionPortSettings newInstance() {
+        protected RecursionPortSettings newInstance(int index) {
             return new RecursionPortSettings();
         }
     }
@@ -261,7 +261,7 @@ final class RecursiveLoopEndDynamicNodeParameters implements NodeParameters {
         }
 
         @Override
-        protected DataCollectionPortSettings newInstance() {
+        protected DataCollectionPortSettings newInstance(int index) {
             return new DataCollectionPortSettings();
         }
     }
