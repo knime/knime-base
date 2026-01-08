@@ -48,6 +48,12 @@
  */
 package org.knime.filehandling.utility.nodes.pathtostring;
 
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
@@ -55,17 +61,12 @@ import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.core.webui.node.dialog.NodeDialogFactory;
 import org.knime.core.webui.node.dialog.NodeDialogManager;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
-import org.knime.core.node.NodeFactory.NodeType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
 import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
 import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
-import org.knime.core.node.NodeDescription;
 import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
-import java.util.Map;
 import org.knime.node.impl.description.PortDescription;
-import java.util.List;
-import static org.knime.node.impl.description.PortDescription.fixedPort;
 
 /**
  * The {@link NodeFactory} to create the path to string node model.
@@ -119,7 +120,9 @@ public final class PathToStringNodeFactory extends NodeFactory<PathToStringNodeM
                 The input table containing the converted column.
                 """)
     );
-
+    /*
+     * @since 5.10
+     */
     @Override
     public NodeDialogPane createNodeDialogPane() {
         return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
@@ -147,7 +150,9 @@ public final class PathToStringNodeFactory extends NodeFactory<PathToStringNodeM
             null //
         );
     }
-
+    /*
+     * @since 5.10
+     */
     @Override
     public KaiNodeInterface createKaiNodeInterface() {
         return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, PathToStringNodeParameters.class));

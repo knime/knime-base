@@ -43,12 +43,18 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ------------------------------------------------------------------------
  */
-    
+
 package org.knime.filehandling.utility.nodes.pathtostring;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 import org.knime.core.data.DataColumnSpec;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.EnumFieldPersistor;
 import org.knime.filehandling.core.data.location.FSLocationValue;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
@@ -57,9 +63,9 @@ import org.knime.node.parameters.layout.After;
 import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.layout.Section;
 import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
 import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistor;
-import org.knime.node.parameters.persistence.legacy.EnumPersistor;
 import org.knime.node.parameters.updates.Effect;
 import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.updates.EffectPredicate;
@@ -76,7 +82,7 @@ import org.knime.node.parameters.widget.text.TextInputWidget;
 
 /**
  * Node parameters for Path to String.
- * 
+ *
  * @author Jannik Eurich, KNIME GmbH, Berlin, Germany
  * @author AI Migration Pipeline v1.2
  */
@@ -108,13 +114,17 @@ class PathToStringNodeParameters implements NodeParameters {
             """)
     @ValueSwitchWidget
     @Persistor(OutputModePersistor.class)
-    OutputMode m_outputMode = OutputMode.APPEND;
+    @ValueReference(OutputModeRef.class)
+    OutputMode m_outputMode = OutputMode.APPEND_NEW;
+
+    static final class OutputModeRef implements ParameterReference<OutputMode> {
+    };
 
     @Layout(OutputSection.class)
     @Widget(title = "Output column name", description = """
             The name of the new column to be created.
             """)
-    @TextInputWidget(placeholderText = "Location")
+    @TextInputWidget(placeholder = "Location")
     @Effect(predicate = OutputModeIsAppendPredicate.class, type = EffectType.SHOW)
     @Persist(configKey = PathToStringNodeModel.CFG_APPENDED_COLUMN_NAME)
     String m_appendedColumnName = "Location";
@@ -133,64 +143,77 @@ class PathToStringNodeParameters implements NodeParameters {
     boolean m_createKNIMEUrl = true;
 
     enum OutputMode {
-        @Label(value = "Append column", description = "Append the new column to the table.")
-        APPEND,
-        @Label(value = "Replace selected column",
+            @Label(value = "Append column", description = "Append the new column to the table.")
+            APPEND_NEW, @Label(value = "Replace selected column",
                 description = "Replace the selected column with the new String column.")
-        REPLACE;
+            REPLACE_SELECTED;
+
     }
 
     static final class FSLocationColumnChoicesProvider implements ColumnChoicesProvider {
 
         @Override
         public List<DataColumnSpec> columnChoices(final NodeParametersInput context) {
-            return context.getInPortSpecs()[0] //
-                    .stream() //
-                    .filter(colSpec -> colSpec.getType().isCompatible(FSLocationValue.class)) //
-                    .toList();
+            return ((Collection<DataColumnSpec>)context.getInPortSpecs()[0] //
+            ).stream() //
+                .filter(colSpec -> colSpec.getType().isCompatible(FSLocationValue.class)) //
+                .toList();
         }
     }
 
     static final class ColumnNameAutoGuesser extends ColumnNameAutoGuessValueProvider {
 
         ColumnNameAutoGuesser() {
-            super(0, FSLocationColumnChoicesProvider.class);
+            super(SelectedColumnRef.class);
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        protected Optional<DataColumnSpec> autoGuessColumn(final NodeParametersInput parametersInput) {
+            // TODO Auto-generated method stub
+            return Optional.empty();
         }
     }
 
-    static final class OutputModePersistor
-            extends EnumPersistor<PathToStringNodeModel.GenerateColumnMode, OutputMode> {
+    static final class OutputModePersistor implements NodeParametersPersistor<OutputMode> {
 
-        protected OutputModePersistor() {
-            super(PathToStringNodeModel.CFG_GENERATED_COLUMN_MODE, PathToStringNodeModel.GenerateColumnMode.class,
-                    OutputMode.class);
+        static final EnumFieldPersistor<OutputMode> INSTANCE =
+            new EnumFieldPersistor<>(PathToStringNodeModel.CFG_GENERATED_COLUMN_MODE, OutputMode.class, false);
+
+        @Override
+        public OutputMode load(final NodeSettingsRO settings) throws InvalidSettingsException {
+
+            return INSTANCE.load(settings);
         }
 
         @Override
-        protected PathToStringNodeModel.GenerateColumnMode toPersistedValue(final OutputMode value) {
-            return switch (value) {
-                case APPEND -> PathToStringNodeModel.GenerateColumnMode.APPEND_NEW;
-                case REPLACE -> PathToStringNodeModel.GenerateColumnMode.REPLACE_SELECTED;
-            };
+        public void save(final OutputMode param, final NodeSettingsWO settings) {
+
+            INSTANCE.save(param, settings);
         }
 
         @Override
-        protected OutputMode fromPersistedValue(final PathToStringNodeModel.GenerateColumnMode persistedValue) {
-            return switch (persistedValue) {
-                case APPEND_NEW -> OutputMode.APPEND;
-                case REPLACE_SELECTED -> OutputMode.REPLACE;
-            };
-        }
-    }
+        public String[][] getConfigPaths() {
 
-    static final class OutputModeRef implements ParameterReference<OutputMode> {
+            return new String[][]{{PathToStringNodeModel.CFG_GENERATED_COLUMN_MODE}};
+        }
+
     }
 
     static final class OutputModeIsAppendPredicate implements EffectPredicateProvider {
 
         @Override
-        public EffectPredicate init(final ValueReference<OutputMode> valueReference) {
-            return () -> valueReference.get() == OutputMode.APPEND;
+        public EffectPredicate init(final PredicateInitializer i) {
+
+            return i.getEnum(OutputModeRef.class).isOneOf(
+                org.knime.filehandling.utility.nodes.pathtostring.PathToStringNodeParameters.OutputMode.APPEND_NEW);
         }
+
     }
+
+    static final class SelectedColumnRef implements ParameterReference<String> {
+    }
+
 }
