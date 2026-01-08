@@ -1,0 +1,572 @@
+{
+  "data" : {
+    "model" : {
+      "mdsParameters" : {
+        "epochs" : 50,
+        "outputDimensions" : 2,
+        "learningRate" : 1.0,
+        "randomSeed" : 1000000
+      },
+      "distanceMetric" : {
+        "distanceMetric" : "Euclidean"
+      },
+      "projectOnly" : {
+        "projectOnly" : true
+      },
+      "common" : {
+        "useAllRows" : true,
+        "numberOfRows" : 1000
+      },
+      "columnsToProject" : {
+        "keepAllColumnsSelected" : false,
+        "twinList" : {
+          "inclList" : [ "Weight_bottom", "Spread_bottom", "Variance_bottom" ],
+          "exclList" : [ "Features_bottom" ]
+        }
+      },
+      "fixedColumns" : {
+        "keepAllColumnsSelected" : false,
+        "twinList" : {
+          "inclList" : [ "Spread_top", "Variance_top" ],
+          "exclList" : [ "Weight_top", "Features_top" ]
+        }
+      }
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columnsToProject" : {
+            "type" : "object",
+            "properties" : {
+              "keepAllColumnsSelected" : {
+                "type" : "boolean",
+                "title" : "Always include all columns",
+                "description" : "If checked, node behaves as if all columns were moved to the \"Include\" list.",
+                "default" : false
+              },
+              "twinList" : {
+                "type" : "object",
+                "properties" : {
+                  "exclList" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    },
+                    "default" : [ ]
+                  },
+                  "inclList" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    },
+                    "title" : "Columns to project",
+                    "description" : "Specifies the columns to use by the mapping.",
+                    "default" : [ ]
+                  }
+                },
+                "default" : {
+                  "inclList" : [ ],
+                  "exclList" : [ ]
+                }
+              }
+            },
+            "default" : {
+              "keepAllColumnsSelected" : false,
+              "twinList" : {
+                "inclList" : [ ],
+                "exclList" : [ ]
+              }
+            }
+          },
+          "common" : {
+            "type" : "object",
+            "properties" : {
+              "numberOfRows" : {
+                "type" : "integer",
+                "format" : "int32",
+                "title" : "Number of rows to use",
+                "description" : "Specifies the number of rows to apply the MDS on.\n",
+                "default" : 1000
+              },
+              "useAllRows" : {
+                "type" : "boolean",
+                "title" : "Use all rows",
+                "description" : "If enabled, all rows in the input table will be used for the MDS computation.\nIf disabled, only the specified number of rows will be used.\n",
+                "default" : true
+              }
+            },
+            "default" : {
+              "useAllRows" : true,
+              "numberOfRows" : 1000
+            }
+          },
+          "distanceMetric" : {
+            "type" : "object",
+            "properties" : {
+              "distanceMetric" : {
+                "oneOf" : [ {
+                  "const" : "Euclidean",
+                  "title" : "Euclidean"
+                }, {
+                  "const" : "Manhattan",
+                  "title" : "Manhattan"
+                } ],
+                "title" : "Distance metric",
+                "description" : "Select the distance metric to use for computing distances between data points.\n\n<ul>\n<li><b>Euclidean</b>: The straight-line distance between two points in n-dimensional space (L2 norm).</li>\n<li><b>Manhattan</b>: The sum of absolute differences between coordinates (L1 norm).</li>\n</ul>",
+                "default" : "Euclidean"
+              }
+            },
+            "default" : {
+              "distanceMetric" : "Euclidean"
+            }
+          },
+          "fixedColumns" : {
+            "type" : "object",
+            "properties" : {
+              "keepAllColumnsSelected" : {
+                "type" : "boolean",
+                "default" : false
+              },
+              "twinList" : {
+                "type" : "object",
+                "properties" : {
+                  "exclList" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    },
+                    "default" : [ ]
+                  },
+                  "inclList" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    },
+                    "title" : "Fixed columns",
+                    "description" : "Specifies the columns to use as fixed data. Be aware that the chosen columns represent the\nlower dimensional data which is used to project the input data at. The number of columns\nto choose has to be equal to the value set for output dimension.\n",
+                    "default" : [ ]
+                  }
+                },
+                "default" : {
+                  "inclList" : [ ],
+                  "exclList" : [ ]
+                }
+              }
+            },
+            "default" : {
+              "keepAllColumnsSelected" : false,
+              "twinList" : {
+                "inclList" : [ ],
+                "exclList" : [ ]
+              }
+            }
+          },
+          "mdsParameters" : {
+            "type" : "object",
+            "properties" : {
+              "epochs" : {
+                "type" : "integer",
+                "format" : "int32",
+                "title" : "Epochs",
+                "description" : "Specifies the number of epochs to train.\n",
+                "default" : 50
+              },
+              "learningRate" : {
+                "type" : "number",
+                "format" : "double",
+                "title" : "Learning rate",
+                "description" : "Specifies the learning rate to use. The learning rate is decreased automatically\nover the trained epochs.\n",
+                "default" : 1.0
+              },
+              "outputDimensions" : {
+                "type" : "integer",
+                "format" : "int32",
+                "title" : "Output dimensions",
+                "description" : "Specifies the dimension of the mapped output data.\n",
+                "default" : 2
+              },
+              "randomSeed" : {
+                "type" : "integer",
+                "format" : "int32",
+                "title" : "Random seed",
+                "description" : "Specifies the random seed to use, which allows to reproduce a mapping even if the\ninitialization is done randomly.\n",
+                "default" : 1000000
+              }
+            },
+            "default" : {
+              "epochs" : 50,
+              "outputDimensions" : 2,
+              "learningRate" : 1.0,
+              "randomSeed" : 1000000
+            }
+          },
+          "projectOnly" : {
+            "type" : "object",
+            "properties" : {
+              "projectOnly" : {
+                "type" : "boolean",
+                "title" : "Project only",
+                "description" : "If checked the input data is mapped only with respect to the specified fixed data points\n(see section 'Fixed Data'). If unchecked, the other (not fixed) data points are taken\ninto account too, when adjusting the position of each single data point.\n",
+                "default" : true
+              }
+            },
+            "default" : {
+              "projectOnly" : true
+            }
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/mdsParameters/properties/epochs",
+      "options" : {
+        "stepSize" : 10.0,
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 2147483647.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 2.147483647E9
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 1.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 1.0
+            }
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/mdsParameters/properties/outputDimensions",
+      "options" : {
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 2147483647.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 2.147483647E9
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 1.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 1.0
+            }
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/mdsParameters/properties/learningRate",
+      "options" : {
+        "stepSize" : 0.1,
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 1.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 1.0
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 0.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 0.0
+            }
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/mdsParameters/properties/randomSeed",
+      "options" : {
+        "stepSize" : 1000.0,
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 2147483647.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 2.147483647E9
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 0.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 0.0
+            }
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/distanceMetric/properties/distanceMetric",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/projectOnly/properties/projectOnly",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "label" : "Data",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/common/properties/useAllRows",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/common/properties/numberOfRows",
+        "options" : {
+          "stepSize" : 100.0,
+          "validation" : {
+            "max" : {
+              "errorMessage" : "The value must not exceed 2147483647.",
+              "parameters" : {
+                "isExclusive" : false,
+                "max" : 2.147483647E9
+              }
+            },
+            "min" : {
+              "errorMessage" : "The value must be at least 1.",
+              "parameters" : {
+                "isExclusive" : false,
+                "min" : 1.0
+              }
+            }
+          }
+        },
+        "rule" : {
+          "effect" : "HIDE",
+          "condition" : {
+            "scope" : "#/properties/model/properties/common/properties/useAllRows",
+            "schema" : {
+              "const" : true
+            }
+          }
+        }
+      } ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/columnsToProject/properties/keepAllColumnsSelected",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/columnsToProject/properties/twinList/properties/inclList",
+      "options" : {
+        "format" : "twinList"
+      },
+      "providedOptions" : [ "possibleValues" ],
+      "rule" : {
+        "effect" : "DISABLE",
+        "condition" : {
+          "scope" : "#/properties/model/properties/columnsToProject/properties/keepAllColumnsSelected",
+          "schema" : {
+            "const" : true
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/fixedColumns/properties/twinList/properties/inclList",
+      "options" : {
+        "format" : "twinList"
+      },
+      "providedOptions" : [ "possibleValues" ],
+      "rule" : {
+        "effect" : "DISABLE",
+        "condition" : {
+          "scope" : "#/properties/model/properties/fixedColumns/properties/keepAllColumnsSelected",
+          "schema" : {
+            "const" : true
+          }
+        }
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "mdsParameters" : {
+            "type" : "object",
+            "properties" : {
+              "epochs" : {
+                "configKey" : "Epochs"
+              },
+              "outputDimensions" : {
+                "configKey" : "OutDims"
+              },
+              "learningRate" : {
+                "configKey" : "Learningrate"
+              },
+              "randomSeed" : {
+                "configKey" : "Seed"
+              }
+            },
+            "propertiesRoute" : [ ".." ]
+          },
+          "distanceMetric" : {
+            "type" : "object",
+            "properties" : {
+              "distanceMetric" : {
+                "configKey" : "Distance"
+              }
+            },
+            "propertiesRoute" : [ ".." ]
+          },
+          "projectOnly" : {
+            "type" : "object",
+            "properties" : {
+              "projectOnly" : {
+                "configKey" : "ProjectOnly"
+              }
+            },
+            "propertiesRoute" : [ ".." ]
+          },
+          "common" : {
+            "type" : "object",
+            "properties" : {
+              "useAllRows" : {
+                "configKey" : "UseMaxRows"
+              },
+              "numberOfRows" : {
+                "configKey" : "Rows"
+              }
+            },
+            "propertiesRoute" : [ ".." ]
+          },
+          "columnsToProject" : {
+            "type" : "object",
+            "properties" : {
+              "keepAllColumnsSelected" : {
+                "configKey" : "keep_all_columns_selected"
+              },
+              "twinList" : {
+                "type" : "object",
+                "properties" : {
+                  "inclList" : {
+                    "configPaths" : [ [ "InclList" ], [ "ExclList" ] ]
+                  },
+                  "exclList" : {
+                    "configKey" : "ExclList"
+                  }
+                },
+                "propertiesRoute" : [ ".." ]
+              }
+            },
+            "configKey" : "Cols"
+          },
+          "fixedColumns" : {
+            "type" : "object",
+            "properties" : {
+              "keepAllColumnsSelected" : {
+                "configKey" : "keep_all_columns_selected"
+              },
+              "twinList" : {
+                "type" : "object",
+                "properties" : {
+                  "inclList" : {
+                    "configPaths" : [ [ "InclList" ], [ "ExclList" ] ]
+                  },
+                  "exclList" : {
+                    "configKey" : "ExclList"
+                  }
+                },
+                "propertiesRoute" : [ ".." ]
+              }
+            },
+            "configKey" : "FixedCols"
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/columnsToProject/properties/twinList/properties/exclList",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ "double_col_1", "double_col_2" ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/columnsToProject/properties/twinList/properties/inclList",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "double_col_1",
+        "text" : "double_col_1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "double_col_2",
+        "text" : "double_col_2",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/fixedColumns/properties/twinList/properties/exclList",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ "mds_dim_1", "mds_dim_2" ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/fixedColumns/properties/twinList/properties/inclList",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "mds_dim_1",
+        "text" : "mds_dim_1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "mds_dim_2",
+        "text" : "mds_dim_2",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      } ]
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/columnsToProject/properties/keepAllColumnsSelected"
+    },
+    "dependencies" : [ "#/properties/model/properties/columnsToProject/properties/keepAllColumnsSelected" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/columnsToProject/properties/twinList/properties/inclList"
+    },
+    "dependencies" : [ "#/properties/model/properties/columnsToProject/properties/twinList/properties/inclList" ]
+  } ]
+}
