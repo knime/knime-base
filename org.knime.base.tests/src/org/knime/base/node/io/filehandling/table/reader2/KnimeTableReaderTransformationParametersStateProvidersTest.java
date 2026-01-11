@@ -54,8 +54,8 @@ import java.util.Collection;
 import java.util.List;
 
 import org.knime.base.node.io.filehandling.webui.reader2.MultiFileReaderParameters.HowToCombineColumnsOption;
+import org.knime.base.node.io.filehandling.webui.testing.reader2.TransformationParametersStateProviderTestUtils.TransformationParametersUpdatesTestDataTypeBased;
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters;
-import org.knime.base.node.io.filehandling.webui.reader2.TransformationParametersStateProviderTestUtils.TransformationParametersUpdatesTestDataTypeBased;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;

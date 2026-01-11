@@ -46,7 +46,7 @@
  * History
  *   May 28, 2024 (marcbux): created
  */
-package org.knime.base.node.io.filehandling.webui.reader2;
+package org.knime.base.node.io.filehandling.webui.testing.reader2;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -55,7 +55,10 @@ import java.util.function.Function;
 import java.util.function.UnaryOperator;
 import java.util.stream.IntStream;
 
+import org.knime.base.node.io.filehandling.webui.reader2.ClassSerializer;
+import org.knime.base.node.io.filehandling.webui.reader2.DataTypeSerializer;
 import org.knime.base.node.io.filehandling.webui.reader2.ReaderSpecific.ExternalDataTypeSerializer;
+import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters;
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.ColumnSpecSettings;
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.TableSpecSettings;
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.TransformationElementSettings;
@@ -75,7 +78,7 @@ import org.knime.testing.node.dialog.updates.UpdateSimulator.UpdateSimulatorResu
  *
  * @author Paul Bärnreuther
  */
-public class TransformationParametersStateProviderTestUtils {
+public final class TransformationParametersStateProviderTestUtils {
 
     private TransformationParametersStateProviderTestUtils() {
         // Utility class
@@ -235,26 +238,26 @@ public class TransformationParametersStateProviderTestUtils {
      * @author Paul Bärnreuther
      * @param <S> the settings type
      */
-    public static abstract class TransformationParametersUpdatesTestClassBased<S extends WidgetGroup>
+    public abstract static class TransformationParametersUpdatesTestClassBased<S extends WidgetGroup>
         extends TransformationParametersUpdatesTest<S, Class<?>> {
 
         @Override
-        Class<?> getIntType() {
+        protected Class<?> getIntType() {
             return Integer.class;
         }
 
         @Override
-        Class<?> getStringType() {
+        protected Class<?> getStringType() {
             return String.class;
         }
 
         @Override
-        Class<?> getDoubleType() {
+        protected Class<?> getDoubleType() {
             return Double.class;
         }
 
         @Override
-        ExternalDataTypeSerializer<Class<?>> getExternalDataTypeSerializer() {
+        protected ExternalDataTypeSerializer<Class<?>> getExternalDataTypeSerializer() {
             return new ClassSerializer() {
             };
         }
@@ -268,26 +271,26 @@ public class TransformationParametersStateProviderTestUtils {
      * @author Paul Bärnreuther
      * @param <S> the settings type
      */
-    public static abstract class TransformationParametersUpdatesTestDataTypeBased<S extends WidgetGroup>
+    public abstract static class TransformationParametersUpdatesTestDataTypeBased<S extends WidgetGroup>
         extends TransformationParametersUpdatesTest<S, DataType> {
 
         @Override
-        DataType getIntType() {
+        protected DataType getIntType() {
             return IntCell.TYPE;
         }
 
         @Override
-        DataType getStringType() {
+        protected DataType getStringType() {
             return StringCell.TYPE;
         }
 
         @Override
-        DataType getDoubleType() {
+        protected DataType getDoubleType() {
             return DoubleCell.TYPE;
         }
 
         @Override
-        ExternalDataTypeSerializer<DataType> getExternalDataTypeSerializer() {
+        protected ExternalDataTypeSerializer<DataType> getExternalDataTypeSerializer() {
             return new DataTypeSerializer() {
             };
         }
