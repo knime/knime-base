@@ -102,7 +102,7 @@ import org.knime.testing.node.dialog.updates.UpdateSimulator.UpdateSimulatorResu
  * @param <T> the type by which external data types are identified
  */
 @SuppressWarnings("restriction")
-abstract class TransformationParametersUpdatesTest<R extends WidgetGroup, T> extends LocalWorkflowContextTest {
+public abstract class TransformationParametersUpdatesTest<R extends WidgetGroup, T> extends LocalWorkflowContextTest {
     @TempDir
     Path m_tempFolder;
 
@@ -164,7 +164,7 @@ abstract class TransformationParametersUpdatesTest<R extends WidgetGroup, T> ext
         return "testFile";
     }
 
-    abstract ExternalDataTypeSerializer<T> getExternalDataTypeSerializer();
+    protected abstract ExternalDataTypeSerializer<T> getExternalDataTypeSerializer();
 
     @BeforeEach
     void setUpSettingsAndFile() {
@@ -383,11 +383,11 @@ abstract class TransformationParametersUpdatesTest<R extends WidgetGroup, T> ext
             });
     }
 
-    abstract T getIntType();
+    protected abstract T getIntType();
 
-    abstract T getStringType();
+    protected abstract T getStringType();
 
-    abstract T getDoubleType();
+    protected abstract T getDoubleType();
 
     private String getDefaultPathIdentifier(final T typeClass) {
         return getProductionPathProvider().getDefaultProductionPath(typeClass).getConverterFactory().getIdentifier();

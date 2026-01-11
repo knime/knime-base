@@ -239,22 +239,22 @@ public class TransformationParametersStateProviderTestUtils {
         extends TransformationParametersUpdatesTest<S, Class<?>> {
 
         @Override
-        Class<?> getIntType() {
+        protected Class<?> getIntType() {
             return Integer.class;
         }
 
         @Override
-        Class<?> getStringType() {
+        protected Class<?> getStringType() {
             return String.class;
         }
 
         @Override
-        Class<?> getDoubleType() {
+        protected Class<?> getDoubleType() {
             return Double.class;
         }
 
         @Override
-        ExternalDataTypeSerializer<Class<?>> getExternalDataTypeSerializer() {
+        protected ExternalDataTypeSerializer<Class<?>> getExternalDataTypeSerializer() {
             return new ClassSerializer() {
             };
         }
@@ -272,22 +272,22 @@ public class TransformationParametersStateProviderTestUtils {
         extends TransformationParametersUpdatesTest<S, DataType> {
 
         @Override
-        DataType getIntType() {
+        protected DataType getIntType() {
             return IntCell.TYPE;
         }
 
         @Override
-        DataType getStringType() {
+        protected DataType getStringType() {
             return StringCell.TYPE;
         }
 
         @Override
-        DataType getDoubleType() {
+        protected DataType getDoubleType() {
             return DoubleCell.TYPE;
         }
 
         @Override
-        ExternalDataTypeSerializer<DataType> getExternalDataTypeSerializer() {
+        protected ExternalDataTypeSerializer<DataType> getExternalDataTypeSerializer() {
             return new DataTypeSerializer() {
             };
         }
