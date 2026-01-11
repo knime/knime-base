@@ -186,7 +186,7 @@ public final class MultiFileSelectionParameters implements NodeParameters {
         return m_source.getFSLocation().getPath();
     }
 
-    static final class MultiFileSelectionIsActive implements EffectPredicateProvider {
+    public static final class MultiFileSelectionIsActive implements EffectPredicateProvider {
 
         @Override
         public EffectPredicate init(final PredicateInitializer i) {
