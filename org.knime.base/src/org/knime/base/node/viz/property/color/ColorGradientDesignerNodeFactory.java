@@ -175,19 +175,7 @@ public final class ColorGradientDesignerNodeFactory extends DefaultNodeFactory {
         final var colorModelAndSpecs = computeModelWithInputSpec(parameters, inTableSpec);
         var colorModel = colorModelAndSpecs.colorModel();
         if (colorModel.isPercentageBased()) {
-            final var minMax = extractMinMaxFromDomain(colorModelAndSpecs.specs());
-            final var min = minMax.min();
-            final var max = minMax.max();
-            if ((min != null && Double.isInfinite(min)) || (max != null && Double.isInfinite(max))) {
-                throw new InvalidSettingsException(String.format(
-                    "Cannot compute color gradient for selected columns, because their domain includes infinity"
-                        + " (minimum: %s, maximum: %s). Remove the affected columns or adjust their domains.",
-                    formatDouble(min), formatDouble(max)));
-            }
-            // if the previous node is not executed, no domain is available, so we cannot apply
-            if (min != null && max != null) {
-                colorModel = colorModel.applyToDomain(min, max);
-            }
+            colorModel = applyPercentageBasedColorModelFromDomain(colorModel, colorModelAndSpecs.specs());
         }
         final var colorHandler = new ColorHandler(colorModel);
         final var outputModelSpec = createOutputModelSpec(colorHandler, "Color gradient");
@@ -213,22 +201,48 @@ public final class ColorGradientDesignerNodeFactory extends DefaultNodeFactory {
         final var colorModelAndSpecs = computeModelWithInputSpec(parameters, inTableSpec);
         var colorModel = colorModelAndSpecs.colorModel();
         if (colorModelAndSpecs.colorModel().isPercentageBased()) {
-            final var domainMinMax = extractMinMaxFromDomain(colorModelAndSpecs.specs());
-            if (inTable.size() == 0 && (domainMinMax.min() == null || domainMinMax.max() == null)) {
-                throw new KNIMEException("Cannot compute color gradient for selected columns, because they do not"
-                    + " have a domain and the input table is empty.");
-            }
-            final var extractedMinMax = extractMinMaxFromTable(colorModelAndSpecs.specs(), inTableSpec, inTable, exec);
-            final var combinedMinMax = combineDomainAndExtractedMinMax(extractedMinMax, domainMinMax);
-            colorModel = colorModel.applyToDomain(combinedMinMax.min(), combinedMinMax.max());
+            colorModel =
+                applyPercentageBasedColorModelFromDomainAndTable(inTable, colorModel, colorModelAndSpecs.specs(), exec);
         }
 
-        final var outputSpecs = createOutputSpecs(inTableSpec, colorModelAndSpecs.specs(), colorModel);
+        final var outputSpecs = createOutputSpecs(inTableSpec, colorModelAndSpecs.specs(), colorModel, false);
         final var outTableSpec = outputSpecs.dataSpec();
         final var outputTable =
             outTableSpec.equals(inTableSpec) ? inTable : exec.createSpecReplacerTable(inTable, outTableSpec);
         final var outputModel = new ColorHandlerPortObject(outputSpecs.modelSpec(), outputSpecs.portSummary());
         out.setOutData(outputTable, outputModel);
+    }
+
+    static ColorModelRange2 applyPercentageBasedColorModelFromDomainAndTable(final BufferedDataTable inTable,
+        final ColorModelRange2 colorModel, final List<DataColumnSpec> dependentColumnSpecs, final ExecutionContext exec)
+        throws CanceledExecutionException, KNIMEException {
+        final var domainMinMax = extractMinMaxFromDomain(dependentColumnSpecs);
+        if (inTable.size() == 0 && (domainMinMax.min() == null || domainMinMax.max() == null)) {
+            throw new KNIMEException("Cannot compute color gradient for selected columns, because they do not"
+                + " have a domain and the input table is empty.");
+        }
+        final var extractedMinMax =
+            extractMinMaxFromTable(dependentColumnSpecs, inTable.getDataTableSpec(), inTable, exec);
+        final var combinedMinMax = combineDomainAndExtractedMinMax(extractedMinMax, domainMinMax);
+        return colorModel.applyToDomain(combinedMinMax.min(), combinedMinMax.max());
+    }
+
+    static ColorModelRange2 applyPercentageBasedColorModelFromDomain(final ColorModelRange2 colorModel,
+        final List<DataColumnSpec> dependentColumnSpecs) throws InvalidSettingsException {
+        final var minMax = extractMinMaxFromDomain(dependentColumnSpecs);
+        final var min = minMax.min();
+        final var max = minMax.max();
+        if ((min != null && Double.isInfinite(min)) || (max != null && Double.isInfinite(max))) {
+            throw new InvalidSettingsException(String.format(
+                "Cannot compute color gradient for selected columns, because their domain includes infinity"
+                    + " (minimum: %s, maximum: %s). Remove the affected columns or adjust their domains.",
+                formatDouble(min), formatDouble(max)));
+        }
+        // if the previous node is not executed, no domain is available, so we cannot apply
+        if (min != null && max != null) {
+            return colorModel.applyToDomain(min, max);
+        }
+        return colorModel;
     }
 
     private static double extractDoubleFromCell(final DataCell cell) {
@@ -352,8 +366,7 @@ public final class ColorGradientDesignerNodeFactory extends DefaultNodeFactory {
             .toArray(Color[]::new);
     }
 
-    private static List<DataColumnSpec> getSelectedNumericColumns(final ColumnFilter columnFilter,
-        final DataTableSpec spec) {
+    static List<DataColumnSpec> getSelectedNumericColumns(final ColumnFilter columnFilter, final DataTableSpec spec) {
         final var selectedColumns = columnFilter.filterFromFullSpec(spec);
         return Arrays.stream(selectedColumns) //
             .map(spec::getColumnSpec) //
