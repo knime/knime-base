@@ -46,14 +46,14 @@
  * History
  *   Oct 1, 2024 (Paul Bärnreuther): created
  */
-package org.knime.base.node.io.filehandling.webui.reader2;
+package org.knime.base.node.io.filehandling.webui.testing.reader2;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.knime.base.node.io.filehandling.webui.reader2.TransformationParametersStateProviderTestUtils.assertTableSpec;
-import static org.knime.base.node.io.filehandling.webui.reader2.TransformationParametersStateProviderTestUtils.assertTransformationElementSettings;
-import static org.knime.base.node.io.filehandling.webui.reader2.TransformationParametersStateProviderTestUtils.setTransformationElementSettings;
-import static org.knime.base.node.io.filehandling.webui.reader2.TransformationParametersStateProviderTestUtils.setTransformationElementSettingsWithExisting;
-import static org.knime.base.node.io.filehandling.webui.reader2.TransformationParametersStateProviderTestUtils.setTransformationElementSettingsWithUnknown;
+import static org.knime.base.node.io.filehandling.webui.testing.reader2.TransformationParametersStateProviderTestUtils.assertTableSpec;
+import static org.knime.base.node.io.filehandling.webui.testing.reader2.TransformationParametersStateProviderTestUtils.assertTransformationElementSettings;
+import static org.knime.base.node.io.filehandling.webui.testing.reader2.TransformationParametersStateProviderTestUtils.setTransformationElementSettings;
+import static org.knime.base.node.io.filehandling.webui.testing.reader2.TransformationParametersStateProviderTestUtils.setTransformationElementSettingsWithExisting;
+import static org.knime.base.node.io.filehandling.webui.testing.reader2.TransformationParametersStateProviderTestUtils.setTransformationElementSettingsWithUnknown;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -71,12 +71,13 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
-import org.knime.base.node.io.filehandling.webui.LocalWorkflowContextTest;
 import org.knime.base.node.io.filehandling.webui.reader.DataTypeStringSerializer;
+import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters;
 import org.knime.base.node.io.filehandling.webui.reader2.MultiFileReaderParameters.HowToCombineColumnsOption;
 import org.knime.base.node.io.filehandling.webui.reader2.ReaderSpecific.ExternalDataTypeSerializer;
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.TableSpecSettings;
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.TransformationElementSettings;
+import org.knime.base.node.io.filehandling.webui.testing.LocalWorkflowContextTest;
 import org.knime.core.data.DataType;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
@@ -102,7 +103,13 @@ import org.knime.testing.node.dialog.updates.UpdateSimulator.UpdateSimulatorResu
  * @param <T> the type by which external data types are identified
  */
 @SuppressWarnings("restriction")
-abstract class TransformationParametersUpdatesTest<R extends WidgetGroup, T> extends LocalWorkflowContextTest {
+public abstract class TransformationParametersUpdatesTest<R extends WidgetGroup, T> extends LocalWorkflowContextTest {
+    public static final String INT_COL = "intCol";
+
+    public static final String STRING_COL = "stringCol";
+
+    public static final String DEFAULT_COLUMNTYPE = "<default-columntype>";
+
     @TempDir
     Path m_tempFolder;
 
@@ -164,10 +171,10 @@ abstract class TransformationParametersUpdatesTest<R extends WidgetGroup, T> ext
         return "testFile";
     }
 
-    abstract ExternalDataTypeSerializer<T> getExternalDataTypeSerializer();
+    protected abstract ExternalDataTypeSerializer<T> getExternalDataTypeSerializer();
 
     @BeforeEach
-    void setUpSettingsAndFile() {
+    protected void setUpSettingsAndFile() {
         m_settings = constructNewSettings();
         m_filePath = m_tempFolder.resolve(getFileName()).toAbsolutePath().toString();
         setSourcePath(new FSLocation(FSCategory.LOCAL, m_filePath));
@@ -179,7 +186,7 @@ abstract class TransformationParametersUpdatesTest<R extends WidgetGroup, T> ext
     }
 
     @Test
-    void testTableSpecSettingsProviderWithMissingFile() throws IOException {
+    void testTableSpecSettingsProviderWithMissingFile() {
 
         final var simulatorResult = m_simulator.simulateAfterOpenDialog();
         final var specs = getTableSpecsValueUpdate(simulatorResult);
@@ -206,7 +213,7 @@ abstract class TransformationParametersUpdatesTest<R extends WidgetGroup, T> ext
 
     protected void assertIntegerAndStringColumn(final TableSpecSettings[] specs) {
         final var serializer = getExternalDataTypeSerializer();
-        assertTableSpec(specs, m_filePath, new String[]{"intCol", "stringCol"},
+        assertTableSpec(specs, m_filePath, new String[]{INT_COL, STRING_COL},
             List.of(serializer.toSerializableType(getIntType()), serializer.toSerializableType(getStringType())));
     }
 
@@ -239,7 +246,7 @@ abstract class TransformationParametersUpdatesTest<R extends WidgetGroup, T> ext
     static final class HowToCombineColumnsOptionArgumentsProvider implements ArgumentsProvider {
 
         @Override
-        public Stream<? extends Arguments> provideArguments(final ExtensionContext context) throws Exception {
+        public Stream<? extends Arguments> provideArguments(final ExtensionContext context) {
             return getOptions().map(Arguments::of);
         }
 
@@ -249,21 +256,21 @@ abstract class TransformationParametersUpdatesTest<R extends WidgetGroup, T> ext
     }
 
     private void assertStandardTransformationElementSettings(final Object transformationElements) {
-        assertTransformationElementSettings(transformationElements, new String[]{"intCol", "stringCol", null},
-            new boolean[]{true, true, true}, new String[]{"intCol", "stringCol", null},
-            new String[]{getDefaultPathIdentifier(getIntType()), getDefaultPathIdentifier(getStringType()),
-                "<default-columntype>"});
+        assertTransformationElementSettings(transformationElements, new String[]{INT_COL, STRING_COL, null},
+            new boolean[]{true, true, true}, new String[]{INT_COL, STRING_COL, null}, new String[]{
+                getDefaultPathIdentifier(getIntType()), getDefaultPathIdentifier(getStringType()), DEFAULT_COLUMNTYPE});
     }
 
     @Test
+    @SuppressWarnings("deprecation")
     void testTransformationElementSettingsProviderUnknownColumns() throws IOException {
         setTransformationElementSettingsWithUnknown(getTransformationSettings(), StringCell.TYPE);
         writeFileWithIntegerAndStringColumn();
 
         final var transformationElements = getUpdatedTransformationElementSettings();
 
-        assertTransformationElementSettings(transformationElements, new String[]{"intCol", "stringCol", null},
-            new boolean[]{false, false, false}, new String[]{"intCol", "stringCol", null}, //
+        assertTransformationElementSettings(transformationElements, new String[]{INT_COL, STRING_COL, null},
+            new boolean[]{false, false, false}, new String[]{INT_COL, STRING_COL, null}, //
             new String[]{ //
                 getPathIdentifier(getIntType(), StringCell.TYPE), //
                 getDefaultPathIdentifier(getStringType()), //
@@ -271,12 +278,13 @@ abstract class TransformationParametersUpdatesTest<R extends WidgetGroup, T> ext
             }, new String[]{ //
                 getDefaultPathIdentifier(getIntType()), //
                 getDefaultPathIdentifier(getStringType()), //
-                "<default-columntype>" //
+                DEFAULT_COLUMNTYPE //
             });
 
     }
 
     @Test
+    @SuppressWarnings("deprecation")
     void testTransformationElementSettingsProviderUnknownColumnsWithUnreachableType() throws IOException {
         final var pair = getUnreachableType();
         final var unreachableType = pair.getFirst();
@@ -285,8 +293,8 @@ abstract class TransformationParametersUpdatesTest<R extends WidgetGroup, T> ext
 
         final var transformationElements = getUpdatedTransformationElementSettings();
 
-        assertTransformationElementSettings(transformationElements, new String[]{"intCol", "stringCol", null},
-            new boolean[]{false, false, false}, new String[]{"intCol", "stringCol", null}, //
+        assertTransformationElementSettings(transformationElements, new String[]{INT_COL, STRING_COL, null},
+            new boolean[]{false, false, false}, new String[]{INT_COL, STRING_COL, null}, //
             new String[]{ //
                 getTypeIdentifier(IntOrString.INT, pair.getSecond(), unreachableType), //
                 getTypeIdentifier(IntOrString.STRING, pair.getSecond(), unreachableType), //
@@ -294,7 +302,7 @@ abstract class TransformationParametersUpdatesTest<R extends WidgetGroup, T> ext
             }, new String[]{ //
                 getDefaultPathIdentifier(getIntType()), //
                 getDefaultPathIdentifier(getStringType()), //
-                "<default-columntype>" //
+                DEFAULT_COLUMNTYPE //
             });
 
     }
@@ -308,19 +316,15 @@ abstract class TransformationParametersUpdatesTest<R extends WidgetGroup, T> ext
     }
 
     public enum IntOrString {
-            INT, STRING;
+            INT, STRING
 
     }
 
     T getDataType(final IntOrString intOrString) {
-        switch (intOrString) {
-            case INT:
-                return getIntType();
-            case STRING:
-                return getStringType();
-            default:
-                throw new IllegalArgumentException("Unknown type");
-        }
+        return switch (intOrString) {
+            case INT -> getIntType();
+            case STRING -> getStringType();
+        };
     }
 
     /**
@@ -334,13 +338,13 @@ abstract class TransformationParametersUpdatesTest<R extends WidgetGroup, T> ext
 
         final var externalDataTypeSerializer = getExternalDataTypeSerializer();
         TransformationParametersStateProviderTestUtils.setExistingTableSpecs(getTransformationSettings(),
-            List.of("intCol", "stringCol"), List.of(externalDataTypeSerializer.toSerializableType(getDoubleType()),
+            List.of(INT_COL, STRING_COL), List.of(externalDataTypeSerializer.toSerializableType(getDoubleType()),
                 externalDataTypeSerializer.toSerializableType(getStringType())));
 
         // Previously
         setTransformationElementSettingsWithExisting(getTransformationSettings(),
             // there were two columns stringCol and intCol (in that order)
-            new String[]{"stringCol", "intCol"},
+            new String[]{STRING_COL, INT_COL},
             // that were both not included
             new boolean[]{false, false},
             // and both renamed
@@ -355,7 +359,7 @@ abstract class TransformationParametersUpdatesTest<R extends WidgetGroup, T> ext
                 getDefaultPathIdentifier(getStringType()), //
                 getDefaultPathIdentifier(getDoubleType())//
             });
-        /**
+        /*
          * We write intCol and stringCol to a file. Here intCol will not match with the previous column, because it does
          * not share the type.
          */
@@ -365,29 +369,29 @@ abstract class TransformationParametersUpdatesTest<R extends WidgetGroup, T> ext
 
         assertTransformationElementSettings(transformationElements,
             // The order is different to the one in the written csv, since intCol is unknown.
-            new String[]{"stringCol", "intCol", null},
+            new String[]{STRING_COL, INT_COL, null},
             // stringCol is still false, intCol is an unknown column and thus the previous boolean is disregarded
             new boolean[]{false, true, true},
             // Same here: Previously, intCol was also renamed
-            new String[]{"Renamed stringCol", "intCol", null},
+            new String[]{"Renamed stringCol", INT_COL, null},
             // Same here: Previously, the intCol type was DoubleCell
             new String[]{ //
                 getPathIdentifier(getStringType(), XMLCell.TYPE), //
                 getDefaultPathIdentifier(getIntType()), //
-                "<default-columntype>"//
+                DEFAULT_COLUMNTYPE//
             }, //
             new String[]{//
                 getDefaultPathIdentifier(getStringType()), //
                 getDefaultPathIdentifier(getIntType()), //
-                "<default-columntype>"//
+                DEFAULT_COLUMNTYPE//
             });
     }
 
-    abstract T getIntType();
+    protected abstract T getIntType();
 
-    abstract T getStringType();
+    protected abstract T getStringType();
 
-    abstract T getDoubleType();
+    protected abstract T getDoubleType();
 
     private String getDefaultPathIdentifier(final T typeClass) {
         return getProductionPathProvider().getDefaultProductionPath(typeClass).getConverterFactory().getIdentifier();
@@ -424,7 +428,7 @@ abstract class TransformationParametersUpdatesTest<R extends WidgetGroup, T> ext
         assertThat(typeChoicesProviderResult.get(0).value()).isEqualTo(typeChoices(getIntType()));
         assertThat(typeChoicesProviderResult.get(1).value()).isEqualTo(typeChoices(getStringType()));
         assertThat(((List<StringChoice>)typeChoicesProviderResult.get(2).value()).get(0).id())
-            .isEqualTo("<default-columntype>");
+            .isEqualTo(DEFAULT_COLUMNTYPE);
 
     }
 
@@ -437,8 +441,8 @@ abstract class TransformationParametersUpdatesTest<R extends WidgetGroup, T> ext
             List.of(List.of(combineWithPathToTransformationSettings("columnTransformation"))), "elementSubTitle");
         assertSizeAndIndices(titles, 3);
         assertSizeAndIndices(subTitles, 3);
-        assertThat(titles.get(0).value()).isEqualTo("intCol");
-        assertThat(titles.get(1).value()).isEqualTo("stringCol");
+        assertThat(titles.get(0).value()).isEqualTo(INT_COL);
+        assertThat(titles.get(1).value()).isEqualTo(STRING_COL);
         assertThat(titles.get(2).value()).isEqualTo("Any unknown column");
         assertThat(subTitles.get(0).value()).isEqualTo(IntCell.TYPE.toPrettyString());
         assertThat(subTitles.get(1).value()).isEqualTo(StringCell.TYPE.toPrettyString());
@@ -456,17 +460,16 @@ abstract class TransformationParametersUpdatesTest<R extends WidgetGroup, T> ext
         assertSizeAndIndices(columnNameReset, 3);
         assertThat(typeReset.get(0).value()).isEqualTo(getDefaultPathIdentifier(getIntType()));
         assertThat(typeReset.get(1).value()).isEqualTo(getDefaultPathIdentifier(getStringType()));
-        assertThat(typeReset.get(2).value()).isEqualTo("<default-columntype>");
-        assertThat(columnNameReset.get(0).value()).isEqualTo("intCol");
-        assertThat(columnNameReset.get(1).value()).isEqualTo("stringCol");
+        assertThat(typeReset.get(2).value()).isEqualTo(DEFAULT_COLUMNTYPE);
+        assertThat(columnNameReset.get(0).value()).isEqualTo(INT_COL);
+        assertThat(columnNameReset.get(1).value()).isEqualTo(STRING_COL);
         assertThat(columnNameReset.get(2).value()).isNull();
     }
 
     private List<IndexedValue<Integer>> getMultiResultInTransformationElementSettings(
         final UpdateSimulatorResult simulatorResult, final String fieldName) {
-        final var typeReset = simulatorResult.getMultiValueUpdatesInArrayAt(List
+        return simulatorResult.getMultiValueUpdatesInArrayAt(List
             .of(Arrays.asList(combineWithPathToTransformationSettings("columnTransformation")), List.of(fieldName)));
-        return typeReset;
     }
 
     void assertSizeAndIndices(final List<IndexedValue<Integer>> listOfIndexedValues, final int expectedSize) {
@@ -479,8 +482,7 @@ abstract class TransformationParametersUpdatesTest<R extends WidgetGroup, T> ext
 
     private UpdateSimulatorResult getSimulatorResultForUpdatesInElementSettingsArray() throws IOException {
         final var setElementSettings = simulateSetTransformationElementSettings();
-        final var simulatorResult = setElementSettings.apply(m_simulator);
-        return simulatorResult;
+        return setElementSettings.apply(m_simulator);
     }
 
     private Function<UpdateSimulator, UpdateSimulatorResult> simulateSetTransformationElementSettings()
@@ -520,7 +522,7 @@ abstract class TransformationParametersUpdatesTest<R extends WidgetGroup, T> ext
      */
     protected abstract List<String> getPathToTransformationSettings();
 
-    // an abstract class that I can use to deduplicat the two classes right above:
+    // an abstract class that I can use to deduplicate the two classes right above:
     abstract static class RunSimulationForCommonSpecChangesProvider implements ArgumentsProvider {
         @Override
         public Stream<? extends Arguments> provideArguments(final ExtensionContext context) throws Exception {

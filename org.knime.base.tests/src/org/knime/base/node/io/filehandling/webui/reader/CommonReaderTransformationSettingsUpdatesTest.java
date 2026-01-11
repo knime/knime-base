@@ -71,10 +71,10 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
-import org.knime.base.node.io.filehandling.webui.LocalWorkflowContextTest;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderNodeSettings.AdvancedSettingsWithMultipleFileHandling.HowToCombineColumnsOption;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettingsStateProviders.TypeChoicesProvider;
 import org.knime.base.node.io.filehandling.webui.reader.ReaderSpecific.ExternalDataTypeSerializer;
+import org.knime.base.node.io.filehandling.webui.testing.LocalWorkflowContextTest;
 import org.knime.core.data.DataType;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
@@ -103,6 +103,14 @@ import org.knime.testing.node.dialog.updates.UpdateSimulator.UpdateSimulatorResu
 @SuppressWarnings("restriction")
 abstract class CommonReaderTransformationSettingsUpdatesTest<R extends WidgetGroup, S, T>
     extends LocalWorkflowContextTest {
+    public static final String DEFAULT_COLUMNTYPE = "<default-columntype>";
+
+    public static final String INT_COL = "intCol";
+
+    public static final String STRING_COL = "stringCol";
+
+    public static final String COLUMN_TRANSFORMATION = "columnTransformation";
+
     @TempDir
     Path m_tempFolder;
 
@@ -239,7 +247,7 @@ abstract class CommonReaderTransformationSettingsUpdatesTest<R extends WidgetGro
 
     protected void assertIntegerAndStringColumn(final Object specs) {
         final var serializer = getExternalDataTypeSerializer();
-        assertTableSpec(specs, m_filePath, new String[]{"intCol", "stringCol"},
+        assertTableSpec(specs, m_filePath, new String[]{INT_COL, STRING_COL},
             List.of(serializer.toSerializableType(getIntType()), serializer.toSerializableType(getStringType())));
     }
 
@@ -286,21 +294,21 @@ abstract class CommonReaderTransformationSettingsUpdatesTest<R extends WidgetGro
     }
 
     private void assertStandardTransformationElementSettings(final Object transformationElements) {
-        assertTransformationElementSettings(transformationElements, new String[]{"intCol", "stringCol", null},
-            new boolean[]{true, true, true}, new String[]{"intCol", "stringCol", null},
-            new String[]{getDefaultPathIdentifier(getIntType()), getDefaultPathIdentifier(getStringType()),
-                "<default-columntype>"});
+        assertTransformationElementSettings(transformationElements, new String[]{INT_COL, STRING_COL, null},
+            new boolean[]{true, true, true}, new String[]{INT_COL, STRING_COL, null}, new String[]{
+                getDefaultPathIdentifier(getIntType()), getDefaultPathIdentifier(getStringType()), DEFAULT_COLUMNTYPE});
     }
 
     @Test
+    @SuppressWarnings("deprecation")
     void testTransformationElementSettingsProviderUnknownColumns() throws IOException {
         setTransformationElementSettingsWithUnknown(getTransformationSettings(), StringCell.TYPE);
         writeFileWithIntegerAndStringColumn();
 
         final var transformationElements = getUpdatedTransformationElementSettings();
 
-        assertTransformationElementSettings(transformationElements, new String[]{"intCol", "stringCol", null},
-            new boolean[]{false, false, false}, new String[]{"intCol", "stringCol", null}, //
+        assertTransformationElementSettings(transformationElements, new String[]{INT_COL, STRING_COL, null},
+            new boolean[]{false, false, false}, new String[]{INT_COL, STRING_COL, null}, //
             new String[]{ //
                 getPathIdentifier(getIntType(), StringCell.TYPE), //
                 getDefaultPathIdentifier(getStringType()), //
@@ -308,12 +316,13 @@ abstract class CommonReaderTransformationSettingsUpdatesTest<R extends WidgetGro
             }, new String[]{ //
                 getDefaultPathIdentifier(getIntType()), //
                 getDefaultPathIdentifier(getStringType()), //
-                "<default-columntype>" //
+                DEFAULT_COLUMNTYPE //
             });
 
     }
 
     @Test
+    @SuppressWarnings("deprecation")
     void testTransformationElementSettingsProviderUnknownColumnsWithUnreachableType() throws IOException {
         final var pair = getUnreachableType();
         final var unreachableType = pair.getFirst();
@@ -322,8 +331,8 @@ abstract class CommonReaderTransformationSettingsUpdatesTest<R extends WidgetGro
 
         final var transformationElements = getUpdatedTransformationElementSettings();
 
-        assertTransformationElementSettings(transformationElements, new String[]{"intCol", "stringCol", null},
-            new boolean[]{false, false, false}, new String[]{"intCol", "stringCol", null}, //
+        assertTransformationElementSettings(transformationElements, new String[]{INT_COL, STRING_COL, null},
+            new boolean[]{false, false, false}, new String[]{INT_COL, STRING_COL, null}, //
             new String[]{ //
                 getTypeIdentifier(IntOrString.INT, pair.getSecond(), unreachableType), //
                 getTypeIdentifier(IntOrString.STRING, pair.getSecond(), unreachableType), //
@@ -331,7 +340,7 @@ abstract class CommonReaderTransformationSettingsUpdatesTest<R extends WidgetGro
             }, new String[]{ //
                 getDefaultPathIdentifier(getIntType()), //
                 getDefaultPathIdentifier(getStringType()), //
-                "<default-columntype>" //
+                DEFAULT_COLUMNTYPE //
             });
 
     }
@@ -350,14 +359,10 @@ abstract class CommonReaderTransformationSettingsUpdatesTest<R extends WidgetGro
     }
 
     T getDataType(final IntOrString intOrString) {
-        switch (intOrString) {
-            case INT:
-                return getIntType();
-            case STRING:
-                return getStringType();
-            default:
-                throw new IllegalArgumentException("Unknown type");
-        }
+        return switch (intOrString) {
+            case INT -> getIntType();
+            case STRING -> getStringType();
+        };
     }
 
     /**
@@ -371,13 +376,13 @@ abstract class CommonReaderTransformationSettingsUpdatesTest<R extends WidgetGro
 
         final var externalDataTypeSerializer = getExternalDataTypeSerializer();
         CommonReaderTransformationSettingsStateProviderTestUtils.setExistingTableSpecs(getTransformationSettings(),
-            List.of("intCol", "stringCol"), List.of(externalDataTypeSerializer.toSerializableType(getDoubleType()),
+            List.of(INT_COL, STRING_COL), List.of(externalDataTypeSerializer.toSerializableType(getDoubleType()),
                 externalDataTypeSerializer.toSerializableType(getStringType())));
 
         // Previously
         setTransformationElementSettingsWithExisting(getTransformationSettings(),
             // there were two columns stringCol and intCol (in that order)
-            new String[]{"stringCol", "intCol"},
+            new String[]{STRING_COL, INT_COL},
             // that were both not included
             new boolean[]{false, false},
             // and both renamed
@@ -392,7 +397,7 @@ abstract class CommonReaderTransformationSettingsUpdatesTest<R extends WidgetGro
                 getDefaultPathIdentifier(getStringType()), //
                 getDefaultPathIdentifier(getDoubleType())//
             });
-        /**
+        /*
          * We write intCol and stringCol to a file. Here intCol will not match with the previous column, because it does
          * not share the type.
          */
@@ -402,21 +407,21 @@ abstract class CommonReaderTransformationSettingsUpdatesTest<R extends WidgetGro
 
         assertTransformationElementSettings(transformationElements,
             // The order is different to the one in the written csv, since intCol is unknown.
-            new String[]{"stringCol", "intCol", null},
+            new String[]{STRING_COL, INT_COL, null},
             // stringCol is still false, intCol is an unknown column and thus the previous boolean is disregarded
             new boolean[]{false, true, true},
             // Same here: Previously, intCol was also renamed
-            new String[]{"Renamed stringCol", "intCol", null},
+            new String[]{"Renamed stringCol", INT_COL, null},
             // Same here: Previously, the intCol type was DoubleCell
             new String[]{ //
                 getPathIdentifier(getStringType(), XMLCell.TYPE), //
                 getDefaultPathIdentifier(getIntType()), //
-                "<default-columntype>"//
+                DEFAULT_COLUMNTYPE//
             }, //
             new String[]{//
                 getDefaultPathIdentifier(getStringType()), //
                 getDefaultPathIdentifier(getIntType()), //
-                "<default-columntype>"//
+                DEFAULT_COLUMNTYPE//
             });
     }
 
@@ -454,14 +459,14 @@ abstract class CommonReaderTransformationSettingsUpdatesTest<R extends WidgetGro
 
         final var simulatorResult = getSimulatorResultForUpdatesInElementSettingsArray();
         final var typeChoicesProviderResult = simulatorResult.getMultiUiStateUpdateAt(
-            List.of(List.of(combineWithPathToTransformationSettings("columnTransformation")), List.of("type")),
+            List.of(List.of(combineWithPathToTransformationSettings(COLUMN_TRANSFORMATION)), List.of("type")),
             "possibleValues");
 
         assertSizeAndIndices(typeChoicesProviderResult, 3);
         assertThat(typeChoicesProviderResult.get(0).value()).isEqualTo(typeChoices(getIntType()));
         assertThat(typeChoicesProviderResult.get(1).value()).isEqualTo(typeChoices(getStringType()));
         assertThat(((List<StringChoice>)typeChoicesProviderResult.get(2).value()).get(0).id())
-            .isEqualTo("<default-columntype>");
+            .isEqualTo(DEFAULT_COLUMNTYPE);
 
     }
 
@@ -469,13 +474,13 @@ abstract class CommonReaderTransformationSettingsUpdatesTest<R extends WidgetGro
     void testTitlesAndSubTitles() throws IOException {
         final var simulatorResult = getSimulatorResultForUpdatesInElementSettingsArray();
         final var titles = simulatorResult.getMultiUiStateUpdateAt(
-            List.of(List.of(combineWithPathToTransformationSettings("columnTransformation"))), "arrayElementTitle");
+            List.of(List.of(combineWithPathToTransformationSettings(COLUMN_TRANSFORMATION))), "arrayElementTitle");
         final var subTitles = simulatorResult.getMultiUiStateUpdateAt(
-            List.of(List.of(combineWithPathToTransformationSettings("columnTransformation"))), "elementSubTitle");
+            List.of(List.of(combineWithPathToTransformationSettings(COLUMN_TRANSFORMATION))), "elementSubTitle");
         assertSizeAndIndices(titles, 3);
         assertSizeAndIndices(subTitles, 3);
-        assertThat(titles.get(0).value()).isEqualTo("intCol");
-        assertThat(titles.get(1).value()).isEqualTo("stringCol");
+        assertThat(titles.get(0).value()).isEqualTo(INT_COL);
+        assertThat(titles.get(1).value()).isEqualTo(STRING_COL);
         assertThat(titles.get(2).value()).isEqualTo("Any unknown column");
         assertThat(subTitles.get(0).value()).isEqualTo(IntCell.TYPE.toPrettyString());
         assertThat(subTitles.get(1).value()).isEqualTo(StringCell.TYPE.toPrettyString());
@@ -493,17 +498,16 @@ abstract class CommonReaderTransformationSettingsUpdatesTest<R extends WidgetGro
         assertSizeAndIndices(columnNameReset, 3);
         assertThat(typeReset.get(0).value()).isEqualTo(getDefaultPathIdentifier(getIntType()));
         assertThat(typeReset.get(1).value()).isEqualTo(getDefaultPathIdentifier(getStringType()));
-        assertThat(typeReset.get(2).value()).isEqualTo("<default-columntype>");
-        assertThat(columnNameReset.get(0).value()).isEqualTo("intCol");
-        assertThat(columnNameReset.get(1).value()).isEqualTo("stringCol");
+        assertThat(typeReset.get(2).value()).isEqualTo(DEFAULT_COLUMNTYPE);
+        assertThat(columnNameReset.get(0).value()).isEqualTo(INT_COL);
+        assertThat(columnNameReset.get(1).value()).isEqualTo(STRING_COL);
         assertThat(columnNameReset.get(2).value()).isNull();
     }
 
     private List<IndexedValue<Integer>> getMultiResultInTransformationElementSettings(
         final UpdateSimulatorResult simulatorResult, final String fieldName) {
-        final var typeReset = simulatorResult.getMultiValueUpdatesInArrayAt(List
-            .of(Arrays.asList(combineWithPathToTransformationSettings("columnTransformation")), List.of(fieldName)));
-        return typeReset;
+        return simulatorResult.getMultiValueUpdatesInArrayAt(
+            List.of(Arrays.asList(combineWithPathToTransformationSettings(COLUMN_TRANSFORMATION)), List.of(fieldName)));
     }
 
     void assertSizeAndIndices(final List<IndexedValue<Integer>> listOfIndexedValues, final int expectedSize) {
@@ -516,8 +520,7 @@ abstract class CommonReaderTransformationSettingsUpdatesTest<R extends WidgetGro
 
     private UpdateSimulatorResult getSimulatorResultForUpdatesInElementSettingsArray() throws IOException {
         final var setElementSettings = simulateSetTransformationElementSettings();
-        final var simulatorResult = setElementSettings.apply(m_simulator);
-        return simulatorResult;
+        return setElementSettings.apply(m_simulator);
     }
 
     private Function<UpdateSimulator, UpdateSimulatorResult> simulateSetTransformationElementSettings()
@@ -554,7 +557,7 @@ abstract class CommonReaderTransformationSettingsUpdatesTest<R extends WidgetGro
     }
 
     protected Object getTransformationElementsValueUpdate(final UpdateSimulatorResult simulatorResult) {
-        return simulatorResult.getValueUpdateAt(combineWithPathToTransformationSettings("columnTransformation"));
+        return simulatorResult.getValueUpdateAt(combineWithPathToTransformationSettings(COLUMN_TRANSFORMATION));
 
     }
 
@@ -569,10 +572,10 @@ abstract class CommonReaderTransformationSettingsUpdatesTest<R extends WidgetGro
      */
     protected abstract List<String> getPathToTransformationSettings();
 
-    // an abstract class that I can use to deduplicat the two classes right above:
+    // an abstract class that I can use to deduplicate the two classes right above:
     abstract static class RunSimulationForCommonSpecChangesProvider implements ArgumentsProvider {
         @Override
-        public Stream<? extends Arguments> provideArguments(final ExtensionContext context) throws Exception {
+        public Stream<? extends Arguments> provideArguments(final ExtensionContext context) {
             return getSimulations().map(Arguments::of);
         }
 
@@ -583,7 +586,7 @@ abstract class CommonReaderTransformationSettingsUpdatesTest<R extends WidgetGro
         @Override
         Stream<Function<UpdateSimulator, UpdateSimulatorResult>> getSimulations() {
             return Stream.of(UpdateSimulator::simulateAfterOpenDialog,
-                simulator -> simulator.simulateValueChange(new String[]{"settings", "source"}));
+                simulator -> simulator.simulateValueChange("settings", "source"));
         }
     }
 

@@ -46,7 +46,7 @@
  * History
  *   Mar 27, 2024 (Paul Bärnreuther): created
  */
-package org.knime.base.node.io.filehandling.webui;
+package org.knime.base.node.io.filehandling.webui.testing;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -69,7 +69,7 @@ import org.knime.testing.util.WorkflowManagerUtil;
  */
 public abstract class LocalWorkflowContextTest {
 
-    final private static String SOURCE_OBJ = "workflowContextSourceObject";
+    private static final String SOURCE_OBJ = "workflowContextSourceObject";
 
     private NodeContext.ContextObjectSupplier m_contextObjectSupplier;
 
@@ -98,7 +98,7 @@ public abstract class LocalWorkflowContextTest {
         m_wfm = WorkflowManagerUtil.createEmptyWorkflow();
     }
 
-    private static WorkflowContextV2 createLocalWorkflowContext(final Path workflowPath) throws IOException {
+    private static WorkflowContextV2 createLocalWorkflowContext(final Path workflowPath) {
         var executorInfo =
             AnalyticsPlatformExecutorInfo.builder().withUserId("knime").withLocalWorkflowPath(workflowPath).build();
         var locationInfo = LocalLocationInfo.getInstance(null);
