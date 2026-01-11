@@ -102,7 +102,7 @@ import org.knime.testing.node.dialog.updates.UpdateSimulator.UpdateSimulatorResu
  * @param <T> the type by which external data types are identified
  */
 @SuppressWarnings("restriction")
-abstract class TransformationParametersUpdatesTest<R extends WidgetGroup, T> extends LocalWorkflowContextTest {
+public abstract class TransformationParametersUpdatesTest<R extends WidgetGroup, T> extends LocalWorkflowContextTest {
     @TempDir
     Path m_tempFolder;
 
