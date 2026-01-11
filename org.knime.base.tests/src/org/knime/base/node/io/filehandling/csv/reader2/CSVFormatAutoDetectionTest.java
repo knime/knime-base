@@ -61,7 +61,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.knime.base.node.io.filehandling.csv.reader2.AutoDetectCSVFormatParameters.AutoDetectButtonRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVFormatParameters.RowDelimiterOption;
 import org.knime.base.node.io.filehandling.webui.FileEncodingParameters.FileEncodingOption;
-import org.knime.base.node.io.filehandling.webui.LocalWorkflowContextTest;
+import org.knime.base.node.io.filehandling.webui.testing.LocalWorkflowContextTest;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersInputImpl;
