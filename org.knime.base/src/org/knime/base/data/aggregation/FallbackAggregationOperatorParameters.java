@@ -50,7 +50,6 @@ package org.knime.base.data.aggregation;
 
 import java.util.function.Consumer;
 
-import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.webui.node.dialog.FallbackDialogNodeParameters;
@@ -64,8 +63,6 @@ import org.knime.core.webui.node.dialog.FallbackDialogNodeParameters;
 @SuppressWarnings("restriction")
 public final class FallbackAggregationOperatorParameters extends FallbackDialogNodeParameters
     implements AggregationOperatorParameters {
-
-    private static final NodeLogger LOGGER = NodeLogger.getLogger(FallbackAggregationOperatorParameters.class);
 
     /**
      * Creates parameters from the given node settings.

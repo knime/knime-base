@@ -52,6 +52,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 import org.knime.base.data.aggregation.AggregationFunctionParametersProvider.AggregationMethodRef;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.updates.StateProvider;
@@ -77,11 +78,13 @@ public abstract class HasOperatorParameters implements StateProvider<Boolean> {
 
     /**
      * Looks up an aggregation function by its ID to determine if it has optional parameters.
-     * @param in the node parameters input
+     *
+     * @param spec the input spec to derive available functions from
+     *
      * @param id the ID of the aggregation function
      * @return the aggregation function, or {@link Optional#empty()} if no such function exists
      */
-    protected abstract Optional<AggregationSpec> lookupFunctionById(NodeParametersInput in, String id);
+    protected abstract Optional<AggregationSpec> lookupFunctionById(PortObjectSpec spec, String id);
 
     @Override
     public final void init(final StateProviderInitializer init) {
@@ -96,7 +99,9 @@ public abstract class HasOperatorParameters implements StateProvider<Boolean> {
             throw new StateComputationFailureException();
         }
         // unknown aggregation function has no optional settings
-        return lookupFunctionById(in, id).map(AggregationSpec::hasOptionalSettings).orElse(false);
+        return in.getInPortSpec(0) //
+            .flatMap(spec -> lookupFunctionById(spec, id).map(AggregationSpec::hasOptionalSettings)) //
+            .orElse(false);
     }
 
 }

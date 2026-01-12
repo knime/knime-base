@@ -51,8 +51,8 @@ package org.knime.base.node.preproc.groupby.common;
 import java.util.Comparator;
 import java.util.List;
 
-import org.knime.base.data.aggregation.AggregationOperatorParameters;
 import org.knime.base.data.aggregation.AggregationMethods;
+import org.knime.base.data.aggregation.AggregationOperatorParameters;
 import org.knime.base.data.aggregation.FallbackAggregationOperatorParameters;
 import org.knime.base.data.aggregation.PatternType;
 import org.knime.base.data.aggregation.dialogutil.pattern.PatternAggregator;
@@ -190,7 +190,7 @@ public final class LegacyPatternAggregatorsArrayPersistor
 
         @Override
         public String[][] getConfigPaths() {
-            // TODO not possible to specify arbitrary nested keys implicitly
+            // TODO (blocked) not possible to specify arbitrary nested keys implicitly
             return new String[0][];
         }
 

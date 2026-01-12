@@ -54,17 +54,18 @@ import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
-import org.knime.base.data.aggregation.AggregationSpec;
-import org.knime.base.data.aggregation.AggregationOperatorParameters;
 import org.knime.base.data.aggregation.AggregationFunctionParametersProvider.AggregationMethodRef;
 import org.knime.base.data.aggregation.AggregationMethod;
 import org.knime.base.data.aggregation.AggregationMethods;
+import org.knime.base.data.aggregation.AggregationOperatorParameters;
+import org.knime.base.data.aggregation.AggregationSpec;
 import org.knime.base.data.aggregation.DefaultPatternAggregationMethodProvider;
 import org.knime.base.data.aggregation.HasOperatorParameters;
 import org.knime.base.data.aggregation.PatternType;
 import org.knime.base.node.preproc.groupby.common.LegacyPatternAggregatorsArrayPersistor.IndexedElement;
 import org.knime.base.node.preproc.groupby.common.LegacyPatternAggregatorsArrayPersistor.PatternAggregatorElementDTO;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.PersistArrayElement;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.custom.CustomValidation;
@@ -177,8 +178,9 @@ public class PatternAggregatorElement implements NodeParameters {
         }
 
         @Override
-        protected Optional<AggregationSpec> lookupFunctionById(final NodeParametersInput in, final String id) {
-            return AggregationMethodsUtil.lookupFunctionById(id);
+        protected Optional<AggregationSpec> lookupFunctionById(final PortObjectSpec spec, final String id) {
+            final var util = AggregationMethodsUtility.getInstance();
+            return util.lookupFunctionById(id).map(util::mapToSpec);
         }
     }
 
@@ -232,7 +234,7 @@ public class PatternAggregatorElement implements NodeParameters {
 
         @Override
         protected Optional<AggregationMethod> lookupMethodById(final String id) {
-            return AggregationMethodsUtil.lookupMethodById(id);
+            return AggregationMethodsUtility.getInstance().lookupFunctionById(id);
         }
     }
 

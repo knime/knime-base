@@ -53,11 +53,10 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import org.knime.base.data.aggregation.AggregationSpec;
-import org.knime.base.data.aggregation.AggregationOperatorParameters;
 import org.knime.base.data.aggregation.AggregationFunctionParametersProvider.AggregationMethodRef;
 import org.knime.base.data.aggregation.AggregationMethod;
-import org.knime.base.data.aggregation.AggregationMethods;
+import org.knime.base.data.aggregation.AggregationOperatorParameters;
+import org.knime.base.data.aggregation.AggregationSpec;
 import org.knime.base.data.aggregation.DefaultAggregationMethodProvider;
 import org.knime.base.data.aggregation.HasOperatorParameters;
 import org.knime.base.data.aggregation.StateAndChoicesProviders.AggregationChoicesByTypeProvider;
@@ -65,7 +64,6 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.node.port.database.aggregation.AggregationFunctionProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
@@ -124,7 +122,9 @@ public final class ColumnAggregatorElement implements NodeParameters {
 
         @Override
         protected Stream<AggregationSpec> getCompatibleFunctions(final DataType type) {
-            return AggregationMethodsUtil.getCompatibleFunctions(type);
+            final var util = AggregationMethodsUtility.getInstance();
+            return util.getCompatibleAggregationFunctions(type, /*sorted*/ true) //
+                    .map(util::mapToSpec);
         }
 
         @Override
@@ -150,7 +150,7 @@ public final class ColumnAggregatorElement implements NodeParameters {
 
         @Override
         protected Optional<AggregationMethod> lookupMethodById(final String id) {
-            return AggregationMethodsUtil.lookupMethodById(id);
+            return AggregationMethodsUtility.getInstance().lookupFunctionById(id);
         }
     }
 
@@ -242,7 +242,8 @@ public final class ColumnAggregatorElement implements NodeParameters {
     /**
      * Default provider if no method already set.
      */
-    private static final class DefaultMethodProvider extends DefaultAggregationMethodProvider<AggregationMethod> {
+    private static final class DefaultMethodProvider
+        extends DefaultAggregationMethodProvider<AggregationMethodsUtility, AggregationMethod> {
 
         @Override
         protected Class<? extends ParameterReference<DataType>> getTypeProvider() {
@@ -255,15 +256,15 @@ public final class ColumnAggregatorElement implements NodeParameters {
         }
 
         @Override
-        protected Optional<AggregationFunctionProvider<AggregationMethod>>
-                getFunctionProvider(final PortObjectSpec spec) {
-            return Optional.of(AggregationMethods.getInstance());
+        protected Optional<AggregationMethodsUtility> getUtility(final PortObjectSpec spec) {
+            return Optional.of(AggregationMethodsUtility.getInstance());
         }
 
         @Override
         protected AggregationMethod getDefaultFunction() {
-            return AggregationMethods.getInstance().getDefaultFunction(null);
+            return AggregationMethodsUtility.getDefaultFunctionFallback();
         }
+
 
     }
 
@@ -274,8 +275,9 @@ public final class ColumnAggregatorElement implements NodeParameters {
         }
 
         @Override
-        protected Optional<AggregationSpec> lookupFunctionById(final NodeParametersInput in, final String id) {
-            return AggregationMethodsUtil.lookupFunctionById(id);
+        protected Optional<AggregationSpec> lookupFunctionById(final PortObjectSpec spec, final String id) {
+            final var util = AggregationMethodsUtility.getInstance();
+            return util.lookupFunctionById(id).map(util::mapToSpec);
         }
     }
 

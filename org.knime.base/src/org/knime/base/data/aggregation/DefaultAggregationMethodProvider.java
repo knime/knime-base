@@ -54,23 +54,23 @@ import java.util.function.Supplier;
 import org.knime.core.data.DataType;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.database.aggregation.AggregationFunction;
-import org.knime.core.node.port.database.aggregation.AggregationFunctionProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.StateProvider;
 
 /**
- * Selects the default aggregation method based on the type -- if a method is not already provided --
- * by querying the function provider for the type, or ultimately falling back to a type-independent default.
+ * Selects the default aggregation method based on the type -- if a method is not already provided -- by querying the
+ * function provider for the type, or ultimately falling back to a type-independent default.
  *
+ * @param <U> type of utility
  * @param <F> type of aggregation function provided as default
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  * @since 5.10
  */
-public abstract class DefaultAggregationMethodProvider<F extends AggregationFunction>
-        implements StateProvider<String> {
+public abstract class DefaultAggregationMethodProvider<U extends AggregationFunctionsUtility<F>, //
+    F extends AggregationFunction> implements StateProvider<String> {
 
     /** The currently selected method to avoid updating it if it is already set. */
     private Supplier<String> m_methodSelf;
@@ -93,12 +93,12 @@ public abstract class DefaultAggregationMethodProvider<F extends AggregationFunc
      *
      * @return function provider, or {@link Optional#empty()} if none is available
      */
-    protected abstract Optional<AggregationFunctionProvider<F>> getFunctionProvider(PortObjectSpec spec);
+    protected abstract Optional<U> getUtility(PortObjectSpec spec);
 
     /**
-     * Gets the default aggregation function if no type-specific default is available.
+     * Gets the default function if no port spec is available.
      *
-     * @return the default aggregation function
+     * @return the default function
      */
     protected abstract F getDefaultFunction();
 
@@ -129,9 +129,9 @@ public abstract class DefaultAggregationMethodProvider<F extends AggregationFunc
      */
     private AggregationSpec getDefault(final NodeParametersInput parametersInput, final DataType type) {
         final var def = parametersInput.getInPortSpec(0) //
-            .flatMap(this::getFunctionProvider) //
-            .map(provider -> provider.getDefaultFunction(type)) //
-            .orElseGet(this::getDefaultFunction);
+            .flatMap(this::getUtility) //
+            .flatMap(util -> util.getDefaultFunction(type)) //
+            .orElseGet(this::getDefaultFunction); //
         return new AggregationSpec(def.getId(), def.getLabel(), def.hasOptionalSettings());
     }
 
