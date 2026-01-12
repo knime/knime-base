@@ -48,9 +48,11 @@
  */
 package org.knime.base.data.aggregation;
 
+import java.util.Optional;
 import java.util.function.Supplier;
 
 import org.knime.base.data.aggregation.AggregationFunctionParametersProvider.AggregationMethodRef;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.database.aggregation.AggregationFunction;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.node.parameters.NodeParametersInput;
@@ -78,10 +80,10 @@ public abstract class DefaultPatternAggregationMethodProvider<F extends Aggregat
 
     /**
      * Gets the default method to use if no method is already selected.
-     * @param context the node parameters input to derive a useful default from
+     * @param spec the input spec to derive available functions from
      * @return default aggregation function
      */
-    protected abstract F getDefaultMethod(NodeParametersInput context);
+    protected abstract Optional<F> getDefaultMethod(PortObjectSpec spec);
 
     @Override
     public void init(final StateProviderInitializer initializer) {
@@ -94,7 +96,11 @@ public abstract class DefaultPatternAggregationMethodProvider<F extends Aggregat
             // only set default if no method is already selected
             throw new StateComputationFailureException();
         }
-        return getDefaultMethod(context).getId();
+        return context.getInPortSpec(0) //
+                .flatMap(this::getDefaultMethod) //
+                .map(F::getId) //
+                // if there is no default available, we clear the selection
+                .orElse(null);
     }
 
 }

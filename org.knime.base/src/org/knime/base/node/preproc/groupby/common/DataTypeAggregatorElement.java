@@ -213,11 +213,6 @@ final class DataTypeAggregatorElement implements NodeParameters {
             return Optional.of(AggregationMethodsUtility.getInstance());
         }
 
-        @Override
-        protected AggregationMethod getDefaultFunction() {
-            return AggregationMethodsUtility.getDefaultFunctionFallback();
-        }
-
     }
 
     static final class HasDataTypeOperatorParameters extends HasOperatorParameters {

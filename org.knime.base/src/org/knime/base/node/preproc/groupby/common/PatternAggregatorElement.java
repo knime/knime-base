@@ -50,9 +50,6 @@ package org.knime.base.node.preproc.groupby.common;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Supplier;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 
 import org.knime.base.data.aggregation.AggregationFunctionParametersProvider.AggregationMethodRef;
 import org.knime.base.data.aggregation.AggregationMethod;
@@ -62,16 +59,13 @@ import org.knime.base.data.aggregation.AggregationSpec;
 import org.knime.base.data.aggregation.DefaultPatternAggregationMethodProvider;
 import org.knime.base.data.aggregation.HasOperatorParameters;
 import org.knime.base.data.aggregation.PatternType;
+import org.knime.base.data.aggregation.StateAndChoicesProviders.WildcardOrRegexPatternValidation;
 import org.knime.base.node.preproc.groupby.common.LegacyPatternAggregatorsArrayPersistor.IndexedElement;
 import org.knime.base.node.preproc.groupby.common.LegacyPatternAggregatorsArrayPersistor.PatternAggregatorElementDTO;
-import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.PersistArrayElement;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.custom.CustomValidation;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.custom.CustomValidationProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.custom.ValidationCallback;
-import org.knime.filehandling.core.util.WildcardToRegexUtil;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
@@ -102,7 +96,7 @@ public class PatternAggregatorElement implements NodeParameters {
     @Widget(title = "Search pattern", description = "Wildcard or regular expression pattern")
     @PersistArrayElement(LegacyPatternAggregatorsArrayPersistor.PatternPersistor.class)
     @ValueReference(PatternRef.class)
-    @CustomValidation(WildcardOrRegexPatternValidation.class)
+    @CustomValidation(PatternValidation.class)
     String m_pattern = ".*";
 
     static final class PatternTypeRef implements ParameterReference<PatternType> {
@@ -204,9 +198,9 @@ public class PatternAggregatorElement implements NodeParameters {
         }
 
         @Override
-        protected AggregationMethod getDefaultMethod(final NodeParametersInput context) {
-            // parsing `null` will select "First"
-            return AggregationMethods.getInstance().getDefaultFunction(null);
+        protected Optional<AggregationMethod> getDefaultMethod(final PortObjectSpec spec) {
+            // derived from PatternAggregationPanel
+            return Optional.of(AggregationMethods.getDefaultNotNumericalMethod());
         }
 
     }
@@ -238,38 +232,11 @@ public class PatternAggregatorElement implements NodeParameters {
         }
     }
 
-    static final class WildcardOrRegexPatternValidation implements CustomValidationProvider<String> {
-
-        private Supplier<PatternType> m_patternType;
+    static final class PatternValidation extends WildcardOrRegexPatternValidation {
 
         @Override
-        public void init(final StateProviderInitializer initializer) {
-            m_patternType = initializer.getValueSupplier(PatternTypeRef.class);
-        }
-
-        @Override
-        public ValidationCallback<String> computeValidationCallback(final NodeParametersInput parametersInput) {
-            final var patternType = m_patternType.get();
-            return switch (patternType) {
-                case REGEX -> WildcardOrRegexPatternValidation::validateRegexPattern;
-                case WILDCARD -> WildcardOrRegexPatternValidation::validateWildcardPattern;
-            };
-        }
-
-        private static void validateWildcardPattern(final String wildcard) throws InvalidSettingsException {
-            try {
-                Pattern.compile(WildcardToRegexUtil.wildcardToRegex(wildcard));
-            } catch (final PatternSyntaxException e) {
-                throw new InvalidSettingsException("The wildcard pattern is invalid: " + e.getMessage(), e);
-            }
-        }
-
-        private static void validateRegexPattern(final String regex) throws InvalidSettingsException {
-            try {
-                Pattern.compile(regex);
-            } catch (final PatternSyntaxException e) {
-                throw new InvalidSettingsException("The regular expression pattern is invalid: " + e.getMessage(), e);
-            }
+        protected Class<? extends ParameterReference<PatternType>> getPatternTypeRefClass() {
+            return PatternTypeRef.class;
         }
     }
 }

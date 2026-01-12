@@ -95,13 +95,6 @@ public abstract class DefaultAggregationMethodProvider<U extends AggregationFunc
      */
     protected abstract Optional<U> getUtility(PortObjectSpec spec);
 
-    /**
-     * Gets the default function if no port spec is available.
-     *
-     * @return the default function
-     */
-    protected abstract F getDefaultFunction();
-
     @Override
     public final void init(final StateProviderInitializer initializer) {
         m_methodSelf = initializer.getValueSupplier(getMethodSelfProvider());
@@ -116,8 +109,10 @@ public abstract class DefaultAggregationMethodProvider<U extends AggregationFunc
             throw new StateComputationFailureException();
         }
         final var type = m_typeSupplier.get();
-        // there always is a default, even if it is just "First"
-        return getDefault(parametersInput, type).id();
+        return getDefault(parametersInput, type) //
+                .map(agg -> agg.id()) //
+                // if there is no default available, we clear the selection
+                .orElse(null);
     }
 
     /**
@@ -127,12 +122,11 @@ public abstract class DefaultAggregationMethodProvider<U extends AggregationFunc
      * @param type the data type
      * @return the default aggregation function
      */
-    private AggregationSpec getDefault(final NodeParametersInput parametersInput, final DataType type) {
-        final var def = parametersInput.getInPortSpec(0) //
+    private Optional<AggregationSpec> getDefault(final NodeParametersInput parametersInput, final DataType type) {
+        return parametersInput.getInPortSpec(0) //
             .flatMap(this::getUtility) //
             .flatMap(util -> util.getDefaultFunction(type)) //
-            .orElseGet(this::getDefaultFunction); //
-        return new AggregationSpec(def.getId(), def.getLabel(), def.hasOptionalSettings());
+            .map(def -> new AggregationSpec(def.getId(), def.getLabel(), def.hasOptionalSettings()));
     }
 
 }

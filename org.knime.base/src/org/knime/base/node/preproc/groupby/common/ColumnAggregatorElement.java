@@ -260,12 +260,6 @@ public final class ColumnAggregatorElement implements NodeParameters {
             return Optional.of(AggregationMethodsUtility.getInstance());
         }
 
-        @Override
-        protected AggregationMethod getDefaultFunction() {
-            return AggregationMethodsUtility.getDefaultFunctionFallback();
-        }
-
-
     }
 
     static final class HasColumnOperatorParameters extends HasOperatorParameters {
