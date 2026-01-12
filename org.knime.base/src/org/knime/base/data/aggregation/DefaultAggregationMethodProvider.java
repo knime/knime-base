@@ -69,8 +69,8 @@ import org.knime.node.parameters.updates.StateProvider;
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  * @since 5.10
  */
-public abstract class DefaultAggregationMethodProvider<U extends AggregationFunctionsUtility<F>, //
-    F extends AggregationFunction> implements StateProvider<String> {
+public abstract class DefaultAggregationMethodProvider<F extends AggregationFunction,
+    U extends AggregationFunctionsUtility<F>> implements StateProvider<String> {
 
     /** The currently selected method to avoid updating it if it is already set. */
     private Supplier<String> m_methodSelf;

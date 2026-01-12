@@ -195,8 +195,8 @@ final class DataTypeAggregatorElement implements NodeParameters {
     /**
      * Default provider if no method already set.
      */
-    private static final class DefaultMethodProvider extends DefaultAggregationMethodProvider<AggregationMethodsUtility,
-            AggregationMethod> {
+    private static final class DefaultMethodProvider extends DefaultAggregationMethodProvider<AggregationMethod,
+            AggregationMethodsUtility> {
 
         @Override
         protected Class<? extends ParameterReference<DataType>> getTypeProvider() {
