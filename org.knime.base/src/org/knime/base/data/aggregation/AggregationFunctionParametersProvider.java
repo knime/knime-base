@@ -51,7 +51,6 @@ package org.knime.base.data.aggregation;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Supplier;
 
 import org.knime.core.node.InvalidSettingsException;
@@ -74,8 +73,11 @@ import org.knime.node.parameters.updates.ParameterReference;
  *
  * In case no default dialog is registered via the extension point, a fallback dialog is shown.
  *
- * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ * @param <F> type of aggregation function returned by the parameters implementation
+ *
  * @since 5.10
+ *
+ * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings({"restriction"})
 public abstract class AggregationFunctionParametersProvider<F extends AggregationFunction>
@@ -87,18 +89,12 @@ public abstract class AggregationFunctionParametersProvider<F extends Aggregatio
 
     private Supplier<String> m_aggregationMethodSupplier;
 
-    protected final Optional<F> lookupById(final AggFunctions<F> functions, final String id) {
-        return functions.lookupById(id);
-    }
-
-    protected final Optional<AggFunction> lookupFunctionById(final AggFunctions<F> functions, final String id) {
-        return functions.lookupFunctionById(id);
-    }
-
-    protected final Optional<Class<? extends AggregationOperatorParameters>>
-        lookupParametersForId(final AggFunctions<F> functions, final String id) {
-        return functions.lookupFunctionById(id).flatMap(functions::lookupParametersForFunction);
-    }
+    /** (Legacy) key for the optional function settings. */
+    /* NB: All optional settings except manual native (i.e. non-DB) operator settings are stored under this key.
+       The manual native settings use "aggregationOperatorSettings",
+       which is handled by `LegacyColumnAggregatorsPersistor`.
+    */
+    private static final String CFG_FUNCTION_SETTINGS = "functionSettings";
 
     /**
      * Gets the function utility to use for looking up aggregation functions and parameter classes.
@@ -106,7 +102,7 @@ public abstract class AggregationFunctionParametersProvider<F extends Aggregatio
      * @param parametersInput node parameters input
      * @return utility for aggregation functions and parameter classes
      */
-    protected abstract AggFunctions<F> getFunctionUtility(final NodeParametersInput parametersInput);
+    protected abstract AggregationFunctionsUtility<F> getFunctionUtility(final NodeParametersInput parametersInput);
 
     /**
      * Gets the reference to use for optional aggregation parameters.
@@ -129,15 +125,6 @@ public abstract class AggregationFunctionParametersProvider<F extends Aggregatio
      * @return all aggregation function parameter classes
      */
     protected abstract Collection<Class<? extends AggregationOperatorParameters>> getAllParameterClasses();
-
-    /**
-     * Gets the default key under which optional function settings are stored.
-     *
-     * @return the non-{@code null} default key for optional function settings
-     */
-    public String getFunctionSettingsKey() {
-        return "functionSettings";
-    }
 
     /**
      * Marker type for aggregation method references.
@@ -169,7 +156,7 @@ public abstract class AggregationFunctionParametersProvider<F extends Aggregatio
             throw new StateComputationFailureException();
         }
         final var functions = getFunctionUtility(parametersInput);
-        final var methodOpt = lookupFunctionById(functions, currentMethod);
+        final var methodOpt = functions.lookupFunctionById(currentMethod);
         if (methodOpt.isEmpty()) {
             LOGGER.warn("Unknown aggregation method: " + currentMethod);
             throw new StateComputationFailureException();
@@ -181,7 +168,9 @@ public abstract class AggregationFunctionParametersProvider<F extends Aggregatio
 
         final var currentValue = m_optionalParametersSupplier.get();
 
-        final var paramClass = lookupParametersForId(functions, method.id()).orElse(null);
+        final var paramClass = functions.lookupFunctionById(method.id()) //
+                .flatMap(functions::lookupParametersForFunction) //
+                .orElse(null);
         if (paramClass != null && currentValue != null && paramClass.isInstance(currentValue)) {
             return currentValue;
         } else if (paramClass != null) {
@@ -209,10 +198,10 @@ public abstract class AggregationFunctionParametersProvider<F extends Aggregatio
      * @throws StateComputationFailureException
      */
     private final AggregationOperatorParameters createFallbackParameters(
-        final AggFunctions<F> functions,
+        final AggregationFunctionsUtility<F> functions,
         final String functionId, final AggregationOperatorParameters currentValue)
         throws StateComputationFailureException {
-        final F method = lookupById(functions, functionId).orElseThrow(StateComputationFailureException::new);
+        final F method = functions.lookupById(functionId).orElseThrow(StateComputationFailureException::new);
 
         // try to re-use the settings from existing fallback parameters
         if (currentValue instanceof FallbackAggregationOperatorParameters fallbackParams) {
@@ -227,9 +216,7 @@ public abstract class AggregationFunctionParametersProvider<F extends Aggregatio
         }
 
         // cannot re-use existing settings, we need to create new ones based on the defaults from the method
-//        final var settings = new NodeSettings("extracted model settings");
-//        method.saveSettingsTo(settings);
-        return FallbackAggregationOperatorParameters.withInitial(getFunctionSettingsKey(), method::saveSettingsTo);
+        return FallbackAggregationOperatorParameters.withInitial(CFG_FUNCTION_SETTINGS, method::saveSettingsTo);
     }
 
     @Override
@@ -245,6 +232,6 @@ public abstract class AggregationFunctionParametersProvider<F extends Aggregatio
 
     @Override
     public final FallbackDialogNodeParameters getParametersFromFallback(final NodeSettingsRO fallbackSettings) {
-        return new FallbackAggregationOperatorParameters(getFunctionSettingsKey(), fallbackSettings);
+        return new FallbackAggregationOperatorParameters(CFG_FUNCTION_SETTINGS, fallbackSettings);
     }
 }

@@ -61,12 +61,12 @@ import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.StateProvider;
 
 /**
- * Selects the default aggregation method based on the type, if a method is not already provided,
+ * Selects the default aggregation method based on the type -- if a method is not already provided --
  * by querying the function provider for the type, or ultimately falling back to a type-independent default.
  *
- * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  * @param <F> type of aggregation function provided as default
  *
+ * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  * @since 5.10
  */
 public abstract class DefaultAggregationMethodProvider<F extends AggregationFunction>
@@ -87,9 +87,19 @@ public abstract class DefaultAggregationMethodProvider<F extends AggregationFunc
      */
     protected abstract Class<? extends ParameterReference<String>> getMethodSelfProvider();
 
-    protected abstract Optional<AggregationFunctionProvider<F>>
-        getFunctionProvider(PortObjectSpec spec);
+    /**
+     * Gets the function provider from the given port object spec, if available.
+     * @param spec the port object spec to get the provider from
+     *
+     * @return function provider, or {@link Optional#empty()} if none is available
+     */
+    protected abstract Optional<AggregationFunctionProvider<F>> getFunctionProvider(PortObjectSpec spec);
 
+    /**
+     * Gets the default aggregation function if no type-specific default is available.
+     *
+     * @return the default aggregation function
+     */
     protected abstract F getDefaultFunction();
 
     @Override
@@ -117,12 +127,12 @@ public abstract class DefaultAggregationMethodProvider<F extends AggregationFunc
      * @param type the data type
      * @return the default aggregation function
      */
-    private AggFunction getDefault(final NodeParametersInput parametersInput, final DataType type) {
+    private AggregationSpec getDefault(final NodeParametersInput parametersInput, final DataType type) {
         final var def = parametersInput.getInPortSpec(0) //
             .flatMap(this::getFunctionProvider) //
             .map(provider -> provider.getDefaultFunction(type)) //
             .orElseGet(this::getDefaultFunction);
-        return new AggFunction(def.getId(), def.getLabel(), def.hasOptionalSettings());
+        return new AggregationSpec(def.getId(), def.getLabel(), def.hasOptionalSettings());
     }
 
 }

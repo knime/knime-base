@@ -53,7 +53,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import org.knime.base.data.aggregation.AggFunction;
+import org.knime.base.data.aggregation.AggregationSpec;
 import org.knime.base.data.aggregation.AggregationOperatorParameters;
 import org.knime.base.data.aggregation.AggregationFunctionParametersProvider.AggregationMethodRef;
 import org.knime.base.data.aggregation.AggregationMethod;
@@ -123,7 +123,7 @@ public final class ColumnAggregatorElement implements NodeParameters {
     static final class AggregationMethodChoices extends AggregationChoicesByTypeProvider {
 
         @Override
-        protected Stream<AggFunction> getCompatibleFunctions(final DataType type) {
+        protected Stream<AggregationSpec> getCompatibleFunctions(final DataType type) {
             return AggregationMethodsUtil.getCompatibleFunctions(type);
         }
 
@@ -274,7 +274,7 @@ public final class ColumnAggregatorElement implements NodeParameters {
         }
 
         @Override
-        protected Optional<AggFunction> lookupFunctionById(final NodeParametersInput in, final String id) {
+        protected Optional<AggregationSpec> lookupFunctionById(final NodeParametersInput in, final String id) {
             return AggregationMethodsUtil.lookupFunctionById(id);
         }
     }

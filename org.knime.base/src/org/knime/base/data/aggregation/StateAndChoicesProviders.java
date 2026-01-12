@@ -99,6 +99,12 @@ public final class StateAndChoicesProviders {
             initializer.computeAfterOpenDialog();
         }
 
+        /**
+         * Retrieves the data types considered as "input" types from the node parameters input.
+         *
+         * @param context the node parameters input
+         * @return input data types
+         */
         protected abstract Stream<DataType> getInputTypes(NodeParametersInput context);
 
         @Override
@@ -137,6 +143,12 @@ public final class StateAndChoicesProviders {
 
         private Supplier<DataType> m_type;
 
+        /**
+         * Gets the aggregation function provider (to obtain compatible functions from) from the parameters input.
+         *
+         * @param parametersInput the node parameters input
+         * @return the aggregation function provider
+         */
         protected abstract AggregationFunctionProvider<F> getFunctionsProvider(NodeParametersInput parametersInput);
 
         /**
@@ -174,7 +186,7 @@ public final class StateAndChoicesProviders {
          * @param type the data type
          * @return stream of compatible aggregation functions
          */
-        protected abstract Stream<AggFunction> getCompatibleFunctions(DataType type);
+        protected abstract Stream<AggregationSpec> getCompatibleFunctions(DataType type);
 
         /**
          * Get the provider class that provides the data type of the selected column on which the compatible functions
@@ -203,10 +215,18 @@ public final class StateAndChoicesProviders {
 
     }
 
+    /**
+     * Validation for wildcard or regex patterns based on a pattern type reference (e.g. configured through a value
+     * switch).
+     */
     public abstract static class WildcardOrRegexPatternValidation implements CustomValidationProvider<String> {
 
         private Supplier<PatternType> m_patternType;
 
+        /**
+         * Gets the class used for the reference to the selected pattern type.
+         * @return reference class
+         */
         protected abstract Class<? extends ParameterReference<PatternType>> getPatternTypeRefClass();
 
         @Override
