@@ -49,9 +49,11 @@ package org.knime.base.node.flowcontrol.trycatch.genericcatch;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 
 import javax.swing.event.ChangeListener;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
@@ -109,12 +111,12 @@ final class GenericCatchNodeModel extends NodeModel
     private final SettingsModelBoolean m_propagateVariables = createPropagateVariablesModel();
 
     /**
-     * Two inputs, one output.
+     * Multiple inputs, multiple outputs.
      *
-     * @param ptype type of ports.
+     * @param pTypes types of ports.
      */
-    protected GenericCatchNodeModel(final PortType ptype) {
-        super(new PortType[] {ptype, ptype}, new PortType[] {ptype, FlowVariablePortObject.TYPE});
+    protected GenericCatchNodeModel(final PortType... pTypes) {
+        super(ArrayUtils.addAll(pTypes, pTypes), ArrayUtils.add(pTypes, FlowVariablePortObject.TYPE));
     }
 
     /** Generic constructor.
@@ -123,17 +125,11 @@ final class GenericCatchNodeModel extends NodeModel
         this(PortObject.TYPE);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public Class<FlowTryCatchContext> getFlowScopeContextClass() {
         return FlowTryCatchContext.class;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         if (m_alwaysPopulate.getBooleanValue()) {
@@ -143,45 +139,63 @@ final class GenericCatchNodeModel extends NodeModel
             pushFlowVariableString(VAR_FAILING_STACKTRACE, m_defaultStackTrace.getStringValue());
         }
 
-        if (!(inSpecs[0] instanceof InactiveBranchPortObjectSpec)) {
+        final var numInputs = inSpecs.length / 2;
+        final var outputSpecs = new PortObjectSpec[numInputs + 1];
+        outputSpecs[numInputs] = FlowVariablePortObjectSpec.INSTANCE;
+
+        for (int i = 0; i < numInputs; i++) {
+            if (inSpecs[i] instanceof InactiveBranchPortObjectSpec) {
+             // main branch inactive, grab specs from alternative (default) input
+                System.arraycopy(inSpecs, numInputs, outputSpecs, 0, numInputs);
+                break;
+            }
+
             // main branch is active - no failure so far...
-            return new PortObjectSpec[]{inSpecs[0], FlowVariablePortObjectSpec.INSTANCE};
+            outputSpecs[i] = inSpecs[i];
         }
-        // main branch inactive, grab spec from alternative (default) input
-        return new PortObjectSpec[]{inSpecs[1], FlowVariablePortObjectSpec.INSTANCE};
+
+        return outputSpecs;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected PortObject[] execute(final PortObject[] inData, final ExecutionContext exec) throws Exception {
-        PortObject resultPort0;
-        if (!(inData[0] instanceof InactiveBranchPortObject)) {
-            // main branch is active - no failure so far...
-            resultPort0 = inData[0];
-        } else {
-            // main branch inactive, grab spec from alternative (default) input
-            // and push error reasons on stack (they come from the ScopeObject
-            // which will we removed after this node, closing the scope).
-            FlowTryCatchContext ftcc = getFlowContext();
-            if ((ftcc != null) && (ftcc.hasErrorCaught())) {
-                pushFlowVariableString(VAR_FAILING_NAME, ftcc.getNode());
-                pushFlowVariableString(VAR_FAILING_MESSAGE, ftcc.getReason());
-                pushFlowVariableString(VAR_FAILING_DETAILS, ftcc.getDetails());
-                pushFlowVariableString(VAR_FAILING_STACKTRACE, ftcc.getStacktrace());
-            } else if (m_alwaysPopulate.getBooleanValue()) {
-                pushFlowVariableString(VAR_FAILING_NAME, m_defaultVariable.getStringValue());
-                pushFlowVariableString(VAR_FAILING_MESSAGE, m_defaultMessage.getStringValue());
-                pushFlowVariableString(VAR_FAILING_DETAILS, m_defaultDetails.getStringValue());
-                pushFlowVariableString(VAR_FAILING_STACKTRACE, m_defaultStackTrace.getStringValue());
+        final var numInputs = inData.length / 2;
+        final var outputs = new PortObject[numInputs + 1];
+        Arrays.fill(outputs, PortObject.TYPE);
+        outputs[numInputs] = FlowVariablePortObject.INSTANCE;
+
+        for (int i = 0; i < numInputs; i++) {
+            if (inData[i] instanceof InactiveBranchPortObject) {
+                // main branch inactive, grab spec from alternative (default) input
+                // and push error reasons on stack (they come from the ScopeObject
+                // which will we removed after this node, closing the scope).
+                pushErrorFlowVars();
+                System.arraycopy(inData, numInputs, outputs, 0, numInputs);
+                break;
             }
-            resultPort0 = inData[1];
+
+            // main branch is active - no failure so far...
+            outputs[i] = inData[i];
         }
+
         propagateVariables();
-        return new PortObject[]{resultPort0, FlowVariablePortObject.INSTANCE};
+        return outputs;
     }
 
+    private void pushErrorFlowVars() {
+        FlowTryCatchContext ftcc = getFlowContext();
+        if ((ftcc != null) && (ftcc.hasErrorCaught())) {
+            pushFlowVariableString(VAR_FAILING_NAME, ftcc.getNode());
+            pushFlowVariableString(VAR_FAILING_MESSAGE, ftcc.getReason());
+            pushFlowVariableString(VAR_FAILING_DETAILS, ftcc.getDetails());
+            pushFlowVariableString(VAR_FAILING_STACKTRACE, ftcc.getStacktrace());
+        } else if (m_alwaysPopulate.getBooleanValue()) {
+            pushFlowVariableString(VAR_FAILING_NAME, m_defaultVariable.getStringValue());
+            pushFlowVariableString(VAR_FAILING_MESSAGE, m_defaultMessage.getStringValue());
+            pushFlowVariableString(VAR_FAILING_DETAILS, m_defaultDetails.getStringValue());
+            pushFlowVariableString(VAR_FAILING_STACKTRACE, m_defaultStackTrace.getStringValue());
+        }
+    }
 
     /**
      * Calls {@link #pushFlowVariable(String, VariableType, Object)} for variables defined within
@@ -211,9 +225,6 @@ final class GenericCatchNodeModel extends NodeModel
         m_defaultStackTrace.saveSettingsTo(settings);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         if (settings.containsKey(m_defaultMessage.getKey())) {
@@ -232,9 +243,6 @@ final class GenericCatchNodeModel extends NodeModel
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         if (settings.containsKey(m_defaultMessage.getKey())) {

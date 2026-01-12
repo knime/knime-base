@@ -1902,12 +1902,22 @@
       </node>
       <node
             category-path="/flowcontrol/trycatch"
+            factory-class="org.knime.base.node.flowcontrol.trycatch.generictry.MultiPortTryNodeFactory"
+            >
+      </node>
+      <node
+            category-path="/flowcontrol/trycatch"
             factory-class="org.knime.base.node.flowcontrol.trycatch.genericcatch.DataPortCatchNodeFactory"
             >
       </node>
       <node
             category-path="/flowcontrol/trycatch"
             factory-class="org.knime.base.node.flowcontrol.trycatch.genericcatch.VariablePortCatchNodeFactory"
+            >
+      </node>
+      <node
+            category-path="/flowcontrol/trycatch"
+            factory-class="org.knime.base.node.flowcontrol.trycatch.genericcatch.MultiPortCatchNodeFactory"
             >
       </node>
       <node

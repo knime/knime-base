@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -43,89 +44,95 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sept 17 2008 (mb): created (from wiswedel's TableToVariableNode)
+ *   9 Jan 2026 (leonard.woerteler): created
  */
 package org.knime.base.node.flowcontrol.trycatch.generictry;
 
-import java.io.File;
-import java.io.IOException;
+import java.util.List;
+import java.util.Optional;
 
-import org.knime.core.node.CanceledExecutionException;
-import org.knime.core.node.ExecutionContext;
-import org.knime.core.node.ExecutionMonitor;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeModel;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.context.ports.PortsConfiguration;
-import org.knime.core.node.port.PortObject;
-import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.node.port.PortType;
-import org.knime.core.node.workflow.FlowTryCatchContext;
-import org.knime.core.node.workflow.ScopeStartNode;
+import org.knime.core.node.ConfigurableNodeFactory;
+import org.knime.core.node.NodeDescription;
+import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeView;
+import org.knime.core.node.context.NodeCreationConfiguration;
+import org.knime.core.util.Version;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
 
 /**
- * Start of a Try-Catch Enclosure. Puts a TryCatchFlowLoopContext object onto the stack so the end node can properly
- * clean it up (and perform some sanity checking).
  *
- * @author M. Berthold, University of Konstanz
+ * @author leonard.woerteler
  */
-public class GenericTryNodeModel extends NodeModel implements ScopeStartNode<FlowTryCatchContext> {
+public class MultiPortTryNodeFactory extends ConfigurableNodeFactory<GenericTryNodeModel>
+        implements NodeDialogFactory {
+
+    static final String PORT_GROUP = "Pass through";
 
     /**
-     * One input, one output.
-     *
-     * @param ptype type of ports.
+     * Create factory, that instantiates nodes.
      */
-    protected GenericTryNodeModel(final PortType ptype) {
-        super(new PortType[]{ptype}, new PortType[]{ptype});
-    }
-
-    /**
-     * @param portConfig port configuration
-     */
-    protected GenericTryNodeModel(final PortsConfiguration portConfig) {
-        super(portConfig.getInputPorts(), portConfig.getOutputPorts());
+    public MultiPortTryNodeFactory() {
     }
 
     @Override
-    protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        // framework should push marker object (@see FlowTryCatchContext) onto stack
-        // will be filled with information if a node failure is encountered and read by the corresponding end node.
-
-        // pass through spec.
-        return inSpecs.clone();
+    protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
+        final var b = new PortsConfigurationBuilder();
+        b.addExtendablePortGroup(PORT_GROUP, t -> true);
+        return Optional.of(b);
     }
 
     @Override
-    protected PortObject[] execute(final PortObject[] inData, final ExecutionContext exec) throws Exception {
-        // pass through port object.
-        return inData;
+    protected int getNrNodeViews() {
+        return 0;
     }
 
     @Override
-    protected void saveSettingsTo(final NodeSettingsWO settings) {
+    protected boolean hasDialog() {
+        return false;
     }
 
     @Override
-    protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+    public NodeView<GenericTryNodeModel> createNodeView(final int index, final GenericTryNodeModel model) {
+        return null;
     }
 
     @Override
-    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription(
+            "Try (Multi-Port)",
+            "try16.png",
+            List.of(PortDescription.dynamicPort(PORT_GROUP, PORT_GROUP,
+                "Input data, of arbitrary port types.")),
+            List.of(PortDescription.dynamicPort(PORT_GROUP, PORT_GROUP,
+                    "Output data, passed through from the inputs.")),
+            "Start of Try-Catch construct.",
+            "This node is the start of a try-catch enclosure to handle failing nodes.",
+            List.of(),
+            null,
+            null,
+            NodeType.ScopeStart,
+            List.of(),
+            new Version(5, 10, 0)
+        );
     }
 
     @Override
-    protected void reset() {
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog();
     }
 
     @Override
-    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
-        throws IOException, CanceledExecutionException {
+    protected GenericTryNodeModel createNodeModel(final NodeCreationConfiguration creationConfig) {
+        return new GenericTryNodeModel(creationConfig.getPortConfig().orElse(null));
     }
 
     @Override
-    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
-        throws IOException, CanceledExecutionException {
+    protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
     }
 }
