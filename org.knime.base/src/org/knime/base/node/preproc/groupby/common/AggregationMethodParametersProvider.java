@@ -67,9 +67,8 @@ public abstract class AggregationMethodParametersProvider
 
     @Override
     protected final AggregationFunctionsUtility<AggregationMethod>
-            getFunctionUtility(final NodeParametersInput parametersInput) {
-        return new AggregationFunctionsUtility<>(AggregationMethods.getInstance(),
-            fun -> AggregationMethods.getInstance().getParametersClassFor(fun.id()));
+        getFunctionUtility(final NodeParametersInput parametersInput) {
+        return AggregationMethodsUtility.getInstance();
     }
 
     @Override

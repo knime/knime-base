@@ -63,8 +63,8 @@ import org.knime.core.data.DataTypeRegistry;
 import org.knime.core.data.collection.ListCell;
 import org.knime.core.data.collection.SetCell;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.database.aggregation.AggregationFunction;
-import org.knime.core.node.port.database.aggregation.AggregationFunctionProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.custom.CustomValidationProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.custom.ValidationCallback;
 import org.knime.filehandling.core.util.WildcardToRegexUtil;
@@ -138,18 +138,18 @@ public final class StateAndChoicesProviders {
      *
      * @param <F> the aggregation function type
      */
-    public abstract static class AggregationChoicesByTypeRef<F extends AggregationFunction>
-        implements StringChoicesProvider {
+    public abstract static class AggregationChoicesByTypeRef<P extends AggregationFunctionsUtility<F>,
+        F extends AggregationFunction> implements StringChoicesProvider {
 
         private Supplier<DataType> m_type;
 
         /**
          * Gets the aggregation function provider (to obtain compatible functions from) from the parameters input.
          *
-         * @param parametersInput the node parameters input
+         * @param spec the input port spec
          * @return the aggregation function provider
          */
-        protected abstract AggregationFunctionProvider<F> getFunctionsProvider(NodeParametersInput parametersInput);
+        protected abstract P getUtility(PortObjectSpec spec);
 
         /**
          * Gets the type provider reference class on which the compatible functions are based.
@@ -166,8 +166,11 @@ public final class StateAndChoicesProviders {
 
         @Override
         public List<StringChoice> computeState(final NodeParametersInput parametersInput) {
-            return getFunctionsProvider(parametersInput).getCompatibleFunctions(m_type.get(), true).stream()
-                .map(agg -> new StringChoice(agg.getId(), agg.getLabel())).toList();
+            return parametersInput.getInPortSpec(0) //
+                    .map(this::getUtility) //
+                    .map(util -> util.getCompatibleAggregationFunctions(m_type.get(), /*sorted*/ true)) //
+                    .orElseGet(Stream::empty) //
+                    .map(agg -> new StringChoice(agg.getId(), agg.getLabel())).toList(); //
         }
 
     }

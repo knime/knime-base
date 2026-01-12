@@ -54,7 +54,6 @@ import java.util.stream.Stream;
 
 import org.knime.core.data.DataType;
 import org.knime.core.node.port.database.aggregation.AggregationFunction;
-import org.knime.core.node.port.database.aggregation.AggregationFunctionProvider;
 
 /**
  * Utility to bundle aggregation function provider (e.g. from native methods or DB methods) and its functions' optional
@@ -66,34 +65,48 @@ import org.knime.core.node.port.database.aggregation.AggregationFunctionProvider
  *
  * @since 5.10
  */
-public final class AggregationFunctionsUtility<F extends AggregationFunction> {
-
-    private final AggregationFunctionProvider<F> m_functionProvider;
-
-    private Function<AggregationSpec, Optional<Class<? extends AggregationOperatorParameters>>> m_paramClassSupplier;
+public abstract class AggregationFunctionsUtility<F extends AggregationFunction> {
 
     /**
-     * Constructor with function and parameters class providers
+     * Gets the aggregation function by its ID.
      *
-     * @param functionProvider provider for aggregation functions
-     * @param paramClassProvider parameters class provider which maps an aggregation function definition to the concrete
-     *            parameters class
+     * @param id the ID of the aggregation function
+     * @return the aggregation function
+     *
+     * @throws IllegalArgumentException if no such function exists
      */
-    public AggregationFunctionsUtility(final AggregationFunctionProvider<F> functionProvider,
-        final Function<AggregationSpec, Optional<Class<? extends AggregationOperatorParameters>>> paramClassProvider) {
-        m_functionProvider = functionProvider;
-        m_paramClassSupplier = paramClassProvider;
-    }
+    protected abstract F getFunction(final String id);
 
     /**
      * Looks up an aggregation method by its ID.
      *
+     * If you need an {@link AggregationSpec}, do:
+     *
+     * <pre><code>
+     * util -> util.lookupFunctionById(id).map(util::mapToSpec)
+     * </code></pre>
+     *
      * @param id the ID of the aggregation method
      * @return the aggregation method, or {@link Optional#empty()} if no such method exists
      */
-    public Optional<F> lookupById(final String id) {
+    public final Optional<F> lookupFunctionById(final String id) {
+        return lookupFunctionById(this::getFunction, id);
+    }
+
+    /**
+     * Looks up an aggregation function by its ID using the given lookup function.
+     *
+     * @param <R> the type of aggregation function
+     * @param fnLookup the function to look up the aggregation function by its ID, which is allowed to throw an
+     *            {@link IllegalArgumentException} in case the ID has no function associated with it
+     * @param id the ID of the aggregation function
+     *
+     * @return the aggregation function, or {@link Optional#empty()} if no such function exists
+     */
+    protected static <R extends AggregationFunction> Optional<R> lookupFunctionById(final Function<String, R> fnLookup,
+        final String id) {
         try {
-            return Optional.of(m_functionProvider.getFunction(id));
+            return Optional.ofNullable(fnLookup.apply(id));
         } catch (final IllegalArgumentException e) { // NOSONAR we map this exception to empty optional
             // some provider implementations throw IAE if the id is not found, but we want to work with an optional
             return Optional.empty();
@@ -101,32 +114,51 @@ public final class AggregationFunctionsUtility<F extends AggregationFunction> {
     }
 
     /**
-     * Looks up an aggregation method by its ID and returns it as an {@link AggregationSpec}.
+     * Maps the aggregation function to an {@link AggregationSpec}.
      *
-     * @param id the ID of the aggregation method
-     * @return the aggregation function, or {@link Optional#empty()} if no such method exists
+     * @param method the optional aggregation function
+     * @return the optional aggregation spec
      */
-    public Optional<AggregationSpec> lookupFunctionById(final String id) {
-        try {
-            return lookupById(id) //
-                    .map(method -> new AggregationSpec(id, method.getLabel(), method.hasOptionalSettings()));
-        } catch (final IllegalArgumentException e) { // NOSONAR we map this exception to empty optional
-            // IAE by some provider implementations
-            return Optional.empty();
-        }
+    public final AggregationSpec mapToSpec(final F method) {
+        return new AggregationSpec(method.getId(), method.getLabel(), method.hasOptionalSettings());
     }
 
     /**
      * Returns all aggregation functions that are compatible with the given data type.
      *
      * @param type the data type
+     * @param sorted whether to sort the functions by user-facing label
      * @return a stream of compatible aggregation functions
      */
-    public Stream<AggregationSpec> getCompatibleFunctions(final DataType type) {
-        return m_functionProvider.getCompatibleFunctions(type, true) //
-                .stream() //
-                .map(am -> new AggregationSpec(am.getId(), am.getLabel(), am.hasOptionalSettings()));
+    protected abstract Stream<F> getCompatibleAggregationFunctions(DataType type, boolean sorted);
+
+    /**
+     * Returns all aggregation functions that are compatible with the given data type.
+     *
+     * @param type the data type
+     * @param sorted whether to sort the functions by user-facing label
+     * @return a stream of compatible aggregation functions
+     */
+    public final Stream<AggregationSpec> getCompatibleFunctions(final DataType type, final boolean sorted) {
+        return getCompatibleAggregationFunctions(type, sorted) //
+            .map(am -> new AggregationSpec(am.getId(), am.getLabel(), am.hasOptionalSettings()));
     }
+
+    /**
+     * Returns all aggregation functions.
+     *
+     * @param sorted whether to sort the functions by user-facing label
+     * @return a stream of aggregation functions
+     */
+    protected abstract Stream<F> getFunctions(boolean sorted);
+
+    /**
+     * Gets the default aggregation function for the given data type.
+     *
+     * @param type the data type
+     * @return the default aggregation function
+     */
+    protected abstract Optional<F> getDefaultFunction(DataType type);
 
     /**
      * Looks up the parameters class supporting the given aggregation function.
@@ -134,9 +166,6 @@ public final class AggregationFunctionsUtility<F extends AggregationFunction> {
      * @param fun the aggregation function definition
      * @return if available, the parameters class for the given function
      */
-    public Optional<Class<? extends AggregationOperatorParameters>>
-            lookupParametersForFunction(final AggregationSpec fun) {
-        return m_paramClassSupplier.apply(fun);
-    }
-
+    public abstract Optional<Class<? extends AggregationOperatorParameters>>
+        lookupParametersForFunction(final AggregationSpec fun);
 }

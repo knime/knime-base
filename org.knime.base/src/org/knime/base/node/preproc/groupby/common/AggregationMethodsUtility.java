@@ -51,74 +51,67 @@ package org.knime.base.node.preproc.groupby.common;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import org.knime.base.data.aggregation.AggregationSpec;
+import org.knime.base.data.aggregation.AggregationFunctionsUtility;
 import org.knime.base.data.aggregation.AggregationMethod;
 import org.knime.base.data.aggregation.AggregationMethods;
+import org.knime.base.data.aggregation.AggregationOperatorParameters;
+import org.knime.base.data.aggregation.AggregationSpec;
 import org.knime.core.data.DataType;
 
 /**
- * Utility for native (as in "not-DB") aggregation methods to be used when abstracting from the aggregation function
- * "source", e.g. native methods or DB methods.
+ * Utility for native (as in "not-DB") aggregation methods.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  *
  * @since 5.10
  */
-public final class AggregationMethodsUtil {
+public final class AggregationMethodsUtility extends AggregationFunctionsUtility<AggregationMethod> {
 
-    private AggregationMethodsUtil() {
-        // utility class
-    }
+    private static final AggregationMethodsUtility INSTANCE = new AggregationMethodsUtility();
 
     /**
-     * Looks up an aggregation method by its ID.
-     *
-     * @param id the ID of the aggregation method
-     * @return the aggregation method, or {@link Optional#empty()} if no such method exists
+     * Gets the singleton instance of this utility.
+     * @return the singleton instance
      */
-    public static Optional<AggregationMethod> lookupMethodById(final String id) {
-        try {
-            return Optional.of(AggregationMethods.getMethod4Id(id));
-        } catch (final IllegalArgumentException e) { // NOSONAR we map this exception to empty optional
-            return Optional.empty();
-        }
+    public static AggregationMethodsUtility getInstance() {
+        return INSTANCE;
     }
 
-    /**
-     * Looks up an aggregation method by its ID and returns it as an {@link AggregationSpec}.
-     *
-     * @param id the ID of the aggregation method
-     * @return the aggregation function, or {@link Optional#empty()} if no such method exists
-     */
-    public static Optional<AggregationSpec> lookupFunctionById(final String id) {
-        try {
-            return lookupMethodById(id)
-                .map(method -> new AggregationSpec(id, method.getLabel(), method.hasOptionalSettings()));
-        } catch (final IllegalArgumentException e) { // NOSONAR we map this exception to empty optional
-            return Optional.empty();
-        }
+    private AggregationMethodsUtility() {
+        // singleton
     }
 
-    /**
-     * Returns all aggregation functions that are compatible with the given data type.
-     *
-     * @param type the data type
-     * @return a stream of compatible aggregation functions
-     */
-    public static Stream<AggregationSpec> getCompatibleFunctions(final DataType type) {
-        return AggregationMethods.getCompatibleMethods(type, true).stream() //
-            .map(am -> new AggregationSpec(am.getId(), am.getLabel(), am.hasOptionalSettings()));
+    @Override
+    protected AggregationMethod getFunction(final String id) {
+        return AggregationMethods.getMethod4Id(id);
     }
 
-    /**
-     * Returns the default aggregation function for the given data type.
-     *
-     * @param type data type
-     * @return default aggregation function
-     */
-    public static AggregationSpec getDefaultFunction(final DataType type) {
-        final var agg = AggregationMethods.getInstance().getDefaultFunction(type);
-        return new AggregationSpec(agg.getId(), agg.getLabel(), agg.hasOptionalSettings());
+    @Override
+    protected Stream<AggregationMethod> getCompatibleAggregationFunctions(final DataType type, final boolean sorted) {
+        // TODO UIEXT-3126 verify that sort order is consistent with old dialog implementation
+        return AggregationMethods.getCompatibleMethods(type, sorted).stream();
+    }
+
+    @Override
+    protected Stream<AggregationMethod> getFunctions(final boolean sorted) {
+        // TODO UIEXT-3126 verify that sort order is consistent with old dialog implementation
+        return AggregationMethods.getInstance().getFunctions(sorted).stream();
+    }
+
+    @Override
+    protected Optional<AggregationMethod> getDefaultFunction(final DataType type) {
+        return Optional.ofNullable(AggregationMethods.getInstance().getDefaultFunction(type));
+    }
+
+    @Override
+    public Optional<Class<? extends AggregationOperatorParameters>>
+            lookupParametersForFunction(final AggregationSpec fun) {
+        return AggregationMethods.getInstance().getParametersClassFor(fun.id());
+    }
+
+    public static AggregationMethod getDefaultFunctionFallback() {
+        // TODO UIEXT-3126 check whether we rather want to work with no fallback if no spec is available
+        return AggregationMethods.getDefaultNotNumericalMethod();
     }
 
 }

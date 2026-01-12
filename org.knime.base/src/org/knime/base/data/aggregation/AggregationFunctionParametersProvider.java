@@ -156,7 +156,7 @@ public abstract class AggregationFunctionParametersProvider<F extends Aggregatio
             throw new StateComputationFailureException();
         }
         final var functions = getFunctionUtility(parametersInput);
-        final var methodOpt = functions.lookupFunctionById(currentMethod);
+        final var methodOpt = functions.lookupFunctionById(currentMethod).map(functions::mapToSpec);
         if (methodOpt.isEmpty()) {
             LOGGER.warn("Unknown aggregation method: " + currentMethod);
             throw new StateComputationFailureException();
@@ -169,6 +169,7 @@ public abstract class AggregationFunctionParametersProvider<F extends Aggregatio
         final var currentValue = m_optionalParametersSupplier.get();
 
         final var paramClass = functions.lookupFunctionById(method.id()) //
+                .map(functions::mapToSpec) //
                 .flatMap(functions::lookupParametersForFunction) //
                 .orElse(null);
         if (paramClass != null && currentValue != null && paramClass.isInstance(currentValue)) {
@@ -191,9 +192,9 @@ public abstract class AggregationFunctionParametersProvider<F extends Aggregatio
      *
      * @param functions
      *
-     * @param functionId the ID of the selected aggregation function
      * @param functions the aggregation function utility
-     * @param currentParameters the currently present, {@code null}able aggregation function parameters, if any
+     * @param functionId the ID of the selected aggregation function
+     * @param currentValue the currently present, {@code null}able aggregation function parameters, if any
      * @return the created fallback parameters
      * @throws StateComputationFailureException
      */
@@ -201,7 +202,7 @@ public abstract class AggregationFunctionParametersProvider<F extends Aggregatio
         final AggregationFunctionsUtility<F> functions,
         final String functionId, final AggregationOperatorParameters currentValue)
         throws StateComputationFailureException {
-        final F method = functions.lookupById(functionId).orElseThrow(StateComputationFailureException::new);
+        final F method = functions.lookupFunctionById(functionId).orElseThrow(StateComputationFailureException::new);
 
         // try to re-use the settings from existing fallback parameters
         if (currentValue instanceof FallbackAggregationOperatorParameters fallbackParams) {
