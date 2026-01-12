@@ -81,7 +81,7 @@ public abstract class HasOperatorParameters implements StateProvider<Boolean> {
      * @param id the ID of the aggregation function
      * @return the aggregation function, or {@link Optional#empty()} if no such function exists
      */
-    protected abstract Optional<AggFunction> lookupFunctionById(NodeParametersInput in, String id);
+    protected abstract Optional<AggregationSpec> lookupFunctionById(NodeParametersInput in, String id);
 
     @Override
     public final void init(final StateProviderInitializer init) {
@@ -96,7 +96,7 @@ public abstract class HasOperatorParameters implements StateProvider<Boolean> {
             throw new StateComputationFailureException();
         }
         // unknown aggregation function has no optional settings
-        return lookupFunctionById(in, id).map(AggFunction::hasOptionalSettings).orElse(false);
+        return lookupFunctionById(in, id).map(AggregationSpec::hasOptionalSettings).orElse(false);
     }
 
 }

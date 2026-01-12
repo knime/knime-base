@@ -51,7 +51,7 @@ package org.knime.base.node.preproc.groupby.common;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import org.knime.base.data.aggregation.AggFunction;
+import org.knime.base.data.aggregation.AggregationSpec;
 import org.knime.base.data.aggregation.AggregationMethod;
 import org.knime.base.data.aggregation.AggregationMethods;
 import org.knime.core.data.DataType;
@@ -85,15 +85,15 @@ public final class AggregationMethodsUtil {
     }
 
     /**
-     * Looks up an aggregation method by its ID and returns it as an {@link AggFunction}.
+     * Looks up an aggregation method by its ID and returns it as an {@link AggregationSpec}.
      *
      * @param id the ID of the aggregation method
      * @return the aggregation function, or {@link Optional#empty()} if no such method exists
      */
-    public static Optional<AggFunction> lookupFunctionById(final String id) {
+    public static Optional<AggregationSpec> lookupFunctionById(final String id) {
         try {
             return lookupMethodById(id)
-                .map(method -> new AggFunction(id, method.getLabel(), method.hasOptionalSettings()));
+                .map(method -> new AggregationSpec(id, method.getLabel(), method.hasOptionalSettings()));
         } catch (final IllegalArgumentException e) { // NOSONAR we map this exception to empty optional
             return Optional.empty();
         }
@@ -105,9 +105,9 @@ public final class AggregationMethodsUtil {
      * @param type the data type
      * @return a stream of compatible aggregation functions
      */
-    public static Stream<AggFunction> getCompatibleFunctions(final DataType type) {
+    public static Stream<AggregationSpec> getCompatibleFunctions(final DataType type) {
         return AggregationMethods.getCompatibleMethods(type, true).stream() //
-            .map(am -> new AggFunction(am.getId(), am.getLabel(), am.hasOptionalSettings()));
+            .map(am -> new AggregationSpec(am.getId(), am.getLabel(), am.hasOptionalSettings()));
     }
 
     /**
@@ -116,9 +116,9 @@ public final class AggregationMethodsUtil {
      * @param type data type
      * @return default aggregation function
      */
-    public static AggFunction getDefaultFunction(final DataType type) {
+    public static AggregationSpec getDefaultFunction(final DataType type) {
         final var agg = AggregationMethods.getInstance().getDefaultFunction(type);
-        return new AggFunction(agg.getId(), agg.getLabel(), agg.hasOptionalSettings());
+        return new AggregationSpec(agg.getId(), agg.getLabel(), agg.hasOptionalSettings());
     }
 
 }

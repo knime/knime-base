@@ -51,7 +51,7 @@ package org.knime.base.node.preproc.groupby.common;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import org.knime.base.data.aggregation.AggFunction;
+import org.knime.base.data.aggregation.AggregationSpec;
 import org.knime.base.data.aggregation.AggregationOperatorParameters;
 import org.knime.base.data.aggregation.AggregationFunctionParametersProvider.AggregationMethodRef;
 import org.knime.base.data.aggregation.AggregationMethod;
@@ -230,7 +230,7 @@ final class DataTypeAggregatorElement implements NodeParameters {
         }
 
         @Override
-        protected Optional<AggFunction> lookupFunctionById(final NodeParametersInput in, final String id) {
+        protected Optional<AggregationSpec> lookupFunctionById(final NodeParametersInput in, final String id) {
             return AggregationMethodsUtil.lookupFunctionById(id);
         }
 

@@ -57,25 +57,32 @@ import org.knime.core.node.port.database.aggregation.AggregationFunction;
 import org.knime.core.node.port.database.aggregation.AggregationFunctionProvider;
 
 /**
- * Utility for aggregation functions and optional parameters to be used when abstracting from the aggregation function
- * "source", e.g. native methods or DB methods.
+ * Utility to bundle aggregation function provider (e.g. from native methods or DB methods) and its functions' optional
+ * parameters classes as well as serve an {@link Optional}-based lookup API.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  *
- * @param <F> the type of aggregation function provided by this class
+ * @param <F> the type of aggregation function provided by this utility
  *
  * @since 5.10
  */
-public final class AggFunctions<F extends AggregationFunction> {
+public final class AggregationFunctionsUtility<F extends AggregationFunction> {
 
     private final AggregationFunctionProvider<F> m_functionProvider;
 
-    private Function<AggFunction, Optional<Class<? extends AggregationOperatorParameters>>> m_paramClassSupplier;
+    private Function<AggregationSpec, Optional<Class<? extends AggregationOperatorParameters>>> m_paramClassSupplier;
 
-    public AggFunctions(final AggregationFunctionProvider<F> functionProvider,
-        final Function<AggFunction, Optional<Class<? extends AggregationOperatorParameters>>> paramClassSupplier) {
+    /**
+     * Constructor with function and parameters class providers
+     *
+     * @param functionProvider provider for aggregation functions
+     * @param paramClassProvider parameters class provider which maps an aggregation function definition to the concrete
+     *            parameters class
+     */
+    public AggregationFunctionsUtility(final AggregationFunctionProvider<F> functionProvider,
+        final Function<AggregationSpec, Optional<Class<? extends AggregationOperatorParameters>>> paramClassProvider) {
         m_functionProvider = functionProvider;
-        m_paramClassSupplier = paramClassSupplier;
+        m_paramClassSupplier = paramClassProvider;
     }
 
     /**
@@ -88,20 +95,23 @@ public final class AggFunctions<F extends AggregationFunction> {
         try {
             return Optional.of(m_functionProvider.getFunction(id));
         } catch (final IllegalArgumentException e) { // NOSONAR we map this exception to empty optional
+            // some provider implementations throw IAE if the id is not found, but we want to work with an optional
             return Optional.empty();
         }
     }
 
     /**
-     * Looks up an aggregation method by its ID and returns it as an {@link AggFunction}.
+     * Looks up an aggregation method by its ID and returns it as an {@link AggregationSpec}.
      *
      * @param id the ID of the aggregation method
      * @return the aggregation function, or {@link Optional#empty()} if no such method exists
      */
-    public Optional<AggFunction> lookupFunctionById(final String id) {
+    public Optional<AggregationSpec> lookupFunctionById(final String id) {
         try {
-            return lookupById(id).map(method -> new AggFunction(id, method.getLabel(), method.hasOptionalSettings()));
+            return lookupById(id) //
+                    .map(method -> new AggregationSpec(id, method.getLabel(), method.hasOptionalSettings()));
         } catch (final IllegalArgumentException e) { // NOSONAR we map this exception to empty optional
+            // IAE by some provider implementations
             return Optional.empty();
         }
     }
@@ -112,12 +122,20 @@ public final class AggFunctions<F extends AggregationFunction> {
      * @param type the data type
      * @return a stream of compatible aggregation functions
      */
-    public Stream<AggFunction> getCompatibleFunctions(final DataType type) {
-        return m_functionProvider.getCompatibleFunctions(type, true).stream()
-            .map(am -> new AggFunction(am.getId(), am.getLabel(), am.hasOptionalSettings()));
+    public Stream<AggregationSpec> getCompatibleFunctions(final DataType type) {
+        return m_functionProvider.getCompatibleFunctions(type, true) //
+                .stream() //
+                .map(am -> new AggregationSpec(am.getId(), am.getLabel(), am.hasOptionalSettings()));
     }
 
-    public Optional<Class<? extends AggregationOperatorParameters>> lookupParametersForFunction(final AggFunction fun) {
+    /**
+     * Looks up the parameters class supporting the given aggregation function.
+     *
+     * @param fun the aggregation function definition
+     * @return if available, the parameters class for the given function
+     */
+    public Optional<Class<? extends AggregationOperatorParameters>>
+            lookupParametersForFunction(final AggregationSpec fun) {
         return m_paramClassSupplier.apply(fun);
     }
 

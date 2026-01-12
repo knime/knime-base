@@ -51,7 +51,7 @@ package org.knime.base.data.aggregation;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 
 /**
- * Common interface to define optional parameters for aggregation functions.
+ * Common dynamic parameters interface to define optional parameters for aggregation functions.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  *
@@ -60,5 +60,4 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicPa
  *
  */
 public interface AggregationOperatorParameters extends DynamicParameters.DynamicNodeParameters {
-
 }

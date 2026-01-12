@@ -54,7 +54,7 @@ import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
-import org.knime.base.data.aggregation.AggFunction;
+import org.knime.base.data.aggregation.AggregationSpec;
 import org.knime.base.data.aggregation.AggregationOperatorParameters;
 import org.knime.base.data.aggregation.AggregationFunctionParametersProvider.AggregationMethodRef;
 import org.knime.base.data.aggregation.AggregationMethod;
@@ -177,7 +177,7 @@ public class PatternAggregatorElement implements NodeParameters {
         }
 
         @Override
-        protected Optional<AggFunction> lookupFunctionById(final NodeParametersInput in, final String id) {
+        protected Optional<AggregationSpec> lookupFunctionById(final NodeParametersInput in, final String id) {
             return AggregationMethodsUtil.lookupFunctionById(id);
         }
     }
