@@ -243,7 +243,7 @@ public final class ColumnAggregatorElement implements NodeParameters {
      * Default provider if no method already set.
      */
     private static final class DefaultMethodProvider
-        extends DefaultAggregationMethodProvider<AggregationMethodsUtility, AggregationMethod> {
+        extends DefaultAggregationMethodProvider<AggregationMethod, AggregationMethodsUtility> {
 
         @Override
         protected Class<? extends ParameterReference<DataType>> getTypeProvider() {
