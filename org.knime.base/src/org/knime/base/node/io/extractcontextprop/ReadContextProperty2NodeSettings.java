@@ -55,6 +55,7 @@ import org.knime.core.util.ContextProperties;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.TwinlistWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
@@ -78,6 +79,7 @@ final class ReadContextProperty2NodeSettings implements DefaultNodeSettings {
 
     @Widget(title = "Selected Properties",
         description = "Properties that should be extracted from the workflow context.")
+    @TwinlistWidget
     @ChoicesProvider(ContextPropsChoicesProvider.class)
     @Effect(predicate = IsExtractAllProps.class, type = EffectType.DISABLE)
     String[] m_selectedProps;
