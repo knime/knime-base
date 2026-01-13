@@ -130,6 +130,10 @@ public final class MultiFileSelectionParameters implements NodeParameters {
         ReferenceStateProvider<MultiFileSelection<DefaultFileChooserFilters>> implements Modification.Reference {
     }
 
+    private static final class FileSystemPortNotAvailableMessageRef extends ReferenceStateProvider<Void>
+        implements Modification.Reference {
+    }
+
     /**
      * Set the file extensions for the file reader widget using {@link Modification} on the implementation of this class
      * or the field where it is used.
@@ -147,12 +151,33 @@ public final class MultiFileSelectionParameters implements NodeParameters {
         protected abstract String[] getExtensions();
     }
 
+    /**
+     * Replace the {@link ReaderLayout.File.Source} layout using {@link Modification} of the file reader widget with a
+     * custom layout.
+     */
+    public abstract static class OverrideReaderSourceLayout implements Modification.Modifier {
+        @Override
+        public void modify(final Modification.WidgetGroupModifier group) {
+            group.find(FileSelectionRef.class).modifyAnnotation(Layout.class)
+                .withProperty("value", getSourceLayoutClass()).modify();
+            group.find(FileSystemPortNotAvailableMessageRef.class).modifyAnnotation(Layout.class)
+                .withProperty("value", getSourceLayoutClass()).modify();
+        }
+
+        /**
+         * @return the layout class that should be used instead of {@link ReaderLayout.File.Source}. It will be applied
+         *         via the {@link Layout} annotation on all nested widgets in the file reader widget.
+         */
+        protected abstract Class<?> getSourceLayoutClass();
+    }
+
+    @Modification.WidgetReference(FileSystemPortNotAvailableMessageRef.class)
     @TextMessage(value = FileSystemManagedByPortMessage.class)
     @Layout(ReaderLayout.File.Source.class)
     Void m_fileSystemFromPortNotAvailableMessage;
 
     /**
-     * Source is public since it is accessed in reader-specifix parameters implementations.
+     * Source is public since it is accessed in reader-specific parameters implementations.
      */
     @ValueReference(FileSelectionRef.class)
     @Layout(ReaderLayout.File.Source.class)
