@@ -65,6 +65,7 @@ import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.StringChoicesProvider;
+import org.knime.node.parameters.widget.choices.filter.TwinlistWidget;
 
 /**
  * Settings for the {@link ReadContextProperty2NodeFactory Extract Context Properties} node.
@@ -79,6 +80,7 @@ final class ReadContextProperty2NodeSettings implements NodeParameters {
 
     @Widget(title = "Selected Properties",
         description = "Properties that should be extracted from the workflow context.")
+    @TwinlistWidget
     @ChoicesProvider(ContextPropsChoicesProvider.class)
     @Effect(predicate = IsExtractAllProps.class, type = EffectType.DISABLE)
     String[] m_selectedProps;
