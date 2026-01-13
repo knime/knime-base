@@ -83,7 +83,7 @@ import org.knime.node.parameters.widget.text.TextInputWidget;
 /**
  * Node parameters for Path to String.
  *
- * @author Jannik Eurich, KNIME GmbH, Berlin, Germany
+ * @author Jannik Eurich, KNIME GmbH, Konstanz, Germany
  * @author AI Migration Pipeline v1.2
  */
 @SuppressWarnings("restriction")
@@ -172,6 +172,11 @@ class PathToStringNodeParameters implements NodeParameters {
          */
         @Override
         protected Optional<DataColumnSpec> autoGuessColumn(final NodeParametersInput parametersInput) {
+
+            var fsLocationColumns =  new FSLocationColumnChoicesProvider().columnChoices(parametersInput);
+            if (fsLocationColumns.size() == 1) {
+            return Optional.of(fsLocationColumns.get(0));
+       }
             // TODO Auto-generated method stub
             return Optional.empty();
         }
