@@ -41,9 +41,12 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * ------------------------------------------------------------------------
+ * ---------------------------------------------------------------------
+ *
+ * History
+ *   Jan 29, 2026 (paulbaernreuther): created
  */
-package org.knime.base.node.preproc.domain.editnumeric;
+package org.knime.base.node.preproc.domain.editnominal;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -51,8 +54,6 @@ import java.io.IOException;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.def.DoubleCell;
-import org.knime.core.data.def.IntCell;
-import org.knime.core.data.def.LongCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
@@ -62,35 +63,29 @@ import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
 import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 
-/**
- * Snapshot test for {@link EditNumericDomainNodeParameters}.
- *
- * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
- */
-@SuppressWarnings("restriction")
-final class EditNumericDomainNodeParametersTest extends DefaultNodeSettingsSnapshotTest {
+class EditNominalDomainNodeParametersTest extends DefaultNodeSettingsSnapshotTest {
 
-    EditNumericDomainNodeParametersTest() {
+    protected EditNominalDomainNodeParametersTest() {
         super(getConfig());
     }
 
     private static SnapshotTestConfiguration getConfig() {
         return SnapshotTestConfiguration.builder() //
-            .withInputPortObjectSpecs(createInputPortSpecs()) //
-            .testJsonFormsForModel(EditNumericDomainNodeParameters.class) //
-            .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings()) //
+            .withInputPortObjectSpecs(createInputPortSpecs())
+            .testJsonFormsForModel(EditNominalDomainNodeParameters.class)
+            .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings())
             .testNodeSettingsStructure(() -> readSettings()) //
             .build();
     }
 
-    private static EditNumericDomainNodeParameters readSettings() {
+    private static EditNominalDomainNodeParameters readSettings() {
         try {
-            var path = getSnapshotPath(EditNumericDomainNodeParameters.class).getParent().resolve("node_settings")
-                .resolve("EditNumericDomainNodeParameters.xml");
+            var path = getSnapshotPath(EditNominalDomainNodeParameters.class).getParent().resolve("node_settings")
+                .resolve("EditNominalDomainNodeParameters.xml");
             try (var fis = new FileInputStream(path.toFile())) {
                 var nodeSettings = NodeSettings.loadFromXML(fis);
                 return NodeParametersUtil.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
-                    EditNumericDomainNodeParameters.class);
+                    EditNominalDomainNodeParameters.class);
             }
         } catch (IOException | InvalidSettingsException e) {
             throw new IllegalStateException(e);
@@ -98,18 +93,10 @@ final class EditNumericDomainNodeParametersTest extends DefaultNodeSettingsSnaps
     }
 
     private static PortObjectSpec[] createInputPortSpecs() {
-        return new PortObjectSpec[]{createDefaultTestTableSpec()};
+        var inputTableSpec = new DataTableSpec(new String[]{"DoubleColumn", "StringColumn"},
+            new DataType[]{DoubleCell.TYPE, StringCell.TYPE});
+
+        return new PortObjectSpec[]{inputTableSpec};
     }
 
-    private static DataTableSpec createDefaultTestTableSpec() {
-        return new DataTableSpec(
-            new String[]{"Universe_0_0", "Universe_0_1", "Universe_1_0", "Universe_1_1", "StringColumn"},
-            new DataType[]{
-                DataType.getType(DoubleCell.class),
-                DataType.getType(IntCell.class),
-                DataType.getType(LongCell.class),
-                DataType.getType(DoubleCell.class),
-                DataType.getType(StringCell.class)
-            });
-    }
 }
