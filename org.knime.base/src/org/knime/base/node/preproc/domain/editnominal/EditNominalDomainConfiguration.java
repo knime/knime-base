@@ -70,11 +70,12 @@ import org.knime.core.node.util.CheckUtils;
  */
 public final class EditNominalDomainConfiguration {
 
-    /**
+    static final String UNKNOWN_VALUES_ID = "---sabbel krababbel - new unkown column dummy do not touch! {}-)";
+
+    /*
      * The unknown cell.
      */
-    public static final StringCell UNKNOWN_VALUES_CELL = new StringCell(
-        "---sabbel krababbel - new unkown column dummy do not touch! {}-)");
+    public static final StringCell UNKNOWN_VALUES_CELL = new StringCell(UNKNOWN_VALUES_ID);
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(EditNominalDomainConfiguration.class);
 

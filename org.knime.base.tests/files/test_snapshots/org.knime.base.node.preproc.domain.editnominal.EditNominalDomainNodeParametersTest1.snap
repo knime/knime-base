@@ -1,0 +1,204 @@
+{
+  "data" : {
+    "model" : {
+      "configuredColumns" : [ {
+        "column" : "column1",
+        "domainValues" : [ ],
+        "newDomainValues" : [ "A new value 1", "A new value 2" ],
+        "sortedDomainValues" : [ "A new value 1", "B", "A", "A new value 2", "C", "---sabbel krababbel - new unkown column dummy do not touch! {}-)" ]
+      }, {
+        "column" : "column2",
+        "domainValues" : [ ],
+        "newDomainValues" : [ ],
+        "sortedDomainValues" : [ "D", "F", "---sabbel krababbel - new unkown column dummy do not touch! {}-)", "E" ]
+      } ],
+      "ignoreMissingColumns" : "IGNORE",
+      "ignoreIncompatibleTypes" : "IGNORE"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "configuredColumns" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "column" : {
+                  "type" : "string",
+                  "title" : "Column",
+                  "description" : "Selects the column for which the domain values should be edited. Non-string typed columns are filtered out.",
+                  "default" : "StringColumn"
+                },
+                "domainValues" : {
+                  "type" : "array",
+                  "items" : {
+                    "type" : "string"
+                  },
+                  "default" : [ ]
+                },
+                "newDomainValues" : {
+                  "type" : "array",
+                  "items" : {
+                    "type" : "string"
+                  },
+                  "title" : "Added domain values",
+                  "description" : "Specify values to be added to the domain. The values appear as part of the sorted domain values and are marked as new (e.g. <i>'value (new)'</i>). Values that are already part of the domain are ignored.",
+                  "default" : [ ]
+                },
+                "sortedDomainValues" : {
+                  "type" : "array",
+                  "items" : {
+                    "type" : "string"
+                  },
+                  "title" : "Sorted domain values",
+                  "description" : "Specify the order of the domain values (including newly added values). The position of values that are not yet part of the domain (unknown values) is determined by the special entry <i>Any unknown value</i>.",
+                  "default" : [ ]
+                }
+              }
+            },
+            "title" : "Configured columns",
+            "description" : "The list of columns for which the domain values should be edited.",
+            "default" : [ {
+              "domainValues" : [ ],
+              "newDomainValues" : [ ],
+              "sortedDomainValues" : [ ]
+            } ]
+          },
+          "ignoreIncompatibleTypes" : {
+            "oneOf" : [ {
+              "const" : "FAIL",
+              "title" : "Fail"
+            }, {
+              "const" : "IGNORE",
+              "title" : "Ignore column"
+            } ],
+            "title" : "If a modified column has an incompatible type",
+            "description" : "Determine the behavior if a modified column is invalid since it is no longer of type <i>\"String\"</i>.\n<ul>\n<li><b>Fail</b>: The node execution fails.</li>\n<li><b>Ignore column</b>: The invalid columns are kept unchanged.</li>\n</ul>",
+            "default" : "FAIL"
+          },
+          "ignoreMissingColumns" : {
+            "oneOf" : [ {
+              "const" : "FAIL",
+              "title" : "Fail"
+            }, {
+              "const" : "IGNORE",
+              "title" : "Ignore column"
+            } ],
+            "title" : "If a modified column is not present in data",
+            "description" : "Determine the behavior if a modified column is invalid since it no longer exists in the input table.\n<ul>\n<li><b>Fail</b>: The node execution fails.</li>\n<li><b>Ignore column</b>: The invalid columns are kept unchanged.</li>\n</ul>",
+            "default" : "FAIL"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/configuredColumns",
+      "options" : {
+        "detail" : [ {
+          "type" : "Control",
+          "scope" : "#/properties/column",
+          "options" : {
+            "format" : "dropDown"
+          },
+          "providedOptions" : [ "possibleValues" ]
+        }, {
+          "type" : "Control",
+          "scope" : "#/properties/newDomainValues",
+          "options" : {
+            "format" : "comboBox"
+          }
+        }, {
+          "type" : "Control",
+          "scope" : "#/properties/sortedDomainValues",
+          "options" : {
+            "format" : "sortList",
+            "unknownElementId" : "---sabbel krababbel - new unkown column dummy do not touch! {}-)",
+            "unknownElementLabel" : "Any unknown value",
+            "resetSortButtonLabel" : "Reset sorting"
+          },
+          "providedOptions" : [ "possibleValues" ]
+        } ],
+        "addButtonText" : "Add column to edit",
+        "arrayElementTitle" : "Column"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/ignoreMissingColumns",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/ignoreIncompatibleTypes",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "configuredColumns" : {
+            "configPaths" : [ ],
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "columns" ] ]
+            } ]
+          },
+          "ignoreMissingColumns" : {
+            "configPaths" : [ [ "ignore-not-present-col" ] ]
+          },
+          "ignoreIncompatibleTypes" : {
+            "configPaths" : [ [ "ignore-not-matching-types" ] ]
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/configuredColumns/items/properties/column",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "StringColumn",
+        "text" : "StringColumn",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "id" : "after-open-dialog"
+    },
+    "triggerInitially" : true,
+    "dependencies" : [ "#/properties/model/properties/configuredColumns/items/properties/column", "#/properties/model/properties/configuredColumns/items/properties/domainValues", "#/properties/model/properties/configuredColumns/items/properties/newDomainValues" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/configuredColumns/items/properties/column"
+    },
+    "dependencies" : [ "#/properties/model/properties/configuredColumns/items/properties/column" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/configuredColumns/items/properties/domainValues"
+    },
+    "dependencies" : [ "#/properties/model/properties/configuredColumns/items/properties/domainValues", "#/properties/model/properties/configuredColumns/items/properties/newDomainValues", "#/properties/model/properties/configuredColumns/items/properties/sortedDomainValues" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/configuredColumns/items/properties/newDomainValues"
+    },
+    "dependencies" : [ "#/properties/model/properties/configuredColumns/items/properties/domainValues", "#/properties/model/properties/configuredColumns/items/properties/newDomainValues", "#/properties/model/properties/configuredColumns/items/properties/sortedDomainValues" ]
+  } ]
+}
