@@ -67,13 +67,13 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
  */
 public class SetPosixPermissionsNodeSettings {
 
-    private static final String KEY_SELECTED_COLUMN = "column_selection";
+    static final String KEY_SELECTED_COLUMN = "column_selection";
 
-    private static final String KEY_FAIL_IF_FILE_DOES_NOT_EXIST = "fail_if_file_does_not_exist";
+    static final String KEY_FAIL_IF_FILE_DOES_NOT_EXIST = "fail_if_file_does_not_exist";
 
-    private static final String KEY_FAIL_IF_SET_PERMISSIONS_FAILS = "fail_if_set_permission_fails";
+    static final String KEY_FAIL_IF_SET_PERMISSIONS_FAILS = "fail_if_set_permission_fails";
 
-    private static final String KEY_PERMISSIONS = "permissions";
+    static final String KEY_PERMISSIONS = "permissions";
 
     private final SettingsModelString m_column;
 

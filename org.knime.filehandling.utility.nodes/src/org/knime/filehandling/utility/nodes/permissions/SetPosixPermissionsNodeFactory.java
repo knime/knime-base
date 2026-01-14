@@ -48,21 +48,42 @@
  */
 package org.knime.filehandling.utility.nodes.permissions;
 
+import static org.knime.node.impl.description.PortDescription.dynamicPort;
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ConfigurableNodeFactory;
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeView;
 import org.knime.core.node.context.NodeCreationConfiguration;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
 import org.knime.filehandling.core.port.FileSystemPortObject;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
 
 /**
  * Factory class for the {@link SetPosixPermissionsNodeModel} node.
  *
  * @author Alexander Bondaletov
+ * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.2
  */
-public class SetPosixPermissionsNodeFactory extends ConfigurableNodeFactory<SetPosixPermissionsNodeModel> {
+@SuppressWarnings("restriction")
+public class SetPosixPermissionsNodeFactory extends ConfigurableNodeFactory<SetPosixPermissionsNodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
+
     static final String CONNECTION_INPUT_PORT_GRP_NAME = "File System Connection";
 
     static final String DATA_TABLE_INPUT_PORT_GRP_NAME = "Input Table";
@@ -82,11 +103,6 @@ public class SetPosixPermissionsNodeFactory extends ConfigurableNodeFactory<SetP
             creationConfig.getPortConfig().orElseThrow(IllegalStateException::new));
     }
 
-    @Override
-    protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
-        return new SetPosixPermissionsNodeDialog(
-            creationConfig.getPortConfig().orElseThrow(IllegalStateException::new));
-    }
 
     @Override
     protected int getNrNodeViews() {
@@ -102,6 +118,74 @@ public class SetPosixPermissionsNodeFactory extends ConfigurableNodeFactory<SetP
     @Override
     protected boolean hasDialog() {
         return true;
+    }
+
+    private static final String NODE_NAME = "Set Files/Folders Permissions";
+
+    private static final String NODE_ICON = "set_posix_permissions_16x16.png";
+
+    private static final String SHORT_DESCRIPTION = """
+            Sets permissions for files/folders of a path column.
+            """;
+
+    private static final String FULL_DESCRIPTION = """
+            <p> This node sets POSIX permissions for the files and folders referenced by the selected column. </p>
+            """;
+
+    private static final List<PortDescription> INPUT_PORTS = List.of(
+            dynamicPort(CONNECTION_INPUT_PORT_GRP_NAME, CONNECTION_INPUT_PORT_GRP_NAME, """
+                The file system connection.
+                """),
+            fixedPort(DATA_TABLE_INPUT_PORT_GRP_NAME, """
+                Table that contains a path column.
+                """)
+    );
+
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(
+            fixedPort("Output Table", """
+                Input table plus additional column reflecting the status of the operation.
+                """)
+    );
+
+    /**
+     * {@inheritDoc}
+     * @since 5.10
+     */
+    @Override
+    public NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, SetPosixPermissionsNodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription( //
+            NODE_NAME, //
+            NODE_ICON, //
+            INPUT_PORTS, //
+            OUTPUT_PORTS, //
+            SHORT_DESCRIPTION, //
+            FULL_DESCRIPTION, //
+            List.of(), //
+            SetPosixPermissionsNodeParameters.class, //
+            null, //
+            NodeType.Other, //
+            List.of(), //
+            null //
+        );
+    }
+
+    /**
+     * {@inheritDoc}
+     * @since 5.10
+     */
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, SetPosixPermissionsNodeParameters.class));
     }
 
 }

@@ -1,0 +1,237 @@
+{
+  "data" : {
+    "model" : {
+      "selectedColumn" : "Path",
+      "failIfFileDoesNotExist" : true,
+      "failIfSetPermissionsFails" : true,
+      "permissions" : [ {
+        "role" : "OWNER",
+        "read" : true,
+        "write" : false,
+        "execute" : true
+      }, {
+        "role" : "GROUP",
+        "read" : false,
+        "write" : true,
+        "execute" : false
+      }, {
+        "role" : "OTHERS",
+        "read" : true,
+        "write" : false,
+        "execute" : true
+      } ]
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "failIfFileDoesNotExist" : {
+            "type" : "boolean",
+            "title" : "Fail if file/folder does not exist",
+            "description" : "If checked, the node fails if a file/folder from the input table does not exist.",
+            "default" : true
+          },
+          "failIfSetPermissionsFails" : {
+            "type" : "boolean",
+            "title" : "Fail if setting POSIX permissions on a file/folder fails",
+            "description" : "If checked, the node fails if there is a failure while setting POSIX permissions for a file/folder from\nthe input table.\n",
+            "default" : true
+          },
+          "fileSystemManagedByPortMessage" : {
+            "type" : "object"
+          },
+          "permissions" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "execute" : {
+                  "type" : "boolean",
+                  "title" : "Execute/Browse",
+                  "description" : "Allow the owner/group/others to execute the file or browse the directory.\n",
+                  "default" : false
+                },
+                "read" : {
+                  "type" : "boolean",
+                  "title" : "Read",
+                  "description" : "Allow the owner/group/others to read the file or list the directory contents.\n",
+                  "default" : false
+                },
+                "role" : {
+                  "oneOf" : [ {
+                    "const" : "OWNER",
+                    "title" : "Owner"
+                  }, {
+                    "const" : "GROUP",
+                    "title" : "Group"
+                  }, {
+                    "const" : "OTHERS",
+                    "title" : "Others"
+                  } ]
+                },
+                "write" : {
+                  "type" : "boolean",
+                  "title" : "Write",
+                  "description" : "Allow the owner/group/others to modify the file or directory.",
+                  "default" : false
+                }
+              }
+            },
+            "title" : "Permissions",
+            "description" : "Set POSIX permissions for owner, group and others.",
+            "default" : [ {
+              "role" : "OWNER",
+              "read" : false,
+              "write" : false,
+              "execute" : false
+            }, {
+              "role" : "GROUP",
+              "read" : false,
+              "write" : false,
+              "execute" : false
+            }, {
+              "role" : "OTHERS",
+              "read" : false,
+              "write" : false,
+              "execute" : false
+            } ]
+          },
+          "selectedColumn" : {
+            "type" : "string",
+            "title" : "Column name",
+            "description" : "Column containing the paths to the files/folders whose permissions must be edited."
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "id" : "#/properties/model/properties/fileSystemManagedByPortMessage",
+      "options" : {
+        "format" : "textMessage"
+      },
+      "providedOptions" : [ "message" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/selectedColumn",
+      "options" : {
+        "format" : "dropDown"
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/failIfFileDoesNotExist",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/failIfSetPermissionsFails",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "label" : "Permissions",
+      "type" : "Section",
+      "description" : "Select read/write/execute permissions for the owner/group/other categories.\n",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/permissions",
+        "options" : {
+          "detail" : [ {
+            "type" : "Control",
+            "scope" : "#/properties/read",
+            "options" : {
+              "format" : "checkbox"
+            }
+          }, {
+            "type" : "Control",
+            "scope" : "#/properties/write",
+            "options" : {
+              "format" : "checkbox"
+            }
+          }, {
+            "type" : "Control",
+            "scope" : "#/properties/execute",
+            "options" : {
+              "format" : "checkbox"
+            }
+          } ],
+          "arrayElementTitle" : "Permission",
+          "hasFixedSize" : true
+        },
+        "providedOptions" : [ "arrayElementTitle" ]
+      } ]
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "fileSystemManagedByPortMessage" : { },
+          "selectedColumn" : {
+            "configKey" : "column_selection"
+          },
+          "failIfFileDoesNotExist" : {
+            "configKey" : "fail_if_file_does_not_exist"
+          },
+          "failIfSetPermissionsFails" : {
+            "configKey" : "fail_if_set_permission_fails"
+          },
+          "permissions" : {
+            "configPaths" : [ [ "permissions" ] ]
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/permissions",
+    "providedOptionName" : "arrayElementTitle",
+    "values" : [ {
+      "indices" : [ 0 ],
+      "value" : "Owner"
+    }, {
+      "indices" : [ 1 ],
+      "value" : "Group"
+    }, {
+      "indices" : [ 2 ],
+      "value" : "Others"
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/selectedColumn",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Path",
+        "text" : "Path",
+        "type" : {
+          "id" : "org.knime.filehandling.core.data.location.FSLocationValue",
+          "text" : "Path"
+        }
+      } ]
+    } ]
+  }, {
+    "id" : "#/properties/model/properties/fileSystemManagedByPortMessage",
+    "providedOptionName" : "message",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : null
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "id" : "after-open-dialog"
+    },
+    "triggerInitially" : true,
+    "dependencies" : [ "#/properties/model/properties/selectedColumn" ]
+  } ]
+}
