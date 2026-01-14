@@ -175,6 +175,15 @@ public abstract class AggregationFunctionParametersProvider<F extends Aggregatio
         if (paramClass != null && currentValue != null && paramClass.isInstance(currentValue)) {
             return currentValue;
         } else if (paramClass != null) {
+            // e.g. DB functions are loaded as fallback first, since the DB session is not available at settings
+            // load time, but now we know a potential parameter class
+            if (currentValue instanceof FallbackAggregationOperatorParameters fallback) {
+                try {
+                    return NodeParametersUtil.loadSettings(fallback.getNodeSettings(), paramClass);
+                } catch (final InvalidSettingsException e) { // NOSONAR best-effort
+                    // fall-through: cannot re-use loaded fallback settings as fancy params
+                }
+            }
             try {
                 return NodeParametersUtil.createSettings(paramClass, parametersInput);
             } catch (final Exception e) { // NOSONAR we want to be safe and rather fall back to the fallback dialog
