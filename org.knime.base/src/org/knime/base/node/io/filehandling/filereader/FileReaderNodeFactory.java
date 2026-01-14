@@ -60,12 +60,32 @@ import org.knime.filehandling.core.defaultnodesettings.EnumConfig;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.core.port.FileSystemPortObject;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.node.NodeFactory.NodeType;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.core.node.NodeDescription;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import java.util.Map;
+import org.knime.node.impl.description.PortDescription;
+import java.util.List;
+import org.knime.node.impl.description.ExternalResource;
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+import static org.knime.node.impl.description.PortDescription.dynamicPort;
 
 /**
  *
  * @author lars.schweikardt
+ * @author Tim Crundall, TNG Technology Consulting GmbH
+ * @author AI Migration Pipeline v1.2
  */
-public final class FileReaderNodeFactory extends ConfigurableNodeFactory<FileReaderNodeModel> {
+@SuppressWarnings("restriction")
+public final class FileReaderNodeFactory extends ConfigurableNodeFactory<FileReaderNodeModel> implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     static final String CONNECTION_INPUT_PORT_GRP_NAME = "File System Connection";
 
@@ -84,10 +104,6 @@ public final class FileReaderNodeFactory extends ConfigurableNodeFactory<FileRea
         return new FileReaderNodeModel(getPortsConfig(creationConfig), getSettings(creationConfig));
     }
 
-    @Override
-    protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
-        return new FileReaderNodeDialog(getSettings(creationConfig));
-    }
 
     @Override
     protected int getNrNodeViews() {
@@ -111,6 +127,79 @@ public final class FileReaderNodeFactory extends ConfigurableNodeFactory<FileRea
 
     private static PortsConfiguration getPortsConfig(final NodeCreationConfiguration creationConfig) {
         return creationConfig.getPortConfig().orElseThrow(IllegalStateException::new);
+    }
+    private static final String NODE_NAME = "File Reader (Complex Format)";
+    private static final String NODE_ICON = "./filereader.png";
+    private static final String SHORT_DESCRIPTION = """
+            Flexible reader for ASCII files.
+            """;
+    private static final String FULL_DESCRIPTION = """
+            This node can be used to read data from a file. It can be configured to read various formats.<br /> When
+                you open the node's configuration dialog and provide a filename, it tries to guess the reader's settings
+                by analyzing the content of the file. Check the results of these settings in the preview table. If the
+                data shown is not correct or an error is reported, you can adjust the settings manually (see below).<br
+                /> <p /> The file analysis runs in the background and can be cut short by clicking the "Quick scan",
+                which shows if the analysis takes longer. In this case the file is not analyzed completely, but only the
+                first fifty lines are taken into account. It could happen then, that the preview appears looking fine,
+                but the execution of the File Reader (Complex Format) fails, when it reads the lines it didn't analyze.
+                Thus it is recommended you check the settings, when you cut an analysis short. <br /> <p /> <b>Note:</b>
+                In case this node is used in a loop, make sure that all files have the same format (e. g. separators,
+                column headers, column types). The node saves the configuration only during the first execution. <br />
+                Alternatively, the <i>File Reader</i> node can be used. <p> <i>This node can access a variety of
+                different</i> <a
+                href="https://docs.knime.com/2021-06/analytics_platform_file_handling_guide/index.html#analytics-platform-file-systems"><i>file
+                systems.</i></a> <i>More information about file handling in KNIME can be found in the official</i> <a
+                href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html"><i>File Handling
+                Guide.</i></a> </p>
+            """;
+    private static final List<PortDescription> INPUT_PORTS = List.of(
+            dynamicPort("File System Connection", "File system connection", """
+                The file system connection.
+                """)
+    );
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(
+            fixedPort("File Table", """
+                Datatable just read from the file
+                """)
+    );
+    private static final List<ExternalResource> LINKS = List.of(
+         new ExternalResource(
+            "https://www.knime.com/knime-introductory-course/chapter2/section1/file-reader-node", """
+                KNIME E-Learning Course: File Reader Node
+                """)
+    );
+
+    @Override
+    public NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, FileReaderNodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription( //
+            NODE_NAME, //
+            NODE_ICON, //
+            INPUT_PORTS, //
+            OUTPUT_PORTS, //
+            SHORT_DESCRIPTION, //
+            FULL_DESCRIPTION, //
+            LINKS, //
+            FileReaderNodeParameters.class, //
+            null, //
+            NodeType.Source, //
+            List.of(), //
+            null //
+        );
+    }
+
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, FileReaderNodeParameters.class));
     }
 
 }
