@@ -61,9 +61,9 @@
       "scope" : "#/properties/model/properties/typeNameFormat",
       "options" : {
         "format" : "radio",
-        "radioLayout" : "vertical",
-        "disabledOptions" : [ "LEGACY_DISPLAY_NAME" ]
-      }
+        "radioLayout" : "vertical"
+      },
+      "providedOptions" : [ "possibleValues" ]
     } ]
   },
   "persist" : {
@@ -87,5 +87,23 @@
         }
       }
     }
-  }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/typeNameFormat",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "IDENTIFIER",
+        "text" : "Identifier"
+      }, {
+        "id" : "LEGACY_DISPLAY_NAME",
+        "text" : "Legacy Display Name",
+        "disabled" : true
+      }, {
+        "id" : "DISPLAY_NAME",
+        "text" : "Display Name"
+      } ]
+    } ]
+  } ]
 }
