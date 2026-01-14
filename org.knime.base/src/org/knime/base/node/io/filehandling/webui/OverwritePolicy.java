@@ -57,8 +57,8 @@ import org.knime.node.parameters.widget.choices.Label;
  * @since 5.10
  */
 public enum OverwritePolicy {
-    @Label(value= "Fail", description = "Prevent node from executing.")
+    @Label(value = "Fail", description = "Prevent node from executing.")
     PREVENT,
-    @Label(value= "Overwrite file", description = "Replace the file if it exists.")
+    @Label(value = "Overwrite file", description = "Replace the file if it exists.")
     OVERWRITE,
 }

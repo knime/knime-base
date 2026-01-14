@@ -245,5 +245,4 @@ public class FileEncodingParameters implements NodeParameters {
         m_customEncoding = customEncoding;
     }
 
-
 }
