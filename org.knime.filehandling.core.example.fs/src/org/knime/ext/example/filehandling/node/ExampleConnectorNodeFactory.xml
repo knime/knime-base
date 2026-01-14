@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<knimeNode icon="./file_system_connector.png"
+	type="Source"
+	xmlns="http://knime.org/node/v4.1"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://knime.org/node/v4.1 http://knime.org/node/v4.1.xsd">
+
+    <name>Example Connector</name>
+    
+    <shortDescription>
+        Connects to an EXAMPLE server in order to read/write files in downstream nodes.
+    </shortDescription>
+    
+    <fullDescription>
+         <intro>
+            <p>This node connects to EXAMPLE. The resulting output port allows downstream nodes to access
+            <i>files</i>, e.g. to read or write, or to perform other file system operations (browse/list files, copy, move, ...). 
+            </p>
+            
+            <p><b>Path syntax:</b> Paths for this connector are specified with a UNIX-like syntax such as /myfolder/myfile. An absolute
+            path consists of:
+                <ol>
+                    <li>A leading slash ("/").</li>
+                    <li>Followed by the path to the file ("myfolder/myfile" in the above example).</li>
+                </ol>
+            </p>
+        </intro>
+        <tab name="Settings">
+            <option name="Connect to">
+                Specifies whether to connect by ...
+            </option>
+
+
+	        <option name="Authentication">
+	            Method of authentication to use:
+	            <ul>
+	            	<li>
+	            		<b>...</b> bla bla
+	            	</li>
+	           	</ul>
+	        </option>
+	        <option name="Working directory">
+		        Specify the <i>working directory</i> of the resulting file system connection, using the <b>Path syntax</b> explained above. The working
+		        directory must be specified as an absolute path. A working directory allows downstream nodes to access files/folders using <i>relative</i>
+		        paths, i.e. paths that do not have a leading backslash. The default working directory is "\".
+		    </option>
+        </tab>
+        <tab name="Advanced">
+        	<option name="Read/Write timeout">
+        		The timeout for read/write operations (in seconds).
+        	</option>
+        </tab>
+    </fullDescription>
+    
+    <ports>
+        <outPort index="0" name="Example File System Connection">
+             Example File System Connection
+        </outPort>
+    </ports>    
+</knimeNode>
