@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
+    <entry key="column_selection" type="xstring" value="Path"/>
+    <entry key="fail_if_file_does_not_exist" type="xboolean" value="true"/>
+    <entry key="fail_if_set_permission_fails" type="xboolean" value="true"/>
+    <config key="permissions">
+        <entry key="array-size" type="xint" value="5"/>
+        <entry key="0" type="xstring" value="OWNER_READ"/>
+        <entry key="1" type="xstring" value="OWNER_EXECUTE"/>
+        <entry key="2" type="xstring" value="GROUP_WRITE"/>
+        <entry key="3" type="xstring" value="OTHERS_READ"/>
+        <entry key="4" type="xstring" value="OTHERS_EXECUTE"/>
+    </config>
+</config>
