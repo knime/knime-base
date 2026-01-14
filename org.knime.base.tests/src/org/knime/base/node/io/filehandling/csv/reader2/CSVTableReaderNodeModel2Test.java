@@ -66,7 +66,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.knime.base.node.io.filehandling.csv.reader.CSVMultiTableReadConfig;
 import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
-import org.knime.base.node.io.filehandling.csv.reader2.FileEncodingParameters.FileEncodingOption;
+import org.knime.base.node.io.filehandling.webui.FileEncodingParameters.FileEncodingOption;
 import org.knime.base.node.io.filehandling.webui.LocalWorkflowContextTest;
 import org.knime.base.node.io.filehandling.webui.reader2.MultiFileSelectionPath;
 import org.knime.core.node.BufferedDataTable;
@@ -157,8 +157,8 @@ class CSVTableReaderNodeModel2Test extends LocalWorkflowContextTest {
     @Test
     void testThrowInvalidSettingsExceptionOnBlankCustomEncoding() throws IOException, InvalidSettingsException {
         final var settings = new CSVTableReaderNodeParameters();
-        settings.m_csvReaderParameters.m_fileEncodingParams.m_fileEncoding = FileEncodingOption.OTHER;
-        settings.m_csvReaderParameters.m_fileEncodingParams.m_customEncoding = " ";
+        settings.m_csvReaderParameters.m_fileEncodingParams.setFileEncoding(FileEncodingOption.OTHER);
+        settings.m_csvReaderParameters.m_fileEncodingParams.setCustomEncoding(" ");
         assertThrows(InvalidSettingsException.class, () -> setSettings(settings));
     }
 

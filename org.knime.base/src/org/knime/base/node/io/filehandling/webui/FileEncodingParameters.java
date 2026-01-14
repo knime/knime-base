@@ -44,24 +44,17 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 24, 2025 (Paul Bärnreuther): created
+ *   14 Jan 2026 (Rupert Ettrich): created
  */
-package org.knime.base.node.io.filehandling.csv.reader2;
+package org.knime.base.node.io.filehandling.webui;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
-import org.knime.base.node.io.filehandling.csv.reader2.FileEncodingParameters.FileEncodingLayout;
-import org.knime.base.node.io.filehandling.webui.ReferenceStateProvider;
-import org.knime.base.node.io.filehandling.webui.reader2.ReaderLayout;
-import org.knime.core.node.InvalidSettingsException;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
-import org.knime.node.parameters.layout.After;
-import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.updates.Effect;
 import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.updates.EffectPredicate;
@@ -75,21 +68,35 @@ import org.knime.node.parameters.widget.text.TextInputWidget;
 import org.knime.node.parameters.widget.text.TextInputWidgetValidation.PatternValidation.IsNotBlankValidation;
 
 /**
- * Parameters for file encoding settings.
+ * File encoding parameters that are commonly used by writer or reader nodes.
  *
- * @author Paul Bärnreuther
+ * @author Rupert Ettrich
+ * @since 5.10
  */
-@Layout(FileEncodingLayout.class)
-final class FileEncodingParameters implements NodeParameters {
+public class FileEncodingParameters implements NodeParameters {
 
-    @After(ReaderLayout.File.Source.class)
-    interface FileEncodingLayout {
+    /**
+     * Empty constructor for serialization
+     */
+    public FileEncodingParameters() {
+    }
+
+    /**
+     * A constructor for file encoding parameters.
+     *
+     * @param fileEncoding the file encoding option
+     * @param customEncoding the custom encoding if {@link FileEncodingOption#OTHER} is used
+     */
+    public FileEncodingParameters(final FileEncodingOption fileEncoding, final String customEncoding) {
+        m_fileEncoding = fileEncoding;
+        m_customEncoding = customEncoding;
     }
 
     /**
      * Options for file encoding.
      */
-    enum FileEncodingOption {
+    @SuppressWarnings("javadoc")
+    public enum FileEncodingOption {
             @Label(value = "OS default", description = "Uses the default decoding set by the operating system.")
             DEFAULT(null, "OS default (" + java.nio.charset.Charset.defaultCharset().name() + ")"),
             @Label(value = "ISO-8859-1", description = "ISO Latin Alphabet No. 1, a.k.a. ISO-LATIN-1.")
@@ -121,10 +128,23 @@ final class FileEncodingParameters implements NodeParameters {
             m_nonConstantDisplayText = nonConstantDisplayText;
         }
 
-        static FileEncodingOption fromCharsetName(final String charsetName) {
+        /**
+         * Returns the enum value for the given charset name or {@link FileEncodingOption#OTHER} if it doesn't exist.
+         *
+         * @param charsetName the charset name
+         * @return a matching file encoding option
+         */
+        public static FileEncodingOption fromCharsetName(final String charsetName) {
             return Arrays.stream(FileEncodingOption.values())
                 .filter(fileEncoding -> Objects.equals(fileEncoding.m_charsetName, charsetName)).findFirst()
                 .orElse(OTHER);
+        }
+
+        /**
+         * @return the charset name
+         */
+        public String getCharsetName() {
+            return m_charsetName;
         }
 
         EnumChoice<FileEncodingOption> toEnumChoice() {
@@ -145,9 +165,15 @@ final class FileEncodingParameters implements NodeParameters {
         }
     }
 
-    static class FileEncodingRef extends ReferenceStateProvider<FileEncodingOption> {
+    /**
+     * The reference state provider for the file encoding.
+     */
+    public static class FileEncodingRef extends ReferenceStateProvider<FileEncodingOption> {
     }
 
+    /**
+     * The selected file encoding option.
+     */
     @Widget(title = "File encoding", description = """
             Defines the character set used to read a CSV file that contains characters in a different encoding. You \
             can choose from a list of character encodings (UTF-8, UTF-16, etc.), or specify any other encoding \
@@ -156,7 +182,7 @@ final class FileEncodingParameters implements NodeParameters {
             """, advanced = true)
     @ValueReference(FileEncodingRef.class)
     @ChoicesProvider(EncodingChoicesProvider.class)
-    FileEncodingOption m_fileEncoding = FileEncodingOption.UTF_8;
+    protected FileEncodingOption m_fileEncoding = FileEncodingOption.UTF_8;
 
     static final class IsOtherEncoding implements EffectPredicateProvider {
         @Override
@@ -165,32 +191,58 @@ final class FileEncodingParameters implements NodeParameters {
         }
     }
 
-    static class CustomEncodingRef extends ReferenceStateProvider<String> {
+    /**
+     * The reference state provider for the custom encoding.
+     */
+    public static class CustomEncodingRef extends ReferenceStateProvider<String> {
     }
 
+    /**
+     * If {@link FileEncodingOption#OTHER } is selected, this field is used to contain the custom file encoding.
+     */
     @Widget(title = "Custom encoding", description = "A custom character set used to read a CSV file.", advanced = true)
     @ValueReference(CustomEncodingRef.class)
     @Effect(predicate = IsOtherEncoding.class, type = EffectType.SHOW)
     @TextInputWidget(patternValidation = IsNotBlankValidation.class)
-    String m_customEncoding = "";
+    protected String m_customEncoding = "";
 
-    static String fileEncodingToCharsetName(final FileEncodingOption encoding, final String customEncoding) {
+    /**
+     * Returns the charset name of the selected encoding.
+     *
+     * @param encoding the selected encoding option
+     * @param customEncoding the custom encoding if {@link FileEncodingOption#OTHER } is selected
+     * @return the encoding as a string
+     */
+    public static String fileEncodingToCharsetName(final FileEncodingOption encoding, final String customEncoding) {
         return encoding == FileEncodingOption.OTHER ? customEncoding : encoding.m_charsetName;
     }
 
     /**
-     * Save the settings to the given config.
-     *
-     * @param csvConfig the config to save to
+     * @return the fileEncoding
      */
-    void saveToConfig(final CSVTableReaderConfig csvConfig) {
-        csvConfig.setCharSetName(fileEncodingToCharsetName(m_fileEncoding, m_customEncoding));
+    public FileEncodingOption getFileEncoding() {
+        return m_fileEncoding;
     }
 
-    @Override
-    public void validate() throws InvalidSettingsException {
-        if (m_fileEncoding == FileEncodingOption.OTHER && m_customEncoding.isBlank()) {
-            throw new InvalidSettingsException("The specified custom encoding must not be empty.");
-        }
+    /**
+     * @param fileEncoding the fileEncoding to set
+     */
+    public void setFileEncoding(final FileEncodingOption fileEncoding) {
+        m_fileEncoding = fileEncoding;
     }
+
+    /**
+     * @return the customEncoding
+     */
+    public String getCustomEncoding() {
+        return m_customEncoding;
+    }
+
+    /**
+     * @param customEncoding the customEncoding to set
+     */
+    public void setCustomEncoding(final String customEncoding) {
+        m_customEncoding = customEncoding;
+    }
+
 }
