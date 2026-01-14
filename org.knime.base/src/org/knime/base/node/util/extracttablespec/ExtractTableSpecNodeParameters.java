@@ -46,12 +46,16 @@
 
 package org.knime.base.node.util.extracttablespec;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.knime.core.data.util.DataTableSpecExtractor.TypeNameFormat;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.EnumFieldPersistor;
 import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.migration.DefaultProvider;
 import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
@@ -59,6 +63,9 @@ import org.knime.node.parameters.migration.Migration;
 import org.knime.node.parameters.persistence.NodeParametersPersistor;
 import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistor;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.EnumChoice;
+import org.knime.node.parameters.widget.choices.EnumChoicesProvider;
 import org.knime.node.parameters.widget.choices.Label;
 import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
 
@@ -91,6 +98,7 @@ class ExtractTableSpecNodeParameters implements NodeParameters {
             """)
     @RadioButtonsWidget
     @Migration(value = TypeNameFormatMigration.class)
+    @ChoicesProvider(TypeNameFormatEnumChoicesProvider.class)
     TypeNameFormatEnum m_typeNameFormat = TypeNameFormatEnum.IDENTIFIER;
 
     static final class TypeNameFormatMigration implements DefaultProvider<TypeNameFormatEnum> {
@@ -98,6 +106,17 @@ class ExtractTableSpecNodeParameters implements NodeParameters {
         @Override
         public TypeNameFormatEnum getDefault() {
             return TypeNameFormatEnum.LEGACY_DISPLAY_NAME;
+        }
+
+    }
+
+    static final class TypeNameFormatEnumChoicesProvider implements EnumChoicesProvider<TypeNameFormatEnum> {
+
+        @Override
+        public List<EnumChoice<TypeNameFormatEnum>> computeState(final NodeParametersInput context) {
+            return Arrays.stream(TypeNameFormatEnum.values()) //
+                .map(e -> EnumChoice.fromEnumConst(e, e.m_isDisabled)) //
+                .toList();
         }
 
     }
@@ -134,20 +153,24 @@ class ExtractTableSpecNodeParameters implements NodeParameters {
     }
 
     enum TypeNameFormatEnum {
-        @Label(value = "Identifier", description = """
-                The type names are represented with a unique identifier. This is the recommended option.
-                """)
-        IDENTIFIER,
-        @Label(value = "Legacy Display Name", description = """
-                The type names are represented by their old display name. This option is intended to be
-                used purely for backwards-compatibility for workflows created in version 5.4 or before.
-                """, disabled = true)
-        LEGACY_DISPLAY_NAME,
-        @Label(value = "Display Name", description = """
-                The type names are represented by their display name. This name may change at any point
-                with an update, so it is highly discouraged to match against this output in any way.
-                """)
-        DISPLAY_NAME
+            @Label(value = "Identifier", description = """
+                    The type names are represented with a unique identifier. This is the recommended option.
+                    """)
+            IDENTIFIER(false), @Label(value = "Legacy Display Name", description = """
+                    The type names are represented by their old display name. This option is intended to be
+                    used purely for backwards-compatibility for workflows created in version 5.4 or before.
+                    """)
+            LEGACY_DISPLAY_NAME(true), @Label(value = "Display Name", description = """
+                    The type names are represented by their display name. This name may change at any point
+                    with an update, so it is highly discouraged to match against this output in any way.
+                    """)
+            DISPLAY_NAME(false);
+
+        private final boolean m_isDisabled;
+
+        TypeNameFormatEnum(final boolean isDisabled) {
+            m_isDisabled = isDisabled;
+        }
     }
 
 }

@@ -48,6 +48,9 @@
  */
 package org.knime.base.node.io.filehandling.webui.reader;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.knime.base.node.io.filehandling.webui.FileSystemManagedByPortMessage;
 import org.knime.base.node.io.filehandling.webui.ReferenceStateProvider;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderLayout.DataArea.UseExistingRowId;
@@ -62,6 +65,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelectio
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.LegacyReaderFileSelectionPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.WidgetGroup;
 import org.knime.node.parameters.layout.Layout;
@@ -75,6 +79,9 @@ import org.knime.node.parameters.updates.EffectPredicate;
 import org.knime.node.parameters.updates.EffectPredicateProvider;
 import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.EnumChoice;
+import org.knime.node.parameters.widget.choices.EnumChoicesProvider;
 import org.knime.node.parameters.widget.choices.Label;
 import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
@@ -200,11 +207,31 @@ public final class CommonReaderNodeSettings { // NOSONAR
                             DESCRIPTION_USE_NEW_SCHEMA) //
                 USE_NEW_SCHEMA, //
                 @Label(value = "Ignore (deprecated)",
-                    description = CommonReaderLayout.ColumnAndDataTypeDetection.IfSchemaChanges.DESCRIPTION_IGNORE,
-                    disabled = true)
-                IGNORE; //
+                    description = CommonReaderLayout.ColumnAndDataTypeDetection.IfSchemaChanges.DESCRIPTION_IGNORE)
+                IGNORE(true); //
+
+
+                final boolean m_isDisabled;
+
+                IfSchemaChangesOption() {
+                    this(false);
+                }
+
+                IfSchemaChangesOption(final boolean isDisabled) {
+                    m_isDisabled = isDisabled;
+                }
         }
 
+        static final class IfSchemaChangesOptionsProvider implements EnumChoicesProvider<IfSchemaChangesOption> {
+
+            @Override
+            public List<EnumChoice<IfSchemaChangesOption>> computeState(final NodeParametersInput context) {
+                return Arrays.stream(IfSchemaChangesOption.values()) //
+                    .map(e -> EnumChoice.fromEnumConst(e, e.m_isDisabled)) //
+                    .toList();
+            }
+
+        }
         static final class IfSchemaChangesPersistor implements NodeParametersPersistor<IfSchemaChangesOption> {
 
             private static final String CFG_SAVE_TABLE_SPEC_CONFIG =
@@ -253,6 +280,7 @@ public final class CommonReaderNodeSettings { // NOSONAR
         @RadioButtonsWidget
         @Layout(CommonReaderLayout.ColumnAndDataTypeDetection.IfSchemaChanges.class)
         @Persistor(IfSchemaChangesPersistor.class)
+        @ChoicesProvider(IfSchemaChangesOptionsProvider.class)
         @ValueReference(IfSchemaChangesOptionRef.class)
         public IfSchemaChangesOption m_ifSchemaChangesOption = IfSchemaChangesOption.FAIL;
 
