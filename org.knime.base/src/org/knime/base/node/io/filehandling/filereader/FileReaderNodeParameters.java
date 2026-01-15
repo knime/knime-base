@@ -117,13 +117,11 @@ class FileReaderNodeParameters implements NodeParameters {
     @Widget(title = "Read column headers",
         description = "If checked, the items in the first line of the file are used as column names. "
             + "Otherwise default column names are created.")
-    // @Persist(configKey = "hasColHdr")
     boolean m_hasColHdr = true;
 
     @Widget(title = "Read RowIDs",
         description = "If checked, the first column in the file is used as RowIDs. "
             + "If not checked, default row headers are created.")
-    @Persist(configKey = "hasRowHdr")
     boolean m_hasRowHdr = false;
 
     // NOTE: Column delimiter persistence is complex - it's stored in "Delimiters" config with multiple entries
@@ -175,13 +173,11 @@ class FileReaderNodeParameters implements NodeParameters {
 
     @Widget(title = "Ignore empty lines",
         description = "If checked, empty lines in the file are ignored and skipped.")
-    @Persist(configKey = "ignoreEmptyLines")
     boolean m_ignoreEmptyLines = true;
 
     @Widget(title = "Row header prefix",
         description = "Prefix used when generating row IDs (if not reading from file). Default is 'Row'.")
     @TextInputWidget
-    @Persist(configKey = "rowPrefix")
     String m_rowPrefix = "Row";
 
     @Widget(title = "Skip first lines",
@@ -200,17 +196,15 @@ class FileReaderNodeParameters implements NodeParameters {
     @Widget(title = "Ignore delimiters at end of row",
         description = "If checked, extra delimiters at the end of rows are ignored.")
     @Persist(configKey = "ignEmtpyTokensAtEOR")
-    boolean m_ignEmtpyTokensAtEOR = false;
+    boolean m_ignoreDelimitersAtEOR = false;
 
     @Widget(title = "Support short lines",
         description = "If checked, rows with too few data items are filled with missing values.")
-    @Persist(configKey = "acceptShortLines")
     boolean m_acceptShortLines = false;
 
     @Widget(title = "Make RowIDs unique",
         description = "If checked, duplicate RowIDs are made unique by appending a suffix. "
             + "Not recommended for huge files as it requires storing all RowIDs in memory.")
-    @Persist(configKey = "uniquifyRowID")
     boolean m_uniquifyRowID = true;
 
     // NOTE: MaxNumberOfRowsParameters handles its own persistence with configKey = "MaxNumOfRows"
