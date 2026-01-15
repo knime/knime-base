@@ -50,6 +50,8 @@ import java.net.URL;
 
 import org.knime.base.node.io.filehandling.webui.reader2.MaxNumberOfRowsParameters;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.context.url.URLConfiguration;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
@@ -61,6 +63,7 @@ import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
 import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistor;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
 import org.knime.node.parameters.widget.text.TextInputWidget;
 import org.knime.node.parameters.widget.text.TextInputWidgetValidation.PatternValidation.IsNotEmptyValidation;
 
@@ -112,6 +115,127 @@ class FileReaderNodeParameters implements NodeParameters {
     // NOTE: "Preserve user settings" checkbox is a UI-only behavior feature and is not migrated
     // as it controls dialog behavior, not node execution settings.
 
+    // ========== Tokenizer Settings (Required by TokenizerSettings base class) ==========
+
+    /**
+     * Tokenizer settings group that handles the required Delimiters, Quotes, Comments, and WhiteSpaces
+     * config structures needed by TokenizerSettings.
+     */
+    static class TokenizerConfigGroup implements NodeParameters {
+        // These fields are not shown in UI but are persisted for compatibility
+        String m_delimiter = ",";
+        boolean m_ignoreSpacesAndTabs = false;
+        boolean m_javaStyleComments = false;
+        String m_singleLineComment = "";
+        long m_skipFirstLines = 0;
+    }
+
+    /**
+     * Custom persistor for tokenizer settings that writes the required config structure
+     * (Delimiters, Quotes, Comments, WhiteSpaces) expected by TokenizerSettings.
+     */
+    static class TokenizerConfigPersistor implements NodeParametersPersistor<TokenizerConfigGroup> {
+        
+        @Override
+        public TokenizerConfigGroup load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            // Load from the tokenizer config structure
+            var config = new TokenizerConfigGroup();
+            
+            // Load SkipFirstLines if present
+            if (settings.containsKey("SkipFirstLines")) {
+                config.m_skipFirstLines = settings.getLong("SkipFirstLines");
+            }
+            
+            // TODO: Load delimiter, whitespaces, comments from their respective config structures
+            // For now, use defaults
+            
+            return config;
+        }
+
+        @Override
+        public void save(final TokenizerConfigGroup obj, final NodeSettingsWO settings) {
+            // Write the required tokenizer config structure
+            
+            // 1. Delimiters config
+            var delimsConfig = settings.addNodeSettings("Delimiters");
+            var delim0 = delimsConfig.addNodeSettings("Delim0");
+            delim0.addString("pattern", obj.m_delimiter);
+            delim0.addBoolean("combineMultiple", false);
+            delim0.addBoolean("returnAsToken", false);
+            delim0.addBoolean("includeInToken", false);
+            
+            // 2. Quotes config (empty by default)
+            settings.addNodeSettings("Quotes");
+            
+            // 3. Comments config
+            var commentsConfig = settings.addNodeSettings("Comments");
+            if (obj.m_javaStyleComments) {
+                // Block comment: /* ... */
+                var comment0 = commentsConfig.addNodeSettings("Comment0");
+                comment0.addString("begin", "/*");
+                comment0.addString("end", "*/");
+                comment0.addString("EscChar", "");
+                comment0.addBoolean("DontRem", false);
+                
+                // Line comment: // ... newline
+                var comment1 = commentsConfig.addNodeSettings("Comment1");
+                comment1.addString("begin", "//");
+                comment1.addString("end", "%%00010"); // newline
+                comment1.addString("EscChar", "");
+                comment1.addBoolean("DontRem", false);
+            }
+            if (obj.m_singleLineComment != null && !obj.m_singleLineComment.isEmpty()) {
+                var commentKey = obj.m_javaStyleComments ? "Comment2" : "Comment0";
+                var comment = commentsConfig.addNodeSettings(commentKey);
+                comment.addString("begin", obj.m_singleLineComment);
+                comment.addString("end", "%%00010"); // newline
+                comment.addString("EscChar", "");
+                comment.addBoolean("DontRem", false);
+            }
+            
+            // 4. WhiteSpaces config
+            var whiteSpacesConfig = settings.addNodeSettings("WhiteSpaces");
+            if (obj.m_ignoreSpacesAndTabs) {
+                // Add space (%%00032) and tab (%%00009)
+                var ws0 = whiteSpacesConfig.addNodeSettings("WhiteSpace0");
+                ws0.addString("pattern", "%%00032"); // space
+                var ws1 = whiteSpacesConfig.addNodeSettings("WhiteSpace1");
+                ws1.addString("pattern", "%%00009"); // tab
+            }
+            
+            // 5. Other tokenizer settings
+            settings.addBoolean("CombineMultDelims", false);
+            settings.addLong("SkipFirstLines", obj.m_skipFirstLines);
+            settings.addBoolean("NewLineInQuotes", false);
+            
+            // 6. Row Delimiters config (required by FileReaderSettings)
+            var rowDelimsConfig = settings.addNodeSettings("RowDelims");
+            // Add newline (LF)
+            var rdelim0 = rowDelimsConfig.addNodeSettings("RDelim0");
+            rdelim0.addString("pattern", "%%00010"); // newline
+            rdelim0.addBoolean("SkipEmptyLine", false);
+            // Add carriage return (CR)  
+            var rdelim1 = rowDelimsConfig.addNodeSettings("RDelim1");
+            rdelim1.addString("pattern", "%%00013"); // carriage return
+            rdelim1.addBoolean("SkipEmptyLine", false);
+        }
+
+        @Override
+        public String[][] getConfigPaths() {
+            return new String[][]{
+                {"Delimiters"},
+                {"Quotes"},
+                {"Comments"},
+                {"WhiteSpaces"},
+                {"RowDelims"},
+                {"SkipFirstLines"}
+            };
+        }
+    }
+
+    @Persistor(TokenizerConfigPersistor.class)
+    TokenizerConfigGroup m_tokenizerConfig = new TokenizerConfigGroup();
+
     // ========== Basic Settings ==========
 
     @Widget(title = "Read column headers",
@@ -123,36 +247,6 @@ class FileReaderNodeParameters implements NodeParameters {
         description = "If checked, the first column in the file is used as RowIDs. "
             + "If not checked, default row headers are created.")
     boolean m_hasRowHdr = false;
-
-    // NOTE: Column delimiter persistence is complex - it's stored in "Delimiters" config with multiple entries
-    // For now, we'll handle this with a custom persistor (TODO)
-    @Widget(title = "Column delimiter", description = """
-            Enter the character(s) that separate the data tokens in the file. Use '\\t' for tab character.
-            Common delimiters are comma (,), semicolon (;), tab (\\t), or space.
-            """)
-    @TextInputWidget(minLengthValidation = IsNotEmptyValidation.class)
-    String m_columnDelimiter = ",";
-
-    // NOTE: Whitespaces are stored in "WhiteSpaces" config with multiple entries (WhiteSpace0, WhiteSpace1, etc.)
-    // For now, we'll handle this with a custom persistor (TODO)
-    @Widget(title = "Ignore spaces and tabs",
-        description = "If checked, spaces and the TAB characters are ignored (not in quoted strings though).")
-    boolean m_ignoreSpacesAndTabs = false;
-
-    // ========== Comment Settings ==========
-
-    // NOTE: Comments are stored in "Comments" config with multiple entries (Comment0, Comment1, etc.)
-    // Each has "begin", "end", "EscChar", and "DontRem" properties
-    // Java-style comments = "/*" to "*/" (block) and "//" to newline (single line)
-    // For now, we'll handle this with a custom persistor (TODO)
-    @Widget(title = "Java-style comments",
-        description = "Everything between '/*' and '*/' is ignored. Also everything after '//' until the end of the line.")
-    boolean m_javaStyleComments = false;
-
-    @Widget(title = "Single line comment",
-        description = "Enter one or more characters that will indicate the start of a comment (ended by a new line).")
-    @TextInputWidget
-    String m_singleLineComment = "";
 
     // ========== Advanced Settings ==========
 
@@ -179,11 +273,6 @@ class FileReaderNodeParameters implements NodeParameters {
         description = "Prefix used when generating row IDs (if not reading from file). Default is 'Row'.")
     @TextInputWidget
     String m_rowPrefix = "Row";
-
-    @Widget(title = "Skip first lines",
-        description = "Number of lines to skip at the beginning of the file before starting to read data.")
-    @Persist(configKey = "SkipFirstLines")
-    long m_skipFirstLines = 0;
 
     // Note: Character encoding - from settings.xml: <entry key="CharsetName" type="xstring" value="UTF-8"/>
     // Default persistence would be "charsetName", but config uses "CharsetName" with capitals
