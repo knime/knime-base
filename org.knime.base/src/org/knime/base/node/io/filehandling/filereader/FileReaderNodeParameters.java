@@ -306,6 +306,53 @@ class FileReaderNodeParameters implements NodeParameters {
     @Persist(configKey = "globalMissPattern")
     String m_missingValuePattern = "";
 
+    // ========== Column Specification (Hidden - for persistence only) ==========
+    // These are not user-facing parameters but are required for backwards compatibility
+    // They store the analyzed/inferred table structure
+    
+    /**
+     * Column properties and number of columns - these are inferred during file analysis,
+     * not directly set by the user. Stored for backwards compatibility with old workflows.
+     */
+    static class ColumnSpecificationPersistor implements NodeParametersPersistor<ColumnSpecificationConfig> {
+        @Override
+        public ColumnSpecificationConfig load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            var config = new ColumnSpecificationConfig();
+            if (settings.containsKey("numOfColumns")) {
+                config.m_numOfColumns = settings.getInt("numOfColumns");
+            }
+            // ColumnProperties is a complex nested config - for now, just acknowledge it exists
+            // The actual column properties are handled during table spec creation, not in parameters
+            return config;
+        }
+
+        @Override
+        public void save(final ColumnSpecificationConfig obj, final NodeSettingsWO settings) {
+            settings.addInt("numOfColumns", obj.m_numOfColumns);
+            // Add empty ColumnProperties config for backwards compatibility
+            settings.addNodeSettings("ColumnProperties");
+            // Add other FileReaderNodeSettings-specific fields
+            settings.addBoolean("delimsAtEOLuserVal", obj.m_delimsAtEOLuserVal);
+        }
+
+        @Override
+        public String[][] getConfigPaths() {
+            return new String[][]{
+                {"numOfColumns"},
+                {"ColumnProperties"},
+                {"delimsAtEOLuserVal"}
+            };
+        }
+    }
+    
+    static class ColumnSpecificationConfig implements NodeParameters {
+        int m_numOfColumns = -1;
+        boolean m_delimsAtEOLuserVal = false;
+    }
+    
+    @Persistor(ColumnSpecificationPersistor.class)
+    ColumnSpecificationConfig m_columnSpec = new ColumnSpecificationConfig();
+
     // TODO: Implement SkipFirstLinesOfFileParameters (if it exists as a reusable component)
     // - Need to verify if this exists and can be reused
 
