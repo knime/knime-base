@@ -55,12 +55,10 @@ import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeModel;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
+import org.knime.core.webui.node.impl.WebUINodeModel;
 import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSConnectionRegistry;
@@ -75,31 +73,32 @@ import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
  *
  * @author Alexander Bondaletov
  */
-public class LocalConnectorNodeModel extends NodeModel {
+@SuppressWarnings({"deprecation", "restriction"})
+public class LocalConnectorNodeModel extends WebUINodeModel<LocalConnectorNodeParameters> {
 
     private String m_fsId;
     private FSConnection m_fsConnection;
-    private final LocalConnectorSettings m_settings;
 
     /**
      * Creates new instance
      */
     protected LocalConnectorNodeModel() {
-        super(new PortType[] {}, new PortType[] { FileSystemPortObject.TYPE });
-        m_settings = new LocalConnectorSettings();
+        super(new PortType[] {}, new PortType[] { FileSystemPortObject.TYPE }, LocalConnectorNodeParameters.class);
     }
 
     @Override
-    protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        m_settings.validate();
+    protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs, final LocalConnectorNodeParameters params)
+            throws InvalidSettingsException {
+
+        params.validateOnConfigure();
         ValidationUtils.validateLocalFsAccess();
         m_fsId = FSConnectionRegistry.getInstance().getKey();
         return new PortObjectSpec[] { createSpec() };
     }
 
-    private FSConnection createFSConnection() {
-        if (m_settings.isUseCustomWorkingDirectory()) {
-            return DefaultFSConnectionFactory.createLocalFSConnection(m_settings.getWorkingDirectory());
+    private static FSConnection createFSConnection(final LocalConnectorNodeParameters params) {
+        if (params.m_useCustomWorkingDirectory) {
+            return DefaultFSConnectionFactory.createLocalFSConnection(params.m_workingDirectory);
         } else {
             return DefaultFSConnectionFactory.createLocalFSConnection(true);
         }
@@ -112,10 +111,12 @@ public class LocalConnectorNodeModel extends NodeModel {
     }
 
     @Override
-    protected PortObject[] execute(final PortObject[] inObjects, final ExecutionContext exec) throws Exception {
+    protected PortObject[] execute(final PortObject[] inObjects, final ExecutionContext exec,
+        final LocalConnectorNodeParameters params) throws Exception {
+
         ValidationUtils.validateLocalFsAccess();
 
-        m_fsConnection = createFSConnection();
+        m_fsConnection = createFSConnection(params);
         FSConnectionRegistry.getInstance().register(m_fsId, m_fsConnection);
 
         return new PortObject[] { new FileSystemPortObject(createSpec()) };
@@ -135,21 +136,6 @@ public class LocalConnectorNodeModel extends NodeModel {
     }
 
     @Override
-    protected void saveSettingsTo(final NodeSettingsWO settings) {
-        m_settings.saveSettingsTo(settings);
-    }
-
-    @Override
-    protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_settings.validateSettings(settings);
-    }
-
-    @Override
-    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_settings.loadSettingsFrom(settings);
-    }
-
-    @Override
     protected void reset() {
         if (m_fsConnection != null) {
             m_fsConnection.closeInBackground();
@@ -157,5 +143,4 @@ public class LocalConnectorNodeModel extends NodeModel {
         }
         m_fsId = null;
     }
-
 }

@@ -1,0 +1,80 @@
+{
+  "data" : {
+    "model" : {
+      "useCustomWorkingDirectory" : true,
+      "workingDirectory" : "/"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "useCustomWorkingDirectory" : {
+            "type" : "boolean",
+            "title" : "Use custom working directory",
+            "description" : "Whether to set a custom working directory or not. Unless this option is set, the working\ndirectory will be the home directory of the current operating system user.",
+            "default" : false
+          },
+          "workingDirectory" : {
+            "type" : "string",
+            "title" : "Working directory",
+            "description" : "Specify the working directory of the resulting file system connection. The working\ndirectory must be specified as an absolute path, for example C:\\Users\\joe. A working\ndirectory allows downstream nodes to access files/folders using relative paths.",
+            "default" : ""
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/useCustomWorkingDirectory",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/workingDirectory",
+      "options" : {
+        "selectionMode" : "FOLDER",
+        "format" : "stringFileChooser"
+      },
+      "providedOptions" : [ "fileSystemId" ],
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/useCustomWorkingDirectory",
+          "schema" : {
+            "const" : true
+          }
+        }
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "useCustomWorkingDirectory" : { },
+          "workingDirectory" : { }
+        }
+      }
+    }
+  },
+  "globalUpdates" : [ {
+    "trigger" : {
+      "id" : "after-open-dialog"
+    },
+    "triggerInitially" : true,
+    "dependencies" : [ "#/properties/model/properties/workingDirectory" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/workingDirectory"
+    },
+    "dependencies" : [ "#/properties/model/properties/workingDirectory" ]
+  } ]
+}
