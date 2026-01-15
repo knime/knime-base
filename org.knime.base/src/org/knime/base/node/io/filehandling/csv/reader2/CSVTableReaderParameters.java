@@ -100,7 +100,7 @@ class CSVTableReaderParameters implements NodeParameters {
 
     // CSV-specific parameters
 
-    FileEncodingParameters m_fileEncodingParams = new FileEncodingParameters();
+    CSVReaderFileEncodingParameters m_fileEncodingParams = new CSVReaderFileEncodingParameters();
 
     SkipFirstLinesOfFileParameters m_skipFirstLinesParams = new SkipFirstLinesOfFileParameters();
 

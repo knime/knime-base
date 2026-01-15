@@ -60,7 +60,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.knime.base.node.io.filehandling.csv.reader2.AutoDetectCSVFormatParameters.AutoDetectButtonRef;
 import org.knime.base.node.io.filehandling.csv.reader2.CSVFormatParameters.RowDelimiterOption;
-import org.knime.base.node.io.filehandling.csv.reader2.FileEncodingParameters.FileEncodingOption;
+import org.knime.base.node.io.filehandling.webui.FileEncodingParameters.FileEncodingOption;
 import org.knime.base.node.io.filehandling.webui.LocalWorkflowContextTest;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
@@ -138,8 +138,8 @@ class CSVFormatAutoDetectionTest extends LocalWorkflowContextTest {
         final var testFormatDependencies = new TestFormatDependencies(file);
         writeCsvFile(testFormat, testFormatDependencies);
         final var settings = new CSVTableReaderNodeParameters();
-        settings.m_csvReaderParameters.m_fileEncodingParams.m_fileEncoding = FileEncodingOption.OTHER;
-        settings.m_csvReaderParameters.m_fileEncodingParams.m_customEncoding = "Invalid custom encoding";
+        settings.m_csvReaderParameters.m_fileEncodingParams.setFileEncoding(FileEncodingOption.OTHER);
+        settings.m_csvReaderParameters.m_fileEncodingParams.setCustomEncoding("Invalid custom encoding");
         setFormatDependencies(settings, testFormatDependencies);
 
         final var simulator = createSimulator(settings);
