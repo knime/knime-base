@@ -250,20 +250,60 @@ class FileReaderNodeParameters implements NodeParameters {
 
     // ========== Advanced Settings ==========
 
-    // TODO: Implement FileEncodingParameters (reuse from CSV reader)
-    // - Map to FileReaderSettings.getCharsetName()
-    // - Config key: CFGKEY_CHARSETNAME
+    /**
+     * Custom persistor for separator characters that converts between String (UI) and char (config).
+     */
+    static class CharSeparatorPersistor implements NodeParametersPersistor<String> {
+        private final String m_configKey;
+        private final char m_defaultValue;
+        
+        CharSeparatorPersistor(final String configKey, final char defaultValue) {
+            m_configKey = configKey;
+            m_defaultValue = defaultValue;
+        }
+        
+        @Override
+        public String load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            char c = settings.getChar(m_configKey, m_defaultValue);
+            return c == '\0' ? "" : String.valueOf(c);
+        }
+        
+        @Override
+        public void save(final String obj, final NodeSettingsWO settings) {
+            char c = (obj == null || obj.isEmpty()) ? '\0' : obj.charAt(0);
+            settings.addChar(m_configKey, c);
+        }
+        
+        @Override
+        public String[][] getConfigPaths() {
+            return new String[][]{{m_configKey}};
+        }
+    }
+    
+    static class DecimalSeparatorPersistor extends CharSeparatorPersistor {
+        DecimalSeparatorPersistor() {
+            super("DecimalSeparator", '.');
+        }
+    }
+    
+    static class ThousandsSeparatorPersistor extends CharSeparatorPersistor {
+        ThousandsSeparatorPersistor() {
+            super("ThrousandsSeparator", '\0');
+        }
+    }
 
-    // TODO: Implement quote support parameter
-    // - Map to FileReaderSettings quote-related methods
-    // - From QuotePanel in Advanced dialog
+    @Widget(title = "Decimal separator",
+        description = "The character used as decimal separator in numeric values. Common values: '.' (dot) or ',' (comma).")
+    @TextInputWidget
+    @Persistor(DecimalSeparatorPersistor.class)
+    String m_decimalSeparator = ".";
 
-    // TODO: Implement decimal separator parameter
-    // - Map to FileReaderSettings.getDecimalSeparator()
-    // - Config key: CFGKEY_DECIMALSEP = "DecimalSeparator"
-    // - From DecSepPanel in Advanced dialog
-    // - Default value: '.'
-    // - In settings.xml: <entry key="DecimalSeparator" type="xchar" value="."/>
+    @Widget(title = "Thousands separator",
+        description = "The character used as thousands separator in numeric values (e.g., ',' in 1,000). "
+            + "Leave empty if no thousands separator is used.")
+    @TextInputWidget
+    @Persistor(ThousandsSeparatorPersistor.class)
+    String m_thousandsSeparator = "";
 
     @Widget(title = "Ignore empty lines",
         description = "If checked, empty lines in the file are ignored and skipped.")
