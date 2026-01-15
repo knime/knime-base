@@ -48,13 +48,17 @@ package org.knime.base.node.io.filehandling.filereader;
 
 import java.net.URL;
 
+import org.knime.base.node.io.filehandling.webui.reader2.MaxNumberOfRowsParameters;
 import org.knime.base.node.io.filehandling.webui.reader2.SingleFileSelectionParameters;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.context.url.URLConfiguration;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
+import org.knime.node.parameters.widget.text.TextInputWidget;
+import org.knime.node.parameters.widget.text.TextInputWidgetValidation.PatternValidation.IsNotEmptyValidation;
 
 /**
  * Node parameters for File Reader (Complex Format).
@@ -97,38 +101,37 @@ class FileReaderNodeParameters implements NodeParameters {
 
     // ========== Basic Settings ==========
 
-    // TODO: Implement FirstRowContainsColumnNamesParameters (reuse from CSV reader)
-    // - Use @Widget with title "Read column headers" and description from dialog
-    // - Map to FileReaderSettings.getFileHasColumnHeaders()
-    // - Config key: CFGKEY_HASCOL = "hasColHdr"
+    @Widget(title = "Read column headers",
+        description = "If checked, the items in the first line of the file are used as column names. "
+            + "Otherwise default column names are created.")
+    boolean m_readColumnHeaders = true;
 
-    // TODO: Implement FirstColumnContainsRowIdsParameters (reuse from CSV reader)
-    // - Use @Widget with title "Read RowIDs" and description from dialog
-    // - Map to FileReaderSettings.getFileHasRowHeaders()
-    // - Config key: CFGKEY_HASROW = "hasRowHdr"
+    @Widget(title = "Read RowIDs",
+        description = "If checked, the first column in the file is used as RowIDs. "
+            + "If not checked, default row headers are created.")
+    boolean m_readRowHeaders = false;
 
-    // TODO: Implement column delimiter parameter
-    // - Use TextInputWidget with common presets (comma, tab, semicolon, space, etc.)
-    // - Or use a combo-style widget if available
-    // - Map to FileReaderSettings.getAllDelimiters() (excluding row delimiters)
-    // - Description: "Enter the character(s) that separate the data tokens in the file, or select a delimiter from the list."
+    @Widget(title = "Column delimiter", description = """
+            Enter the character(s) that separate the data tokens in the file. Use '\\t' for tab character.
+            Common delimiters are comma (,), semicolon (;), tab (\\t), or space.
+            """)
+    @TextInputWidget(minLengthValidation = IsNotEmptyValidation.class)
+    String m_columnDelimiter = ",";
 
-    // TODO: Implement "Ignore spaces and tabs" parameter
-    // - Use boolean/checkbox widget
-    // - Map to FileReaderSettings.getAllWhiteSpaces()
-    // - Description: "If checked, spaces and the TAB characters are ignored (not in quoted strings though)."
+    @Widget(title = "Ignore spaces and tabs",
+        description = "If checked, spaces and the TAB characters are ignored (not in quoted strings though).")
+    boolean m_ignoreSpacesAndTabs = false;
 
     // ========== Comment Settings ==========
 
-    // TODO: Implement "Java-style comments" parameter
-    // - Use boolean/checkbox widget
-    // - Map to checking for "/*" "*/" and "//" in FileReaderSettings.getAllComments()
-    // - Description: "Everything between '/*' and '*/' is ignored. Also everything after '//' until the end of the line."
+    @Widget(title = "Java-style comments",
+        description = "Everything between '/*' and '*/' is ignored. Also everything after '//' until the end of the line.")
+    boolean m_javaStyleComments = false;
 
-    // TODO: Implement "Single line comment" parameter
-    // - Use TextInputWidget
-    // - Map to single-line comment patterns in FileReaderSettings.getAllComments()
-    // - Description: "Enter one or more characters that will indicate the start of a comment (ended by a new line)."
+    @Widget(title = "Single line comment",
+        description = "Enter one or more characters that will indicate the start of a comment (ended by a new line).")
+    @TextInputWidget
+    String m_singleLineComment = "";
 
     // ========== Advanced Settings ==========
 
@@ -145,32 +148,26 @@ class FileReaderNodeParameters implements NodeParameters {
     // - Config key: CFGKEY_DECIMALSEP = "DecimalSeparator"
     // - From DecSepPanel in Advanced dialog
 
-    // TODO: Implement "Ignore delimiters at end of row" parameter
-    // - Map to FileReaderSettings.ignoreEmptyTokensAtEndOfRow()
-    // - Config key: CFGKEY_IGNOREATEOR = "ignEmtpyTokensAtEOR"
-    // - From IgnoreDelimsPanel in Advanced dialog
+    @Widget(title = "Ignore delimiters at end of row",
+        description = "If checked, extra delimiters at the end of rows are ignored.")
+    boolean m_ignoreDelimitersAtEndOfRow = false;
 
-    // TODO: Implement "Support short lines" parameter (allow rows with fewer columns)
-    // - Map to FileReaderSettings.isSupportShortLines()
-    // - Config key: CFGKEY_SHORTLINES = "acceptShortLines"
-    // - From ShortLinesPanel in Advanced dialog
-    // - Description: "If checked, rows with too few data items are filled with missing values."
+    @Widget(title = "Support short lines",
+        description = "If checked, rows with too few data items are filled with missing values.")
+    boolean m_supportShortLines = false;
 
-    // TODO: Implement "Uniquify RowIDs" parameter
-    // - Map to FileReaderSettings.isUniquifyRowIDs()
-    // - Config key: CFGKEY_UNIQUIFYID = "uniquifyRowID"
-    // - From UniquifyPanel in Advanced dialog
-    // - Description: "If checked, makes RowIDs unique (not recommended for huge files)."
+    @Widget(title = "Make RowIDs unique",
+        description = "If checked, duplicate RowIDs are made unique by appending a suffix. "
+            + "Not recommended for huge files as it requires storing all RowIDs in memory.")
+    boolean m_uniquifyRowIds = true;
 
-    // TODO: Implement MaxNumberOfRowsParameters (reuse from CSV reader - LimitRowsPanel)
-    // - Map to FileReaderSettings.getMaxNumberOfRowsToRead()
-    // - Config key: CFGKEY_MAXROWS = "MaxNumOfRows"
+    MaxNumberOfRowsParameters m_maxNumberOfRowsParams = new MaxNumberOfRowsParameters();
 
-    // TODO: Implement "Missing value pattern" parameter
-    // - Map to FileReaderSettings.getGlobalMissPatternStrCols()
-    // - Config key: CFGKEY_GLOBALMISSPATTERN = "globalMissPattern"
-    // - From MissingValuePanel in Advanced dialog
-    // - Description: "Specify a missing value pattern for string columns."
+    @Widget(title = "Missing value pattern",
+        description = "Specify a pattern that will be interpreted as a missing value for all string columns. "
+            + "Leave empty to disable. Individual column missing value patterns can be set in the column properties.")
+    @TextInputWidget
+    String m_missingValuePattern = "";
 
     // TODO: Implement SkipFirstLinesOfFileParameters (if it exists as a reusable component)
     // - Need to verify if this exists and can be reused
@@ -184,6 +181,7 @@ class FileReaderNodeParameters implements NodeParameters {
     @Override
     public void validate() throws InvalidSettingsException {
         m_singleFileSelectionParams.validate();
+        m_maxNumberOfRowsParams.validate();
 
         // TODO: Add validation for other parameters once implemented
     }
