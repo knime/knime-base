@@ -46,10 +46,14 @@
 
 package org.knime.base.node.io.filehandling.filereader;
 
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileReaderWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
+import java.net.URL;
+
+import org.knime.base.node.io.filehandling.webui.reader2.SingleFileSelectionParameters;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.context.NodeCreationConfiguration;
+import org.knime.core.node.context.url.URLConfiguration;
 import org.knime.node.parameters.NodeParameters;
-import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
 
 /**
@@ -58,103 +62,136 @@ import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
  * @author Tim Crundall, TNG Technology Consulting GmbH
  * @author AI Migration Pipeline v1.2
  */
+@SuppressWarnings("restriction")
 @LoadDefaultsForAbsentFields
 class FileReaderNodeParameters implements NodeParameters {
 
-    // TODO: Implement the actual parameters based on the dialog configuration
-    // Use the following descriptions extracted from the node factory xml for
-    // the description tag in @Widget annotations of the respective parameters.
-    // IMPORTANT: Due to previous decoupling of node description and actually used
-    // parameters, the following options might be
-    // a) incomplete -> Sometimes there exist tooltips in the dialog however
-    // b) irrelevant/removed -> interesting to investigate why
-    // c) of slightly different structure (e.g. previously, descriptions of parameters inside array layouts might have been listed top-level)
+    FileReaderNodeParameters(final NodeParametersInput input) {
+        this(input.getURLConfiguration());
+    }
 
-    // Option: Read from
-    // Select a file system which stores the model you want to read. There are four default file system
-    // options to choose from: <br /> <ul> <li><i>Local File System:</i> Allows you to select a file
-    // from your local system. </li> <li><i>Mountpoint:</i> Allows you to read from a mountpoint. When
-    // selected, a new drop-down menu appears to choose the mountpoint. Unconnected mountpoints are
-    // greyed out but can still be selected (note that browsing is disabled in this case). Go to the
-    // KNIME Explorer and connect to the mountpoint to enable browsing. A mountpoint is displayed in red
-    // if it was previously selected but is no longer available. You won't be able to save the dialog as
-    // long as you don't select a valid i.e. known mountpoint. </li> <li><i>Relative to:</i> Allows you
-    // to choose whether to resolve the path relative to the current mountpoint, current workflow or the
-    // current workflow's data area. When selected, a new drop-down menu appears to choose which of the
-    // two options to use. </li> <li><i>Custom/KNIME URL:</i> Allows to specify a URL (e.g. file://,
-    // http:// or knime:// protocol). When selected, a spinner appears that allows you to specify the
-    // desired connection and read timeout in milliseconds. In case it takes longer to connect to the
-    // host / read the file, the node fails to execute. Browsing is disabled for this option. </li>
-    // </ul> It is possible to use other file systems with this node. Therefore, you have to enable the
-    // file system connection input port of this node by clicking the <b>...</b> in the bottom left
-    // corner of the node's icon and choose <i>Add File System Connection port</i> . <br /> Afterwards,
-    // you can simply connect the desired connector node to this node. The file system connection will
-    // then be shown in the drop-down menu. It is greyed out if the file system is not connected in
-    // which case you have to (re)execute the connector node first. Note: The default file systems
-    // listed above can't be selected if a file system is provided via the input port.
+    FileReaderNodeParameters(final NodeCreationConfiguration nodeCreationConfig) {
+        this(nodeCreationConfig.getURLConfig());
+    }
 
-    // Option: File/URL
-    // Enter a URL when reading from <i>Custom/KNIME URL</i>, otherwise enter a path to a file. The
-    // required syntax of a path depends on the chosen file system, such as "C:\path\to\file" (Local
-    // File System on Windows) or "/path/to/file" (Local File System on Linux/MacOS and Mountpoint). For
-    // file systems connected via input port, the node description of the respective connector node
-    // describes the required path format. You can also choose a previously selected file from the
-    // drop-down list, or select a location from the "Browse..." dialog. Note that browsing is disabled
-    // in some cases: <ul> <li><i>Custom/KNIME URL:</i> Browsing is always disabled.</li>
-    // <li><i>Mountpoint:</i> Browsing is disabled if the selected mountpoint isn't connected. Go to the
-    // KNIME Explorer and connect to the mountpoint to enable browsing.</li> <li><i>File systems
-    // provided via input port:</i> Browsing is disabled if the connector node hasn't been executed
-    // since the workflow has been opened. (Re)execute the connector node to enable browsing.</li> </ul>
-    // <i>The location can be exposed as or automatically set via a </i><a
-    // href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html#path">
-    // <i>path flow variable.</i></a>
-    @Widget(title = "Input file", description = "")
-    @FileReaderWidget()
-    FileSelection m_fileSelection;
+    private FileReaderNodeParameters(final java.util.Optional<? extends URLConfiguration> urlConfig) { // NOSONAR
+        if (urlConfig.isPresent()) {
+            final URL url = urlConfig.get().getUrl();
+            m_singleFileSelectionParams = new SingleFileSelectionParameters(url);
+        }
+    }
 
-    // Option: Preserve user settings
-    // If checked, the checkmarks and column names/types you explicitly entered are preserved even if
-    // you select a new file. By default, the analyzer starts with fresh default settings for each new
-    // file location.
+    FileReaderNodeParameters() {
+        // default constructor
+    }
 
-    // Option: Rescan
-    // If clicked, the file content is analyzed again. All settings are reset (unless the "Preserve user
-    // settings" option is selected) and the file is read in again to pre-set new settings and the table
-    // structure.
+    // ========== File Selection ==========
 
-    // Option: Read RowIDs
-    // If checked, the first column in the file is used as RowIDs. If not checked, default row headers
-    // are created.
+    /**
+     * File selection parameters using SingleFileSelectionParameters (single file, not multi-file like CSV reader).
+     */
+    SingleFileSelectionParameters m_singleFileSelectionParams = new SingleFileSelectionParameters();
 
-    // Option: Read column headers
-    // If checked, the items in the first line of the file are used as column names. Otherwise default
-    // column names are created.
+    // NOTE: "Preserve user settings" checkbox is a UI-only behavior feature and is not migrated
+    // as it controls dialog behavior, not node execution settings.
 
-    // Option: Column delimiter
-    // Enter the character(s) that separate the data tokens in the file, or select a delimiter from the
-    // list.
+    // ========== Basic Settings ==========
 
-    // Option: Ignore spaces and tabs
-    // If checked, spaces and the TAB characters are ignored (not in quoted strings though).
+    // TODO: Implement FirstRowContainsColumnNamesParameters (reuse from CSV reader)
+    // - Use @Widget with title "Read column headers" and description from dialog
+    // - Map to FileReaderSettings.getFileHasColumnHeaders()
+    // - Config key: CFGKEY_HASCOL = "hasColHdr"
 
-    // Option: Java style comment
-    // Everything between '/*' and '*\/' is ignored. Also everything after '//' until the end of the
-    // line.
+    // TODO: Implement FirstColumnContainsRowIdsParameters (reuse from CSV reader)
+    // - Use @Widget with title "Read RowIDs" and description from dialog
+    // - Map to FileReaderSettings.getFileHasRowHeaders()
+    // - Config key: CFGKEY_HASROW = "hasRowHdr"
 
-    // Option: Single line comment
-    // Enter one or more characters that will indicate the start of a comment (ended by a new line).
+    // TODO: Implement column delimiter parameter
+    // - Use TextInputWidget with common presets (comma, tab, semicolon, space, etc.)
+    // - Or use a combo-style widget if available
+    // - Map to FileReaderSettings.getAllDelimiters() (excluding row delimiters)
+    // - Description: "Enter the character(s) that separate the data tokens in the file, or select a delimiter from the list."
 
-    // Option: Advanced...
-    // Opens a new dialog with advanced settings. There is support for quotes, different decimal
-    // separators in floating point numbers, and character encoding. Also, for ignoring whitespaces, for
-    // allowing rows with too few data items, for making RowIDs unique (not recommended for huge files),
-    // for a global missing value pattern, and for limiting the number of rows read in.
+    // TODO: Implement "Ignore spaces and tabs" parameter
+    // - Use boolean/checkbox widget
+    // - Map to FileReaderSettings.getAllWhiteSpaces()
+    // - Description: "If checked, spaces and the TAB characters are ignored (not in quoted strings though)."
 
-    // Option: Click on the table header
-    // If the column header in the preview table is clicked, a new dialog opens where column properties
-    // can be set: name and type can be changed (and will be fixed then). A pattern can be entered that
-    // will cause a "missing cell" to be created when it's read for this column. Additionally, possible
-    // values of the column domain can be updated by selecting "Domain". And, you can choose to skip
-    // this column entirely, i.e. it will not be included in the output table then.
+    // ========== Comment Settings ==========
+
+    // TODO: Implement "Java-style comments" parameter
+    // - Use boolean/checkbox widget
+    // - Map to checking for "/*" "*/" and "//" in FileReaderSettings.getAllComments()
+    // - Description: "Everything between '/*' and '*/' is ignored. Also everything after '//' until the end of the line."
+
+    // TODO: Implement "Single line comment" parameter
+    // - Use TextInputWidget
+    // - Map to single-line comment patterns in FileReaderSettings.getAllComments()
+    // - Description: "Enter one or more characters that will indicate the start of a comment (ended by a new line)."
+
+    // ========== Advanced Settings ==========
+
+    // TODO: Implement FileEncodingParameters (reuse from CSV reader)
+    // - Map to FileReaderSettings.getCharsetName()
+    // - Config key: CFGKEY_CHARSETNAME
+
+    // TODO: Implement quote support parameter
+    // - Map to FileReaderSettings quote-related methods
+    // - From QuotePanel in Advanced dialog
+
+    // TODO: Implement decimal separator parameter
+    // - Map to FileReaderSettings.getDecimalSeparator()
+    // - Config key: CFGKEY_DECIMALSEP = "DecimalSeparator"
+    // - From DecSepPanel in Advanced dialog
+
+    // TODO: Implement "Ignore delimiters at end of row" parameter
+    // - Map to FileReaderSettings.ignoreEmptyTokensAtEndOfRow()
+    // - Config key: CFGKEY_IGNOREATEOR = "ignEmtpyTokensAtEOR"
+    // - From IgnoreDelimsPanel in Advanced dialog
+
+    // TODO: Implement "Support short lines" parameter (allow rows with fewer columns)
+    // - Map to FileReaderSettings.isSupportShortLines()
+    // - Config key: CFGKEY_SHORTLINES = "acceptShortLines"
+    // - From ShortLinesPanel in Advanced dialog
+    // - Description: "If checked, rows with too few data items are filled with missing values."
+
+    // TODO: Implement "Uniquify RowIDs" parameter
+    // - Map to FileReaderSettings.isUniquifyRowIDs()
+    // - Config key: CFGKEY_UNIQUIFYID = "uniquifyRowID"
+    // - From UniquifyPanel in Advanced dialog
+    // - Description: "If checked, makes RowIDs unique (not recommended for huge files)."
+
+    // TODO: Implement MaxNumberOfRowsParameters (reuse from CSV reader - LimitRowsPanel)
+    // - Map to FileReaderSettings.getMaxNumberOfRowsToRead()
+    // - Config key: CFGKEY_MAXROWS = "MaxNumOfRows"
+
+    // TODO: Implement "Missing value pattern" parameter
+    // - Map to FileReaderSettings.getGlobalMissPatternStrCols()
+    // - Config key: CFGKEY_GLOBALMISSPATTERN = "globalMissPattern"
+    // - From MissingValuePanel in Advanced dialog
+    // - Description: "Specify a missing value pattern for string columns."
+
+    // TODO: Implement SkipFirstLinesOfFileParameters (if it exists as a reusable component)
+    // - Need to verify if this exists and can be reused
+
+    // ========== NOT Migrated (UI-only features) ==========
+    // - "Rescan" button - UI action only
+    // - Preview table - UI feature only
+    // - Column properties dialog (click column header) - transformation/spec inference handled separately
+    // - Analysis/Quick Scan features - UI behavior only
+
+    @Override
+    public void validate() throws InvalidSettingsException {
+        m_singleFileSelectionParams.validate();
+
+        // TODO: Add validation for other parameters once implemented
+    }
+
+    // TODO: Implement saveToConfig methods to persist to FileReaderNodeSettings
+    // void saveToConfig(final FileReaderNodeSettings settings) {
+    //     m_singleFileSelectionParams.saveToSource(...);
+    //     // Save other parameters
+    // }
 
 }
