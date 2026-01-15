@@ -123,8 +123,9 @@ public abstract class DefaultAggregationMethodProvider<F extends AggregationFunc
      * @return the default aggregation function
      */
     private Optional<AggregationSpec> getDefault(final NodeParametersInput parametersInput, final DataType type) {
-        return parametersInput.getInPortSpec(0) //
-            .flatMap(this::getUtility) //
+        final var inSpec = parametersInput.getInPortSpec(0).orElse(null);
+        // can always get the utility, even if the input is not attached
+        return getUtility(inSpec) //
             .flatMap(util -> util.getDefaultFunction(type)) //
             .map(def -> new AggregationSpec(def.getId(), def.getLabel(), def.hasOptionalSettings()));
     }

@@ -203,7 +203,7 @@ public abstract class AggregationFunctionParametersProvider<F extends Aggregatio
      * @param functionId the ID of the selected aggregation function
      * @param currentValue the currently present, {@code null}able aggregation function parameters, if any
      * @return the created fallback parameters
-     * @throws StateComputationFailureException
+     * @throws StateComputationFailureException if the function provider does not know a function for the given ID
      */
     private final AggregationOperatorParameters createFallbackParameters(
         final AggregationFunctionsUtility<F> functions,

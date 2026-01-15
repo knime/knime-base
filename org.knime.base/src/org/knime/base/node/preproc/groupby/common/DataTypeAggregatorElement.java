@@ -116,8 +116,8 @@ final class DataTypeAggregatorElement implements NodeParameters {
     static final class DataTypeAggregationRef implements AggregationMethodRef {
     } //
 
-    static final class DataTypeAggregationChoices extends AggregationChoicesByTypeRef<AggregationMethodsUtility,
-        AggregationMethod> {
+    static final class DataTypeAggregationChoices extends AggregationChoicesByTypeRef<AggregationMethod,
+        AggregationMethodsUtility> {
 
         @Override
         protected Class<? extends ParameterReference<DataType>> getTypeProvider() {
@@ -125,8 +125,8 @@ final class DataTypeAggregatorElement implements NodeParameters {
         }
 
         @Override
-        protected AggregationMethodsUtility getUtility(final PortObjectSpec spec) {
-            return AggregationMethodsUtility.getInstance();
+        protected Optional<AggregationMethodsUtility> getUtility(final PortObjectSpec spec) {
+            return Optional.of(AggregationMethodsUtility.getInstance());
         }
 
     }
@@ -138,7 +138,7 @@ final class DataTypeAggregatorElement implements NodeParameters {
     @ChoicesProvider(DataTypeAggregationChoices.class)
     @ValueProvider(DefaultMethodProvider.class)
     @PersistArrayElement(LegacyDataTypeAggregatorsArrayPersistor.AggregationMethodPersistor.class)
-    String m_aggregationMethod = "First";
+    String m_aggregationMethod;
 
     static final class NoPersistence
         extends NoPersistenceElementFieldPersistor<Boolean, IndexedElement, DataTypeAggregatorElementDTO> {
