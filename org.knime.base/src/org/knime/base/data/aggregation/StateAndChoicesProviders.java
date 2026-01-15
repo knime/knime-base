@@ -137,19 +137,22 @@ public final class StateAndChoicesProviders {
      * reference.
      *
      * @param <F> the aggregation function type
+     * @param <P> the aggregation function utility type
      */
-    public abstract static class AggregationChoicesByTypeRef<P extends AggregationFunctionsUtility<F>,
-        F extends AggregationFunction> implements StringChoicesProvider {
+    public abstract static class AggregationChoicesByTypeRef<F extends AggregationFunction,
+            P extends AggregationFunctionsUtility<F>> implements StringChoicesProvider {
 
         private Supplier<DataType> m_type;
 
         /**
-         * Gets the aggregation function provider (to obtain compatible functions from) from the parameters input.
+         * Gets the aggregation function utility (to obtain compatible functions from)
+         * from the given port object spec. In case the port object spec is required to determine the utility,
+         * e.g. from an active DB session, but the passed spec is {@code null}, an empty optional may be returned.
          *
-         * @param spec the input port spec
-         * @return the aggregation function provider
+         * @param spec the {@code null}able input port spec
+         * @return the aggregation function utility, if available
          */
-        protected abstract P getUtility(PortObjectSpec spec);
+        protected abstract Optional<P> getUtility(PortObjectSpec spec);
 
         /**
          * Gets the type provider reference class on which the compatible functions are based.
@@ -166,8 +169,9 @@ public final class StateAndChoicesProviders {
 
         @Override
         public List<StringChoice> computeState(final NodeParametersInput parametersInput) {
-            return parametersInput.getInPortSpec(0) //
-                    .map(this::getUtility) //
+            final var inSpec = parametersInput.getInPortSpec(0).orElse(null);
+            // can always get the utility, even if the input is not attached
+            return getUtility(inSpec) //
                     .map(util -> util.getCompatibleAggregationFunctions(m_type.get(), /*sorted*/ true)) //
                     .orElseGet(Stream::empty) //
                     .map(agg -> new StringChoice(agg.getId(), agg.getLabel())).toList(); //
