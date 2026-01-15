@@ -48,6 +48,7 @@
 				<module>org.knime.deprecated</module>
 				<module>org.knime.features.base</module>
 				<module>org.knime.filehandling.core.fs.nodes</module>
+				<module>org.knime.filehandling.core.fs.nodes.tests</module>
 				<module>org.knime.filehandling.utility.nodes</module>
 				<module>org.knime.filehandling.utility.nodes.tests</module>
 				<module>org.knime.time.tests</module>

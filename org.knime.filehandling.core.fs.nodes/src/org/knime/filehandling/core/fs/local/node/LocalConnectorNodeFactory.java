@@ -48,40 +48,74 @@
  */
 package org.knime.filehandling.core.fs.local.node;
 
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.impl.WebUINodeConfiguration;
+import org.knime.core.webui.node.impl.WebUINodeFactory;
+import org.knime.filehandling.core.port.FileSystemPortObject;
 
 /**
  * Factory class for the Local FS Connector node.
  *
  * @author Alexander Bondaletov
+ * @author Jannik Löscher, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.2
  */
-public class LocalConnectorNodeFactory extends NodeFactory<LocalConnectorNodeModel> {
+@SuppressWarnings({"restriction", "deprecation"})
+public class LocalConnectorNodeFactory extends WebUINodeFactory<LocalConnectorNodeModel> {
+
+    /**
+     * Create a new factory.
+     */
+    public LocalConnectorNodeFactory() {
+        super(CONFIGURATION);
+    }
+
+    private static final String NODE_NAME = "Local File System Connector";
+
+    private static final String NODE_ICON = "./file_system_connector.png";
+
+    private static final String SHORT_DESCRIPTION = """
+            Provides a file system connection with access to the file system of the local machine.
+            """;
+
+    private static final String FULL_DESCRIPTION = """
+            <p>
+                This node provides access to the file system of the local machine. The resulting output port allows
+                downstream nodes to access <i>files</i>, e.g. to read or write, or to perform other file system
+                operations (browse/list files, copy, move, ...).
+            </p>
+            <p>
+                <b>Note:</b> In many cases it is not necessary to use this connector node to access the local file
+                system. Nodes that require file system access (e.g. the File Reader node) typically provide local
+                file system access, for example by choosing <i>Read from</i> &gt; <i>Local File System.</i> The
+                purpose of this connector node is to make file access with
+                <a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html\
+            #path-syntax">relative paths</a>
+                more flexible, by allowing to explicitly configure the
+                <a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html\
+            #working-directory">working directory</a>
+                of the resulting file system connection. For example, this makes it easier to relocate (or change) the
+                files that your workflow accesses, because you only need to change the working directory.
+            </p>
+            <p>
+                <b>Path syntax:</b> The path syntax is identical to the one used by the operating system of the
+                machine where this node is running, e.g. on Windows a path could look like <tt>C:\\Users\\joe</tt>.
+            </p>
+            """;
+
+    private static final WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder() //
+        .name(NODE_NAME) //
+        .icon(NODE_ICON) //
+        .shortDescription(SHORT_DESCRIPTION) //
+        .fullDescription(FULL_DESCRIPTION) //
+        .modelSettingsClass(LocalConnectorNodeParameters.class) //
+        .nodeType(NodeType.Source) //
+        .sinceVersion(4, 5, 0) //
+        .addOutputPort("Local File System Connection", FileSystemPortObject.TYPE, "Local File System Connection")
+        .build();
 
     @Override
     public LocalConnectorNodeModel createNodeModel() {
         return new LocalConnectorNodeModel();
-    }
-
-    @Override
-    protected int getNrNodeViews() {
-        return 0;
-    }
-
-    @Override
-    public NodeView<LocalConnectorNodeModel> createNodeView(final int viewIndex, final LocalConnectorNodeModel nodeModel) {
-        return null;
-    }
-
-    @Override
-    protected boolean hasDialog() {
-        return true;
-    }
-
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new LocalConnectorNodeDialog();
     }
 
 }

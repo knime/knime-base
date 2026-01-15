@@ -1,0 +1,18 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Unit-Tests for org.knime.filehandling.core.fs.nodes
+Bundle-SymbolicName: org.knime.filehandling.core.fs.nodes.tests;singleton:=true
+Bundle-Version: 5.11.0.qualifier
+Fragment-Host: org.knime.filehandling.core.fs.nodes;bundle-version="[5.11.0,6.0.0)"
+Bundle-RequiredExecutionEnvironment: JavaSE-21
+Require-Bundle: org.junit;bundle-version="[4.12.0,5.0.0)",
+ org.knime.testing;bundle-version="[5.6.0,6.0.0)",
+ org.mockito.mockito-core;bundle-version="[5.18.0,6.0.0)",
+ org.hamcrest.library;bundle-version="[2.2.0,3.0.0)",
+ org.knime.filehandling.core.tests.common;bundle-version="[5.6.0,6.0.0)",
+ junit-jupiter-api;bundle-version="[5.9.2,6.0.0)",
+ junit-platform-suite-api;bundle-version="[1.9.2,2.0.0)",
+ junit-jupiter-params;bundle-version="[5.9.2,6.0.0)",
+ org.knime.core.ui.testing;bundle-version="[5.6.0,6.0.0)"
+Bundle-Vendor: KNIME AG, Zurich, Switzerland
+Automatic-Module-Name: org.knime.filehandling.core.fs.nodes.tests
