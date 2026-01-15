@@ -199,8 +199,6 @@ public abstract class AggregationFunctionParametersProvider<F extends Aggregatio
     /**
      * Creates legacy parameters in case no parameter class is registered for the selected aggregation method.
      *
-     * @param functions
-     *
      * @param functions the aggregation function utility
      * @param functionId the ID of the selected aggregation function
      * @param currentValue the currently present, {@code null}able aggregation function parameters, if any
