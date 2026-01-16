@@ -59,9 +59,6 @@ import org.knime.filehandling.core.data.location.FSLocationValue;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
-import org.knime.node.parameters.layout.After;
-import org.knime.node.parameters.layout.Layout;
-import org.knime.node.parameters.layout.Section;
 import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
 import org.knime.node.parameters.persistence.NodeParametersPersistor;
 import org.knime.node.parameters.persistence.Persist;
@@ -90,25 +87,17 @@ import org.knime.node.parameters.widget.text.TextInputWidget;
 @LoadDefaultsForAbsentFields
 class PathToStringNodeParameters implements NodeParameters {
 
-    @Section(title = "Column selection")
-    interface ColumnSelectionSection {
-    }
 
-    @Section(title = "Output")
-    @After(ColumnSelectionSection.class)
-    interface OutputSection {
-    }
-
-    @Layout(ColumnSelectionSection.class)
     @Widget(title = "Path column", description = """
             The Path column that will be converted to a String column.
             """)
     @ChoicesProvider(FSLocationColumnChoicesProvider.class)
     @ValueProvider(ColumnNameAutoGuesser.class)
     @Persist(configKey = PathToStringNodeModel.CFG_SELECTED_COLUMN_NAME)
+    @ValueReference(SelectedColumnRef.class)
     String m_selectedColumn;
 
-    @Layout(OutputSection.class)
+
     @Widget(title = "Output mode", description = """
             Choose whether to append a new column or replace the selected column.
             """)
@@ -120,7 +109,6 @@ class PathToStringNodeParameters implements NodeParameters {
     static final class OutputModeRef implements ParameterReference<OutputMode> {
     };
 
-    @Layout(OutputSection.class)
     @Widget(title = "Output column name", description = """
             The name of the new column to be created.
             """)
@@ -129,7 +117,6 @@ class PathToStringNodeParameters implements NodeParameters {
     @Persist(configKey = PathToStringNodeModel.CFG_APPENDED_COLUMN_NAME)
     String m_appendedColumnName = "Location";
 
-    @Layout(OutputSection.class)
     @Widget(title = "Create KNIME URL for 'Relative to' and 'Mountpoint' file systems", description = """
             This option is only relevant for paths with the Relative to workflow data area,
             Relative to workflow, Relative to mountpoint or Mountpoint file system. If checked,
@@ -154,9 +141,13 @@ class PathToStringNodeParameters implements NodeParameters {
 
         @Override
         public List<DataColumnSpec> columnChoices(final NodeParametersInput context) {
-            return ((Collection<DataColumnSpec>)context.getInPortSpecs()[0] //
-            ).stream() //
-                .filter(colSpec -> colSpec.getType().isCompatible(FSLocationValue.class)) //
+            final var tableSpecOpt = context.getInTableSpec(0);
+            if (tableSpecOpt.isEmpty()) {
+                return List.of();
+            }
+
+            return tableSpecOpt.get().stream()
+                .filter(colSpec -> colSpec.getType().isCompatible(FSLocationValue.class))
                 .toList();
         }
     }
