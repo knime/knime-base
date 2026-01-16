@@ -133,15 +133,16 @@ public abstract class TransformationParameters<T>
     @Effect(predicate = UseNewSchema.class, type = EffectType.HIDE)
     @After(MultipleFileHandling.class)
     interface Transformation {
-        String DESCRIPTION = """
-            Use this option to modify the structure of the table. You can deselect each column to filter it out of the
-            output table, use the arrows to reorder the columns, or change the column name or column type of each
-            column. Note that the positions of columns are reset in the dialog if a new file or folder is selected.
-            Whether and where to add unknown columns during execution is specified via the special row &lt;any unknown
-            new column&gt;. It is also possible to select the type new columns should be converted to. Note that the
-            node will fail if this conversion is not possible e.g. if the selected type is Integer but the new column is
-            of type Double.
-            """;
+        String DESCRIPTION =
+            """
+                    Use this option to modify the structure of the table. You can deselect each column to filter it out of the
+                    output table, use the arrows to reorder the columns, or change the column name or column type of each
+                    column. Note that the positions of columns are reset in the dialog if a new file or folder is selected.
+                    Whether and where to add unknown columns during execution is specified via the special row &lt;any unknown
+                    new column&gt;. It is also possible to select the type new columns should be converted to. Note that the
+                    node will fail if this conversion is not possible e.g. if the selected type is Integer but the new column is
+                    of type Double.
+                    """;
 
         /**
          * Enforce type mappings as configured in the dialog.
@@ -158,15 +159,25 @@ public abstract class TransformationParameters<T>
     }
 
     /**
-     * The serializable and persistable equivalent of the {@link TypedReaderColumnSpec}
+     * The serializable and persistable equivalent of the {@link TypedReaderColumnSpec}. Visible for testing classes in
+     * org.knime.base.node.io.filehandling.webui.testing
      */
-    static final class ColumnSpecSettings implements NodeParameters {
+    public static final class ColumnSpecSettings implements NodeParameters {
 
-        String m_name;
+        /**
+         * visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
+         */
+        public String m_name;
 
-        String m_type;
+        /**
+         * visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
+         */
+        public String m_type;
 
-        ColumnSpecSettings(final String name, final String type) {
+        /**
+         * Visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
+         */
+        public ColumnSpecSettings(final String name, final String type) {
             m_name = name;
             m_type = type;
         }
@@ -180,11 +191,20 @@ public abstract class TransformationParameters<T>
      */
     public static final class TableSpecSettings implements NodeParameters {
 
-        FSLocation m_fsLocation;
+        /**
+         * visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
+         */
+        public FSLocation m_fsLocation;
 
-        ColumnSpecSettings[] m_spec;
+        /**
+         * visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
+         */
+        public ColumnSpecSettings[] m_spec;
 
-        TableSpecSettings(final FSLocation fsLocation, final ColumnSpecSettings[] spec) {
+        /**
+         * visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
+         */
+        public TableSpecSettings(final FSLocation fsLocation, final ColumnSpecSettings[] spec) {
             m_fsLocation = fsLocation;
             m_spec = spec;
         }
@@ -199,8 +219,12 @@ public abstract class TransformationParameters<T>
     @ValueReference(TableSpecSettingsRef.class)
     // for adding dynamic and provider
     @Modification.WidgetReference(TransformationSettingsWidgetModification.SpecsRef.class)
-    // Note that this field remains `null` until it is updated by the state provider when specs could be computed.
-    TableSpecSettings[] m_specs;
+
+    /*
+     * Note that this field remains `null` until it is updated by the state provider when specs could be computed.
+     * visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
+     */
+    public TableSpecSettings[] m_specs;
 
     @Widget(title = "Enforce types", description = """
             Controls how columns whose type changes are dealt with.
@@ -211,7 +235,10 @@ public abstract class TransformationParameters<T>
     @Layout(Transformation.EnforceTypes.class)
     boolean m_enforceTypes = true;
 
-    static class TransformationElementSettings implements WidgetGroup, Persistable {
+    /**
+     * Visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
+     */
+    public static class TransformationElementSettings implements WidgetGroup, Persistable {
 
         static class ColumnNameRef implements ParameterReference<String> {
         }
@@ -223,15 +250,21 @@ public abstract class TransformationParameters<T>
             }
         }
 
+        /**
+         * visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
+         */
         @ValueReference(ColumnNameRef.class)
         @JsonInclude(Include.ALWAYS) // Necessary for the ColumnNameIsNull PredicateProvider to work
-        String m_columnName;
+        public String m_columnName;
 
         static class OriginalTypeRef implements ParameterReference<String> {
         }
 
+        /**
+         * visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
+         */
         @ValueReference(OriginalTypeRef.class)
-        String m_originalType;
+        public String m_originalType;
 
         static class OriginalTypeLabelRef implements ParameterReference<String> {
         }
@@ -239,9 +272,12 @@ public abstract class TransformationParameters<T>
         @ValueReference(OriginalTypeLabelRef.class)
         String m_originalTypeLabel;
 
+        /**
+         * Visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
+         */
         @Widget(title = "Include in output", description = "") // TODO NOSONAR UIEXT-1901 add description
         @ArrayWidgetInternal.ElementCheckboxWidget
-        boolean m_includeInOutput;
+        public boolean m_includeInOutput;
 
         static final class ColumnNameResetter implements StateProvider<String> {
 
@@ -316,27 +352,36 @@ public abstract class TransformationParameters<T>
             }
         }
 
+        /**
+         * visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
+         */
         @Widget(title = "Column name", description = "")
         @WidgetInternal(hideControlHeader = true)
         @ValueProvider(ColumnNameResetter.class)
         @Effect(predicate = ElementIsEditedAndColumnNameIsNotNull.class, type = EffectType.SHOW)
         @JsonInclude(Include.ALWAYS) // Necessary for comparison against m_columnName
         @TextInputWidget(patternValidation = ColumnNameValidationUtils.ColumnNameValidation.class)
-        String m_columnRename;
+        public String m_columnRename;
 
+        /**
+         * visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
+         */
         @Widget(title = "Column type", description = "")
         @WidgetInternal(hideControlHeader = true)
         // for adding dynamic choices
         @Modification.WidgetReference(TransformationSettingsWidgetModification.TypeChoicesWidgetRef.class)
         @ValueProvider(TypeResetter.class)
         @Effect(predicate = ArrayWidgetInternal.ElementIsEdited.class, type = EffectType.SHOW)
-        String m_type;
+        public String m_type;
 
         TransformationElementSettings() {
         }
 
-        TransformationElementSettings(final String columnName, final boolean includeInOutput, final String columnRename,
-            final String type, final String originalType, final String originalTypeLabel) {
+        /**
+         * visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
+         */
+        public TransformationElementSettings(final String columnName, final boolean includeInOutput,
+            final String columnRename, final String type, final String originalType, final String originalTypeLabel) {
             m_columnName = columnName;
             m_includeInOutput = includeInOutput;
             m_columnRename = columnRename;
@@ -345,7 +390,10 @@ public abstract class TransformationParameters<T>
             m_originalTypeLabel = originalTypeLabel;
         }
 
-        static TransformationElementSettings createUnknownElement() {
+        /**
+         * visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
+         */
+        public static TransformationElementSettings createUnknownElement() {
             return new TransformationElementSettings(null, true, null, TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID,
                 TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID, TypeChoicesProvider.DEFAULT_COLUMNTYPE_TEXT);
         }
@@ -365,7 +413,8 @@ public abstract class TransformationParameters<T>
             TransformationElementSettingsArrayWidgetRef.class)
     @Effect(predicate = FileSystemPortConnectionUtil.ConnectedWithoutFileSystemSpec.class, type = EffectType.HIDE)
     @Layout(Transformation.ColumnTransformation.class)
-    TransformationElementSettings[] m_columnTransformation =
+    // visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
+    public TransformationElementSettings[] m_columnTransformation =
         new TransformationElementSettings[]{TransformationElementSettings.createUnknownElement()};
 
     /**

@@ -46,7 +46,7 @@
  * History
  *   May 28, 2024 (marcbux): created
  */
-package org.knime.base.node.io.filehandling.webui.reader2;
+package org.knime.base.node.io.filehandling.webui.testing.reader2;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -55,7 +55,10 @@ import java.util.function.Function;
 import java.util.function.UnaryOperator;
 import java.util.stream.IntStream;
 
+import org.knime.base.node.io.filehandling.webui.reader2.ClassSerializer;
+import org.knime.base.node.io.filehandling.webui.reader2.DataTypeSerializer;
 import org.knime.base.node.io.filehandling.webui.reader2.ReaderSpecific.ExternalDataTypeSerializer;
+import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters;
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.ColumnSpecSettings;
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.TableSpecSettings;
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.TransformationElementSettings;
@@ -182,6 +185,7 @@ public class TransformationParametersStateProviderTestUtils {
 
         final var unknownElement = TransformationElementSettings.createUnknownElement();
         unknownElement.m_includeInOutput = false;
+        // make visible via reflection
         unknownElement.m_type = DataTypeSerializer.typeToString(unknownColumnsDataType);
 
         transformationSettings.m_columnTransformation =

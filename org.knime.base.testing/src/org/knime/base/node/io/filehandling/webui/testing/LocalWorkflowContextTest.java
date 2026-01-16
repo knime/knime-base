@@ -46,7 +46,7 @@
  * History
  *   Mar 27, 2024 (Paul Bärnreuther): created
  */
-package org.knime.base.node.io.filehandling.webui;
+package org.knime.base.node.io.filehandling.webui.testing;
 
 import java.io.IOException;
 import java.nio.file.Files;

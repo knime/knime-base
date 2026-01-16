@@ -46,14 +46,14 @@
  * History
  *   Oct 1, 2024 (Paul Bärnreuther): created
  */
-package org.knime.base.node.io.filehandling.webui.reader2;
+package org.knime.base.node.io.filehandling.webui.testing.reader2;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.knime.base.node.io.filehandling.webui.reader2.TransformationParametersStateProviderTestUtils.assertTableSpec;
-import static org.knime.base.node.io.filehandling.webui.reader2.TransformationParametersStateProviderTestUtils.assertTransformationElementSettings;
-import static org.knime.base.node.io.filehandling.webui.reader2.TransformationParametersStateProviderTestUtils.setTransformationElementSettings;
-import static org.knime.base.node.io.filehandling.webui.reader2.TransformationParametersStateProviderTestUtils.setTransformationElementSettingsWithExisting;
-import static org.knime.base.node.io.filehandling.webui.reader2.TransformationParametersStateProviderTestUtils.setTransformationElementSettingsWithUnknown;
+import static org.knime.base.node.io.filehandling.webui.testing.reader2.TransformationParametersStateProviderTestUtils.assertTableSpec;
+import static org.knime.base.node.io.filehandling.webui.testing.reader2.TransformationParametersStateProviderTestUtils.assertTransformationElementSettings;
+import static org.knime.base.node.io.filehandling.webui.testing.reader2.TransformationParametersStateProviderTestUtils.setTransformationElementSettings;
+import static org.knime.base.node.io.filehandling.webui.testing.reader2.TransformationParametersStateProviderTestUtils.setTransformationElementSettingsWithExisting;
+import static org.knime.base.node.io.filehandling.webui.testing.reader2.TransformationParametersStateProviderTestUtils.setTransformationElementSettingsWithUnknown;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -71,12 +71,13 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
-import org.knime.base.node.io.filehandling.webui.LocalWorkflowContextTest;
 import org.knime.base.node.io.filehandling.webui.reader.DataTypeStringSerializer;
+import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters;
 import org.knime.base.node.io.filehandling.webui.reader2.MultiFileReaderParameters.HowToCombineColumnsOption;
 import org.knime.base.node.io.filehandling.webui.reader2.ReaderSpecific.ExternalDataTypeSerializer;
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.TableSpecSettings;
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.TransformationElementSettings;
+import org.knime.base.node.io.filehandling.webui.testing.LocalWorkflowContextTest;
 import org.knime.core.data.DataType;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
