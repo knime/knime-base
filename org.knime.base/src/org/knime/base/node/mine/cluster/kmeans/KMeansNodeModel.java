@@ -450,7 +450,7 @@ public final class KMeansNodeModel extends WebUINodeModel<KMeansNodeParameters> 
         final Set<Long> randomInitialization = new HashSet<>();
         final RandomDataGenerator rdg = new RandomDataGenerator();
         rdg.reSeed(getSeedOrRandom(modelSettings));
-        while (randomInitialization.size() < modelSettings.m_nrOfClusters) {
+        while (randomInitialization.size() < Math.min(nrOfRows, modelSettings.m_nrOfClusters)) {
             randomInitialization.add(rdg.nextLong(0L, nrOfRows - 1));
         }
         return randomInitialization;
