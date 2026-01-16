@@ -110,7 +110,7 @@ public abstract class DefaultAggregationMethodProvider<F extends AggregationFunc
         }
         final var type = m_typeSupplier.get();
         return getDefault(parametersInput, type) //
-                .map(agg -> agg.id()) //
+                .map(AggregationSpec::id) //
                 // if there is no default available, we clear the selection
                 .orElse(null);
     }

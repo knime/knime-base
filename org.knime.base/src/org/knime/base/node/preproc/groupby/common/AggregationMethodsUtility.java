@@ -71,6 +71,7 @@ public final class AggregationMethodsUtility extends AggregationFunctionsUtility
 
     /**
      * Gets the singleton instance of this utility.
+     *
      * @return the singleton instance
      */
     public static AggregationMethodsUtility getInstance() {
@@ -88,13 +89,11 @@ public final class AggregationMethodsUtility extends AggregationFunctionsUtility
 
     @Override
     protected Stream<AggregationMethod> getCompatibleAggregationFunctions(final DataType type, final boolean sorted) {
-        // TODO UIEXT-3126 verify that sort order is consistent with old dialog implementation
         return AggregationMethods.getCompatibleMethods(type, sorted).stream();
     }
 
     @Override
     protected Stream<AggregationMethod> getFunctions(final boolean sorted) {
-        // TODO UIEXT-3126 verify that sort order is consistent with old dialog implementation
         return AggregationMethods.getInstance().getFunctions(sorted).stream();
     }
 
@@ -105,13 +104,8 @@ public final class AggregationMethodsUtility extends AggregationFunctionsUtility
 
     @Override
     public Optional<Class<? extends AggregationOperatorParameters>>
-            lookupParametersForFunction(final AggregationSpec fun) {
+        lookupParametersForFunction(final AggregationSpec fun) {
         return AggregationMethods.getInstance().getParametersClassFor(fun.id());
-    }
-
-    public static AggregationMethod getDefaultFunctionFallback() {
-        // TODO UIEXT-3126 check whether we rather want to work with no fallback if no spec is available
-        return AggregationMethods.getDefaultNotNumericalMethod();
     }
 
 }
