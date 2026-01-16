@@ -177,8 +177,13 @@ class PathToStringNodeParameters implements NodeParameters {
             if (fsLocationColumns.size() == 1) {
             return Optional.of(fsLocationColumns.get(0));
        }
-            // TODO Auto-generated method stub
-            return Optional.empty();
+            @SuppressWarnings("unchecked")
+            final Collection<DataColumnSpec> columnSpecs =
+                (Collection<DataColumnSpec>)parametersInput.getInPortSpecs()[0];
+
+            return columnSpecs.stream()
+                .filter(colSpec -> colSpec.getType().isCompatible(FSLocationValue.class))
+                .findFirst();
         }
     }
 
