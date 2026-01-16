@@ -44,57 +44,53 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   22 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   20 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.groupby.common;
+package org.knime.base.data.aggregation;
 
-import java.util.function.Supplier;
+import java.util.function.Consumer;
 
-import org.knime.base.data.aggregation.AggregationMethods;
-import org.knime.core.data.DataType;
-import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
-import org.knime.node.parameters.NodeParametersInput;
-import org.knime.node.parameters.updates.ParameterReference;
-import org.knime.node.parameters.updates.StateProvider;
+import org.knime.core.node.NodeSettings;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.webui.node.dialog.FallbackDialogNodeParameters;
 
 /**
- * Selects the default aggregation method based on the type, if a method is not already provided.
+ * Parameters to display operator settings in "fallback style".
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ * @since 5.10
  */
-abstract class DefaultAggregationMethodProvider implements StateProvider<String> {
-
-    /** The currently selected method to avoid updating it if it is already set. */
-    private Supplier<String> m_methodSelf;
-
-    private Supplier<DataType> m_typeSupplier;
+@SuppressWarnings("restriction")
+public final class FallbackAggregationOperatorParameters extends FallbackDialogNodeParameters
+    implements AggregationOperatorParameters {
 
     /**
-     * @return type provider class to obtain method for
+     * Creates parameters from the given node settings.
+     *
+     * @param key settings key under which the contained settings are stored
+     * @param nodeSettings the node settings to read from
      */
-    abstract Class<? extends ParameterReference<DataType>> getTypeProvider();
+    public FallbackAggregationOperatorParameters(final String key, final NodeSettingsRO nodeSettings) {
+        super(createNodeSettings(key, nodeSettings));
+    }
+
+    private static NodeSettings createNodeSettings(final String key, final NodeSettingsRO nodeSettings) {
+        final var settings = new NodeSettings(key);
+        nodeSettings.copyTo(settings);
+        return settings;
+    }
 
     /**
-     * @return self reference for the method to not override if already set
+     * Creates new fallback parameters with settings initialized via the given initializer.
+     *
+     * @param key settings key under which the contained settings are stored
+     * @param settingsInitializer the initializer for the contained settings
+     * @return the created parameters
      */
-    abstract Class<? extends ParameterReference<String>> getMethodSelfProvider();
-
-    @Override
-    public final void init(final StateProviderInitializer initializer) {
-        m_methodSelf = initializer.getValueSupplier(getMethodSelfProvider());
-        m_typeSupplier = initializer.computeFromValueSupplier(getTypeProvider());
+    public static FallbackAggregationOperatorParameters withInitial(final String key,
+        final Consumer<NodeSettings> settingsInitializer) {
+        final var settings = new NodeSettings(key);
+        settingsInitializer.accept(settings);
+        return new FallbackAggregationOperatorParameters(key, settings);
     }
-
-    @SuppressWarnings("restriction")
-    @Override
-    public final String computeState(final NodeParametersInput parametersInput)
-        throws StateComputationFailureException {
-        if (m_methodSelf.get() != null) {
-            throw new StateComputationFailureException();
-        }
-        final var type = m_typeSupplier.get();
-        // there always is a default, even if it is just "First"
-        return AggregationMethods.getInstance().getDefaultFunction(type).getId();
-    }
-
 }

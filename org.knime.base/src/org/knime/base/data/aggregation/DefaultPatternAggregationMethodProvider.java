@@ -44,22 +44,63 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   22 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   17 Dec 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.groupby.common;
+package org.knime.base.data.aggregation;
 
-import org.knime.node.parameters.widget.choices.Label;
+import java.util.Optional;
+import java.util.function.Supplier;
+
+import org.knime.base.data.aggregation.AggregationFunctionParametersProvider.AggregationMethodRef;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.port.database.aggregation.AggregationFunction;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.updates.StateProvider;
 
 /**
- * Pattern type for pattern-based aggregations.
+ * Selects the default aggregation method if no method is already selected for aggregation of columns based on
+ * column name patterns.
+ *
+ * @param <F> the type of the aggregation function provided as default
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ * @since 5.10
  */
-enum PatternType {
+public abstract class DefaultPatternAggregationMethodProvider<F extends AggregationFunction>
+        implements StateProvider<String> {
 
-    @Label("Wildcard")
-    WILDCARD, //
-    @Label("Regular Expression")
-    REGEX
+    private Supplier<String> m_methodSelf;
+
+    /**
+     * Self-reference to aggregation method.
+     * @return the self-reference
+     */
+    protected abstract Class<? extends AggregationMethodRef> getMethodSelfProvider();
+
+    /**
+     * Gets the default method to use if no method is already selected.
+     * @param spec the input spec to derive available functions from
+     * @return default aggregation function
+     */
+    protected abstract Optional<F> getDefaultMethod(PortObjectSpec spec);
+
+    @Override
+    public void init(final StateProviderInitializer initializer) {
+        m_methodSelf = initializer.getValueSupplier(getMethodSelfProvider());
+    }
+
+    @Override
+    public String computeState(final NodeParametersInput context) throws StateComputationFailureException {
+        if (m_methodSelf.get() != null) {
+            // only set default if no method is already selected
+            throw new StateComputationFailureException();
+        }
+        return context.getInPortSpec(0) //
+                .flatMap(this::getDefaultMethod) //
+                .map(F::getId) //
+                // if there is no default available, we clear the selection
+                .orElse(null);
+    }
 
 }

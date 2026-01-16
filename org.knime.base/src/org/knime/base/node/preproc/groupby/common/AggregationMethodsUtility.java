@@ -44,48 +44,74 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   20 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   15 Dec 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.base.node.preproc.groupby.common;
 
-import java.util.function.Supplier;
+import java.util.Optional;
+import java.util.stream.Stream;
 
+import org.knime.base.data.aggregation.AggregationFunctionsUtility;
+import org.knime.base.data.aggregation.AggregationMethod;
 import org.knime.base.data.aggregation.AggregationMethods;
-import org.knime.base.node.preproc.groupby.common.AggregationOperatorParametersProvider.AggregationMethodRef;
-import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
-import org.knime.node.parameters.NodeParametersInput;
-import org.knime.node.parameters.updates.StateProvider;
+import org.knime.base.data.aggregation.AggregationOperatorParameters;
+import org.knime.base.data.aggregation.AggregationSpec;
+import org.knime.core.data.DataType;
 
 /**
- * Indicator that the selected aggregation method has optional settings.
+ * Utility for native (as in "not-DB") aggregation methods.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ *
+ * @since 5.10
  */
-@SuppressWarnings("restriction")
-public abstract class HasOperatorParameters implements StateProvider<Boolean> {
+public final class AggregationMethodsUtility extends AggregationFunctionsUtility<AggregationMethod> {
 
-    private Supplier<String> m_agg;
+    private static final AggregationMethodsUtility INSTANCE = new AggregationMethodsUtility();
 
     /**
-     * Gets the class of the {@link AggregationMethodRef} to use.
-     *
-     * @return the class of the {@link AggregationMethodRef} to use
+     * Gets the singleton instance of this utility.
+     * @return the singleton instance
      */
-    protected abstract Class<? extends AggregationMethodRef> getAggregationMethodRefClass();
+    public static AggregationMethodsUtility getInstance() {
+        return INSTANCE;
+    }
 
-    @Override
-    public final void init(final StateProviderInitializer init) {
-        init.computeBeforeOpenDialog();
-        m_agg = init.computeFromValueSupplier(getAggregationMethodRefClass());
+    private AggregationMethodsUtility() {
+        // singleton
     }
 
     @Override
-    public final Boolean computeState(final NodeParametersInput in) throws StateComputationFailureException {
-        final var id = m_agg.get();
-        if (id == null) {
-            throw new StateComputationFailureException();
-        }
-        return AggregationMethods.getMethod4Id(id).hasOptionalSettings();
+    protected AggregationMethod getFunction(final String id) {
+        return AggregationMethods.getMethod4Id(id);
+    }
+
+    @Override
+    protected Stream<AggregationMethod> getCompatibleAggregationFunctions(final DataType type, final boolean sorted) {
+        // TODO UIEXT-3126 verify that sort order is consistent with old dialog implementation
+        return AggregationMethods.getCompatibleMethods(type, sorted).stream();
+    }
+
+    @Override
+    protected Stream<AggregationMethod> getFunctions(final boolean sorted) {
+        // TODO UIEXT-3126 verify that sort order is consistent with old dialog implementation
+        return AggregationMethods.getInstance().getFunctions(sorted).stream();
+    }
+
+    @Override
+    protected Optional<AggregationMethod> getDefaultFunction(final DataType type) {
+        return Optional.ofNullable(AggregationMethods.getInstance().getDefaultFunction(type));
+    }
+
+    @Override
+    public Optional<Class<? extends AggregationOperatorParameters>>
+            lookupParametersForFunction(final AggregationSpec fun) {
+        return AggregationMethods.getInstance().getParametersClassFor(fun.id());
+    }
+
+    public static AggregationMethod getDefaultFunctionFallback() {
+        // TODO UIEXT-3126 check whether we rather want to work with no fallback if no spec is available
+        return AggregationMethods.getDefaultNotNumericalMethod();
     }
 
 }
