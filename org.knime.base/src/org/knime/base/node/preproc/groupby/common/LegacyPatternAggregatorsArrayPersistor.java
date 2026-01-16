@@ -80,6 +80,8 @@ public final class LegacyPatternAggregatorsArrayPersistor
 
     private static final String CFG_PATTERN_AGGREGATORS = "patternAggregators";
 
+    private static final String CFG_FUNCTION_SETTINGS = "functionSettings";
+
     private PatternAggregator[] m_aggregators;
 
     static final class PatternPersistor
@@ -167,8 +169,6 @@ public final class LegacyPatternAggregatorsArrayPersistor
 
     static final class OperatorParametersPersistor
         implements ElementFieldPersistor<AggregationOperatorParameters, IndexedElement, PatternAggregatorElementDTO> {
-
-        static final String CFG_FUNCTION_SETTINGS = "functionSettings";
 
         @Override
         public AggregationOperatorParameters load(final NodeSettingsRO nodeSettings, final IndexedElement loadContext)
@@ -277,7 +277,7 @@ public final class LegacyPatternAggregatorsArrayPersistor
                 functionSettings = legacyParams.getNodeSettings();
             } else {
                 // must be custom parameters via extension point
-                final var settingsToSaveInto = new NodeSettings("functionSettings");
+                final var settingsToSaveInto = new NodeSettings(CFG_FUNCTION_SETTINGS);
                 NodeParametersUtil.saveSettings(elem.m_parameters.getClass(), elem.m_parameters, settingsToSaveInto);
                 functionSettings = settingsToSaveInto;
             }

@@ -80,6 +80,8 @@ public final class LegacyDataTypeAggregatorsArrayPersistor
 
     private static final String CFG_DATA_TYPE_AGGREGATORS = "dataTypeAggregators";
 
+    private static final String CFG_FUNCTION_SETTINGS = "functionSettings";
+
     private DataTypeAggregator[] m_aggregators;
 
     static final class DataTypePersistor
@@ -146,7 +148,6 @@ public final class LegacyDataTypeAggregatorsArrayPersistor
     static final class OperatorParametersPersistor
         implements ElementFieldPersistor<AggregationOperatorParameters, IndexedElement, DataTypeAggregatorElementDTO> {
 
-        static final String CFG_FUNCTION_SETTINGS = "functionSettings";
 
         @Override
         public AggregationOperatorParameters load(final NodeSettingsRO nodeSettings, final IndexedElement loadContext)
@@ -255,7 +256,7 @@ public final class LegacyDataTypeAggregatorsArrayPersistor
                 functionSettings = legacyParams.getNodeSettings();
             } else {
                 // must be custom parameters via extension point
-                final var settingsToSaveInto = new NodeSettings("functionSettings");
+                final var settingsToSaveInto = new NodeSettings(CFG_FUNCTION_SETTINGS);
                 NodeParametersUtil.saveSettings(elem.m_parameters.getClass(), elem.m_parameters, settingsToSaveInto);
                 functionSettings = settingsToSaveInto;
             }

@@ -94,7 +94,7 @@ public abstract class AggregationFunctionParametersProvider<F extends Aggregatio
        The manual native settings use "aggregationOperatorSettings",
        which is handled by `LegacyColumnAggregatorsPersistor`.
     */
-    private static final String CFG_FUNCTION_SETTINGS = "functionSettings";
+    protected static final String CFG_FUNCTION_SETTINGS = "functionSettings";
 
     /**
      * Gets the function utility to use for looking up aggregation functions and parameter classes.
@@ -109,7 +109,7 @@ public abstract class AggregationFunctionParametersProvider<F extends Aggregatio
      *
      * @return the reference for optional aggregation parameters
      */
-    protected abstract Class<? extends ParameterReference<? extends AggregationOperatorParameters>>
+    protected abstract Class<? extends ParameterReference<? extends AggregationOperatorParameters>> // NOSONAR needed since we don't know the concrete type
         getParameterRefClass();
 
     /**
