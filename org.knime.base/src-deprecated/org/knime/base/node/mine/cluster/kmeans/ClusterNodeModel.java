@@ -649,7 +649,7 @@ public class ClusterNodeModel extends NodeModel {
         final Set<Long> randomInitialization = new HashSet<>();
         final RandomDataGenerator rdg = new RandomDataGenerator();
         rdg.reSeed(m_centroidSeeds.getSeedOrRandom());
-        while(randomInitialization.size() < m_nrOfClusters.getIntValue()) {
+        while(randomInitialization.size() < Math.min(nrOfRows, m_nrOfClusters.getIntValue())) {
             randomInitialization.add(rdg.nextLong(0L, nrOfRows - 1));
         }
         return randomInitialization;
