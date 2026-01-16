@@ -114,7 +114,6 @@ public class PatternAggregatorElement implements NodeParameters {
     static final class PatternAggregationRef implements AggregationMethodRef {
     } //
 
-
     @Widget(title = "Aggregation", description = "The aggregation method to use")
     @SubParameters(subLayoutRoot = PatternOperatorParametersRef.class,
         showSubParametersProvider = HasPatternOperatorParameters.class)
