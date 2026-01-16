@@ -167,7 +167,7 @@ public abstract class TransformationParametersUpdatesTest<R extends WidgetGroup,
     protected abstract ExternalDataTypeSerializer<T> getExternalDataTypeSerializer();
 
     @BeforeEach
-    void setUpSettingsAndFile() {
+    protected void setUpSettingsAndFile() {
         m_settings = constructNewSettings();
         m_filePath = m_tempFolder.resolve(getFileName()).toAbsolutePath().toString();
         setSourcePath(new FSLocation(FSCategory.LOCAL, m_filePath));
