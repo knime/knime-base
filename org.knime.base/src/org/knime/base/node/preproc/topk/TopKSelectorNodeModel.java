@@ -117,6 +117,12 @@ final class TopKSelectorNodeModel extends WebUINodeModel<TopKSelectorNodeSetting
             exec.createSubExecutionContext(preprocessor.getProgressRequired()));
         fillElementSelector(exec.createSubExecutionContext(0.9 - preprocessor.getProgressRequired()), execTable,
             elementSelector);
+        // these two enums apply `OrderPostprocessors#removeLastColumn` which previously threw this error when
+        // the input table is empty -- this is unnecessary and is fixed in 5.10 with backwards compatibility
+        if (modelSettings.m_failOnEmptyTable
+            && (outputOrder == OutputOrder.RETAIN || outputOrder == OutputOrder.SORT)) {
+            CheckUtils.checkArgument(execTable.size() > 0, "The selection must contain at least one row.");
+        }
         final Collection<DataRow> topK =
             outputOrder.getPostprocessor().postprocessSelection(elementSelector.getTopK(), rc);
         final BufferedDataTable outputTable = createOutputTable(topK, dts, exec.createSubExecutionContext(0.1));

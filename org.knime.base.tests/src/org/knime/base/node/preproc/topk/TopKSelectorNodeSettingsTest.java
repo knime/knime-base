@@ -63,6 +63,7 @@ import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
 import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 
 /**
+ * Tests the {@link TopKSelectorNodeSettings}.
  *
  * @author Martin Sillye, TNG Technology Consulting GmbH
  */

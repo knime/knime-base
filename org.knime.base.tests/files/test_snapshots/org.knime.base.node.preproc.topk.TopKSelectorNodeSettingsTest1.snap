@@ -12,7 +12,8 @@
       "filterMode" : "UNIQUE_VALUES",
       "amount" : 3,
       "missingsToEnd" : true,
-      "rowOrder" : "INPUT_ORDER"
+      "rowOrder" : "INPUT_ORDER",
+      "failOnEmptyTable" : true
     }
   },
   "schema" : {
@@ -27,6 +28,12 @@
             "title" : "Number of rows / unique values",
             "description" : "The number of rows to select from the input table based on the specified mode.",
             "default" : 5
+          },
+          "failOnEmptyTable" : {
+            "type" : "boolean",
+            "title" : "Fail on empty input table",
+            "description" : "If selected, and this node encounters an input table with zero rows, it will fail.",
+            "default" : false
           },
           "filterMode" : {
             "oneOf" : [ {
@@ -183,6 +190,13 @@
         "options" : {
           "format" : "checkbox"
         }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/failOnEmptyTable",
+        "options" : {
+          "format" : "checkbox",
+          "isAdvanced" : true
+        }
       } ]
     }, {
       "label" : "Filter",
@@ -280,6 +294,11 @@
           "rowOrder" : {
             "deprecatedConfigKeys" : [ {
               "deprecated" : [ [ "outputOrder" ] ]
+            } ]
+          },
+          "failOnEmptyTable" : {
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ ]
             } ]
           }
         }

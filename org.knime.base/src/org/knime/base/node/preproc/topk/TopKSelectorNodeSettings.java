@@ -59,6 +59,7 @@ import org.knime.base.node.util.preproc.SortingUtils.SortingOrder;
 import org.knime.base.node.util.preproc.SortingUtils.StringComparison;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.node.parameters.NodeParameters;
@@ -335,6 +336,29 @@ final class TopKSelectorNodeSettings implements NodeParameters {
                     .withDeprecatedConfigPath(KEY)//
                     .build());
         }
+    }
+
+    @Widget(title = "Fail on empty input table",
+        description = "If selected, and this node encounters an input table with zero rows, it will fail.",
+        advanced = true)
+    @Layout(SortingSection.class)
+    @Migration(LoadTrueForOldNodes.class)
+    boolean m_failOnEmptyTable; // false
+
+    /**
+     * Migration that sets the {@link #m_failOnEmptyTable} to {@code true} for old nodes
+     * that were created before version "5.10.0".
+     */
+    static final class LoadTrueForOldNodes implements NodeParametersMigration<Boolean> {
+
+        @Override
+        public List<ConfigMigration<Boolean>> getConfigMigrations() {
+            // will be `true` if migrated (loading old node), stored value for loading new nodes
+            return List.of(ConfigMigration.builder( //
+                s -> s.getBoolean("failOnEmptyTable" + SettingsModel.CFGKEY_INTERNAL, true)) //
+                .build());
+        }
+
     }
 
 }
