@@ -88,8 +88,11 @@ final class OrderPostprocessors {
 
     static OrderPostprocessor removeLastColumn() {
         return (s, c) -> {
+            if (s.isEmpty()) {
+                // a no-op, just like above
+                return s;
+            }
             final Iterator<DataRow> iter = s.iterator();
-            CheckUtils.checkArgument(iter.hasNext(), "The selection must contain at least one row.");
             final int[] filterColumns = IntStream.range(0, iter.next().getNumCells() - 1).toArray();
             return s.stream().map(r -> new FilterColumnRow(r, filterColumns)).collect(Collectors.toList());
         };

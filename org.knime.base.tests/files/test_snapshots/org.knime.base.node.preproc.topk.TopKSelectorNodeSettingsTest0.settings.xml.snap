@@ -14,4 +14,5 @@
     <entry key="amount" type="xlong" value="3"/>
     <entry key="missingsToEnd" type="xboolean" value="true"/>
     <entry key="rowOrder" type="xstring" value="INPUT_ORDER"/>
+    <entry key="failOnEmptyTable" type="xboolean" value="true"/>
 </config>

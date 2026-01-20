@@ -73,24 +73,39 @@ import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.workflow.NodeContainerState;
-import org.knime.node.parameters.NodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
+import org.knime.node.parameters.NodeParameters;
 import org.knime.testing.util.TableTestUtil;
 import org.knime.testing.util.WorkflowManagerUtil;
 
 /**
+ * Tests the {@link TopKSelectorNodeModel}.
  *
  * @author Martin Sillye, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction")
-public class TopKSelectorNodeModelTest {
+class TopKSelectorNodeModelTest {
 
     private static final String NODE_NAME = "TopKSelectorNode";
 
     private static final String[] INPUT_COLUMNS = new String[]{"column1", "column2"};
 
     private static final Class<? extends NodeParameters> SETTINGS_CLASS = TopKSelectorNodeSettings.class;
+
+    private static NodeSettings createRawNodeSettings() {
+        final var settings = new NodeSettings("model");
+        final boolean[] ascending = {false};
+        settings.addBooleanArray("order", ascending);
+        settings.addString("outputOrder", OutputOrder.SORT.name());
+        settings.addInt("k", 2);
+        final String[] inclCols = {"-ROWKEY -"};
+        settings.addStringArray("columns", inclCols);
+        settings.addBooleanArray("alphaNumStringComp", true);
+        settings.addBoolean("missingsToEnd", false);
+        settings.addString("selectionMode", TopKMode.TOP_K_ROWS.getText());
+        return settings;
+    }
 
     @Test
     void testExecute() throws InvalidSettingsException, IOException {
@@ -112,18 +127,30 @@ public class TopKSelectorNodeModelTest {
     }
 
     @Test
-    void testMigrationAndExecute() throws InvalidSettingsException, IOException {
-        final var settings = new NodeSettings("model");
-        final boolean[] ascending = {false};
-        settings.addBooleanArray("order", ascending);
-        settings.addString("outputOrder", OutputOrder.SORT.name());
-        settings.addInt("k", 2);
-        final String[] inclCols = {"-ROWKEY -"};
-        settings.addStringArray("columns", inclCols);
-        settings.addBooleanArray("alphaNumStringComp", true);
-        settings.addBoolean("missingsToEnd", false);
-        settings.addString("selectionMode", TopKMode.TOP_K_ROWS.getText());
+    void testExecuteOnEmptyTable() throws InvalidSettingsException, IOException {
+        // (1) newly created nodes will succeed on empty table input
+        final var nodeSettings = NodeParametersUtil.createSettings(TopKSelectorNodeSettings.class);
+        final var output1 = setupAndExecuteWorkflow(nodeSettings, new String[0]);
+        assertTrue(output1.status.isExecuted(), "Should execute");
+        assertEquals(0, output1.outputTable.size(), "Should have 0 items");
 
+        // (2) the flag should trigger failure on empty table input
+        nodeSettings.m_failOnEmptyTable = true;
+        final var output2 = setupAndExecuteWorkflow(nodeSettings, new String[0]);
+        assertFalse(output2.status.isExecuted(), "Should not execute");
+        assertNull(output2.outputTable, "Should not produce table on failure");
+
+        // (3) old nodes have this flag set to `true` by default
+        final var settings = createRawNodeSettings();
+        final var output3 = setupAndExecuteWorkflow(
+            NodeParametersUtil.loadSettings(settings, TopKSelectorNodeSettings.class), new String[0]);
+        assertFalse(output3.status.isExecuted(), "Should not execute");
+        assertNull(output3.outputTable, "Should not produce table on failure");
+    }
+
+    @Test
+    void testMigrationAndExecute() throws InvalidSettingsException, IOException {
+        final var settings = createRawNodeSettings();
         final var nodeSettings = NodeParametersUtil.loadSettings(settings, TopKSelectorNodeSettings.class);
 
         var output = setupAndExecuteWorkflow(nodeSettings,
