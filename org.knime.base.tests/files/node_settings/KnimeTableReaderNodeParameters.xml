@@ -45,6 +45,7 @@
             </config>
             <config key="ifSchemaChangesParams">
                 <entry key="ifSchemaChangesOption" type="xstring" value="FAIL"/>
+                <entry key="ignoreSchemaChange" type="xboolean" value="false"/>
             </config>
             <config key="multiFileReaderParams">
                 <entry key="howToCombineColumns" type="xstring" value="UNION"/>
