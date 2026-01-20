@@ -52,10 +52,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -75,6 +73,7 @@ import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameter
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.TransformationElementSettings;
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.TransformationElementSettings.ColumnNameRef;
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.TransformationElementSettingsRef;
+import org.knime.base.node.io.filehandling.webui.reader2.TransformationParametersStateProviders.DependsOnTypedReaderTableSpecProvider.TypedReaderTableSpecWithLocation;
 import org.knime.core.data.DataType;
 import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.node.ExecutionMonitor;
@@ -138,7 +137,8 @@ public final class TransformationParametersStateProviders {
      */
     public abstract static class TypedReaderTableSpecsProvider<C extends ReaderSpecificConfig<C>, T, //
             M extends AbstractMultiTableReadConfig<C, DefaultTableReadConfig<C>, T, M>>
-        implements StateProvider<Map<FSLocation, TypedReaderTableSpec<T>>>, ReaderSpecific.ConfigAndReader<C, T, M> {
+        implements StateProvider<Collection<DependsOnTypedReaderTableSpecProvider.TypedReaderTableSpecWithLocation<T>>>,
+        ReaderSpecific.ConfigAndReader<C, T, M> {
 
         /**
          * Set this to false if the implementation is for single file selection only.
@@ -215,8 +215,8 @@ public final class TransformationParametersStateProviders {
         }
 
         @Override
-        public final Map<FSLocation, TypedReaderTableSpec<T>> computeState(final NodeParametersInput context)
-            throws StateComputationFailureException {
+        public final Collection<DependsOnTypedReaderTableSpecProvider.TypedReaderTableSpecWithLocation<T>>
+            computeState(final NodeParametersInput context) throws StateComputationFailureException {
             final var fileSelection = m_fileSelectionSupplier.get();
             if (!WorkflowContextUtil.hasWorkflowContext() // no workflow context available
                 // no file selected (yet)
@@ -253,9 +253,9 @@ public final class TransformationParametersStateProviders {
          */
         protected abstract void applyParametersToConfig(M config);
 
-        private Map<FSLocation, TypedReaderTableSpec<T>> computeStateFromPaths(final List<FSPath> paths)
-            throws StateComputationFailureException {
-            final M config = createMultiTableReadConfig();
+        private Collection<DependsOnTypedReaderTableSpecProvider.TypedReaderTableSpecWithLocation<T>>
+            computeStateFromPaths(final List<FSPath> paths, NodeParametersInput input) throws StateComputationFailureException {
+            final M config = createMultiTableReadConfig(input);
             try {
                 applyParametersToConfig(config);
             } catch (IllegalArgumentException e) {
@@ -265,14 +265,17 @@ public final class TransformationParametersStateProviders {
 
             final var tableReader = createTableReader();
             final var exec = new ExecutionMonitor();
-            final var specs = new HashMap<FSLocation, TypedReaderTableSpec<T>>();
+            final var specs =
+                new ArrayList<DependsOnTypedReaderTableSpecProvider.TypedReaderTableSpecWithLocation<T>>();
             for (var path : paths) {
                 try {
-                    specs.put(path.toFSLocation(), MultiTableUtils
-                        .assignNamesIfMissing(tableReader.readSpec(path, config.getTableReadConfig(), exec)));
+                    final var spec = MultiTableUtils
+                        .assignNamesIfMissing(tableReader.readSpec(path, config.getTableReadConfig(), exec));
+                    specs.add(new DependsOnTypedReaderTableSpecProvider.TypedReaderTableSpecWithLocation<>(
+                        path.toFSLocation(), path.toString(), spec));
                 } catch (IOException | IllegalArgumentException e) {
                     LOGGER.error(e);
-                    return Collections.emptyMap();
+                    return Collections.emptyList();
                 }
             }
             return specs;
@@ -318,7 +321,10 @@ public final class TransformationParametersStateProviders {
             return true;
         }
 
-        protected Supplier<Map<FSLocation, TypedReaderTableSpec<T>>> m_specSupplier;
+        record TypedReaderTableSpecWithLocation<T>(FSLocation location, String sourceId, TypedReaderTableSpec<T> spec) {
+        }
+
+        protected Supplier<Collection<TypedReaderTableSpecWithLocation<T>>> m_specSupplier;
 
         @Override
         public void init(final StateProviderInitializer initializer) {
@@ -356,9 +362,9 @@ public final class TransformationParametersStateProviders {
                 return null; // NOSONAR we deliberately return null here to indicate that no computation is possible
             }
 
-            return suppliedSpecs.entrySet().stream()
-                .map(e -> new TableSpecSettings(e.getKey(),
-                    e.getValue().stream()
+            return suppliedSpecs.stream()
+                .map(e -> new TableSpecSettings(e.sourceId(), e.location(),
+                    e.spec().stream()
                         .map(spec -> new ColumnSpecSettings(spec.getName().get(), toSerializableType(spec.getType())))
                         .toArray(ColumnSpecSettings[]::new)))
                 .toArray(TableSpecSettings[]::new);
@@ -402,11 +408,12 @@ public final class TransformationParametersStateProviders {
 
             final var suppliedSpecs = m_specSupplier.get();
 
-            return toTransformationElements(suppliedSpecs == null ? Map.of() : suppliedSpecs,
+            return toTransformationElements(suppliedSpecs == null ? List.of() : suppliedSpecs,
                 m_howToCombineColumnsSup.get(), m_existingSettings.get(), getExistingSpecsUnion());
         }
 
-        TransformationElementSettings[] toTransformationElements(final Map<FSLocation, TypedReaderTableSpec<T>> specs,
+        TransformationElementSettings[] toTransformationElements(
+            final Collection<TypedReaderTableSpecWithLocation<T>> specs,
             final HowToCombineColumnsOption howToCombineColumnsOption,
             final TransformationElementSettings[] existingSettings, final TypedReaderTableSpec<T> existingSpecsUnion) {
 
@@ -427,7 +434,7 @@ public final class TransformationParametersStateProviders {
              */
             final List<TransformationElementSettings> elementsAfterUnknown = new ArrayList<>();
 
-            final var rawSpec = toRawSpec(specs);
+            final var rawSpec = toRawSpec(specs.stream().map(TypedReaderTableSpecWithLocation::spec).toList());
             final var newSpecs = howToCombineColumnsOption.toColumnFilterMode().getRelevantSpec(rawSpec);
             final var newSpecsByName = newSpecs.stream().filter(column -> column.getName().isPresent())
                 .collect(Collectors.toMap(column -> column.getName().get(), Function.identity()));
@@ -481,7 +488,7 @@ public final class TransformationParametersStateProviders {
 
         private TypedReaderTableSpec<T> getExistingSpecsUnion() {
             final var existingSpecs = toSpecMap(this, m_existingSpecs.get());
-            final var existingRawSpecs = toRawSpec(existingSpecs);
+            final var existingRawSpecs = toRawSpec(existingSpecs.values());
             return existingRawSpecs.getUnion();
         }
 
@@ -548,7 +555,7 @@ public final class TransformationParametersStateProviders {
 
         private Supplier<String> m_columnNameSupplier;
 
-        private Supplier<Map<FSLocation, TypedReaderTableSpec<T>>> m_specSupplier;
+        private Supplier<Collection<DependsOnTypedReaderTableSpecProvider.TypedReaderTableSpecWithLocation<T>>> m_specSupplier;
 
         @Override
         public void init(final StateProviderInitializer initializer) {
@@ -570,8 +577,10 @@ public final class TransformationParametersStateProviders {
             }
 
             final var suppliedSpecs = m_specSupplier.get();
-
-            final var union = toRawSpec(suppliedSpecs == null ? Map.of() : suppliedSpecs).getUnion();
+            final Collection<TypedReaderTableSpecWithLocation<T>> specs =
+                suppliedSpecs == null ? List.of() : suppliedSpecs;
+            final var specsOnly = specs.stream().map(TypedReaderTableSpecWithLocation::spec).toList();
+            final var union = toRawSpec(specsOnly).getUnion();
             final var columnSpecOpt =
                 union.stream().filter(colSpec -> colSpec.getName().get().equals(columnName)).findAny();
             if (columnSpecOpt.isEmpty()) {

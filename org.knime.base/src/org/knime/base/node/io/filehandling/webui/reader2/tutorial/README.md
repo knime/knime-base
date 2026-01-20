@@ -5,6 +5,7 @@ Follow the numbered steps below to implement your own reader node.
 
 ## How to use this tutorial
 
+- Before you start, decide whether to introduce a new NodeFactory or modify an existing one in place.
 - Some steps have corresponding `TODO (#N)` comments in the code (where N is the step number).
   Use your IDE's search to find all occurrences of `TODO (#N)` for the current step.
 - After completing each step, verify that all `TODO (#N)` comments for that step have been resolved,
@@ -49,13 +50,17 @@ Follow the numbered steps below to implement your own reader node.
    Check your existing TableReader class to determine the correct types.
    - `T` (external type): Replace `Class<?>` with your type if different (e.g., `DataType`)
    - `V` (value): Replace `String` with your value type if different (e.g., `DataValue`)
-5. Complete the NodeFactory and ReaderSpecific implementation.
+5. Complete the NodeFactory, ReaderSpecific, and TransformationParameters implementation.
    Refer to your old NodeFactory and existing reader infrastructure for the required values.
    - `createNodeDescription()` - set name, icon, port descriptions, node description, keywords, and version
    - `getReadAdapterFactory()` - return your ReadAdapterFactory instance
    - `getTypeHierarchy()` - return your ReadAdapterFactory's TYPE_HIERARCHY
    - `extractRowKey()` - implement if your V type requires special handling
    - `PRODUCTION_PATH_PROVIDER` - initialize from your ReadAdapterFactory
+   - `createTableSpecConfigSerializer()` - return your TableSpecConfigSerializer implementation (see your
+     ...ReadConfigSerializer)
+   - `getConfigIdSettingsKey()` - return the key used to generate the config ID (see your implementation of
+     ConfigIDLoader.createFromSettings)
 6. Configure file extensions and add reader-specific parameters:
    - Set the file extensions in `Set*Extensions` (inner class of your renamed NodeParameters)
    - For each new reader-specific parameter you need to add:
@@ -80,8 +85,11 @@ Follow the numbered steps below to implement your own reader node.
    - `*TableReaderNodeParametersTest`:
      - Remove `@Disabled`
      - Create the `node_settings/*TableReaderNodeParameters.xml` file matching your parameters class name
-8. Register the node in `plugin.xml` and deprecate the old node:
+8. Register the node in `plugin.xml` and deprecate the old node (only if you introduced a new NodeFactory):
    - Register your new NodeFactory in `plugin.xml`
    - Deprecate the old node factory
    - If the old node had URL mappings (FileExtensionMapping), update them to point to the new node factory
-9. Delete this README file.
+9. Write a migration and annotate your NodeParameters class with `@Migration` (only if you kept the old NodeFactory):
+    - This is not part of the template (yet), you can copy from the Excel Reader for now.
+    - Add snapshot tests loading an old settings file to ensure the stability of the migration.
+10. Delete this README file.

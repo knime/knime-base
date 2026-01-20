@@ -51,7 +51,10 @@ package org.knime.base.node.io.filehandling.webui.reader2;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Supplier;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.ConfigIdSettings;
@@ -67,11 +70,13 @@ import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataType;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
+import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.WidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
+import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.data.location.FSLocationValueMetaData;
 import org.knime.filehandling.core.data.location.cell.SimpleFSLocationCellFactory;
@@ -80,7 +85,10 @@ import org.knime.filehandling.core.node.table.reader.ImmutableColumnTransformati
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigID;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigIDLoader;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.DefaultTableSpecConfig;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.NodeSettingsConfigID;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfigSerializer;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.ImmutableUnknownColumnsTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
@@ -199,12 +207,19 @@ public abstract class TransformationParameters<T>
         /**
          * visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
          */
+        public String m_sourceIdentifier;
+
+        /**
+         * visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
+         */
         public ColumnSpecSettings[] m_spec;
 
         /**
          * visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
          */
-        public TableSpecSettings(final FSLocation fsLocation, final ColumnSpecSettings[] spec) {
+        public TableSpecSettings(final String sourceIdentifier, final FSLocation fsLocation,
+            final ColumnSpecSettings[] spec) {
+            m_sourceIdentifier = sourceIdentifier;
             m_fsLocation = fsLocation;
             m_spec = spec;
         }
@@ -438,7 +453,7 @@ public abstract class TransformationParameters<T>
         }
 
         final var individualSpecs = toSpecMap(this, m_specs);
-        final var rawSpec = toRawSpec(individualSpecs);
+        final var rawSpec = toRawSpec(individualSpecs.values());
         final var transformations = determineTransformations(rawSpec, multiFileReaderParameters.m_howToCombineColumns);
         final var tableTransformation = new DefaultTableTransformation<T>(rawSpec, transformations.getFirst(),
             multiFileReaderParameters.m_howToCombineColumns.toColumnFilterMode(), transformations.getSecond(),
@@ -569,6 +584,101 @@ public abstract class TransformationParameters<T>
                 });
             }
         }
+    }
+
+    static final String ROOT_CFG_KEY = "table_spec_config_Internals";
+
+    protected abstract TableSpecConfigSerializer<T> createTableSpecConfigSerializer(ConfigIDLoader configIdLoader);
+
+    protected abstract String getConfigIdSettingsKey();
+
+    private TableSpecConfigSerializer<T> createTableSpecConfigSerializer() {
+        final ConfigIDLoader configIdLoader =
+            s -> new NodeSettingsConfigID(s.getNodeSettings(getConfigIdSettingsKey()));
+        return createTableSpecConfigSerializer(configIdLoader);
+    }
+
+    public void loadFromLegacySettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+        if (settings.containsKey(ROOT_CFG_KEY)) {
+            final var tableSpecConfigSerializer = createTableSpecConfigSerializer();
+            final var tableSpecConfig = tableSpecConfigSerializer.load(settings.getNodeSettings(ROOT_CFG_KEY));
+
+            try {
+                final var fsLocations = tableSpecConfig.getItemIdentifierColumn().map(colSpec -> {
+                    // read metadata and set first fs location with empty path as placeholder
+                    return colSpec.getMetaDataOfType(FSLocationValueMetaData.class)
+                        .map(FSLocationValueMetaData::getFSLocationSpecs).stream()//
+                        .flatMap(Set::stream)//
+                        .map(locSpec -> new FSLocation(locSpec.getFileSystemCategory(),
+                            locSpec.getFileSystemSpecifier().orElse(null), ""))
+                        .toArray(FSLocation[]::new);
+                });
+                final var items = tableSpecConfig.getItems();
+                final var specs = IntStream.range(0, items.size()).mapToObj(i -> {
+                    final var key = items.get(i);
+                    // Use a placeholder FSLocation with empty path when there's no item identifier column
+                    // to avoid NPEs during serialization (null is not supported there as of now)
+                    final var fsLocation = fsLocations.filter(locs -> i < locs.length).map(locs -> locs[i])
+                        .orElseGet(() -> new FSLocation(FSCategory.RELATIVE, null, ""));
+                    final var spec = tableSpecConfig.getSpec(key);
+                    final var colSpecs = spec.stream().map(colSpec -> new ColumnSpecSettings(colSpec.getName().get(),
+                        toSerializableType(colSpec.getType()))).toArray(ColumnSpecSettings[]::new);
+                    return new TableSpecSettings(key, fsLocation, colSpecs);
+                }).toArray(TableSpecSettings[]::new);
+                m_specs = specs;
+                m_enforceTypes = tableSpecConfig.getTableTransformation().enforceTypes();
+            } catch (final Exception e) { // NOSONAR The dialog can still work even if loading persistor settings fails
+                LOGGER.error("Error while loading persistor settings from table spec config.", e);
+            }
+
+            final var transformationElements =
+                tableSpecConfig.getTableTransformation().stream().map(this::getTransformationElement).toList();
+            final var unknownTransformationElement =
+                getTransformationElement(tableSpecConfig.getTableTransformation().getTransformationForUnknownColumns());
+            m_columnTransformation =
+                Stream.concat(transformationElements.stream(), Stream.of(unknownTransformationElement))
+                    .sorted((t1, t2) -> t1.getFirst() - t2.getFirst()).map(Pair::getSecond)
+                    .toArray(TransformationElementSettings[]::new);
+        }
+    }
+
+    private Pair<Integer, TransformationElementSettings>
+        getTransformationElement(final ColumnTransformation<T> knownTransformation) {
+        return new Pair<>(knownTransformation.getPosition(), toTransformationElementSettings(knownTransformation));
+    }
+
+    private static Pair<Integer, TransformationElementSettings>
+        getTransformationElement(final UnknownColumnsTransformation unknownColumnsTransformation) {
+        return new Pair<>(unknownColumnsTransformation.getPosition(),
+            toTransformationElementSettings(unknownColumnsTransformation));
+    }
+
+    private TransformationElementSettings toTransformationElementSettings(final ColumnTransformation<T> t) {
+        final var defaultProductionPath =
+            getProductionPathProvider().getDefaultProductionPath(t.getExternalSpec().getType());
+        return new TransformationElementSettings( //
+            t.getOriginalName(), //
+            t.keep(), //
+            t.getName(), //
+            t.getProductionPath().getConverterFactory().getIdentifier(), //
+            defaultProductionPath.getConverterFactory().getIdentifier(), //
+            defaultProductionPath.getDestinationType().toPrettyString());
+    }
+
+    private static TransformationElementSettings toTransformationElementSettings(final UnknownColumnsTransformation t) {
+        return new TransformationElementSettings(null, t.keep(), null, getForcedType(t),
+            TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID, TypeChoicesProvider.DEFAULT_COLUMNTYPE_TEXT);
+    }
+
+    private static String getForcedType(final UnknownColumnsTransformation t) {
+        if (t.forceType()) {
+            return getDataTypeId(t.getForcedType());
+        }
+        return TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID;
+    }
+
+    static String getDataTypeId(final DataType type) {
+        return DataTypeSerializer.typeToString(type);
     }
 
 }

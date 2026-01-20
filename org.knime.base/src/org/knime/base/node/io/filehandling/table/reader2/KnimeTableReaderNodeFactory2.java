@@ -80,7 +80,7 @@ import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
  */
 @SuppressWarnings("restriction")
 public class KnimeTableReaderNodeFactory2 extends WebUITableReaderNodeFactory<KnimeTableReaderNodeParameters, //
-        FSPath, MultiFileSelectionPath, TableManipulatorConfig, DataType, DataValue, KnimeTableMultiTableReadConfig> {
+        MultiFileSelectionPath, TableManipulatorConfig, DataType, DataValue, KnimeTableMultiTableReadConfig> {
 
     @SuppressWarnings("javadoc")
     public KnimeTableReaderNodeFactory2() {
@@ -135,7 +135,7 @@ public class KnimeTableReaderNodeFactory2 extends WebUITableReaderNodeFactory<Kn
     }
 
     private final class KnimeTableConfigAndSourceSerializer
-        extends NodeParametersConfigAndSourceSerializer<KnimeTableReaderNodeParameters, FSPath, //
+        extends NodeParametersConfigAndSourceSerializer<KnimeTableReaderNodeParameters, //
                 MultiFileSelectionPath, TableManipulatorConfig, DataType, KnimeTableMultiTableReadConfig> {
         protected KnimeTableConfigAndSourceSerializer() {
             super(KnimeTableReaderNodeParameters.class);

@@ -96,11 +96,29 @@ public final class MultiFileReaderParameters extends AppendFilePathColumnParamet
     @SuppressWarnings("deprecation")
     public void saveToConfig(final AbstractMultiTableReadConfig<?, ?, ?, ?> config) {
         super.saveToConfig(config);
-        config.setCheckSavedTableSpec(true); // the option to ignore saved table spec is deprecated
 
         config.setFailOnDifferingSpecs(m_howToCombineColumns == HowToCombineColumnsOption.FAIL);
         config.setSpecMergeMode(m_howToCombineColumns == HowToCombineColumnsOption.INTERSECTION
             ? SpecMergeMode.INTERSECTION : SpecMergeMode.UNION);
+    }
+
+    /**
+     * Load the settings from the given config.
+     *
+     * @param config the config to load from
+     */
+    @SuppressWarnings("deprecation")
+    public void loadFromConfig(final AbstractMultiTableReadConfig<?, ?, ?, ?> config) {
+        super.loadFromConfig(config);
+
+        if (config.failOnDifferingSpecs()) {
+            // in this case, the result of getSpecMergeMode() is irrelevant, as the specs must be identical anyway
+            m_howToCombineColumns = HowToCombineColumnsOption.FAIL;
+        } else if (config.getSpecMergeMode() == SpecMergeMode.INTERSECTION) {
+            m_howToCombineColumns = HowToCombineColumnsOption.INTERSECTION;
+        } else {
+            m_howToCombineColumns = HowToCombineColumnsOption.UNION;
+        }
     }
 
     /**

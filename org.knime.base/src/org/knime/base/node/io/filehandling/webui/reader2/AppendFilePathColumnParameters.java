@@ -52,6 +52,7 @@ import java.util.Optional;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.filehandling.core.node.table.reader.config.AbstractMultiTableReadConfig;
+import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
@@ -120,6 +121,19 @@ public class AppendFilePathColumnParameters implements NodeParameters {
     public void saveToConfig(final AbstractMultiTableReadConfig<?, ?, ?, ?> config) {
         config.setAppendItemIdentifierColumn(m_appendPathColumn.isPresent());
         config.setItemIdentifierColumnName(m_appendPathColumn.orElse(""));
+    }
+
+    /**
+     * Load the settings from the given config.
+     *
+     * @param config the config to load from
+     */
+    public void loadFromConfig(final MultiTableReadConfig<?, ?> config) {
+        if (config.appendItemIdentifierColumn()) {
+            m_appendPathColumn = Optional.of(config.getItemIdentifierColumnName());
+        } else {
+            m_appendPathColumn = Optional.empty();
+        }
     }
 
     /**
