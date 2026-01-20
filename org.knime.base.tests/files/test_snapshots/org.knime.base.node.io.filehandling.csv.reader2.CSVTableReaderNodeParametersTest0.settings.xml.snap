@@ -37,6 +37,7 @@
             <entry key="maximumNumberOfRows_is_present" type="xboolean" value="false"/>
         </config>
         <config key="ifSchemaChangesParams">
+            <entry key="ignoreSchemaChange" type="xboolean" value="false"/>
             <entry key="ifSchemaChangesOption" type="xstring" value="FAIL"/>
         </config>
         <config key="multiFileReaderParams">
@@ -100,6 +101,7 @@
                     <entry key="file_system_type" type="xstring" value="LOCAL"/>
                     <entry key="path" type="xstring" value="/Users/paulbaernreuther/knime/files/test.txt"/>
                 </config>
+                <entry key="sourceIdentifier" type="xstring" value="/Users/paulbaernreuther/knime/files/test.txt"/>
                 <config key="spec">
                     <config key="0">
                         <entry key="name" type="xstring" value="1"/>
@@ -121,6 +123,7 @@
                     <entry key="file_system_type" type="xstring" value="LOCAL"/>
                     <entry key="path" type="xstring" value="/Users/paulbaernreuther/knime/files/test.csv"/>
                 </config>
+                <entry key="sourceIdentifier" type="xstring" value="/Users/paulbaernreuther/knime/files/test.csv"/>
                 <config key="spec">
                     <config key="0">
                         <entry key="name" type="xstring" value="first"/>

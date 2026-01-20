@@ -38,6 +38,7 @@
             <entry key="maximumNumberOfRows_is_present" type="xboolean" value="false"/>
         </config>
         <config key="ifSchemaChangesParams">
+            <entry key="ignoreSchemaChange" type="xboolean" value="false"/>
             <entry key="ifSchemaChangesOption" type="xstring" value="FAIL"/>
         </config>
         <config key="multiFileReaderParams">
@@ -61,6 +62,7 @@
                     <entry key="file_system_specifier" type="xstring" value="knime.workflow.data"/>
                     <entry key="path" type="xstring" value="test.table"/>
                 </config>
+                <entry key="sourceIdentifier" type="xstring" value="test.table"/>
                 <config key="spec">
                     <config key="0">
                         <entry key="name" type="xstring" value="Universe_0_0"/>

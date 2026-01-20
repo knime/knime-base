@@ -45,6 +45,7 @@
             </config>
             <config key="ifSchemaChangesParams">
                 <entry key="ifSchemaChangesOption" type="xstring" value="FAIL"/>
+                <entry key="ignoreSchemaChange" type="xboolean" value="false"/>
             </config>
             <config key="multiFileReaderParams">
                 <entry key="howToCombineColumns" type="xstring" value="UNION"/>
@@ -67,6 +68,7 @@
                         <entry key="file_system_specifier" type="xstring" value="knime.workflow.data"/>
                         <entry key="path" type="xstring" value="test.table"/>
                     </config>
+                    <entry key="sourceIdentifier" type="xstring" value="test.table"/>
                     <config key="spec">
                         <config key="0">
                             <entry key="name" type="xstring" value="Universe_0_0"/>

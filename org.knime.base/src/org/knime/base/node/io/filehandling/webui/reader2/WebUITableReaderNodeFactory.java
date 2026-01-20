@@ -60,6 +60,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
 import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
 import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.node.table.reader.CommonTableReaderNodeFactory;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
@@ -70,7 +71,6 @@ import org.knime.node.parameters.NodeParameters;
  * Use this factory as base class for a reader node factory that uses {@link NodeParameters} for configuration.
  *
  * @param <P> the type of node [P]arameters
- * @param <I> the [I]tem type to read from
  * @param <S> the type of {@link Source [S]ource}
  * @param <C> the type of {@link ReaderSpecificConfig ReaderSpecific[C]onfig}
  * @param <T> the type used to identify external data [T]ypes
@@ -80,10 +80,10 @@ import org.knime.node.parameters.NodeParameters;
  * @since 5.10
  */
 @SuppressWarnings("restriction")
-public abstract class WebUITableReaderNodeFactory<P extends NodeParameters, I, S extends Source<I>, //
+public abstract class WebUITableReaderNodeFactory<P extends NodeParameters, S extends Source<FSPath>, //
         C extends ReaderSpecificConfig<C>, T, V, //
         M extends MultiTableReadConfig<C, T>>
-    extends CommonTableReaderNodeFactory<I, S, C, T, M, V> implements NodeDialogFactory, KaiNodeInterfaceFactory {
+    extends CommonTableReaderNodeFactory<FSPath, S, C, T, M, V> implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     private final Class<P> m_nodeParametersClass;
 
@@ -112,5 +112,5 @@ public abstract class WebUITableReaderNodeFactory<P extends NodeParameters, I, S
     }
 
     @Override
-    protected abstract NodeParametersConfigAndSourceSerializer<P, I, S, C, T, M> createSerializer();
+    protected abstract NodeParametersConfigAndSourceSerializer<P, S, C, T, M> createSerializer();
 }

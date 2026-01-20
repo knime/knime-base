@@ -79,7 +79,7 @@ import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
 @SuppressWarnings("restriction")
-public class CSVTableReaderNodeFactory2 extends WebUITableReaderNodeFactory<CSVTableReaderNodeParameters, FSPath, //
+public class CSVTableReaderNodeFactory2 extends WebUITableReaderNodeFactory<CSVTableReaderNodeParameters, //
         MultiFileSelectionPath, CSVTableReaderConfig, Class<?>, String, CSVMultiTableReadConfig> {
 
     @SuppressWarnings("javadoc")
@@ -142,7 +142,7 @@ public class CSVTableReaderNodeFactory2 extends WebUITableReaderNodeFactory<CSVT
     }
 
     private final class CSVConfigAndSourceSerializer
-        extends NodeParametersConfigAndSourceSerializer<CSVTableReaderNodeParameters, FSPath, MultiFileSelectionPath, //
+        extends NodeParametersConfigAndSourceSerializer<CSVTableReaderNodeParameters, MultiFileSelectionPath, //
                 CSVTableReaderConfig, Class<?>, CSVMultiTableReadConfig> {
         protected CSVConfigAndSourceSerializer() {
             super(CSVTableReaderNodeParameters.class);

@@ -41,11 +41,13 @@
           "maximumNumberOfRows" : null
         },
         "ifSchemaChangesParams" : {
-          "ifSchemaChangesOption" : "FAIL"
+          "ignoreSchemaChange" : false,
+          "ifSchemaChangesOption" : "FAIL",
+          "ignoreSchemaChangeWasSetInitially" : false
         },
         "multiFileReaderParams" : {
-          "howToCombineColumns" : "UNION",
-          "appendPathColumn" : "File Path"
+          "appendPathColumn" : "File Path",
+          "howToCombineColumns" : "UNION"
         },
         "useExistingRowIdParams" : {
           "useExistingRowId" : true
@@ -64,6 +66,7 @@
               "fsToString" : "(RELATIVE, knime.workflow.data, test.table)"
             }
           },
+          "sourceIdentifier" : "test.table",
           "spec" : [ {
             "name" : "Universe_0_0",
             "type" : "{\"name\":\"type\",\"value\":{\"type\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.DoubleCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}"
@@ -149,12 +152,24 @@
                       "title" : "Use new schema"
                     } ],
                     "title" : "If schema changes",
-                    "description" : "Specifies the node behavior if the content of the configured file/folder changes between executions,\ni.e., columns are added/removed to/from the file(s) or their types change. The following options are\navailable:\n\n<ul>\n<li><b>Fail</b>: If set, the node fails if the column names in the file have changed. Changes in column types will not be\ndetected.\n</li>\n<li><b>Use new schema</b>: If set, the node will compute a new table specification for the current schema of the file at the time\nwhen the node is executed. Note that the node will not output a table specification before execution and\nthat it will not apply transformations, therefore the transformation tab is disabled.\n</li>\n</ul>",
+                    "description" : "Specifies the node behavior if the content of the configured file/folder changes between executions,\ni.e., columns are added/removed to/from the file(s) or their types change. The following options are\navailable:\n\n<ul>\n<li><b>Fail</b>: If set, the node fails if the column names in the file have changed. Changes in column types\nwill not be detected.\n</li>\n<li><b>Use new schema</b>: If set, the node will compute a new table specification for the current schema of the file at\nthe time when the node is executed. Note that the node will not output a table specification\nbefore execution and that it will not apply transformations, therefore the transformation tab\nis disabled.\n</li>\n</ul>",
                     "default" : "FAIL"
+                  },
+                  "ignoreSchemaChange" : {
+                    "type" : "boolean",
+                    "title" : "If schema changes, ignore schema change (deprecated)",
+                    "description" : "If set, the node tries to ignore the changes and outputs a table with the old table specification.\nThis option is deprecated. Once unchecked, it will disappear and cannot be selected again, as it may lead\nto invalid data in the resulting table.\n",
+                    "default" : false
+                  },
+                  "ignoreSchemaChangeWasSetInitially" : {
+                    "type" : "boolean",
+                    "default" : false
                   }
                 },
                 "default" : {
-                  "ifSchemaChangesOption" : "FAIL"
+                  "ignoreSchemaChange" : false,
+                  "ifSchemaChangesOption" : "FAIL",
+                  "ignoreSchemaChangeWasSetInitially" : false
                 }
               },
               "maxNumberOfRowsParams" : {
@@ -198,8 +213,8 @@
                   }
                 },
                 "default" : {
-                  "howToCombineColumns" : "FAIL",
-                  "appendPathColumn" : null
+                  "appendPathColumn" : null,
+                  "howToCombineColumns" : "FAIL"
                 }
               },
               "multiFileSelectionParams" : {
@@ -525,11 +540,13 @@
                 "maximumNumberOfRows" : null
               },
               "ifSchemaChangesParams" : {
-                "ifSchemaChangesOption" : "FAIL"
+                "ignoreSchemaChange" : false,
+                "ifSchemaChangesOption" : "FAIL",
+                "ignoreSchemaChangeWasSetInitially" : false
               },
               "multiFileReaderParams" : {
-                "howToCombineColumns" : "FAIL",
-                "appendPathColumn" : null
+                "appendPathColumn" : null,
+                "howToCombineColumns" : "FAIL"
               },
               "useExistingRowIdParams" : {
                 "useExistingRowId" : false
@@ -595,6 +612,9 @@
                   "properties" : {
                     "fsLocation" : {
                       "type" : "object"
+                    },
+                    "sourceIdentifier" : {
+                      "type" : "string"
                     },
                     "spec" : {
                       "type" : "array",
@@ -899,9 +919,33 @@
       },
       "elements" : [ {
         "type" : "Control",
+        "scope" : "#/properties/model/properties/knimeTableReaderParameters/properties/ifSchemaChangesParams/properties/ignoreSchemaChange",
+        "options" : {
+          "format" : "checkbox"
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/knimeTableReaderParameters/properties/ifSchemaChangesParams/properties/ignoreSchemaChangeWasSetInitially",
+            "schema" : {
+              "const" : true
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
         "scope" : "#/properties/model/properties/knimeTableReaderParameters/properties/ifSchemaChangesParams/properties/ifSchemaChangesOption",
         "options" : {
           "format" : "valueSwitch"
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/knimeTableReaderParameters/properties/ifSchemaChangesParams/properties/ignoreSchemaChange",
+            "schema" : {
+              "const" : false
+            }
+          }
         }
       } ]
     }, {
@@ -1127,16 +1171,20 @@
               "ifSchemaChangesParams" : {
                 "type" : "object",
                 "properties" : {
-                  "ifSchemaChangesOption" : { }
+                  "ignoreSchemaChange" : { },
+                  "ifSchemaChangesOption" : { },
+                  "ignoreSchemaChangeWasSetInitially" : {
+                    "configPaths" : [ ]
+                  }
                 }
               },
               "multiFileReaderParams" : {
                 "type" : "object",
                 "properties" : {
-                  "howToCombineColumns" : { },
                   "appendPathColumn" : {
                     "configPaths" : [ [ "appendPathColumn_is_present" ], [ "appendPathColumn" ] ]
-                  }
+                  },
+                  "howToCombineColumns" : { }
                 }
               },
               "useExistingRowIdParams" : {
@@ -1162,6 +1210,7 @@
                   "type" : "object",
                   "properties" : {
                     "fsLocation" : { },
+                    "sourceIdentifier" : { },
                     "spec" : {
                       "type" : "array",
                       "items" : {
@@ -1197,6 +1246,12 @@
     }
   },
   "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/knimeTableReaderParameters/properties/ifSchemaChangesParams/properties/ignoreSchemaChangeWasSetInitially",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : false
+    } ]
+  }, {
     "scope" : "#/properties/model/properties/knimeTableReaderParameters/properties/maxNumberOfRowsParams/properties/maximumNumberOfRows",
     "providedOptionName" : "default",
     "values" : [ {

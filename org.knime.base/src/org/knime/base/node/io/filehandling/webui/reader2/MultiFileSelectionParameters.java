@@ -54,11 +54,14 @@ import java.util.Set;
 import org.knime.base.node.io.filehandling.webui.FileSystemManagedByPortMessage;
 import org.knime.base.node.io.filehandling.webui.ReferenceStateProvider;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.DefaultFileChooserFilters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelectionMode;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelectionWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.PersistWithin;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
@@ -66,6 +69,8 @@ import org.knime.filehandling.core.connections.FSLocationUtil;
 import org.knime.filehandling.core.connections.RelativeTo;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.persistence.legacy.LegacyMultiFileSelection;
 import org.knime.node.parameters.updates.EffectPredicate;
 import org.knime.node.parameters.updates.EffectPredicateProvider;
 import org.knime.node.parameters.updates.ValueReference;
@@ -104,7 +109,7 @@ public final class MultiFileSelectionParameters implements NodeParameters {
      */
     public static FSLocation urlToSupportedFSLocation(final URL url) {
         var fsLocation = FSLocationUtil.createFromURL(url.toString());
-        /**
+        /*
          * We don't support MOUNTPOINT or HUB_SPACE as source selection in readers using
          * {@link AbstractFileSelectionPath}.
          */
@@ -221,5 +226,26 @@ public final class MultiFileSelectionParameters implements NodeParameters {
             return i.getMultiFileSelection(FileSelectionRef.class).isMultiFileSelection();
         }
 
+    }
+
+    private static class LegacyFileSelectionParameters implements NodeParameters {
+        @Persist(configKey = "file_selection")
+        @PersistWithin({"settings"})
+        LegacyMultiFileSelection m_legacyMultiFileSelection = new LegacyMultiFileSelection(MultiFileSelectionMode.FILE);
+    }
+
+    /**
+     * Load the settings from legacy settings compatible with/via {@link LegacyFileSelectionParameters}.
+     * 
+     * @param settings the settings to load from, containing legacy file selection parameters under
+     *            "settings.file_selection"
+     * @throws InvalidSettingsException if loading the settings fails
+     */
+    public void loadFromLegacySettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+        var legacyParameters = NodeParametersUtil.loadSettings(settings, LegacyFileSelectionParameters.class);
+        m_source.m_path = legacyParameters.m_legacyMultiFileSelection.m_path;
+        m_source.m_filterMode = legacyParameters.m_legacyMultiFileSelection.m_filterMode;
+        m_source.m_includeSubfolders = legacyParameters.m_legacyMultiFileSelection.m_includeSubfolders;
+        m_source.m_filters = legacyParameters.m_legacyMultiFileSelection.m_filters.toDefaultFileChooserFilters();
     }
 }
