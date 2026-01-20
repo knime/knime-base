@@ -413,7 +413,18 @@ public class GroupByNodeModel extends NodeModel {
         // with Knime 2.0 as well as the naming policy
         try {
             final List<ColumnAggregator> aggregators = ColumnAggregator.loadColumnAggregators(settings);
-            validateManualColumnAggregators(settings, groupByCols, aggregators);
+
+            // added in 5.10 to validate that no group-by column is used for manual aggregation
+            try {
+                validateManualColumnAggregators(settings, groupByCols, aggregators);
+            } catch (InvalidSettingsException ex) {
+                // catch it and rethrow it so it is not caught by the "prior Knime 2.0" clause below
+                // but then it will be caught by the following clause and rethrown as InvalidSettingsException
+                // again, we do this, since we don't want to move the loading of column aggregators out of
+                // this try-catch
+                throw new IllegalArgumentException(ex.getMessage(), ex);
+            }
+
             final List<DataTypeAggregator> typeAggregators = new LinkedList<>();
             final List<PatternAggregator> patternAggregators = new LinkedList<>();
             try {
@@ -439,9 +450,8 @@ public class GroupByNodeModel extends NodeModel {
             // these settings are prior Knime 2.0 and can't contain
             // a column several times
         } catch (final IllegalArgumentException e) {
-            throw new InvalidSettingsException(e.getMessage());
+            throw new InvalidSettingsException(e.getMessage(), e.getCause());
         }
-
     }
 
     /**
@@ -456,13 +466,13 @@ public class GroupByNodeModel extends NodeModel {
      * @since 5.10
      */
     protected void validateManualColumnAggregators(final NodeSettingsRO settings, final List<String> groupByCols,
-        final List<ColumnAggregator> aggregators) throws IllegalArgumentException {
+        final List<ColumnAggregator> aggregators) throws InvalidSettingsException {
         if (settings.getBoolean(CFG_VALIDATE_AGGREGATION_COLUMNS, false)) {
             final var aggrCols =
                 aggregators.stream().map(ColumnAggregator::getOriginalColName).collect(Collectors.toSet());
             for (final String groupByCol : groupByCols) {
                 if (aggrCols.contains(groupByCol)) {
-                    throw new IllegalArgumentException(
+                    throw new InvalidSettingsException(
                         "Column '" + groupByCol + "' is selected both as group-by column and for aggregation.");
                 }
             }
