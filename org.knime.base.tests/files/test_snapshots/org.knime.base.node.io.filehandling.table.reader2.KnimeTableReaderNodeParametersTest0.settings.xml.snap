@@ -38,6 +38,7 @@
             <entry key="maximumNumberOfRows_is_present" type="xboolean" value="false"/>
         </config>
         <config key="ifSchemaChangesParams">
+            <entry key="ignoreSchemaChange" type="xboolean" value="false"/>
             <entry key="ifSchemaChangesOption" type="xstring" value="FAIL"/>
         </config>
         <config key="multiFileReaderParams">
