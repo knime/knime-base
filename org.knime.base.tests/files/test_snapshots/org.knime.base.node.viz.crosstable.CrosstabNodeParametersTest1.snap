@@ -1,0 +1,199 @@
+{
+  "data" : {
+    "model" : {
+      "rowVarColumn" : "Universe_0_0",
+      "colVarColumn" : "Universe_0_1",
+      "weightColumn" : {
+        "regularChoice" : "Universe_1_0"
+      },
+      "enableHiliting" : false,
+      "namingVersion" : "1.0"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "colVarColumn" : {
+            "type" : "string",
+            "title" : "Column variable",
+            "description" : "The input column used as the column variable in the cross-tabulation."
+          },
+          "enableHiliting" : {
+            "type" : "boolean",
+            "title" : "Enable hiliting",
+            "description" : "If enabled, the hiliting of a cell in the crosstab will hilite all cells with same categories in attached\nviews. Depending on the number of rows, enabling this feature might consume a lot of memory.\n",
+            "default" : false
+          },
+          "namingVersion" : {
+            "type" : "string"
+          },
+          "rowVarColumn" : {
+            "type" : "string",
+            "title" : "Row variable",
+            "description" : "The input column used as the row variable in the cross-tabulation."
+          },
+          "weightColumn" : {
+            "type" : "object",
+            "properties" : {
+              "regularChoice" : {
+                "type" : "string"
+              },
+              "specialChoice" : {
+                "oneOf" : [ {
+                  "const" : "NONE",
+                  "title" : "None"
+                } ]
+              }
+            },
+            "title" : "Weight column",
+            "description" : "Applies a numeric weight for each record in the input causing the Crosstab node to treat each record as if\nit were repeated WEIGHT number of times.\n",
+            "default" : {
+              "specialChoice" : "NONE"
+            }
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/rowVarColumn",
+      "options" : {
+        "format" : "dropDown"
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/colVarColumn",
+      "options" : {
+        "format" : "dropDown"
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/weightColumn",
+      "options" : {
+        "format" : "singleSelection",
+        "specialChoices" : [ {
+          "id" : "NONE",
+          "text" : "None"
+        } ]
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/enableHiliting",
+      "options" : {
+        "format" : "checkbox",
+        "isAdvanced" : true
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "rowVarColumn" : {
+            "configKey" : "rowVariableColumn"
+          },
+          "colVarColumn" : {
+            "configKey" : "columnVariableColumn"
+          },
+          "weightColumn" : {
+            "configPaths" : [ [ "weightColumn" ] ]
+          },
+          "enableHiliting" : {
+            "configKey" : "enableHiliting"
+          },
+          "namingVersion" : {
+            "configKey" : "namingVersion"
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/colVarColumn",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Universe_0_0",
+        "text" : "Universe_0_0",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "Universe_0_1",
+        "text" : "Universe_0_1",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "Universe_1_0",
+        "text" : "Universe_1_0",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/rowVarColumn",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Universe_0_0",
+        "text" : "Universe_0_0",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "Universe_0_1",
+        "text" : "Universe_0_1",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "Universe_1_0",
+        "text" : "Universe_1_0",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/weightColumn",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Universe_1_0",
+        "text" : "Universe_1_0",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      } ]
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "id" : "after-open-dialog"
+    },
+    "triggerInitially" : true,
+    "dependencies" : [ "#/properties/model/properties/colVarColumn", "#/properties/model/properties/rowVarColumn" ]
+  } ]
+}
