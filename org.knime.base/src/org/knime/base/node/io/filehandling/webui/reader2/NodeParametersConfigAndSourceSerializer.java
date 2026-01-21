@@ -53,6 +53,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
+import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.node.table.reader.CommonTableReaderNodeFactory.ConfigAndSourceSerializer;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
@@ -73,9 +74,9 @@ import org.knime.node.parameters.NodeParameters;
  * @since 5.10
  */
 @SuppressWarnings("restriction")
-public abstract class NodeParametersConfigAndSourceSerializer<P extends NodeParameters, I, S extends Source<I>, //
+public abstract class NodeParametersConfigAndSourceSerializer<P extends NodeParameters, S extends Source<FSPath>, //
         C extends ReaderSpecificConfig<C>, T, M extends MultiTableReadConfig<C, T>>
-    implements ConfigAndSourceSerializer<I, S, C, T, M> {
+    implements ConfigAndSourceSerializer<FSPath, S, C, T, M> {
 
     private final Class<P> m_paramsClass;
 

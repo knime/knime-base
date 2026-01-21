@@ -892,6 +892,9 @@
                     "fsLocation" : {
                       "type" : "object"
                     },
+                    "sourceIdentifier" : {
+                      "type" : "string"
+                    },
                     "spec" : {
                       "type" : "array",
                       "items" : {
@@ -1843,6 +1846,7 @@
                   "type" : "object",
                   "properties" : {
                     "fsLocation" : { },
+                    "sourceIdentifier" : { },
                     "spec" : {
                       "type" : "array",
                       "items" : {
