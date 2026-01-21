@@ -1,0 +1,125 @@
+{
+  "data" : {
+    "model" : {
+      "collectionColName" : "List*(Universe_0_1)",
+      "replaceInputColumn" : false,
+      "determineMostSpecificDataType" : false,
+      "countElementsPolicy" : "BestEffort"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "collectionColName" : {
+            "type" : "string",
+            "title" : "Column selection",
+            "description" : "Select the column containing the collection value."
+          },
+          "countElementsPolicy" : {
+            "oneOf" : [ {
+              "const" : "BestEffort",
+              "title" : "Best effort"
+            }, {
+              "const" : "UseElementNamesOrFail",
+              "title" : "Use input table information"
+            }, {
+              "const" : "Count",
+              "title" : "Count in advance"
+            } ],
+            "title" : "Element count policy",
+            "description" : "Select the policy on how to determine how many elements the input column contains.\n\n<ul>\n<li><b>Best effort</b>: Try to use the information from the input table; if none is available, count the occurrences.\n</li>\n<li><b>Use input table information</b>: Use the \"element names\" field in the collection column. This information may not always be present in\nthe input table, in which case the node will fail its execution. The column names are defined by the\nelement names.\n</li>\n<li><b>Count in advance</b>: Perform one additional scan on the table and count the occurrences. The names of the new columns are\nauto-generated.\n</li>\n</ul>",
+            "default" : "BestEffort"
+          },
+          "determineMostSpecificDataType" : {
+            "type" : "boolean",
+            "title" : "Determine most specific type",
+            "description" : "The collection column often contains only general type information to the individual elements. Selecting\nthis option will determine the most specific type of the newly appended columns based on the actual content.\n If unsure, keep this option selected.\n",
+            "default" : false
+          },
+          "replaceInputColumn" : {
+            "type" : "boolean",
+            "title" : "Replace input column",
+            "description" : "Select this when the column containing the collection is to be removed from the output.\n",
+            "default" : false
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/collectionColName",
+      "options" : {
+        "format" : "dropDown"
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/replaceInputColumn",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/determineMostSpecificDataType",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/countElementsPolicy",
+      "options" : {
+        "format" : "radio",
+        "radioLayout" : "vertical"
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "collectionColName" : {
+            "configKey" : "collectionColName"
+          },
+          "replaceInputColumn" : {
+            "configKey" : "replaceInputColumn"
+          },
+          "determineMostSpecificDataType" : {
+            "configKey" : "determineMostSpecificDataType"
+          },
+          "countElementsPolicy" : {
+            "configPaths" : [ [ "countElementsPolicy" ] ]
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/collectionColName",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "List*(Universe_0_1)",
+        "text" : "List*(Universe_0_1)",
+        "type" : {
+          "id" : "org.knime.core.data.collection.ListDataValue",
+          "text" : "Collection (List)"
+        }
+      } ]
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "id" : "after-open-dialog"
+    },
+    "triggerInitially" : true,
+    "dependencies" : [ "#/properties/model/properties/collectionColName" ]
+  } ]
+}

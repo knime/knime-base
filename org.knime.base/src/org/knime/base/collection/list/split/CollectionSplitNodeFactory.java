@@ -41,52 +41,132 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- * 
+ *
  * History
  *   Aug 11, 2008 (wiswedel): created
  */
 package org.knime.base.collection.list.split;
 
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
 
 /**
- * 
+ * Node factory for the Split Collection Column node.
+ *
  * @author wiswedel, University of Konstanz
+ * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.2
  */
-public final class CollectionSplitNodeFactory extends
-        NodeFactory<CollectionSplitNodeModel> {
+@SuppressWarnings("restriction")
+public final class CollectionSplitNodeFactory extends NodeFactory<CollectionSplitNodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
-    /** {@inheritDoc} */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new CollectionSplitNodeDialogPane();
-    }
-
-    /** {@inheritDoc} */
     @Override
     public CollectionSplitNodeModel createNodeModel() {
         return new CollectionSplitNodeModel();
     }
 
-    /** {@inheritDoc} */
     @Override
     public NodeView<CollectionSplitNodeModel> createNodeView(final int index,
             final CollectionSplitNodeModel model) {
         return null;
     }
 
-    /** {@inheritDoc} */
     @Override
     protected int getNrNodeViews() {
         return 0;
     }
 
-    /** {@inheritDoc} */
     @Override
     protected boolean hasDialog() {
         return true;
+    }
+
+    private static final String NODE_NAME = "Split Collection Column";
+
+    private static final String NODE_ICON = "collectionsplit.png";
+    private static final String SHORT_DESCRIPTION = """
+            Splits a collection column into its sub components, adding one new column for each.
+            """;
+
+    private static final String FULL_DESCRIPTION = """
+            This node splits a column containing a collection of cells into its sub-components. If a row contains more
+            elements than implied by the various options (see below), the remaining elements are ignored. If it
+            contains less elements than expected, the remaining columns are filled with missing values.
+            """;
+
+    private static final List<PortDescription> INPUT_PORTS = List.of(
+            fixedPort("Data with collection column", """
+                Input data with collection column to split.
+                """)
+    );
+
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(
+            fixedPort("Input data with newly appended columns", """
+                The input data along with newly appended columns.
+                """)
+    );
+
+    /**
+     * {@inheritDoc}
+     * @since 5.10
+     */
+    @Override
+    public NodeDialogPane createNodeDialogPane() {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    /**
+     * {@inheritDoc}
+     * @since 5.10
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, CollectionSplitNodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription( //
+            NODE_NAME, //
+            NODE_ICON, //
+            INPUT_PORTS, //
+            OUTPUT_PORTS, //
+            SHORT_DESCRIPTION, //
+            FULL_DESCRIPTION, //
+            List.of(), //
+            CollectionSplitNodeParameters.class, //
+            null, //
+            NodeType.Manipulator, //
+            List.of(), //
+            null //
+        );
+    }
+
+    /**
+     * {@inheritDoc}
+     * @since 5.10
+     */
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, CollectionSplitNodeParameters.class));
     }
 
 }
