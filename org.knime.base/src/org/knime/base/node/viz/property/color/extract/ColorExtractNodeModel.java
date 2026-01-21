@@ -50,10 +50,14 @@ package org.knime.base.node.viz.property.color.extract;
 import java.awt.Color;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import org.knime.core.data.DataCell;
+import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
-import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.RowKey;
@@ -67,6 +71,8 @@ import org.knime.core.data.property.ColorHandler;
 import org.knime.core.data.property.ColorModel;
 import org.knime.core.data.property.ColorModelNominal;
 import org.knime.core.data.property.ColorModelRange;
+import org.knime.core.data.property.ColorModelRange2;
+import org.knime.core.data.property.ColorModelRange2.SpecialColorType;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -127,6 +133,9 @@ final class ColorExtractNodeModel extends NodeModel {
         } else if (model.getClass() == ColorModelRange.class) {
             ColorModelRange range = (ColorModelRange) model;
             return extractColorTable(range);
+        } else if (model.getClass() == ColorModelRange2.class) {
+            ColorModelRange2 range2 = (ColorModelRange2)model;
+            return extractColorTable(range2);
         } else {
             throw new InvalidSettingsException("Unknown ColorModel class: "
                     + model.getClass());
@@ -134,21 +143,67 @@ final class ColorExtractNodeModel extends NodeModel {
     }
 
     private CloseableTable extractColorTable(final ColorModelRange range) {
-        DataTableSpec spec = createSpec(DoubleCell.TYPE);
+        DataTableSpec spec = createSpec(new DataColumnSpecCreator("value", DoubleCell.TYPE).createSpec());
         DataContainer cnt = new DataContainer(spec);
         RowKey[] keys = new RowKey[] {new RowKey("min"), new RowKey("max")};
         Color[] clrs = new Color[] {range.getMinColor(), range.getMaxColor()};
         double[] vals = new double[] {range.getMinValue(), range.getMaxValue()};
         for (int i = 0; i < 2; i++) {
             Color clr = clrs[i];
-            DataRow row = new DefaultRow(keys[i], new DoubleCell(vals[i]),
-                    new IntCell(clr.getRed()), new IntCell(clr.getGreen()),
-                    new IntCell(clr.getBlue()), new IntCell(clr.getAlpha()),
-                    new IntCell(clr.getRGB()), new StringCell(ColorModel.colorToHexString(clr)));
-            cnt.addRowToTable(row);
+            cnt.addRowToTable(createDefaultRow(keys[i], clr, new DoubleCell(vals[i])));
         }
         cnt.close();
         return cnt.getCloseableTable();
+    }
+
+    private static CloseableTable extractColorTable(final ColorModelRange2 range2) {
+        final var isPercentageBased = range2.isPercentageBased();
+        final var spec = createSpec( //
+            new DataColumnSpecCreator(isPercentageBased ? "value (%)" : "value", DoubleCell.TYPE).createSpec(), //
+            new DataColumnSpecCreator("value as string", StringCell.TYPE).createSpec());
+        final var cnt = new DataContainer(spec);
+
+        final var stopColors = range2.getStopColors();
+        var stopValues = range2.getStopValues();
+        if (stopValues.length == 0) {
+            final var numStops = stopColors.length;
+            stopValues = IntStream.range(0, stopColors.length).mapToDouble(v -> (v * 100.0) / (numStops - 1)).toArray();
+        }
+
+        final var stringColumnFormat = isPercentageBased ? "%s%%" : "%s";
+        var rowCounter = 0;
+        for (; rowCounter < stopValues.length; rowCounter++) {
+            final var color = stopColors[rowCounter];
+            final var value = stopValues[rowCounter];
+            cnt.addRowToTable(createDefaultRow(RowKey.createRowKey(rowCounter), color, new DoubleCell(value),
+                new StringCell(String.format(stringColumnFormat, value))));
+        }
+
+        final var specialColorsCIELab = range2.getSpecialColors();
+        addSpecialColorRows(rowCounter, specialColorsCIELab, cnt);
+
+        cnt.close();
+        return cnt.getCloseableTable();
+    }
+
+    private static void addSpecialColorRows(int rowCounter, final Map<SpecialColorType, Color> specialColors,
+        final DataContainer cnt) {
+        for (var entry : specialColors.entrySet()) {
+            final var color = entry.getValue();
+            final var specialType = entry.getKey();
+            final var values = switch (specialType) {
+                case NAN -> new DataCell[]{new DoubleCell(Double.NaN), new StringCell("not a number")};
+                case POSITIVE_INFINITY -> //
+                        new DataCell[]{new DoubleCell(Double.POSITIVE_INFINITY), new StringCell("positive infinity")};
+                case NEGATIVE_INFINITY -> //
+                        new DataCell[]{new DoubleCell(Double.NEGATIVE_INFINITY), new StringCell("negative infinity")};
+                case BELOW_MIN -> new DataCell[]{DataType.getMissingCell(), new StringCell("below minimum")};
+                case ABOVE_MAX -> new DataCell[]{DataType.getMissingCell(), new StringCell("above maximum")};
+                case MISSING -> new DataCell[]{DataType.getMissingCell(), new StringCell("missing")};
+            };
+            cnt.addRowToTable(createDefaultRow(RowKey.createRowKey(rowCounter), color, values));
+            rowCounter++;
+        }
     }
 
     private CloseableTable extractColorTable(final ColorModelNominal nom)
@@ -164,34 +219,40 @@ final class ColorExtractNodeModel extends NodeModel {
         if (superType == null) {
             throw new InvalidSettingsException("No nominal values in model");
         }
-        DataTableSpec spec = createSpec(superType);
+        DataTableSpec spec = createSpec(new DataColumnSpecCreator("value", superType).createSpec());
         DataContainer cnt = new DataContainer(spec);
         long counter = 0L;
         for (DataCell c : nom.getValues()) {
             Color clr = nom.getColorAttr(c).getColor();
-            DataRow row = new DefaultRow(RowKey.createRowKey(counter++),
-                    c, new IntCell(clr.getRed()), new IntCell(clr.getGreen()),
-                    new IntCell(clr.getBlue()), new IntCell(clr.getAlpha()),
-                    new IntCell(clr.getRGB()), new StringCell(ColorModel.colorToHexString(clr)));
-            cnt.addRowToTable(row);
+            cnt.addRowToTable(createDefaultRow(RowKey.createRowKey(counter++), clr, c));
         }
         cnt.close();
         return cnt.getCloseableTable();
     }
 
-    /**
-     * @param valueType
-     * @return */
-    private static DataTableSpec createSpec(final DataType valueType) {
+    private static DefaultRow createDefaultRow(final RowKey rowKey, final Color color, final DataCell... values) {
+        final var colorColumns = Stream.of( //
+            new IntCell(color.getRed()), //
+            new IntCell(color.getGreen()), //
+            new IntCell(color.getBlue()), //
+            new IntCell(color.getAlpha()), //
+            new IntCell(color.getRGB()), //
+            new StringCell(ColorModel.colorToHexString(color)));
+        final var allColumn = Stream.concat(Arrays.stream(values), colorColumns).toArray(DataCell[]::new);
+        return new DefaultRow(rowKey, allColumn);
+    }
+
+    private static final DataColumnSpec[] COLOR_COLUMNS = new DataColumnSpec[]{ //
+        new DataColumnSpecCreator("R", IntCell.TYPE).createSpec(), //
+        new DataColumnSpecCreator("G", IntCell.TYPE).createSpec(), //
+        new DataColumnSpecCreator("B", IntCell.TYPE).createSpec(), //
+        new DataColumnSpecCreator("A", IntCell.TYPE).createSpec(), //
+        new DataColumnSpecCreator("RGBA", IntCell.TYPE).createSpec(), //
+        new DataColumnSpecCreator("RGB (Hex)", StringCell.TYPE).createSpec()};
+
+    private static DataTableSpec createSpec(final DataColumnSpec... valueColumns) {
         return new DataTableSpec(
-                new DataColumnSpecCreator("value", valueType).createSpec(),
-                new DataColumnSpecCreator("R", IntCell.TYPE).createSpec(),
-                new DataColumnSpecCreator("G", IntCell.TYPE).createSpec(),
-                new DataColumnSpecCreator("B", IntCell.TYPE).createSpec(),
-                new DataColumnSpecCreator("A", IntCell.TYPE).createSpec(),
-                new DataColumnSpecCreator("RGBA", IntCell.TYPE).createSpec(),
-                new DataColumnSpecCreator("RGB (Hex)", StringCell.TYPE).createSpec()
-        );
+            Stream.concat(Arrays.stream(valueColumns), Arrays.stream(COLOR_COLUMNS)).toArray(DataColumnSpec[]::new));
     }
 
     /** {@inheritDoc} */

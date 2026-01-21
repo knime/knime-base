@@ -52,7 +52,7 @@ import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
 
 /**
- * A node that reads a color port object (output of "Color Manager" node) and
+ * A node that reads a color port object (output of "Color Manager" or "Color Designer" nodes) and
  * converts the content into a table with RGB information.
  *
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
