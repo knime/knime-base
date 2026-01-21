@@ -60,11 +60,11 @@ import org.knime.core.node.NodeSettingsWO;
  * @author Heiko Hofer
  */
 public class CrosstabNodeSettings {
-    private static final String ROW_VAR_COLUMN = "rowVariableColumn";
-    private static final String COL_VAR_COLUMN = "columnVariableColumn";
-    private static final String WEIGHT_COLUMN = "weightColumn";
-    private static final String NAMING_VERSION = "namingVersion";
-    private static final String ENALE_HILITING = "enableHiliting";
+    static final String ROW_VAR_COLUMN = "rowVariableColumn";
+    static final String COL_VAR_COLUMN = "columnVariableColumn";
+    static final String WEIGHT_COLUMN = "weightColumn";
+    static final String NAMING_VERSION = "namingVersion";
+    static final String ENALE_HILITING = "enableHiliting";
 
 
     private String m_rowVarColumn = null;

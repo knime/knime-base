@@ -47,35 +47,48 @@
 . */
 package org.knime.base.node.viz.crosstable;
 
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
+import org.knime.node.impl.description.ViewDescription;
 
 /**
  * This is the factory for the Crosstab node.
  *
  * @author Heiko Hofer
+ * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.2
  */
-public class CrosstabNodeFactory extends NodeFactory<CrosstabNodeModel> {
-    /**
-     * {@inheritDoc}
-     */
+@SuppressWarnings("restriction")
+public class CrosstabNodeFactory extends NodeFactory<CrosstabNodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
+
     @Override
     public CrosstabNodeModel createNodeModel() {
         return new CrosstabNodeModel();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected int getNrNodeViews() {
         return 1;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public NodeView<CrosstabNodeModel> createNodeView(final int viewIndex,
             final CrosstabNodeModel nodeModel) {
@@ -87,19 +100,109 @@ public class CrosstabNodeFactory extends NodeFactory<CrosstabNodeModel> {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected boolean hasDialog() {
         return true;
     }
 
+    private static final String NODE_NAME = "Crosstab";
+
+    private static final String NODE_ICON = "./crosstable.png";
+
+    private static final String SHORT_DESCRIPTION = """
+            Creates a cross-tabulation (also referred as contingency table or cross-tab).
+            """;
+
+    private static final String FULL_DESCRIPTION = """
+            <p>Creates a cross table (also referred as <a href="http://en.wikipedia.org/wiki/Contingency_table">
+                contingency table</a> or cross tab). It can be used to analyze the relation of two columns with
+                categorical data and does display the frequency distribution of the categorical variables in a
+                table.</p> <p>This node provides chi-square test statistics and, in case of a cross tabulation of 2x2
+                dimension, Fisher's exact test. Both statistics test the null hypothesis of no association between the
+                row variable and the column variable. The p-values are provided in the view and in the second output
+                port.</p>
+            """;
+
+    private static final List<PortDescription> INPUT_PORTS = List.of(
+            fixedPort("Input Table", """
+                Input table containing columns with categorical data.
+                """)
+    );
+
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(
+            fixedPort("Cross-Table", """
+                The cross table in list form.
+                """),
+            fixedPort("Statistics Table", """
+                The table with the statistics.
+                """)
+    );
+
+    private static final List<ViewDescription> VIEWS = List.of(
+            new ViewDescription("Cross tabulation", """
+                The following properties are displayed in the cross tabulation view: <br /> <i>Frequency:</i> The cell
+                frequency. <br /> <i>Expected:</i> The expected frequency which is computed as (<i>column total</i> /
+                <i>total</i>) * <i>row total</i>. <br /> <i>Deviation:</i> The deviation is computed as <i>Frequency</i>
+                - <i>Expected</i>. <br /> <i>Percent:</i> The percent is the relative frequency computed as
+                <i>Frequency</i> / <i>total</i>. <br /> <i>Row Percent:</i> The row percent is computed as
+                <i>Frequency</i> / <i>row total</i>. <br /> <i>Column Percent:</i> The column percent is computed as
+                <i>Frequency</i> / <i>column total</i>. <br /> <i>Cell Chi-Square:</i> The contribution of this cell to
+                the value of the Chi-Square statistic. The Cell Chi-Square sums up to the value of the Chi-Square
+                statistic. <br /> <br /> For some properties the row totals and column totals are displayed beside the
+                table and underneath the table, respectively. <br /> You can control the size of the displayed table
+                with the <i>Max rows</i> and the <i>Max columns</i> controls. <br /> <br /> The statistics table
+                provides chi-square test statistics and, in case of a cross tabulation of 2x2 dimension, Fisher's exact
+                test. Both statistics test the null hypothesis of no association between the row variable and the column
+                variable. You can reject the null hypothesis when the p-value (Prop) is less than a significance value
+                which is typically 0.01 or 0.05. In this case the result is said to be statistically significant. Please
+                bear in mind that the Chi-Square test is based on <a
+                href="http://en.wikipedia.org/wiki/Pearson%27s_chi-square_test#Assumptions"> some assumptions</a>.
+                """)
+    );
+
     /**
      * {@inheritDoc}
+     * @since 5.10
      */
     @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new CrosstabNodeDialog();
+    public NodeDialogPane createNodeDialogPane() {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
     }
+
+    /**
+     * {@inheritDoc}
+     * @since 5.10
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, CrosstabNodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription( //
+            NODE_NAME, //
+            NODE_ICON, //
+            INPUT_PORTS, //
+            OUTPUT_PORTS, //
+            SHORT_DESCRIPTION, //
+            FULL_DESCRIPTION, //
+            List.of(), //
+            CrosstabNodeParameters.class, //
+            VIEWS, //
+            NodeType.Manipulator, //
+            List.of(), //
+            null //
+        );
+    }
+
+    /**
+     * {@inheritDoc}
+     * @since 5.10
+     */
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, CrosstabNodeParameters.class));
+    }
+
 }
