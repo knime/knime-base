@@ -66,6 +66,7 @@
               "fsToString" : "(RELATIVE, knime.workflow.data, test.table)"
             }
           },
+          "sourceIdentifier" : "test.table",
           "spec" : [ {
             "name" : "Universe_0_0",
             "type" : "{\"name\":\"type\",\"value\":{\"type\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.DoubleCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}"
@@ -611,6 +612,9 @@
                   "properties" : {
                     "fsLocation" : {
                       "type" : "object"
+                    },
+                    "sourceIdentifier" : {
+                      "type" : "string"
                     },
                     "spec" : {
                       "type" : "array",
@@ -1206,6 +1210,7 @@
                   "type" : "object",
                   "properties" : {
                     "fsLocation" : { },
+                    "sourceIdentifier" : { },
                     "spec" : {
                       "type" : "array",
                       "items" : {

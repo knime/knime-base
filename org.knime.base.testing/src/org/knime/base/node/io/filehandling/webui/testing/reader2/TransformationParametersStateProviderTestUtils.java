@@ -99,6 +99,7 @@ public final class TransformationParametersStateProviderTestUtils {
         final var spec = specs[0];
         if (file != null) {
             assertThat(spec.m_fsLocation.getPath()).isEqualTo(file);
+            assertThat(spec.m_sourceIdentifier).isEqualTo(file);
         }
         assertThat(spec.m_spec).hasSize(columNames.length);
         for (int i = 0; i < columNames.length; i++) {
@@ -132,8 +133,8 @@ public final class TransformationParametersStateProviderTestUtils {
         final var columnSpecSettings = IntStream.range(0, columnNames.size())
             .mapToObj(i -> new ColumnSpecSettings(columnNames.get(i), columnTypes.get(i)))
             .toArray(ColumnSpecSettings[]::new);
-        transformationSettings.m_specs = new TableSpecSettings[]{
-            new TableSpecSettings(new FSLocation(FSCategory.LOCAL, "existingSource"), columnSpecSettings)};
+        transformationSettings.m_specs = new TableSpecSettings[]{new TableSpecSettings("existingSource",
+            new FSLocation(FSCategory.LOCAL, "existingSource"), columnSpecSettings)};
     }
 
     /**
