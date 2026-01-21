@@ -69,7 +69,7 @@ import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
  * @author KNIME AG, Zurich, Switzerland
  */
 // TODO (#4): Adjust Class<?> (T) and String (V) to match your TableReader's type parameters if needed
-public class TutorialReaderNodeFactory extends WebUITableReaderNodeFactory<TutorialReaderNodeParameters, FSPath, //
+public class TutorialReaderNodeFactory extends WebUITableReaderNodeFactory<TutorialReaderNodeParameters, //
         MultiFileSelectionPath, DummyTableReaderConfig, Class<?>, String, DummyMultiTableReadConfig> {
 
     @SuppressWarnings("javadoc")
@@ -126,7 +126,7 @@ public class TutorialReaderNodeFactory extends WebUITableReaderNodeFactory<Tutor
     }
 
     private final class TutorialConfigAndSourceSerializer
-        extends NodeParametersConfigAndSourceSerializer<TutorialReaderNodeParameters, FSPath, MultiFileSelectionPath, //
+        extends NodeParametersConfigAndSourceSerializer<TutorialReaderNodeParameters, MultiFileSelectionPath, //
                 DummyTableReaderConfig, Class<?>, DummyMultiTableReadConfig> {
         protected TutorialConfigAndSourceSerializer() {
             super(TutorialReaderNodeParameters.class);

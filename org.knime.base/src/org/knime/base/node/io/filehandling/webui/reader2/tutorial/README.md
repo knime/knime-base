@@ -49,13 +49,17 @@ Follow the numbered steps below to implement your own reader node.
    Check your existing TableReader class to determine the correct types.
    - `T` (external type): Replace `Class<?>` with your type if different (e.g., `DataType`)
    - `V` (value): Replace `String` with your value type if different (e.g., `DataValue`)
-5. Complete the NodeFactory and ReaderSpecific implementation.
+5. Complete the NodeFactory, ReaderSpecific, and TransformationParameters implementation.
    Refer to your old NodeFactory and existing reader infrastructure for the required values.
    - `createNodeDescription()` - set name, icon, port descriptions, node description, keywords, and version
    - `getReadAdapterFactory()` - return your ReadAdapterFactory instance
    - `getTypeHierarchy()` - return your ReadAdapterFactory's TYPE_HIERARCHY
    - `extractRowKey()` - implement if your V type requires special handling
    - `PRODUCTION_PATH_PROVIDER` - initialize from your ReadAdapterFactory
+   - `createTableSpecConfigSerializer()` - return your TableSpecConfigSerializer implementation (see your
+     ...ReadConfigSerializer)
+   - `getConfigIdSettingsKey()` - return the key used to generate the config ID (see your implementation of
+     ConfigIDLoader.createFromSettings)
 6. Configure file extensions and add reader-specific parameters:
    - Set the file extensions in `Set*Extensions` (inner class of your renamed NodeParameters)
    - For each new reader-specific parameter you need to add:
