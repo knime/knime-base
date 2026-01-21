@@ -11,7 +11,7 @@
 		<intro>
 			<p>
 				Extract color information (RGB) from a color model. Each color
-				value as defined in the "Color Manager" node will be represented
+				value as defined in the "Color Manager" or "Color Designer" nodes will be represented
 				by a data row in the node's output table. The columns represent
 				the	different color values for red (R), green (G), blue (B) and
 				alpha (A) -- all in the range of 0-255. RGBA
@@ -24,7 +24,7 @@
 
 	<ports>
 		<inPort index="0" name="Color Model">
-		  The output of the Color Manager node.
+		  The output of the Color Manager or Color Designer nodes.
         </inPort>
 		<outPort index="0" name="Color Data">
 		  The model represented as a table.
