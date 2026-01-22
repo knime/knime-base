@@ -41,44 +41,52 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * -------------------------------------------------------------------
- * 
+ *
  */
 package org.knime.base.node.mine.cluster.hierarchical.distfunctions;
 
 import java.io.Serializable;
 
 import org.knime.core.data.DataRow;
+import org.knime.node.parameters.widget.choices.Label;
 
 
 // TODO: has to changed to the knime framework distance functions when available
 /**
  * The interface a distance function must implement.
- * 
+ *
  * @author Christoph Sieb, University of Konstanz
  */
 public interface DistanceFunction extends Serializable {
-    
+
     /**
      * The name sof the implemented distance functions.
-     * 
+     *
      * @author Fabian Dill, University of Konstanz
      */
     public enum Names {
         /** Euclidean distance function. */
-        Euclidean,
+        @Label(value = "Euclidean", description = """
+                The straight-line distance between two points in n-dimensional space (L2 norm).
+                """)
+        Euclidean, //
         /** Manhattan distance function. */
-        Manhattan
+        @Label(value = "Manhattan", description = """
+                The sum of absolute differences between coordinates (L1 norm).
+                """)
+        Manhattan;
+
     }
 
      /**
      * Calculates the distance between two data rows.
-     * 
+     *
      * @param firstDataRow the first data row used to calculate the distance
      * @param secondDataRow the second data row used to calculate the distance
      * @param includedCols the columns to use for the distance calculation
-     * 
+     *
      * @return the distance of the two rows
      */
     public double calcDistance(DataRow firstDataRow, DataRow secondDataRow,
-            int[] includedCols);    
+            int[] includedCols);
 }

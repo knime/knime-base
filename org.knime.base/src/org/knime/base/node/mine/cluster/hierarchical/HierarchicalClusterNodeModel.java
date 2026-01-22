@@ -85,6 +85,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelFilterString;
 import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.node.parameters.widget.choices.Label;
 
 /**
  * Implements a Hierarchical Clustering.
@@ -101,11 +102,22 @@ public class HierarchicalClusterNodeModel extends NodeModel implements
      */
     public enum Linkage {
         /** Minimal distance between any two points of two clusters. */
-        SINGLE,
+        @Label(value = "Single", description = """
+                The distance between two clusters is the minimum distance between any two points of the two clusters.
+                """)
+        SINGLE, //
         /** Average distance between all points of both clusters. */
-        AVERAGE,
+        @Label(value = "Average", description = """
+                The distance between two clusters is the average distance between all pairs of points from the two
+                clusters.
+                """)
+        AVERAGE, //
         /** Maximal distance between any two points of two clusters. */
+        @Label(value = "Complete", description = """
+                The distance between two clusters is the maximum distance between any two points of the two clusters.
+                """)
         COMPLETE;
+
     }
 
     private static final String CFG_HCLUST = "hClust";
@@ -143,26 +155,21 @@ public class HierarchicalClusterNodeModel extends NodeModel implements
     /**
      * Specifies the mode the distance between two clusters is calculated.
      */
-    private final SettingsModelString m_linkageType =
-        HierarchicalClusterNodeDialog.createSettingsLinkageType();
+    private final SettingsModelString m_linkageType = createSettingsLinkageType();
 
     /**
      * Specifies the number clusters when the output table should be generated.
      */
-    private final SettingsModelIntegerBounded m_numClustersForOutput =
-        HierarchicalClusterNodeDialog.createSettingsNumberOfClusters();
+    private final SettingsModelIntegerBounded m_numClustersForOutput = createSettingsNumberOfClusters();
 
-    private final SettingsModelBoolean m_cacheDistances =
-        HierarchicalClusterNodeDialog.createSettingsCacheKeys();
+    private final SettingsModelBoolean m_cacheDistances = createSettingsCacheKeys();
 
-    private final SettingsModelFilterString m_selectedColumns =
-        HierarchicalClusterNodeDialog.createSettingsColumns();
+    private final SettingsModelFilterString m_selectedColumns = createSettingsColumns();
 
     /**
      * The distance function to use.
      */
-    private final SettingsModelString m_distFunctionName =
-        HierarchicalClusterNodeDialog.createSettingsDistanceFunction();
+    private final SettingsModelString m_distFunctionName = createSettingsDistanceFunction();
 
     private DistanceFunction m_distFunction;
 
@@ -543,6 +550,33 @@ public class HierarchicalClusterNodeModel extends NodeModel implements
 
         resultTable.close();
         return resultTable.getTable();
+    }
+
+    static SettingsModelIntegerBounded createSettingsNumberOfClusters() {
+        return new SettingsModelIntegerBounded(
+          HierarchicalClusterNodeModel.NRCLUSTERS_KEY, 3, 1, Integer.MAX_VALUE);
+    }
+
+    static SettingsModelString createSettingsDistanceFunction() {
+        return new SettingsModelString(
+                HierarchicalClusterNodeModel.DISTFUNCTION_KEY,
+                DistanceFunction.Names.Euclidean.toString());
+    }
+
+    static SettingsModelString createSettingsLinkageType() {
+        return new SettingsModelString(
+                HierarchicalClusterNodeModel.LINKAGETYPE_KEY,
+                HierarchicalClusterNodeModel.Linkage.SINGLE.name());
+    }
+
+    static SettingsModelBoolean createSettingsCacheKeys() {
+        return new SettingsModelBoolean(
+                HierarchicalClusterNodeModel.USE_CACHE_KEY, true);
+    }
+
+    static SettingsModelFilterString createSettingsColumns() {
+        return new SettingsModelFilterString(
+                HierarchicalClusterNodeModel.SELECTED_COLUMNS_KEY);
     }
 
     /**
