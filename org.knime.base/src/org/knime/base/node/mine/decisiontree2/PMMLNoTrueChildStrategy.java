@@ -47,8 +47,13 @@
  */
 package org.knime.base.node.mine.decisiontree2;
 
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.stream.Collectors;
+
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.node.parameters.widget.choices.Label;
 
 /**
  * Represents the no true child strategies as defined in PMML
@@ -58,8 +63,15 @@ import java.util.HashMap;
  */
 public enum PMMLNoTrueChildStrategy {
     /** returnNullPrediction no-true child strategy. */
-    RETURN_NULL_PREDICTION("returnNullPrediction"),
+    @Label(value = "Return null prediction", description = """
+            No prediction is returned (this is the default behaviour)
+            """)
+    RETURN_NULL_PREDICTION("returnNullPrediction"), //
     /** returnLastPrediction no-true child strategy. */
+    @Label(value = "Return last prediction", description = """
+            If the parent has a score attribute return the value of this attribute. Otherwise, no prediction
+            is returned.
+            """)
     RETURN_LAST_PREDICTION("returnLastPrediction");
 
     private final String m_represent;
@@ -83,6 +95,29 @@ public enum PMMLNoTrueChildStrategy {
     @Override
     public String toString() {
         return m_represent;
+    }
+
+    /**
+     * Retrieves the {@link PMMLNoTrueChildStrategy} from its string representation.
+     *
+     * @param representation the string representation
+     * @return {@link PMMLNoTrueChildStrategy}
+     * @throws InvalidSettingsException if the representation is invalid
+     * @since 5.10
+     */
+    public static PMMLNoTrueChildStrategy getFromString(final String representation) throws InvalidSettingsException {
+        for (final PMMLNoTrueChildStrategy strategy : values()) {
+            if (strategy.toString().equals(representation)) {
+                return strategy;
+            }
+        }
+        throw new InvalidSettingsException(createInvalidSettingsExceptionMessage(representation));
+    }
+
+    private static String createInvalidSettingsExceptionMessage(final String name) {
+        var values = Arrays.stream(PMMLNoTrueChildStrategy.values()).map(PMMLNoTrueChildStrategy::toString)
+                .collect(Collectors.joining(", "));
+        return String.format("Invalid value '%s'. Possible values: %s", name, values);
     }
 
     /**

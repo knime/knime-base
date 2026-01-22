@@ -47,8 +47,12 @@
  */
 package org.knime.base.node.mine.decisiontree2;
 
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.stream.Collectors;
+
+import org.knime.core.node.InvalidSettingsException;
 
 /**
  * Represents the missing value strategies as defined in PMML
@@ -101,6 +105,29 @@ public enum PMMLMissingValueStrategy {
     @Override
     public String toString() {
         return m_represent;
+    }
+
+    /**
+     * Retrieves the {@link PMMLMissingValueStrategy} from its string representation.
+     *
+     * @param representation the string representation
+     * @return {@link PMMLMissingValueStrategy}
+     * @throws InvalidSettingsException if the representation is invalid
+     * @since 5.10
+     */
+    public static PMMLMissingValueStrategy getFromString(final String representation) throws InvalidSettingsException {
+        for (final PMMLMissingValueStrategy strategy : values()) {
+            if (strategy.toString().equals(representation)) {
+                return strategy;
+            }
+        }
+        throw new InvalidSettingsException(createInvalidSettingsExceptionMessage(representation));
+    }
+
+    private static String createInvalidSettingsExceptionMessage(final String name) {
+        var values = Arrays.stream(PMMLMissingValueStrategy.values()).map(PMMLMissingValueStrategy::toString)
+                .collect(Collectors.joining(", "));
+        return String.format("Invalid value '%s'. Possible values: %s", name, values);
     }
 
     /**
