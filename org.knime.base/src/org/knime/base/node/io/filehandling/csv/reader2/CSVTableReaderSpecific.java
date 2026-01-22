@@ -55,6 +55,7 @@ import org.knime.base.node.io.filehandling.csv.reader.api.StringReadAdapterFacto
 import org.knime.base.node.io.filehandling.webui.reader2.ReaderSpecific;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
+import org.knime.node.parameters.NodeParametersInput;
 
 final class CSVTableReaderSpecific {
 
@@ -78,7 +79,7 @@ final class CSVTableReaderSpecific {
             CSVMultiTableReadConfig> {
 
         @Override
-        default CSVMultiTableReadConfig createMultiTableReadConfig() {
+        default CSVMultiTableReadConfig createMultiTableReadConfig(NodeParametersInput input) {
             return new CSVMultiTableReadConfig();
         }
 
