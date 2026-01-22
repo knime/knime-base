@@ -64,6 +64,7 @@ import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec.TypedReaderTableSpecBuilder;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
+import org.knime.node.parameters.NodeParametersInput;
 
 /**
  *
@@ -96,7 +97,7 @@ public final class ReaderSpecific {
          *
          * @return an instance of the multi table read config whose reader specific config is the default one
          */
-        M createMultiTableReadConfig();
+        M createMultiTableReadConfig(NodeParametersInput input);
 
         /**
          * @param <V> the type of tokens a row read in consists of
