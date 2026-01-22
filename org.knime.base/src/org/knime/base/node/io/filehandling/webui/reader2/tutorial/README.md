@@ -5,6 +5,7 @@ Follow the numbered steps below to implement your own reader node.
 
 ## How to use this tutorial
 
+- Before you start, decide whether to introduce a new NodeFactory or modify an existing one in place.
 - Some steps have corresponding `TODO (#N)` comments in the code (where N is the step number).
   Use your IDE's search to find all occurrences of `TODO (#N)` for the current step.
 - After completing each step, verify that all `TODO (#N)` comments for that step have been resolved,
@@ -84,8 +85,11 @@ Follow the numbered steps below to implement your own reader node.
    - `*TableReaderNodeParametersTest`:
      - Remove `@Disabled`
      - Create the `node_settings/*TableReaderNodeParameters.xml` file matching your parameters class name
-8. Register the node in `plugin.xml` and deprecate the old node:
+8. Register the node in `plugin.xml` and deprecate the old node (only if you introduced a new NodeFactory):
    - Register your new NodeFactory in `plugin.xml`
    - Deprecate the old node factory
    - If the old node had URL mappings (FileExtensionMapping), update them to point to the new node factory
-9. Delete this README file.
+9. Write a migration and annotate your NodeParameters class with `@Migration` (only if you kept the old NodeFactory):
+    - This is not part of the template (yet), you can copy from the Excel Reader for now.
+    - Add snapshot tests loading an old settings file to ensure the stability of the migration.
+10. Delete this README file.
