@@ -236,7 +236,7 @@ public final class TransformationParametersStateProviders {
                         case WARNING -> LOGGER.info(s.getMessage());
                         case ERROR -> LOGGER.error(s.getMessage());
                     }
-                }));
+                }), context);
             } catch (IOException | InvalidSettingsException e) {
                 LOGGER.error(e);
                 return null; // NOSONAR we deliberately return null here to indicate that no computation is possible

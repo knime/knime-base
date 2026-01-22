@@ -49,6 +49,7 @@ package org.knime.base.node.io.filehandling.webui.reader2.tutorial;
 import org.knime.base.node.io.filehandling.webui.reader2.ReaderSpecific;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
+import org.knime.node.parameters.NodeParametersInput;
 
 /**
  *
@@ -81,7 +82,7 @@ final class TutorialReaderSpecific {
         extends ReaderSpecific.ConfigAndReader<DummyTableReaderConfig, Class<?>, DummyMultiTableReadConfig> {
 
         @Override
-        default DummyMultiTableReadConfig createMultiTableReadConfig() {
+        default DummyMultiTableReadConfig createMultiTableReadConfig(NodeParametersInput input) {
             return new DummyMultiTableReadConfig(); // TODO (#3): Replace with your MultiTableReadConfig
         }
 

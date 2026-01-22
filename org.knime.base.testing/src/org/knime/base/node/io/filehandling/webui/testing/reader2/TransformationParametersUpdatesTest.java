@@ -89,6 +89,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.util.updates.IndexedValue;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.WidgetGroup;
 import org.knime.node.parameters.widget.choices.StringChoice;
 import org.knime.testing.node.dialog.updates.DialogUpdateSimulator;
@@ -134,6 +135,15 @@ public abstract class TransformationParametersUpdatesTest<R extends WidgetGroup,
      */
     protected abstract R constructNewSettings();
 
+    /**
+     * Override this method if your implementation of the reader requires specific node parameters input.
+     *
+     * @return the node parameters input to be used within the simulator; null for default
+     */
+    protected NodeParametersInput createNodeParametersInput() {
+        return null;
+    }
+
     protected abstract void setSourcePath(R settings, FSLocation fsLocation);
 
     protected abstract void setHowToCombineColumns(R settings, HowToCombineColumnsOption howToCombineColumns);
@@ -178,7 +188,7 @@ public abstract class TransformationParametersUpdatesTest<R extends WidgetGroup,
         m_settings = constructNewSettings();
         m_filePath = m_tempFolder.resolve(getFileName()).toAbsolutePath().toString();
         setSourcePath(new FSLocation(FSCategory.LOCAL, m_filePath));
-        m_simulator = new DialogUpdateSimulator(m_settings, null);
+        m_simulator = new DialogUpdateSimulator(m_settings, createNodeParametersInput());
     }
 
     private void setSourcePath(final FSLocation fsLocation) {
