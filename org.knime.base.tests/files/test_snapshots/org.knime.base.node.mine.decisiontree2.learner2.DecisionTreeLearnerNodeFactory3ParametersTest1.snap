@@ -1,0 +1,493 @@
+{
+  "data" : {
+    "model" : {
+      "classifyColumn" : "Cluster Membership",
+      "qualityMeasure" : "GINI_INDEX",
+      "pruningMethod" : "NO_PRUNING",
+      "reducedErrorPruning" : true,
+      "minNumberRecordsPerNode" : 2,
+      "numberRecordsStoredForView" : 10000,
+      "averageSplitPoint" : true,
+      "numProcessors" : 16,
+      "skipColumnsWithoutDomain" : true,
+      "useFirstSplitColumn" : false,
+      "firstSplitColumn" : "Universe_1_1",
+      "binaryNominalSplitMode" : false,
+      "maxNumNominalValues" : 10,
+      "filterNominalValuesFromParent" : false,
+      "noTrueChildStrategy" : "RETURN_NULL_PREDICTION",
+      "missingValueStrategy" : "LAST_PREDICTION"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "averageSplitPoint" : {
+            "type" : "boolean",
+            "title" : "Average split point",
+            "description" : "If checked (default), the split value for numeric attributes is determined according to the mean value of\nthe two attribute values that separate the two partitions. If unchecked, the split value is set to the\nlargest value of the lower partition (like C4.5).\n",
+            "default" : true
+          },
+          "binaryNominalSplitMode" : {
+            "type" : "boolean",
+            "title" : "Binary nominal splits",
+            "description" : "If checked, nominal attributes are split in a binary fashion. Binary splits are more difficult to calculate\nbut result also in more accurate trees. The nominal values are divided in two subsets (one for each child).\nIf unchecked, for each nominal value one child is created.\n",
+            "default" : false
+          },
+          "classifyColumn" : {
+            "type" : "string",
+            "title" : "Class column",
+            "description" : "Select the target attribute. Only nominal attributes are allowed."
+          },
+          "filterNominalValuesFromParent" : {
+            "type" : "boolean",
+            "title" : "Filter invalid attribute values in child nodes",
+            "description" : "Binary splits on nominal values may lead to tests for attribute values, which have been filtered out by a\nparent tree node. This is due to the fact that the learning algorithm is consistently using the table's\ndomain information instead of the data in a tree node to define the split sets. These duplicate checks do\nnot harm (the tree is the same and and will classify unknown data the exact same way), though they are\nconfusing when the tree is inspected in the tree viewer. Enabling this option will post-process the tree\nand filter invalid checks.\n",
+            "default" : false
+          },
+          "firstSplitColumn" : {
+            "type" : "string",
+            "title" : "Root split column",
+            "description" : "The column to perform the root split on.\n"
+          },
+          "maxNumNominalValues" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Maximum number of nominal values",
+            "description" : "The subsets for the binary nominal splits are difficult to calculate. To find the best subsets for n\nnominal values there must be performed 2^n calculations. In case of many different nominal values this can\nbe prohibitive expensive. Thus the maximum number of nominal values can be defined for which all possible\nsubsets are calculated. Above this threshold, a heuristic is applied that first calculates the best nominal\nvalue for the second partition, then the second best value, and so on; until no improvement can be\nachieved.\n",
+            "default" : 10
+          },
+          "minNumberRecordsPerNode" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Minimum number of records per node",
+            "description" : "Select the minimum number of records at least required in each node. If the number of records is smaller or\nequal to this number the tree is not grown any further. This corresponds to a stopping criteria (pre\npruning).\n",
+            "default" : 2
+          },
+          "missingValueStrategy" : {
+            "oneOf" : [ {
+              "const" : "LAST_PREDICTION",
+              "title" : "Last prediction"
+            }, {
+              "const" : "NULL_PREDICTION",
+              "title" : "Null prediction"
+            }, {
+              "const" : "DEFAULT_CHILD",
+              "title" : "Default child"
+            }, {
+              "const" : "WEIGHTED_CONFIDENCE",
+              "title" : "Weighted confidence"
+            }, {
+              "const" : "AGGREGATE_NODES",
+              "title" : "Aggregate nodes"
+            }, {
+              "const" : "NONE",
+              "title" : "None"
+            } ],
+            "title" : "Missing value strategy",
+            "description" : "If there are missing values in the data to be predicted, a strategy can be chosen how to handle them. <br/>\n<ul>\n    <li>\n        <b>Last Prediction</b>\n        If a Node's predicate evaluates to UNKNOWN while traversing the tree, evaluation is stopped and the\n        current winner is returned as the final prediction.\n    </li>\n    <li>\n        <b>None</b>\n        Comparisons with missing values other than checks for missing values always evaluate to FALSE. If\n        no rule fires, then use the noTrueChildStrategy to decide on a result. This option requires that\n        missing values be handled after all rules at the Node have been evaluated. Note: In contrast to\n        lastPrediction, evaluation is carried on instead of stopping immediately upon first discovery of a\n        Node who's predicate value cannot be determined due to missing values.\n    </li>\n</ul>\n",
+            "default" : "LAST_PREDICTION"
+          },
+          "noTrueChildStrategy" : {
+            "oneOf" : [ {
+              "const" : "RETURN_NULL_PREDICTION",
+              "title" : "Return null prediction"
+            }, {
+              "const" : "RETURN_LAST_PREDICTION",
+              "title" : "Return last prediction"
+            } ],
+            "title" : "No true child strategy",
+            "description" : "If the scoring reaches a node, at which its attributes value is unknown, one of the two following strategies\ncan be used.\n\n<ul>\n<li><b>Return null prediction</b>: No prediction is returned (this is the default behaviour)\n</li>\n<li><b>Return last prediction</b>: If the parent has a score attribute return the value of this attribute. Otherwise, no prediction\nis returned.\n</li>\n</ul>",
+            "default" : "RETURN_NULL_PREDICTION"
+          },
+          "numProcessors" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Number threads",
+            "description" : "This node can exploit multiple threads and thus multiple processors or cores. This can improve performance.\nThe default value is set to the number of processors or cores that are available to KNIME. If set to 1, the\nalgorithm is performed sequentially.\n",
+            "default" : 42
+          },
+          "numberRecordsStoredForView" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Number of records to store for view",
+            "description" : "Select the number of records stored in the tree for the view. The records are necessary to enable\nhighlighting.\n",
+            "default" : 10000
+          },
+          "pruningMethod" : {
+            "oneOf" : [ {
+              "const" : "NO_PRUNING",
+              "title" : "No pruning"
+            }, {
+              "const" : "MDL",
+              "title" : "MDL"
+            } ],
+            "title" : "Pruning method",
+            "description" : "Pruning reduces tree size and avoids overfitting which increases the generalization performance, and thus,\nthe prediction quality (for predictions, use the \"Decision Tree Predictor\" node).\n\n<ul>\n<li><b>No pruning</b>: No pruning is applied</li>\n<li><b>MDL</b>: Minimal Description Length pruning</li>\n</ul>",
+            "default" : "NO_PRUNING"
+          },
+          "qualityMeasure" : {
+            "oneOf" : [ {
+              "const" : "GINI_INDEX",
+              "title" : "Gini index"
+            }, {
+              "const" : "GAIN_RATIO",
+              "title" : "Gain ratio"
+            } ],
+            "title" : "Quality measure",
+            "description" : "Select the quality measure according to which the split is calculated.\n\n<ul>\n<li><b>Gini index</b>: The Gini index is a measure of inequality that quantifies how unevenly a resource\n(such as income or wealth) is distributed within a population, ranging from 0 (perfect equality)\nto 1 (maximum inequality).\n</li>\n<li><b>Gain ratio</b>: The Gini ratio is simply another name for the Gini index, expressing the same inequality measure\nas a ratio derived from the area between the Lorenz curve and the line of perfect equality.\n</li>\n</ul>",
+            "default" : "GINI_INDEX"
+          },
+          "reducedErrorPruning" : {
+            "type" : "boolean",
+            "title" : "Reduced error pruning",
+            "description" : "If checked (default), a simple pruning method is used to cut the tree in a post-processing step: Starting\nat the leaves, each node is replaced with its most popular class, but only if the prediction accuracy\ndoesn't decrease. Reduced error pruning has the advantage of simplicity and speed.\n",
+            "default" : true
+          },
+          "skipColumnsWithoutDomain" : {
+            "type" : "boolean",
+            "title" : "Skip nominal columns without domain information",
+            "description" : "If checked, nominal columns containing no domain value information are skipped. This is generally the case\nfor nominal columns that have too many different values.\n",
+            "default" : true
+          },
+          "useFirstSplitColumn" : {
+            "type" : "boolean",
+            "title" : "Force root split column",
+            "description" : "If checked, the first split is calculated on the chosen column without evaluating any other column for\npossible splits. This is sometimes useful if the user has additional information as to which column is best\nto split on even if it does not have the numeric best split quality. In case the selected column does not\ncontain valid splits (e.g. because it has a constant value in all rows) a warning message will be displayed.\nIf uncertain, leave unselected.\n",
+            "default" : false
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/classifyColumn",
+      "options" : {
+        "format" : "dropDown"
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/qualityMeasure",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/pruningMethod",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/reducedErrorPruning",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/minNumberRecordsPerNode",
+      "options" : {
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 2147483647.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 2.147483647E9
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 1.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 1.0
+            }
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/numberRecordsStoredForView",
+      "options" : {
+        "stepSize" : 100.0,
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 2147483647.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 2.147483647E9
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 0.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 0.0
+            }
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/averageSplitPoint",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/numProcessors",
+      "options" : {
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 2147483647.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 2.147483647E9
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 1.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 1.0
+            }
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/skipColumnsWithoutDomain",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/useFirstSplitColumn",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/firstSplitColumn",
+      "options" : {
+        "format" : "dropDown"
+      },
+      "providedOptions" : [ "possibleValues" ],
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/useFirstSplitColumn",
+          "schema" : {
+            "const" : true
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/binaryNominalSplitMode",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/maxNumNominalValues",
+      "options" : {
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 2147483647.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 2.147483647E9
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 1.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 1.0
+            }
+          }
+        }
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/binaryNominalSplitMode",
+          "schema" : {
+            "const" : true
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/filterNominalValuesFromParent",
+      "options" : {
+        "format" : "checkbox"
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/binaryNominalSplitMode",
+          "schema" : {
+            "const" : true
+          }
+        }
+      }
+    }, {
+      "label" : "PMML Settings",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/noTrueChildStrategy",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/missingValueStrategy",
+        "options" : {
+          "format" : "valueSwitch"
+        },
+        "providedOptions" : [ "possibleValues" ]
+      } ]
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "classifyColumn" : {
+            "configKey" : "classifyColumn"
+          },
+          "qualityMeasure" : {
+            "configPaths" : [ [ "splitQualityMeasure" ] ]
+          },
+          "pruningMethod" : {
+            "configPaths" : [ [ "pruningMethod" ] ]
+          },
+          "reducedErrorPruning" : {
+            "configKey" : "enableReducedErrorPruning"
+          },
+          "minNumberRecordsPerNode" : {
+            "configKey" : "minNumberRecordsPerNode"
+          },
+          "numberRecordsStoredForView" : {
+            "configKey" : "numverRecordsToView"
+          },
+          "averageSplitPoint" : {
+            "configKey" : "splitAverage"
+          },
+          "numProcessors" : {
+            "configKey" : "numProcessors"
+          },
+          "skipColumnsWithoutDomain" : {
+            "configKey" : "skipColumnsWithoutDomain",
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ ]
+            } ]
+          },
+          "useFirstSplitColumn" : {
+            "configKey" : "useFirstSplitColumn",
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ ]
+            } ]
+          },
+          "firstSplitColumn" : {
+            "configKey" : "firstSplitColumn"
+          },
+          "binaryNominalSplitMode" : {
+            "configKey" : "binaryNominalSplit"
+          },
+          "maxNumNominalValues" : {
+            "configKey" : "maxNumNominalValues"
+          },
+          "filterNominalValuesFromParent" : {
+            "configKey" : "FilterNominalValuesFromParent"
+          },
+          "noTrueChildStrategy" : {
+            "configPaths" : [ [ "CFG_NOTRUECHILD" ] ]
+          },
+          "missingValueStrategy" : {
+            "configPaths" : [ [ "CFG_MISSINGSTRATEGY" ] ]
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/classifyColumn",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Cluster Membership",
+        "text" : "Cluster Membership",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "Nominal_Column",
+        "text" : "Nominal_Column",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/firstSplitColumn",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Universe_1_1",
+        "text" : "Universe_1_1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Nominal_Column",
+        "text" : "Nominal_Column",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "Numeric_Column",
+        "text" : "Numeric_Column",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/missingValueStrategy",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "LAST_PREDICTION",
+        "text" : "Last prediction"
+      }, {
+        "id" : "NONE",
+        "text" : "None"
+      } ]
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/classifyColumn"
+    },
+    "dependencies" : [ "#/properties/model/properties/classifyColumn", "#/properties/model/properties/firstSplitColumn" ]
+  } ]
+}
