@@ -58,6 +58,7 @@ import org.knime.core.data.DataType;
 import org.knime.filehandling.core.node.table.reader.DefaultProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
+import org.knime.node.parameters.NodeParametersInput;
 
 /**
  * Reader-specific interfaces for the Table Reader Node.
@@ -87,7 +88,7 @@ final class KnimeTableReaderSpecific {
         extends ReaderSpecific.ConfigAndReader<TableManipulatorConfig, DataType, KnimeTableMultiTableReadConfig> {
 
         @Override
-        default KnimeTableMultiTableReadConfig createMultiTableReadConfig() {
+        default KnimeTableMultiTableReadConfig createMultiTableReadConfig(NodeParametersInput input) {
             return new KnimeTableMultiTableReadConfig();
         }
 
