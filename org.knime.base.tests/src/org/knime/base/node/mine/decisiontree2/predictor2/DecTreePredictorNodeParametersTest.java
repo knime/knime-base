@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -40,17 +41,16 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * ---------------------------------------------------------------------
+ * ------------------------------------------------------------------------
  */
-package org.knime.base.node.mine.regression.predict3;
+package org.knime.base.node.mine.decisiontree2.predictor2;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.DataType;
-import org.knime.core.data.def.DoubleCell;
+import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.port.PortObjectSpec;
@@ -61,34 +61,32 @@ import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
 import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 
 /**
- * Snapshot test for the Regression Predictor node settings.
- *
- * @author AI Migration
+ * Snapshot test for {@link DecTreePredictorNodeParameters}.
  */
 @SuppressWarnings("restriction")
-final class RegressionPredictorNodeParametersTest extends DefaultNodeSettingsSnapshotTest {
+final class DecTreePredictorNodeParametersTest extends DefaultNodeSettingsSnapshotTest {
 
-    RegressionPredictorNodeParametersTest() {
+    DecTreePredictorNodeParametersTest() {
         super(getConfig());
     }
 
     private static SnapshotTestConfiguration getConfig() {
         return SnapshotTestConfiguration.builder() //
             .withInputPortObjectSpecs(createInputPortSpecs()) //
-            .testJsonFormsForModel(RegressionPredictorNodeParameters.class) //
+            .testJsonFormsForModel(DecTreePredictorNodeParameters.class) //
             .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings()) //
             .testNodeSettingsStructure(() -> readSettings()) //
             .build();
     }
 
-    private static RegressionPredictorNodeParameters readSettings() {
+    private static DecTreePredictorNodeParameters readSettings() {
         try {
-            var path = getSnapshotPath(RegressionPredictorNodeParameters.class).getParent().resolve("node_settings")
-                .resolve("RegressionPredictorNodeParameters.xml");
+            var path = getSnapshotPath(DecTreePredictorNodeParameters.class).getParent().resolve("node_settings")
+                .resolve("DecTreePredictorNodeParameters.xml");
             try (var fis = new FileInputStream(path.toFile())) {
                 var nodeSettings = NodeSettings.loadFromXML(fis);
                 return NodeParametersUtil.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
-                    RegressionPredictorNodeParameters.class);
+                    DecTreePredictorNodeParameters.class);
             }
         } catch (IOException | InvalidSettingsException e) {
             throw new IllegalStateException(e);
@@ -96,24 +94,21 @@ final class RegressionPredictorNodeParametersTest extends DefaultNodeSettingsSna
     }
 
     private static PortObjectSpec[] createInputPortSpecs() {
-        return new PortObjectSpec[]{createPMMLPortObjectSpec(), createDefaultTestTableSpec()};
+        return new PortObjectSpec[]{createPMMLPortObjectSpec(), createDataTableSpec()};
     }
 
     private static PortObjectSpec createPMMLPortObjectSpec() {
-        var targetColumn = new DataColumnSpecCreator("Universe_1_1", DoubleCell.TYPE).createSpec();
+        var targetColumn = new DataColumnSpecCreator("Cluster Membership", StringCell.TYPE).createSpec();
         var dataTableSpec = new DataTableSpec(targetColumn);
         var pmmlSpecCreator = new PMMLPortObjectSpecCreator(dataTableSpec);
-        pmmlSpecCreator.setTargetColName("Universe_1_1");
+        pmmlSpecCreator.setTargetColName("Cluster Membership");
         return pmmlSpecCreator.createSpec();
     }
 
-    private static DataTableSpec createDefaultTestTableSpec() {
+    private static DataTableSpec createDataTableSpec() {
         return new DataTableSpec(
-            new String[]{"Universe_0_1", "Universe_2_1"},
-            new DataType[]{
-                DataType.getType(DoubleCell.class),
-                DataType.getType(DoubleCell.class)
-            }
+            new DataColumnSpecCreator("Feature1", StringCell.TYPE).createSpec(),
+            new DataColumnSpecCreator("Feature2", StringCell.TYPE).createSpec()
         );
     }
 }

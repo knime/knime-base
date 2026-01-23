@@ -1,7 +1,8 @@
 {
   "data" : {
     "model" : {
-      "customPredictionName" : null
+      "predictionColumnName" : null,
+      "probabilitySuffix" : null
     }
   },
   "schema" : {
@@ -10,10 +11,16 @@
       "model" : {
         "type" : "object",
         "properties" : {
-          "customPredictionName" : {
+          "predictionColumnName" : {
             "type" : [ "string", "null" ],
             "title" : "Custom prediction column name",
             "description" : "Allows you to specify a customized name for the prediction column that is appended to the input table.\nIf not checked, \"Prediction (target)\" (where target is the name of the target column of the provided\nregression model) is used as default.\n",
+            "default" : null
+          },
+          "probabilitySuffix" : {
+            "type" : [ "string", "null" ],
+            "title" : "Append columns with normalized class distribution",
+            "description" : "If selected, a column is appended for each class instance with the normalized probability\nof this row being a member of this class. The probability columns will have names like:\n<tt>P (trainingColumn=value)</tt> with an optional suffix that can be specified.\n",
             "default" : null
           }
         }
@@ -23,7 +30,7 @@
   "ui_schema" : {
     "elements" : [ {
       "type" : "Control",
-      "scope" : "#/properties/model/properties/customPredictionName",
+      "scope" : "#/properties/model/properties/predictionColumnName",
       "options" : {
         "validation" : {
           "pattern" : {
@@ -36,6 +43,13 @@
         "hideOnNull" : true
       },
       "providedOptions" : [ "default" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/probabilitySuffix",
+      "options" : {
+        "hideOnNull" : true
+      },
+      "providedOptions" : [ "default" ]
     } ]
   },
   "persist" : {
@@ -44,19 +58,29 @@
       "model" : {
         "type" : "object",
         "properties" : {
-          "customPredictionName" : {
+          "predictionColumnName" : {
             "configPaths" : [ [ "has_custom_predicition_name" ], [ "custom_prediction_name" ] ]
+          },
+          "probabilitySuffix" : {
+            "configPaths" : [ [ "include_probabilites" ], [ "propability_columns_suffix" ] ]
           }
         }
       }
     }
   },
   "initialUpdates" : [ {
-    "scope" : "#/properties/model/properties/customPredictionName",
+    "scope" : "#/properties/model/properties/predictionColumnName",
     "providedOptionName" : "default",
     "values" : [ {
       "indices" : [ ],
-      "value" : "Prediction (Universe_1_1)"
+      "value" : "Prediction (Cluster Membership)"
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/probabilitySuffix",
+    "providedOptionName" : "default",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : ""
     } ]
   } ]
 }

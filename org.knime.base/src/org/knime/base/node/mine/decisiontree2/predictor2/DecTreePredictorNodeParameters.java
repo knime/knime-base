@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -42,60 +43,87 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ------------------------------------------------------------------------
  */
-package org.knime.base.node.mine.regression.predict3;
+
+package org.knime.base.node.mine.decisiontree2.predictor2;
 
 import java.util.Optional;
 
 import org.knime.base.node.mine.util.PredictorHelper;
+import org.knime.base.node.mine.util.PredictorHelper.ProbabilitySuffixDefaultProvider;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
+import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.persistence.legacy.OptionalStringPersistor;
 import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.OptionalWidget;
+import org.knime.node.parameters.widget.number.NumberInputWidget;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsNonNegativeValidation;
 import org.knime.node.parameters.widget.text.TextInputWidget;
 import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils.ColumnNameValidation;
 
 /**
- * Node parameters for Regression Predictor.
+ * Node parameters for Decision Tree Predictor.
  *
- * @author Leon Wenzler, KNIME GmbH, Konstanz, Germany
- * @author AI Migration Pipeline v1.1
+ * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.2
  */
 @LoadDefaultsForAbsentFields
 @SuppressWarnings("restriction")
-class RegressionPredictorNodeParameters implements NodeParameters {
+final class DecTreePredictorNodeParameters implements NodeParameters {
 
-    @Widget(title = "Custom prediction column name", description = """
-            Allows you to specify a customized name for the prediction column that is appended to the input table.
-            If not checked, "Prediction (target)" (where target is the name of the target column of the provided
-            regression model) is used as default.
+    @Persist(configKey = DecTreePredictorNodeModel.MAXCOVERED)
+    @Widget(title = "Number of patterns for hiliting", description = """
+            Determines the maximum number of patterns the tree will store to support hiliting.
             """)
-    @Persistor(CustomPredictionNamePersistor.class)
-    @OptionalWidget(defaultProvider = RegressionPredictionColumnDefaultProvider.class)
-    @TextInputWidget(patternValidation = ColumnNameValidation.class)
-    @ValueReference(CustomPredictionNameRef.class)
-    Optional<String> m_customPredictionName = Optional.empty();
+    @NumberInputWidget(minValidation = IsNonNegativeValidation.class, stepSize = 100)
+    int m_maxNumCoveredPattern = 10000;
 
-    static final class CustomPredictionNameRef implements ParameterReference<Optional<String>> {
+    @Persistor(PredictionColumnNamePersistor.class)
+    @Widget(title = "Change prediction column name", description = """
+            When set, you can change the name of the prediction column.
+            The default prediction column name is: <tt>Prediction (trainingColumn)</tt>.
+            """)
+    @OptionalWidget(defaultProvider = DecisionTreePredictionColumnDefaultProvider.class)
+    @TextInputWidget(patternValidation = ColumnNameValidation.class)
+    @ValueReference(PredictionColumnNameRef.class)
+    Optional<String> m_predictionColumnName = Optional.empty();
+
+    static class PredictionColumnNameRef implements ParameterReference<Optional<String>> {
     }
 
-    static class RegressionPredictionColumnDefaultProvider
+    @Persistor(ProbabilitySuffixPersistor.class)
+    @Widget(title = "Append columns with normalized class distribution", description = """
+            If selected, a column is appended for each class instance with the normalized probability
+            of this row being a member of this class. The probability columns will have names like:
+            <tt>P (trainingColumn=value)</tt> with an optional suffix that can be specified.
+            """)
+    @OptionalWidget(defaultProvider = ProbabilitySuffixDefaultProvider.class)
+    Optional<String> m_probabilitySuffix = Optional.empty();
+
+    static class DecisionTreePredictionColumnDefaultProvider
         extends PredictorHelper.PredictionColumnNameDefaultProvider {
 
-        protected RegressionPredictionColumnDefaultProvider() {
-            super(CustomPredictionNameRef.class, "");
+        protected DecisionTreePredictionColumnDefaultProvider() {
+            super(PredictionColumnNameRef.class, PredictorHelper.DEFAULT_PREDICTION_COLUMN);
         }
 
     }
 
-    static final class CustomPredictionNamePersistor extends OptionalStringPersistor {
+    static final class PredictionColumnNamePersistor extends OptionalStringPersistor {
 
-        CustomPredictionNamePersistor() {
-            super(RegressionPredictorSettings.CFG_HAS_CUSTOM_PREDICTION_NAME,
-                RegressionPredictorSettings.CFG_CUSTOM_PREDICTION_NAME);
+        PredictionColumnNamePersistor() {
+            super(PredictorHelper.CFGKEY_CHANGE_PREDICTION, PredictorHelper.CFGKEY_PREDICTION_COLUMN);
+        }
+
+    }
+
+    static final class ProbabilitySuffixPersistor extends OptionalStringPersistor {
+
+        ProbabilitySuffixPersistor() {
+            super(DecTreePredictorNodeModel.SHOW_DISTRIBUTION, PredictorHelper.CFGKEY_SUFFIX);
         }
 
     }
