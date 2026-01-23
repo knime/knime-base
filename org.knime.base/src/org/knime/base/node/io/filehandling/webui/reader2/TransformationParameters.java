@@ -182,12 +182,15 @@ public abstract class TransformationParameters<T>
          */
         public String m_type;
 
+        boolean m_hasType;
+
         /**
          * Visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
          */
-        public ColumnSpecSettings(final String name, final String type) {
+        public ColumnSpecSettings(final String name, final String type, final boolean hasType) {
             m_name = name;
             m_type = type;
+            m_hasType = hasType;
         }
 
         ColumnSpecSettings() {
@@ -445,7 +448,27 @@ public abstract class TransformationParameters<T>
     public <C extends ReaderSpecificConfig<C>> void saveToConfig(final MultiTableReadConfig<C, T> config,
         final String sourcePath, //
         final ConfigID configId, //
-        final MultiFileReaderParameters multiFileReaderParameters//
+        final MultiFileReaderParameters multiFileReaderParameters //
+    ) {
+        saveToConfig(config, sourcePath, configId, multiFileReaderParameters, false);
+    }
+
+    /**
+     * Call this method in a reader node's ConfigAndSourceSerializer to save the transformation settings to the config
+     * used in the model.
+     *
+     * @param <C> the reader specific config type
+     * @param config the config to save the transformation settings to.
+     * @param sourcePath the path of the currently selected source.
+     * @param configId the config ID to use for the table spec config
+     * @param multiFileReaderParameters for determining how to combine columns and whether a path column is appended.
+     * @param skipEmptyColumns whether to skip empty columns when determining the transformations
+     */
+    public <C extends ReaderSpecificConfig<C>> void saveToConfig(final MultiTableReadConfig<C, T> config,
+        final String sourcePath, //
+        final ConfigID configId, //
+        final MultiFileReaderParameters multiFileReaderParameters, //
+        final boolean skipEmptyColumns //
     ) {
 
         if (m_specs == null) {
@@ -457,20 +480,21 @@ public abstract class TransformationParameters<T>
         final var transformations = determineTransformations(rawSpec, multiFileReaderParameters.m_howToCombineColumns);
         final var tableTransformation = new DefaultTableTransformation<T>(rawSpec, transformations.getFirst(),
             multiFileReaderParameters.m_howToCombineColumns.toColumnFilterMode(), transformations.getSecond(),
-            m_enforceTypes, false);
+            m_enforceTypes, skipEmptyColumns);
 
         final var appendPathColumnOpt = multiFileReaderParameters.m_appendPathColumn;
         DataColumnSpec itemIdentifierColumnSpec =
             appendPathColumnOpt.isPresent() ? determineAppendPathColumnSpec(appendPathColumnOpt.get()) : null;
 
-        final var tableSpecConfig = DefaultTableSpecConfig.createFromTransformationModel(sourcePath,
-            config.getConfigID(), individualSpecs, tableTransformation, itemIdentifierColumnSpec);
+        final var tableSpecConfig = DefaultTableSpecConfig.createFromTransformationModel(sourcePath, configId,
+            individualSpecs, tableTransformation, itemIdentifierColumnSpec);
 
         config.setTableSpecConfig(tableSpecConfig);
 
     }
 
     private Pair<ArrayList<ColumnTransformation<T>>, UnknownColumnsTransformation>
+
         determineTransformations(final RawSpec<T> rawSpec, final HowToCombineColumnsOption howToCombineColumns) {
         final Map<String, Integer> transformationIndexByColumnName = new HashMap<>();
         int unknownColumnsTransformationPosition = -1;
@@ -621,8 +645,10 @@ public abstract class TransformationParameters<T>
                     final var fsLocation = fsLocations.filter(locs -> i < locs.length).map(locs -> locs[i])
                         .orElseGet(() -> new FSLocation(FSCategory.RELATIVE, null, ""));
                     final var spec = tableSpecConfig.getSpec(key);
-                    final var colSpecs = spec.stream().map(colSpec -> new ColumnSpecSettings(colSpec.getName().get(),
-                        toSerializableType(colSpec.getType()))).toArray(ColumnSpecSettings[]::new);
+                    final var colSpecs = spec.stream()
+                        .map(colSpec -> new ColumnSpecSettings(colSpec.getName().get(),
+                            toSerializableType(colSpec.getType()), colSpec.hasType()))
+                        .toArray(ColumnSpecSettings[]::new);
                     return new TableSpecSettings(key, fsLocation, colSpecs);
                 }).toArray(TableSpecSettings[]::new);
                 m_specs = specs;

@@ -67,22 +67,27 @@
                     <config key="0">
                         <entry key="name" type="xstring" value="Universe_0_0"/>
                         <entry key="type" type="xstring" value="{&quot;name&quot;:&quot;type&quot;,&quot;value&quot;:{&quot;type&quot;:{&quot;type&quot;:&quot;tree&quot;,&quot;value&quot;:{&quot;cell_class&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;value&quot;:&quot;org.knime.core.data.def.DoubleCell&quot;},&quot;is_null&quot;:{&quot;type&quot;:&quot;boolean&quot;,&quot;value&quot;:false}}}}}"/>
+                        <entry key="hasType" type="xboolean" value="true"/>
                     </config>
                     <config key="1">
                         <entry key="name" type="xstring" value="Universe_0_1"/>
                         <entry key="type" type="xstring" value="{&quot;name&quot;:&quot;type&quot;,&quot;value&quot;:{&quot;type&quot;:{&quot;type&quot;:&quot;tree&quot;,&quot;value&quot;:{&quot;cell_class&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;value&quot;:&quot;org.knime.core.data.def.DoubleCell&quot;},&quot;is_null&quot;:{&quot;type&quot;:&quot;boolean&quot;,&quot;value&quot;:false}}}}}"/>
+                        <entry key="hasType" type="xboolean" value="true"/>
                     </config>
                     <config key="2">
                         <entry key="name" type="xstring" value="Universe_1_0"/>
                         <entry key="type" type="xstring" value="{&quot;name&quot;:&quot;type&quot;,&quot;value&quot;:{&quot;type&quot;:{&quot;type&quot;:&quot;tree&quot;,&quot;value&quot;:{&quot;cell_class&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;value&quot;:&quot;org.knime.core.data.def.DoubleCell&quot;},&quot;is_null&quot;:{&quot;type&quot;:&quot;boolean&quot;,&quot;value&quot;:false}}}}}"/>
+                        <entry key="hasType" type="xboolean" value="true"/>
                     </config>
                     <config key="3">
                         <entry key="name" type="xstring" value="Universe_1_1"/>
                         <entry key="type" type="xstring" value="{&quot;name&quot;:&quot;type&quot;,&quot;value&quot;:{&quot;type&quot;:{&quot;type&quot;:&quot;tree&quot;,&quot;value&quot;:{&quot;cell_class&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;value&quot;:&quot;org.knime.core.data.def.DoubleCell&quot;},&quot;is_null&quot;:{&quot;type&quot;:&quot;boolean&quot;,&quot;value&quot;:false}}}}}"/>
+                        <entry key="hasType" type="xboolean" value="true"/>
                     </config>
                     <config key="4">
                         <entry key="name" type="xstring" value="Cluster Membership"/>
                         <entry key="type" type="xstring" value="{&quot;name&quot;:&quot;type&quot;,&quot;value&quot;:{&quot;type&quot;:{&quot;type&quot;:&quot;tree&quot;,&quot;value&quot;:{&quot;cell_class&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;value&quot;:&quot;org.knime.core.data.def.StringCell&quot;},&quot;is_null&quot;:{&quot;type&quot;:&quot;boolean&quot;,&quot;value&quot;:false}}}}}"/>
+                        <entry key="hasType" type="xboolean" value="true"/>
                     </config>
                 </config>
             </config>
