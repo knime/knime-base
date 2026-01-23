@@ -112,6 +112,7 @@ public final class MultiFileReaderParameters extends AppendFilePathColumnParamet
         super.loadFromConfig(config);
 
         if (config.failOnDifferingSpecs()) {
+            // in this case, the result of getSpecMergeMode() is irrelevant, as the specs must be identical anyway
             m_howToCombineColumns = HowToCombineColumnsOption.FAIL;
         } else if (config.getSpecMergeMode() == SpecMergeMode.INTERSECTION) {
             m_howToCombineColumns = HowToCombineColumnsOption.INTERSECTION;
