@@ -109,13 +109,16 @@
           "sourceIdentifier" : "/Users/paulbaernreuther/knime/files/test.txt",
           "spec" : [ {
             "name" : "1",
-            "type" : "java.lang.String"
+            "type" : "java.lang.String",
+            "hasType" : true
           }, {
             "name" : "2",
-            "type" : "java.lang.String"
+            "type" : "java.lang.String",
+            "hasType" : true
           }, {
             "name" : "3",
-            "type" : "java.lang.String"
+            "type" : "java.lang.String",
+            "hasType" : true
           } ]
         }, {
           "fsLocation" : {
@@ -129,13 +132,16 @@
           "sourceIdentifier" : "/Users/paulbaernreuther/knime/files/test.csv",
           "spec" : [ {
             "name" : "first",
-            "type" : "java.lang.Integer"
+            "type" : "java.lang.Integer",
+            "hasType" : true
           }, {
             "name" : "second",
-            "type" : "java.lang.Integer"
+            "type" : "java.lang.Integer",
+            "hasType" : true
           }, {
             "name" : "third",
-            "type" : "java.lang.String"
+            "type" : "java.lang.String",
+            "hasType" : true
           } ]
         } ],
         "enforceTypes" : true,
@@ -983,6 +989,10 @@
                       "items" : {
                         "type" : "object",
                         "properties" : {
+                          "hasType" : {
+                            "type" : "boolean",
+                            "default" : false
+                          },
                           "name" : {
                             "type" : "string"
                           },
@@ -1936,7 +1946,8 @@
                         "type" : "object",
                         "properties" : {
                           "name" : { },
-                          "type" : { }
+                          "type" : { },
+                          "hasType" : { }
                         }
                       }
                     }

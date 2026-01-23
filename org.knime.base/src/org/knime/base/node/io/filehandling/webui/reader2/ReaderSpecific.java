@@ -188,7 +188,7 @@ public final class ReaderSpecific {
             for (final var tableSpec : specs) {
                 final TypedReaderTableSpecBuilder<T> specBuilder = TypedReaderTableSpec.builder();
                 for (final var colSpec : tableSpec.m_spec) {
-                    specBuilder.addColumn(colSpec.m_name, serializer.toExternalType(colSpec.m_type), true);
+                    specBuilder.addColumn(colSpec.m_name, serializer.toExternalType(colSpec.m_type), colSpec.m_hasType);
                 }
                 final var spec = specBuilder.build();
                 individualSpecs.put(tableSpec.m_sourceIdentifier, spec);

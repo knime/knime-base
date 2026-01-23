@@ -106,14 +106,17 @@
                     <config key="0">
                         <entry key="name" type="xstring" value="1"/>
                         <entry key="type" type="xstring" value="java.lang.String"/>
+                        <entry key="hasType" type="xboolean" value="true"/>
                     </config>
                     <config key="1">
                         <entry key="name" type="xstring" value="2"/>
                         <entry key="type" type="xstring" value="java.lang.String"/>
+                        <entry key="hasType" type="xboolean" value="true"/>
                     </config>
                     <config key="2">
                         <entry key="name" type="xstring" value="3"/>
                         <entry key="type" type="xstring" value="java.lang.String"/>
+                        <entry key="hasType" type="xboolean" value="true"/>
                     </config>
                 </config>
             </config>
@@ -128,14 +131,17 @@
                     <config key="0">
                         <entry key="name" type="xstring" value="first"/>
                         <entry key="type" type="xstring" value="java.lang.Integer"/>
+                        <entry key="hasType" type="xboolean" value="true"/>
                     </config>
                     <config key="1">
                         <entry key="name" type="xstring" value="second"/>
                         <entry key="type" type="xstring" value="java.lang.Integer"/>
+                        <entry key="hasType" type="xboolean" value="true"/>
                     </config>
                     <config key="2">
                         <entry key="name" type="xstring" value="third"/>
                         <entry key="type" type="xstring" value="java.lang.String"/>
+                        <entry key="hasType" type="xboolean" value="true"/>
                     </config>
                 </config>
             </config>
