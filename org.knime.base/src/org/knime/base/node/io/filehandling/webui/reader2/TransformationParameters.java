@@ -641,7 +641,7 @@ public abstract class TransformationParameters<T>
                 final var specs = IntStream.range(0, items.size()).mapToObj(i -> {
                     final var key = items.get(i);
                     // Use a placeholder FSLocation with empty path when there's no item identifier column
-                    // to avoid null keys in the map which would cause NPE when converting to String keys
+                    // to avoid NPEs during serialization (null is not supported there as of now)
                     final var fsLocation = fsLocations.filter(locs -> i < locs.length).map(locs -> locs[i])
                         .orElseGet(() -> new FSLocation(FSCategory.RELATIVE, null, ""));
                     final var spec = tableSpecConfig.getSpec(key);
