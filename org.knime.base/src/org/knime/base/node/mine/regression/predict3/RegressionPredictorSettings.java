@@ -84,10 +84,26 @@ public final class RegressionPredictorSettings {
         m_isClassification = expectClassificationModel;
     }
 
-    static final String CFG_HAS_CUSTOM_PREDICTION_NAME = "has_custom_predicition_name";
-    static final String CFG_CUSTOM_PREDICTION_NAME = "custom_prediction_name";
-    static final String CFG_INCLUDE_PROBABILITIES = "include_probabilites";
-    static final String CFG_PROP_COLUMN_SUFFIX = "propability_columns_suffix";
+    /**
+     * Config key for has custom prediction name flag
+     * @since 5.10
+     */
+    public static final String CFG_HAS_CUSTOM_PREDICTION_NAME = "has_custom_predicition_name";
+    /**
+     * Config key for custom prediction name
+     * @since 5.10
+     */
+    public static final String CFG_CUSTOM_PREDICTION_NAME = "custom_prediction_name";
+    /**
+     * Config key for include probabilities flag
+     * @since 5.10
+     */
+    public static final String CFG_INCLUDE_PROBABILITIES = "include_probabilites";
+    /**
+     * Config key for probability columns suffix
+     * @since 5.10
+     */
+    public static final String CFG_PROP_COLUMN_SUFFIX = "propability_columns_suffix";
 
     /**
      * Loads the settings from the node settings object.

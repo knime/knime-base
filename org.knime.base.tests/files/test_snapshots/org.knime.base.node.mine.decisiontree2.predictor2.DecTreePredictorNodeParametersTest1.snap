@@ -1,0 +1,119 @@
+{
+  "data" : {
+    "model" : {
+      "maxNumCoveredPattern" : 10000,
+      "predictionColumnName" : null,
+      "probabilitySuffix" : null
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "maxNumCoveredPattern" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Number of patterns for hiliting",
+            "description" : "Determines the maximum number of patterns the tree will store to support hiliting.\n",
+            "default" : 10000
+          },
+          "predictionColumnName" : {
+            "type" : [ "string", "null" ],
+            "title" : "Change prediction column name",
+            "description" : "When set, you can change the name of the prediction column.\nThe default prediction column name is: <tt>Prediction (trainingColumn)</tt>.\n",
+            "default" : null
+          },
+          "probabilitySuffix" : {
+            "type" : [ "string", "null" ],
+            "title" : "Append columns with normalized class distribution",
+            "description" : "If selected, a column is appended for each class instance with the normalized probability\nof this row being a member of this class. The probability columns will have names like:\n<tt>P (trainingColumn=value)</tt> with an optional suffix that can be specified.\n",
+            "default" : null
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/maxNumCoveredPattern",
+      "options" : {
+        "stepSize" : 100.0,
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 2147483647.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 2.147483647E9
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 0.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 0.0
+            }
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/predictionColumnName",
+      "options" : {
+        "validation" : {
+          "pattern" : {
+            "errorMessage" : "The string must start and end with a non-whitespace character.",
+            "parameters" : {
+              "pattern" : "\\S(.*\\S)?"
+            }
+          }
+        },
+        "hideOnNull" : true
+      },
+      "providedOptions" : [ "default" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/probabilitySuffix",
+      "options" : {
+        "hideOnNull" : true
+      },
+      "providedOptions" : [ "default" ]
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "maxNumCoveredPattern" : {
+            "configKey" : "UseGainRatio"
+          },
+          "predictionColumnName" : {
+            "configPaths" : [ [ "change prediction" ], [ "prediction column name" ] ]
+          },
+          "probabilitySuffix" : {
+            "configPaths" : [ [ "ShowDistribution" ], [ "class probability suffix" ] ]
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/predictionColumnName",
+    "providedOptionName" : "default",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : "Prediction (Cluster Membership)"
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/probabilitySuffix",
+    "providedOptionName" : "default",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : ""
+    } ]
+  } ]
+}

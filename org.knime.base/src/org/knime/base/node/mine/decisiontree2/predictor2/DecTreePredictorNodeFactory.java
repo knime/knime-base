@@ -47,43 +47,50 @@
  */
 package org.knime.base.node.mine.decisiontree2.predictor2;
 
-import java.awt.Dimension;
+import static org.knime.node.impl.description.PortDescription.fixedPort;
 
-import javax.swing.JPanel;
+import java.util.List;
+import java.util.Map;
 
-import org.knime.base.node.mine.util.PredictorNodeDialog;
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
-import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
-import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.ExternalResource;
+import org.knime.node.impl.description.PortDescription;
+import org.knime.node.impl.description.ViewDescription;
 
 /**
+ * Node factory for the Decision Tree Predictor node.
  *
  * @author Michael Berthold, University of Konstanz
+ * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.2
  * @since 2.9
  */
-public class DecTreePredictorNodeFactory extends NodeFactory<DecTreePredictorNodeModel> {
+@SuppressWarnings("restriction")
+public class DecTreePredictorNodeFactory extends NodeFactory<DecTreePredictorNodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public DecTreePredictorNodeModel createNodeModel() {
         return new DecTreePredictorNodeModel();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int getNrNodeViews() {
         return 2;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public NodeView<DecTreePredictorNodeModel> createNodeView(final int viewIndex,
         final DecTreePredictorNodeModel nodeModel) {
@@ -94,32 +101,96 @@ public class DecTreePredictorNodeFactory extends NodeFactory<DecTreePredictorNod
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean hasDialog() {
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    private static final String NODE_NAME = "Decision Tree Predictor";
+
+    private static final String NODE_ICON = "./dectree_predictor.png";
+
+    private static final String SHORT_DESCRIPTION = """
+            Uses an existing decision tree to compute class labels for input vectors.
+            """;
+
+    private static final String FULL_DESCRIPTION = """
+            This node uses an existing decision tree (passed in through the model port) to predict the class value
+                for new patterns. The Node can be configured as follows:
+            """;
+
+    private static final List<PortDescription> INPUT_PORTS = List.of(
+            fixedPort("Decision Tree Model", """
+                A previously learned decision tree model.
+                """),
+            fixedPort("Data to classify", """
+                Input data to classify.
+                """)
+    );
+
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(
+            fixedPort("Classified Data", """
+                The input table with one column added containing the classification and the probabilities depending on
+                the options.
+                """)
+    );
+
+    private static final List<ViewDescription> VIEWS = List.of(
+            new ViewDescription("Decision Tree View", """
+                The decision tree as given in the model port along with the classified data. The tree can be expanded
+                and collapsed with the plus/minus signs.
+                """),
+            new ViewDescription("Decision Tree View (simple)", """
+                The decision tree as given in the model port along with the classified data.
+                """)
+    );
+
+    private static final List<ExternalResource> LINKS = List.of(
+         new ExternalResource(
+            "https://www.knime.com/knime-introductory-course/chapter6/section3/decision-tree", """
+                KNIME E-Learning Course: Decision Tree
+                """)
+    );
+
     @Override
     public NodeDialogPane createNodeDialogPane() {
-        return new PredictorNodeDialog(new SettingsModelBoolean(DecTreePredictorNodeModel.SHOW_DISTRIBUTION, false)) {
-            {
-                getPanel().setPreferredSize(new Dimension(510, 200));
-            }
-            /**
-             * {@inheritDoc}
-             */
-            @Override
-            protected void addOtherControls(final JPanel panel) {
-                addDialogComponent(panel,
-                    new DialogComponentNumber(DecTreePredictorNodeModel.createMaxNumPatternSettings(), /* label: */
-                        "Maximum number of stored patterns " + "for HiLite-ing: ", 100));
-            }
-        };
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
     }
+
+    /**
+     * {@inheritDoc}
+     * @since 5.10
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, DecTreePredictorNodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription( //
+            NODE_NAME, //
+            NODE_ICON, //
+            INPUT_PORTS, //
+            OUTPUT_PORTS, //
+            SHORT_DESCRIPTION, //
+            FULL_DESCRIPTION, //
+            LINKS, //
+            DecTreePredictorNodeParameters.class, //
+            VIEWS, //
+            NodeType.Predictor, //
+            List.of(), //
+            null //
+        );
+    }
+
+    /**
+     * {@inheritDoc}
+     * @since 5.10
+     */
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, DecTreePredictorNodeParameters.class));
+    }
+
 }

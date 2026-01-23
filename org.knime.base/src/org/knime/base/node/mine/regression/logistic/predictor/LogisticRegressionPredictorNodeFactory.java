@@ -47,58 +47,137 @@
  */
 package org.knime.base.node.mine.regression.logistic.predictor;
 
-import org.knime.base.node.mine.regression.predict3.RegressionPredictorNodeDialogPane;
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
 import org.knime.base.node.mine.regression.predict3.RegressionPredictorNodeModel;
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.ExternalResource;
+import org.knime.node.impl.description.PortDescription;
 
 /**
  * Factory for general regression predictor node.
  * <p>Despite being public no official API.
+ *
  * @author Heiko Hofer
+ * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.2
  */
+@SuppressWarnings("restriction")
 public final class LogisticRegressionPredictorNodeFactory
-    extends NodeFactory<RegressionPredictorNodeModel> {
+    extends NodeFactory<RegressionPredictorNodeModel> implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public RegressionPredictorNodeModel createNodeModel() {
         return new RegressionPredictorNodeModel(true);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int getNrNodeViews() {
         return 0;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public NodeView<RegressionPredictorNodeModel> createNodeView(
             final int index, final RegressionPredictorNodeModel m) {
         throw new IndexOutOfBoundsException();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean hasDialog() {
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    private static final String NODE_NAME = "Logistic Regression Predictor";
+
+    private static final String NODE_ICON = "./regression_predict.png";
+
+    private static final String SHORT_DESCRIPTION = """
+            Predicts the response using a logistic regression model.
+            """;
+
+    private static final String FULL_DESCRIPTION = """
+            Predicts the response using a logistic regression model. The node needs to be connected to a logistic
+                regression node model and some test data. It is only executable if the test data contains the columns
+                that are used by the learner model. This node appends a new columns to the input table containing the
+                prediction for each row. <br /><br />
+            """;
+
+    private static final List<PortDescription> INPUT_PORTS = List.of(
+            fixedPort("Regression Model", """
+                The logistic regression model
+                """),
+            fixedPort("Data for prediction", """
+                Table for prediction. Missing values will give missing values in the output.
+                """)
+    );
+
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(
+            fixedPort("Predicted data", """
+                Table from input with an additional prediction column.
+                """)
+    );
+
+    private static final List<ExternalResource> LINKS = List.of(
+         new ExternalResource(
+            "https://www.knime.com/knime-introductory-course/chapter6/section2/logistic-regression", """
+                KNIME E-Learning Course: Logistic Regression
+                """)
+    );
+
     @Override
     public NodeDialogPane createNodeDialogPane() {
-        return new RegressionPredictorNodeDialogPane(true);
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
     }
+
+    /**
+     * {@inheritDoc}
+     * @since 5.10
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, LogisticRegressionPredictorNodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription( //
+            NODE_NAME, //
+            NODE_ICON, //
+            INPUT_PORTS, //
+            OUTPUT_PORTS, //
+            SHORT_DESCRIPTION, //
+            FULL_DESCRIPTION, //
+            LINKS, //
+            LogisticRegressionPredictorNodeParameters.class, //
+            null, //
+            NodeType.Predictor, //
+            List.of(), //
+            null //
+        );
+    }
+
+    /**
+     * {@inheritDoc}
+     * @since 5.10
+     */
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, LogisticRegressionPredictorNodeParameters.class));
+    }
+
 }
