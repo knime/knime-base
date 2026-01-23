@@ -105,16 +105,16 @@ public final class ColorGradientDesignerNodeFactory extends DefaultNodeFactory {
                 gradient will be applied to all selected columns.<br/>
                 <h3>Assignment behavior:</h3>
                 Values are colorized based on their position within the chosen gradient scale. Special values such as \
-                missing values, NaN, infinities, or out-of bounds values can be assigned specific colors.
+                <i>missing</i> values, <i>NaN</i>, <i>infinities</i>, or <i>out-of bounds</i> values can be assigned \
+                specific colors.
                 <h3>Modes:</h3>
                 <ul>
-                <li><b>Without input table:</b> Generates a standalone color gradient model that needs to be applied \
-                later via the Color Designer (Apply) node.
-                </li>
-                <li><b>With input table:</b> Applies the gradient directly to the selected columns of the input table. \
-                If the columns have defined domains, their joint domain will be used to map values to the color \
-                gradient. For columns without domain, the node will compute a temporary domain during execution.
-                </li>
+                  <li><b>Without input table:</b> Generates a standalone color gradient model that needs to be applied \
+                  later via the Color Designer (Apply) node.</li>
+                  <li><b>With input table:</b> Applies the gradient directly to the selected columns of the input \
+                  table. If the columns have defined domains, their joint domain will be used to map values to the \
+                  color gradient. For columns without domain, the node will compute a temporary domain during \
+                  execution.</li>
                 </ul>
                 """) //
         .sinceVersion(5, 10, 0) //
@@ -139,7 +139,7 @@ public final class ColorGradientDesignerNodeFactory extends DefaultNodeFactory {
     private static ConfigurablePort createInputOutputTablePortGroup(final RequireInputPortName requireInputPortName) {
         return requireInputPortName.inputName("Table") //
             .inputDescription("Input table containing numeric columns to which colors will be applied."
-                + " At least one numerical column is required for percentage-based coloring.") //
+                + " At least one numerical column is required.") //
             .outputName("Table with color information") //
             .outputDescription("Returns the input table with color handlers added to the selected columns.") //
             .optional() //
@@ -148,7 +148,7 @@ public final class ColorGradientDesignerNodeFactory extends DefaultNodeFactory {
     }
 
     private static ConfigurablePort createOutputModelPort(final RequirePortName requirePortName) {
-        return requirePortName.name("Color gradient") //
+        return requirePortName.name("Color Gradient") //
             .description("A color gradient object containing the gradient definition.") //
             .fixed(ColorHandlerPortObject.TYPE);
     }
