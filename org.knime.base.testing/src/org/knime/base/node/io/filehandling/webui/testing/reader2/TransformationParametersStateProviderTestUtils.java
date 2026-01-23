@@ -131,7 +131,7 @@ public final class TransformationParametersStateProviderTestUtils {
     public static void setExistingTableSpecs(final TransformationParameters<?> transformationSettings,
         final List<String> columnNames, final List<String> columnTypes) {
         final var columnSpecSettings = IntStream.range(0, columnNames.size())
-            .mapToObj(i -> new ColumnSpecSettings(columnNames.get(i), columnTypes.get(i)))
+            .mapToObj(i -> new ColumnSpecSettings(columnNames.get(i), columnTypes.get(i), true))
             .toArray(ColumnSpecSettings[]::new);
         transformationSettings.m_specs = new TableSpecSettings[]{new TableSpecSettings("existingSource",
             new FSLocation(FSCategory.LOCAL, "existingSource"), columnSpecSettings)};

@@ -254,7 +254,8 @@ public final class TransformationParametersStateProviders {
         protected abstract void applyParametersToConfig(M config);
 
         private Collection<DependsOnTypedReaderTableSpecProvider.TypedReaderTableSpecWithLocation<T>>
-            computeStateFromPaths(final List<FSPath> paths, NodeParametersInput input) throws StateComputationFailureException {
+            computeStateFromPaths(final List<FSPath> paths, NodeParametersInput input)
+                throws StateComputationFailureException {
             final M config = createMultiTableReadConfig(input);
             try {
                 applyParametersToConfig(config);
@@ -364,9 +365,8 @@ public final class TransformationParametersStateProviders {
 
             return suppliedSpecs.stream()
                 .map(e -> new TableSpecSettings(e.sourceId(), e.location(),
-                    e.spec().stream()
-                        .map(spec -> new ColumnSpecSettings(spec.getName().get(), toSerializableType(spec.getType())))
-                        .toArray(ColumnSpecSettings[]::new)))
+                    e.spec().stream().map(spec -> new ColumnSpecSettings(spec.getName().get(),
+                        toSerializableType(spec.getType()), spec.hasType())).toArray(ColumnSpecSettings[]::new)))
                 .toArray(TableSpecSettings[]::new);
         }
     }

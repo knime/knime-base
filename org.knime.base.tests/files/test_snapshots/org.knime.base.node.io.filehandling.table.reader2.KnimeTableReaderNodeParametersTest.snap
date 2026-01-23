@@ -559,6 +559,10 @@
                       "items" : {
                         "type" : "object",
                         "properties" : {
+                          "hasType" : {
+                            "type" : "boolean",
+                            "default" : false
+                          },
                           "name" : {
                             "type" : "string"
                           },
@@ -1155,7 +1159,8 @@
                         "type" : "object",
                         "properties" : {
                           "name" : { },
-                          "type" : { }
+                          "type" : { },
+                          "hasType" : { }
                         }
                       }
                     }
