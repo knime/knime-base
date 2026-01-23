@@ -104,15 +104,13 @@ public final class ColorPaletteDesignerNodeFactory extends DefaultNodeFactory {
         .shortDescription("Creates a color palette for categorical values or column names.") //
         .fullDescription("""
                 Creates a customizable color palette for categorical values or column names. Colors can be \
-                assigned automatically using a base palette or explicitly defined for specific values or names.\
-                <br/>
-                Assignment behavior:
-                <ul><li>
-                For categorical values, all unique values across the selected columns are combined, sorted in \
-                natural order, and assigned colors accordingly.
-                </li><li>
-                For column names, colors are assigned based on their order in the input table.
-                </li></ul>
+                assigned automatically using a base palette or explicitly defined for specific values or names.<br/>
+                <h3>Assignment behavior:</h3>
+                <ul>
+                  <li><b>Categorical values:</b> All unique values across the selected columns are combined, sorted in \
+                  natural order, and assigned colors accordingly.</li>
+                  <li><b>Column names:</b> Colors are assigned based on their order in the input table.</li>
+                </ul>
                 Note: Explicit assignments take precedence. Unmatched values or names are assigned colors from the \
                 base palette.""") //
         .sinceVersion(5, 10, 0) //
@@ -140,12 +138,13 @@ public final class ColorPaletteDesignerNodeFactory extends DefaultNodeFactory {
                 + " At least one column with a categorical domain is required for value-based coloring.") //
             .outputName("Table with color information") //
             .outputDescription("""
-                    <ul><li>
-                    For value-based coloring: Returns the input table with color handlers added to the selected columns.
-                    </li><li>
-                    For column name coloring: The table itself remains unchanged, but color information for column names
-                     is included in the output.
-                    </li></ul>
+                    Coloring on:
+                    <ul>
+                      <li><b>Categorical values:</b> Returns the input table with color handlers added to the \
+                      selected columns.</li>
+                      <li><b>Column names:</b> The table itself remains unchanged, but color information for \
+                      column names is included in the output.</li>
+                    </ul>
                         """) //
             .optional() //
             .supportedTypes(BufferedDataTable.TYPE);

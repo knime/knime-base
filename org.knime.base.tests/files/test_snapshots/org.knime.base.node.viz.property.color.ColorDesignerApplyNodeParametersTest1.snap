@@ -30,7 +30,7 @@
           "applyToColumnNames" : {
             "type" : "boolean",
             "title" : "Apply to Column Names",
-            "description" : "Whether the categorical color handler should be applied to the column names.",
+            "description" : "Whether the color palette should be applied to the column names.",
             "default" : false
           },
           "columnFilter" : {

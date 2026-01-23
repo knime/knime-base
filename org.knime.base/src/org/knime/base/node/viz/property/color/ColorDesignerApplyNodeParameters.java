@@ -102,7 +102,7 @@ final class ColorDesignerApplyNodeParameters implements NodeParameters {
     ColumnFilter m_columnFilter = new ColumnFilter();
 
     @Widget(title = "Apply to Column Names",
-        description = "Whether the categorical color handler should be applied to the column names.")
+        description = "Whether the color palette should be applied to the column names.")
     @Effect(predicate = InputIsNominalColorModel.class, type = EffectType.SHOW)
     boolean m_applyToColumnNames;
 
@@ -158,13 +158,13 @@ final class ColorDesignerApplyNodeParameters implements NodeParameters {
             }
             final var colorModel = colorModelOpt.get();
             if (colorModel instanceof ColorModelNominal) {
-                return Optional.of(new Message("Categorical color model connected.",
-                    "The color model can be applied to categorical columns with a domain or column names.",
+                return Optional.of(new Message("Color palette connected.",
+                    "The color palette can be applied to categorical columns with a domain or column names.",
                     MessageType.INFO));
             }
             if (colorModel instanceof ColorModelRange2) {
-                return Optional.of(new Message("Numeric color model connected.",
-                    "The color model can be applied to numeric columns.", MessageType.INFO));
+                return Optional.of(new Message("Color gradient connected.",
+                    "The color gradient can be applied to numeric columns.", MessageType.INFO));
             }
             return Optional.of(new Message("Unsupported color model connected.",
                 "The connected color model is not supported by this node.", MessageType.ERROR));

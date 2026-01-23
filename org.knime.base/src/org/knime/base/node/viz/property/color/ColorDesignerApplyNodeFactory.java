@@ -84,21 +84,21 @@ public final class ColorDesignerApplyNodeFactory extends DefaultNodeFactory {
         .icon("./color-designer-apply.png") //
         .shortDescription("Applies a color model to a table's values or column names.") //
         .fullDescription("""
-                Applies an existing color model to the selected columns or column names of an input table. The \
-                input color model may be categorical (color palette) or numerical (color gradient), and is applied \
-                according to its configuration.<br/><br/>
-                Application behavior:
+                Applies an existing color model to the selected columns or column names of an input table. The input \
+                color model may be a palette (for categorical data) or a gradient (for numerical data), and is applied \
+                according to its configuration.<br/>
+                <h3>Application behavior:</h3>
                 <ul>
-                <li><b>Categorical models</b>: Assign colors to values or column names. New values found in the \
-                input table are added to the model and assigned colors based on its configuration.</li>
-                <li><b>Numerical models</b>: Color values using a gradient with percentage-based or absolute \
-                stop values.
+                  <li><b>Color palette</b>: Assign colors to values or column names. New values found in the \
+                  input table are added to the model and assigned colors based on its configuration.</li>
+                  <li><b>Color gradient</b>: Color values using a gradient with percentage-based or absolute \
+                  stop values.
                     <ul>
-                        <li>For <b>percentage-based</b> models: The joint domain of the selected columns is used \
-                        to interpret the percentage stops as absolute values.</li>
-                        <li>For <b>absolute models</b>: The model is applied directly without modification.</li>
+                      <li><b>Percentage-based:</b> The joint domain of the selected columns is used \
+                      to interpret the percentage stops as absolute values.</li>
+                      <li><b>Absolute-based:</b> The model is applied directly without modification.</li>
                     </ul>
-                </li>
+                  </li>
                 </ul>
                 The output table includes color handlers for the affected columns, and the output model reflects \
                 any updates made during application.
@@ -131,11 +131,15 @@ public final class ColorDesignerApplyNodeFactory extends DefaultNodeFactory {
                 "Table with color handlers added to the selected columns based on the applied model.")
             .addOutputPort("Applied Color Model", """
                     <ul>
-                    <li><b>Categorical model</b>: Returns the input model updated with new values found in the table.
-                    </li>
-                    <li><b>Percentage-based numerical model</b>: Returns the model adjusted to the domain of the \
-                    selected columns.</li>
-                    <li><b>Absolute numerical model</b>: Returns the input model unchanged.</li>
+                      <li><b>Color palette:</b> Returns the input palette updated with new values found in the table.
+                      </li>
+                      <li><b>Color gradient:</b>
+                        <ul>
+                          <li><b>Percentage-based:</b> Returns the gradient adjusted to the domain of \
+                          the selected columns.</li>
+                          <li><b>Absolute-based:</b> Returns the input gradient unchanged.</li>
+                        </ul>
+                      </li>
                     </ul>
                     """, ColorHandlerPortObject.TYPE);
     }
