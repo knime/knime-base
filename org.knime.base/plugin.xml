@@ -690,12 +690,13 @@
       <node
             after="org.knime.base.node.io.arffreader.ARFFReaderNodeFactory"
             category-path="/io/read"
-            deprecated="true"
+            deprecated="false"
             factory-class="org.knime.base.node.io.filehandling.csv.reader.CSVTableReaderNodeFactory"/>
       <node
             after="org.knime.base.node.io.filehandling.csv.reader.CSVTableReaderNodeFactory"
             category-path="/io/read"
             deprecated="false"
+            hidden="true"
             factory-class="org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeFactory2"/>
       <node
             after="org.knime.base.node.io.filehandling.csv.reader.CSVTableReaderNodeFactory"
@@ -883,13 +884,14 @@
         <node
             after="org.knime.base.node.io.arffreader.ARFFReaderNodeFactory"
             category-path="/io/read"
-            deprecated="true"
+            deprecated="false"
             factory-class="org.knime.base.node.io.filehandling.table.reader.KnimeTableReaderNodeFactory">
         </node>
         <node
             after="org.knime.base.node.io.filehandling.table.reader.KnimeTableReaderNodeFactory"
             category-path="/io/read"
             deprecated="false"
+            hidden="true"
             factory-class="org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeFactory2"/>
         <node
               after="org.knime.base.node.io.arffwriter.ARFFWriterNodeFactory"
@@ -2533,7 +2535,7 @@
      <extension
            point="org.knime.workbench.repository.registeredFileExtensions">
         <FileExtensionMapping
-              NodeFactory="org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeFactory2">
+              NodeFactory="org.knime.base.node.io.filehandling.csv.reader.CSVTableReaderNodeFactory">
            <FileExtension
                  extension=".csv">
            </FileExtension>
@@ -2551,7 +2553,7 @@
            </FileExtension>
         </FileExtensionMapping>
         <FileExtensionMapping
-              NodeFactory="org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeFactory2">
+              NodeFactory="org.knime.base.node.io.filehandling.table.reader.KnimeTableReaderNodeFactory">
            <FileExtension
                  extension=".table">
            </FileExtension>
