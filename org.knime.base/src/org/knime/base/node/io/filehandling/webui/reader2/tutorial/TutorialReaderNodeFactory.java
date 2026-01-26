@@ -54,12 +54,16 @@ import java.util.List;
 import org.knime.base.node.io.filehandling.webui.reader2.MultiFileSelectionPath;
 import org.knime.base.node.io.filehandling.webui.reader2.NodeParametersConfigAndSourceSerializer;
 import org.knime.base.node.io.filehandling.webui.reader2.WebUITableReaderNodeFactory;
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDescription;
+import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.util.Version;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.node.table.reader.GenericTableReader;
 import org.knime.filehandling.core.node.table.reader.ReadAdapterFactory;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigID;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.NodeSettingsConfigID;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
 import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
 
@@ -133,10 +137,16 @@ public class TutorialReaderNodeFactory extends WebUITableReaderNodeFactory<Tutor
         }
 
         @Override
-        protected void saveToSourceAndConfig(final TutorialReaderNodeParameters params,
+        protected void saveToSourceAndConfig(final TutorialReaderNodeParameters params, final ConfigID configId,
             final MultiFileSelectionPath sourceSettings, final DummyMultiTableReadConfig config) {
             params.saveToSource(sourceSettings);
-            params.saveToConfig(config);
+            params.saveToConfig(config, configId);
+        }
+
+        @Override
+        public ConfigID createFromSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+            return new NodeSettingsConfigID(
+                settings.getNodeSettings(new TutorialReaderTransformationParameters().getConfigIdSettingsKey()));
         }
     }
 
