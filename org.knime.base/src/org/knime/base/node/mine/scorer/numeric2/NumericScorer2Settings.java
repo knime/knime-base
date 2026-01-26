@@ -81,6 +81,10 @@ public class NumericScorer2Settings {
 
     static final boolean DEFAULT_OVERRIDE_OUTPUT = false;
 
+    static final String CFGKEY_USE_FLOWVARIABLE_PREFIX = "generate flow variables";
+
+    static final String CFGKEY_FLOWVARIABLE_PREFIX = "name prefix for flowvars";
+
     static final String CFG_KEY_NUM_PREDICTORS = "number_of_predictors";
 
     /**
@@ -109,7 +113,7 @@ public class NumericScorer2Settings {
 
     private final SettingsModelString m_outputModel = new SettingsModelString(CFGKEY_OUTPUT, DEFAULT_OUTPUT);
 
-    private final SettingsModelBoolean m_flowVarModel = new SettingsModelBoolean("generate flow variables", false);
+    private final SettingsModelBoolean m_flowVarModel = new SettingsModelBoolean(CFGKEY_USE_FLOWVARIABLE_PREFIX, false);
 
     private final SettingsModelString m_useNamePrefixModel = createFlowPrefixModel(m_flowVarModel);
 
@@ -153,7 +157,7 @@ public class NumericScorer2Settings {
      * @return A new {@link SettingsModelString} for the flow variable prefix
      */
     private static SettingsModelString createFlowPrefixModel(final SettingsModelBoolean useNamePrefixModel) {
-        final SettingsModelString result = new SettingsModelString("name prefix for flowvars", "");
+        final SettingsModelString result = new SettingsModelString(CFGKEY_FLOWVARIABLE_PREFIX, "");
         useNamePrefixModel.addChangeListener(e -> result.setEnabled(useNamePrefixModel.getBooleanValue()));
         result.setEnabled(useNamePrefixModel.getBooleanValue());
         return result;
