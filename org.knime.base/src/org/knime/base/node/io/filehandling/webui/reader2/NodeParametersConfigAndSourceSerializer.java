@@ -51,12 +51,16 @@ package org.knime.base.node.io.filehandling.webui.reader2;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.node.table.reader.CommonTableReaderNodeFactory.ConfigAndSourceSerializer;
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigID;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigIDLoader;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigIDSerializationUtil;
 import org.knime.filehandling.core.node.table.reader.paths.Source;
 import org.knime.node.parameters.NodeParameters;
 
@@ -64,7 +68,6 @@ import org.knime.node.parameters.NodeParameters;
  * Use this serializer as base class for serializers based on {@link NodeParameters}.
  *
  * @param <P> the type of node parameters
- * @param <I> the item type to read from
  * @param <S> the type of {@link Source}
  * @param <C> the type of {@link ReaderSpecificConfig}
  * @param <T> the type used to identify external data types
@@ -78,6 +81,8 @@ public abstract class NodeParametersConfigAndSourceSerializer<P extends NodePara
         C extends ReaderSpecificConfig<C>, T, M extends MultiTableReadConfig<C, T>>
     implements ConfigAndSourceSerializer<FSPath, S, C, T, M> {
 
+    static final String CFG_ID_KEY = "configId" + SettingsModel.CFGKEY_INTERNAL;
+
     private final Class<P> m_paramsClass;
 
     /**
@@ -89,11 +94,14 @@ public abstract class NodeParametersConfigAndSourceSerializer<P extends NodePara
 
     private P m_params;
 
+    private ConfigID m_configID;
+
     @Override
     public final void validateSettings(final S source, final M config, final NodeSettingsRO settings)
         throws InvalidSettingsException {
         m_params = NodeParametersUtil.loadSettings(settings, m_paramsClass);
         m_params.validate();
+        m_configID = ConfigIDSerializationUtil.loadID(CFG_ID_KEY, getConfigIDLoader(), settings);
     }
 
     @Override
@@ -103,22 +111,32 @@ public abstract class NodeParametersConfigAndSourceSerializer<P extends NodePara
             m_params = NodeParametersUtil.createSettings(m_paramsClass, new PortObjectSpec[0]);
         }
         NodeParametersUtil.saveSettings(m_paramsClass, m_params, settings);
+        ConfigIDSerializationUtil.saveID(CFG_ID_KEY, m_configID, settings);
     }
 
     @Override
     public final void loadValidatedSettingsFrom(final S source, final M config, final NodeSettingsRO settings)
         throws InvalidSettingsException {
         // validateSettings is guaranteed to be called before this method
-        saveToSourceAndConfig(m_params, source, config);
+        saveToSourceAndConfig(m_params, m_configID, source, config);
     }
 
     /**
      * Saves the values from the given parameters to the given source and config.
      *
      * @param params the node parameters
+     * @param existingConfigId the previously saved config id. If settings have not been applied before, this is null.
      * @param source the source
      * @param config the reader specific config
      */
-    protected abstract void saveToSourceAndConfig(final P params, final S source, final M config);
+    protected abstract void saveToSourceAndConfig(final P params, ConfigID existingConfigId, final S source,
+        final M config);
+
+    /**
+     * Return the same config ID loader as used in the reader config.
+     *
+     * @return the config ID loader that will be used to load config IDs that were saved by the parameter-based dialog.
+     */
+    protected abstract ConfigIDLoader getConfigIDLoader();
 
 }
