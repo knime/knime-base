@@ -90,7 +90,7 @@ public class KnimeTableReaderNodeFactory2 extends WebUITableReaderNodeFactory<Kn
     @Override
     protected NodeDescription createNodeDescription() {
         return DefaultNodeDescriptionUtil.createNodeDescription( //
-            "Table Reader", //
+            "Table Reader (Labs)", //
             "../reader/tableread.png", //
             List.of(dynamicPort(FS_CONNECT_GRP_ID, "File System Connection", "The file system connection.")), //
             List.of(fixedPort("Read table", "The table contained in the selected file.")), //

@@ -100,7 +100,7 @@ public class CSVTableReaderNodeFactory2 extends WebUITableReaderNodeFactory<CSVT
     @Override
     protected NodeDescription createNodeDescription() {
         return DefaultNodeDescriptionUtil.createNodeDescription( //
-            "CSV Reader", //
+            "CSV Reader (Labs)", //
             "csvreader.png", //
             List.of(dynamicPort(FS_CONNECT_GRP_ID, "File System Connection", "The file system connection.")), //
             List.of(fixedPort("File Table",
