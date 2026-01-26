@@ -53,6 +53,9 @@
             <entry key="prependTableIndexToRowId" type="xboolean" value="true"/>
         </config>
     </config>
+    <config key="configId_Internals">
+        <config key="table_reader"/>
+    </config>
     <config key="transformationParameters">
         <config key="specs">
             <config key="0">

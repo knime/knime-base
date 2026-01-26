@@ -60,6 +60,9 @@ import org.knime.core.util.Version;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.node.table.reader.GenericTableReader;
 import org.knime.filehandling.core.node.table.reader.ReadAdapterFactory;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigID;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigIDLoader;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.NodeSettingsConfigID;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
 import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
 
@@ -133,11 +136,22 @@ public class TutorialReaderNodeFactory extends WebUITableReaderNodeFactory<Tutor
         }
 
         @Override
-        protected void saveToSourceAndConfig(final TutorialReaderNodeParameters params,
+        protected void saveToSourceAndConfig(final TutorialReaderNodeParameters params, final ConfigID configId,
             final MultiFileSelectionPath sourceSettings, final DummyMultiTableReadConfig config) {
             params.saveToSource(sourceSettings);
-            params.saveToConfig(config);
+            params.saveToConfig(config, configId);
         }
+
+        @Override
+        protected ConfigIDLoader getConfigIDLoader() {
+            /**
+             * TODO (#8): In case we stay backwards-compatible, return configIDLoader from before (usually an enum
+             * instance used in the constructor of the mutli table read config).
+             */
+            return settings -> new NodeSettingsConfigID(
+                settings.getNodeSettings(new TutorialReaderTransformationParameters().getConfigIdSettingsKey()));
+        }
+
     }
 
     @Override

@@ -47,10 +47,13 @@ package org.knime.base.node.io.filehandling.webui.reader2.tutorial;
 
 import java.util.Optional;
 
+import org.knime.base.node.io.filehandling.webui.reader2.AbstractConfigIDSaver;
 import org.knime.base.node.io.filehandling.webui.reader2.MultiFileSelectionPath;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.context.url.URLConfiguration;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.additionalsave.SaveAdditional;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigID;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.updates.ParameterReference;
@@ -83,8 +86,19 @@ class TutorialReaderNodeParameters implements NodeParameters {
     static final class TutorialReaderParametersRef implements ParameterReference<TutorialReaderParameters> {
     }
 
+    @SuppressWarnings("restriction")
+    @SaveAdditional(ConfigIDSaver.class)
     @ValueReference(TutorialReaderParametersRef.class)
     TutorialReaderParameters m_tutorialReaderParameters = new TutorialReaderParameters();
+
+    static final class ConfigIDSaver extends AbstractConfigIDSaver<TutorialReaderParameters> {
+
+        @Override
+        protected ConfigID createConfigID(final TutorialReaderParameters param) {
+            // TODO (#3): Replace DummyMultiTableReadConfig with your TableReader's MultiTableReadConfig
+            return param.saveToConfig(new DummyMultiTableReadConfig());
+        }
+    }
 
     TutorialReaderTransformationParameters m_transformationParameters = new TutorialReaderTransformationParameters();
 
@@ -92,11 +106,21 @@ class TutorialReaderNodeParameters implements NodeParameters {
         m_tutorialReaderParameters.saveToSource(sourceSettings);
     }
 
+    void saveToConfig(final DummyMultiTableReadConfig config, final ConfigID existingConfigId) {
+        m_tutorialReaderParameters.saveToConfig(config);
+        saveTransformationParametersToConfig(config, existingConfigId);
+    }
+
     void saveToConfig(final DummyMultiTableReadConfig config) {
-        final var configID = m_tutorialReaderParameters.saveToConfig(config);
+        final var configId = m_tutorialReaderParameters.saveToConfig(config);
+        saveTransformationParametersToConfig(config, configId);
+    }
+
+    private void saveTransformationParametersToConfig(final DummyMultiTableReadConfig config,
+        final ConfigID existingConfigId) {
         m_transformationParameters.saveToConfig(//
             config, m_tutorialReaderParameters.getSourcePath(), //
-            configID, //
+            existingConfigId, //
             m_tutorialReaderParameters.getMultiFileParameters() //
         );
     }

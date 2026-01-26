@@ -70,6 +70,9 @@ import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.node.table.reader.GenericTableReader;
 import org.knime.filehandling.core.node.table.reader.ReadAdapterFactory;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigID;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigIDLoader;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.NodeSettingsConfigID;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
 import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
 
@@ -142,11 +145,19 @@ public class KnimeTableReaderNodeFactory2 extends WebUITableReaderNodeFactory<Kn
         }
 
         @Override
-        protected void saveToSourceAndConfig(final KnimeTableReaderNodeParameters params,
+        protected void saveToSourceAndConfig(final KnimeTableReaderNodeParameters params, final ConfigID configId,
             final MultiFileSelectionPath sourceSettings, final KnimeTableMultiTableReadConfig config) {
             params.saveToSource(sourceSettings);
-            params.saveToConfig(config);
+            params.saveToConfig(config, configId);
         }
+
+        @Override
+        protected ConfigIDLoader getConfigIDLoader() {
+            // TODO: Return the KnimeTableMultiTableReadConfigSerializer once we moved this factory back into the same package
+            return settings -> new NodeSettingsConfigID(
+                settings.getNodeSettings(new KnimeTableReaderTransformationParameters().getConfigIdSettingsKey()));
+        }
+
     }
 
     @Override
