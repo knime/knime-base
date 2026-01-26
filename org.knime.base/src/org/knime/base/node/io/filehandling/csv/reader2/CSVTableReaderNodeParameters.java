@@ -53,10 +53,14 @@ import java.util.Optional;
 import org.knime.base.node.io.filehandling.csv.reader.CSVMultiTableReadConfig;
 import org.knime.base.node.io.filehandling.webui.reader2.MultiFileSelectionPath;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.context.url.URLConfiguration;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.additionalsave.SaveAdditional;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigID;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.persistence.ParametersSaver;
 import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.ValueReference;
 
@@ -88,8 +92,18 @@ class CSVTableReaderNodeParameters implements NodeParameters {
     static final class CSVReaderParametersRef implements ParameterReference<CSVTableReaderParameters> {
     }
 
+    @SaveAdditional(ConfigIDSaver.class)
     @ValueReference(CSVReaderParametersRef.class)
     CSVTableReaderParameters m_csvReaderParameters = new CSVTableReaderParameters();
+
+    static final class ConfigIDSaver implements ParametersSaver<CSVTableReaderNodeParameters> {
+
+        @Override
+        public void save(final CSVTableReaderNodeParameters param, final NodeSettingsWO nodeSettings) {
+            final var config = new CSVMultiTableReadConfig();
+            param.m_csvReaderParameters.saveToConfig(config).save(nodeSettings);
+        }
+    }
 
     CSVTableReaderTransformationParameters m_transformationParameters = new CSVTableReaderTransformationParameters();
 
@@ -97,11 +111,21 @@ class CSVTableReaderNodeParameters implements NodeParameters {
         m_csvReaderParameters.saveToSource(sourceSettings);
     }
 
+    void saveToConfig(final CSVMultiTableReadConfig config, final ConfigID existingConfigId) {
+        m_csvReaderParameters.saveToConfig(config);
+        saveTransformationParametersToConfig(config, existingConfigId);
+    }
+
     void saveToConfig(final CSVMultiTableReadConfig config) {
-        final var configID = m_csvReaderParameters.saveToConfig(config);
+        final var configId = m_csvReaderParameters.saveToConfig(config);
+        saveTransformationParametersToConfig(config, configId);
+    }
+
+    private void saveTransformationParametersToConfig(final CSVMultiTableReadConfig config,
+        final ConfigID existingConfigId) {
         m_transformationParameters.saveToConfig(//
             config, m_csvReaderParameters.getSourcePath(), //
-            configID, //
+            existingConfigId, //
             m_csvReaderParameters.getMultiFileReaderParameters()//
         );
     }
