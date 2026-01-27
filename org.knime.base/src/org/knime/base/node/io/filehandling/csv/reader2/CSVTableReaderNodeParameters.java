@@ -51,6 +51,7 @@ package org.knime.base.node.io.filehandling.csv.reader2;
 import java.util.Optional;
 
 import org.knime.base.node.io.filehandling.csv.reader.CSVMultiTableReadConfig;
+import org.knime.base.node.io.filehandling.webui.reader2.AbstractConfigIDSaver;
 import org.knime.base.node.io.filehandling.webui.reader2.MultiFileSelectionPath;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.context.NodeCreationConfiguration;
