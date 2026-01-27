@@ -51,16 +51,15 @@ package org.knime.base.node.io.filehandling.table.reader2;
 import java.util.Optional;
 
 import org.knime.base.node.io.filehandling.table.reader.KnimeTableMultiTableReadConfig;
+import org.knime.base.node.io.filehandling.webui.reader2.AbstractConfigIDSaver;
 import org.knime.base.node.io.filehandling.webui.reader2.MultiFileSelectionPath;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.context.url.URLConfiguration;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.additionalsave.SaveAdditional;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigID;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
-import org.knime.node.parameters.persistence.ParametersSaver;
 import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.ValueReference;
 
@@ -96,12 +95,11 @@ class KnimeTableReaderNodeParameters implements NodeParameters {
     @ValueReference(KnimeTableReaderParametersRef.class)
     KnimeTableReaderParameters m_knimeTableReaderParameters = new KnimeTableReaderParameters();
 
-    static final class ConfigIDSaver implements ParametersSaver<KnimeTableReaderNodeParameters> {
+    static final class ConfigIDSaver extends AbstractConfigIDSaver<KnimeTableReaderParameters> {
 
         @Override
-        public void save(final KnimeTableReaderNodeParameters param, final NodeSettingsWO nodeSettings) {
-            final var config = new KnimeTableMultiTableReadConfig();
-            param.m_knimeTableReaderParameters.saveToConfig(config).save(nodeSettings);
+        protected ConfigID createConfigID(final KnimeTableReaderParameters param) {
+            return param.saveToConfig(new KnimeTableMultiTableReadConfig());
         }
     }
 
