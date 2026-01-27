@@ -63,9 +63,7 @@ import org.knime.base.node.preproc.manipulator.mapping.DataTypeTypeHierarchy;
 import org.knime.base.node.preproc.manipulator.mapping.DataValueReadAdapterFactory;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
-import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDescription;
-import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.util.Version;
 import org.knime.core.webui.node.dialog.NodeDialog;
@@ -73,6 +71,7 @@ import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.node.table.reader.GenericTableReader;
 import org.knime.filehandling.core.node.table.reader.ReadAdapterFactory;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigID;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigIDLoader;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.NodeSettingsConfigID;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
 import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
@@ -153,10 +152,12 @@ public class KnimeTableReaderNodeFactory2 extends WebUITableReaderNodeFactory<Kn
         }
 
         @Override
-        public ConfigID createFromSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-            return new NodeSettingsConfigID(
+        protected ConfigIDLoader getConfigIDLoader() {
+            // TODO: Return the KnimeTableMultiTableReadConfigSerializer once we moved this factory back into the same package
+            return settings -> new NodeSettingsConfigID(
                 settings.getNodeSettings(new KnimeTableReaderTransformationParameters().getConfigIdSettingsKey()));
         }
+
     }
 
     @Override

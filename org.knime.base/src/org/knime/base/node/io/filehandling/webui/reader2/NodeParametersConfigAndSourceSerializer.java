@@ -79,7 +79,7 @@ import org.knime.node.parameters.NodeParameters;
 @SuppressWarnings("restriction")
 public abstract class NodeParametersConfigAndSourceSerializer<P extends NodeParameters, S extends Source<FSPath>, //
         C extends ReaderSpecificConfig<C>, T, M extends MultiTableReadConfig<C, T>>
-    implements ConfigAndSourceSerializer<FSPath, S, C, T, M>, ConfigIDLoader {
+    implements ConfigAndSourceSerializer<FSPath, S, C, T, M> {
 
     static final String CFG_ID_KEY = "configId" + SettingsModel.CFGKEY_INTERNAL;
 
@@ -101,7 +101,7 @@ public abstract class NodeParametersConfigAndSourceSerializer<P extends NodePara
         throws InvalidSettingsException {
         m_params = NodeParametersUtil.loadSettings(settings, m_paramsClass);
         m_params.validate();
-        m_configID = ConfigIDSerializationUtil.loadID(CFG_ID_KEY, this, settings);
+        m_configID = ConfigIDSerializationUtil.loadID(CFG_ID_KEY, getConfigIDLoader(), settings);
     }
 
     @Override
@@ -131,5 +131,12 @@ public abstract class NodeParametersConfigAndSourceSerializer<P extends NodePara
      */
     protected abstract void saveToSourceAndConfig(final P params, ConfigID existingConfigId, final S source,
         final M config);
+
+    /**
+     * Return the same config ID loader as used in the reader config.
+     *
+     * @return the config ID loader that will be used to load config IDs that were saved by the parameter-based dialog.
+     */
+    protected abstract ConfigIDLoader getConfigIDLoader();
 
 }
