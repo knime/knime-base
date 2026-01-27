@@ -86,6 +86,7 @@ class TutorialReaderNodeParameters implements NodeParameters {
     static final class TutorialReaderParametersRef implements ParameterReference<TutorialReaderParameters> {
     }
 
+    @SuppressWarnings("restriction")
     @SaveAdditional(ConfigIDSaver.class)
     @ValueReference(TutorialReaderParametersRef.class)
     TutorialReaderParameters m_tutorialReaderParameters = new TutorialReaderParameters();
@@ -94,6 +95,7 @@ class TutorialReaderNodeParameters implements NodeParameters {
 
         @Override
         protected ConfigID createConfigID(final TutorialReaderParameters param) {
+            // TODO (#3): Replace DummyMultiTableReadConfig with your TableReader's MultiTableReadConfig
             return param.saveToConfig(new DummyMultiTableReadConfig());
         }
     }
