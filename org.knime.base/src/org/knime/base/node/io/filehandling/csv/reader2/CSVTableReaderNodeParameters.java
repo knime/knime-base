@@ -53,14 +53,12 @@ import java.util.Optional;
 import org.knime.base.node.io.filehandling.csv.reader.CSVMultiTableReadConfig;
 import org.knime.base.node.io.filehandling.webui.reader2.MultiFileSelectionPath;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.context.url.URLConfiguration;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.additionalsave.SaveAdditional;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigID;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
-import org.knime.node.parameters.persistence.ParametersSaver;
 import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.ValueReference;
 
@@ -96,12 +94,11 @@ class CSVTableReaderNodeParameters implements NodeParameters {
     @ValueReference(CSVReaderParametersRef.class)
     CSVTableReaderParameters m_csvReaderParameters = new CSVTableReaderParameters();
 
-    static final class ConfigIDSaver implements ParametersSaver<CSVTableReaderNodeParameters> {
+    static final class ConfigIDSaver extends AbstractConfigIDSaver<CSVTableReaderParameters> {
 
         @Override
-        public void save(final CSVTableReaderNodeParameters param, final NodeSettingsWO nodeSettings) {
-            final var config = new CSVMultiTableReadConfig();
-            param.m_csvReaderParameters.saveToConfig(config).save(nodeSettings);
+        protected ConfigID createConfigID(final CSVTableReaderParameters param) {
+            return param.saveToConfig(new CSVMultiTableReadConfig());
         }
     }
 
