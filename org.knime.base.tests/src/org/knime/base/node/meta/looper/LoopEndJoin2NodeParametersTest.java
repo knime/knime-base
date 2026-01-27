@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -41,72 +42,70 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ------------------------------------------------------------------------
- *
- * History
- *   May 27, 2011 (wiswedel): created
  */
 package org.knime.base.node.meta.looper;
 
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
+import java.io.FileInputStream;
+import java.io.IOException;
+
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataType;
+import org.knime.core.data.def.DoubleCell;
+import org.knime.core.data.def.IntCell;
+import org.knime.core.data.def.StringCell;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettings;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
+import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
+import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 
 /**
- *
- * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
+ * Snapshot test for the Loop End (Column Append) node settings.
  */
-final class LoopEndJoinNodeConfiguration {
+@SuppressWarnings("restriction")
+final class LoopEndJoin2NodeParametersTest extends DefaultNodeSettingsSnapshotTest {
 
-    static final String CFG_KEY_HAS_SAME_ROWS_IN_EACH_ITERATION = "hasSameRowsInEachIteration";
-
-    static final String CFG_KEY_PROPAGATE_LOOP_VARIABLES = "propagateLoopVariables";
-
-    private boolean m_hasSameRowsInEachIteration;
-
-    /** @since 4.4 */
-    private boolean m_propagateLoopVariables = false;
-
-    /** @return the hasSameRowsInEachIteration */
-    boolean hasSameRowsInEachIteration() {
-        return m_hasSameRowsInEachIteration;
+    LoopEndJoin2NodeParametersTest() {
+        super(getConfig());
     }
 
-    /** @param value the value to set */
-    void setHasSameRowsInEachIteration(final boolean value) {
-        m_hasSameRowsInEachIteration = value;
+    private static SnapshotTestConfiguration getConfig() {
+        return SnapshotTestConfiguration.builder() //
+            .withInputPortObjectSpecs(createInputPortSpecs()) //
+            .testJsonFormsForModel(LoopEndJoin2NodeParameters.class) //
+            .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings()) //
+            .testNodeSettingsStructure(() -> readSettings()) //
+            .build();
     }
 
-    /**
-     * Whether to propagate modification of variables in subsequent loop iterations and in the output of the end node.
-     *
-     * @return the propagateLoopVariables that property.
-     * @since 4.4
-     */
-    boolean propagateLoopVariables() {
-        return m_propagateLoopVariables;
+    private static LoopEndJoin2NodeParameters readSettings() {
+        try {
+            var path = getSnapshotPath(LoopEndJoin2NodeParameters.class).getParent().resolve("node_settings")
+                .resolve("LoopEndJoin2NodeParameters.xml");
+            try (var fis = new FileInputStream(path.toFile())) {
+                var nodeSettings = NodeSettings.loadFromXML(fis);
+                return NodeParametersUtil.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
+                    LoopEndJoin2NodeParameters.class);
+            }
+        } catch (IOException | InvalidSettingsException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
-    /**
-     * Set the {@link #propagateLoopVariables()} property.
-     *
-     * @param value the propagateLoopVariables to set
-     * @since 4.4
-     */
-    void propagateLoopVariables(final boolean value) {
-        m_propagateLoopVariables = value;
+    private static PortObjectSpec[] createInputPortSpecs() {
+        return new PortObjectSpec[]{createDefaultTestTableSpec()};
     }
 
-    /** Save current config.
-     * @param settings To save to. */
-    void saveConfiguration(final NodeSettingsWO settings) {
-        settings.addBoolean(CFG_KEY_HAS_SAME_ROWS_IN_EACH_ITERATION, m_hasSameRowsInEachIteration);
-        settings.addBoolean(CFG_KEY_PROPAGATE_LOOP_VARIABLES, m_propagateLoopVariables);
+    private static DataTableSpec createDefaultTestTableSpec() {
+        return new DataTableSpec(
+            new String[]{"StringColumn", "IntColumn", "DoubleColumn"},
+            new DataType[]{
+                DataType.getType(StringCell.class),
+                DataType.getType(IntCell.class),
+                DataType.getType(DoubleCell.class)
+            }
+        );
     }
-
-    /** Load config.
-     * @param settings To load from. */
-    void loadConfiguration(final NodeSettingsRO settings) {
-        m_hasSameRowsInEachIteration = settings.getBoolean(CFG_KEY_HAS_SAME_ROWS_IN_EACH_ITERATION, false);
-        m_propagateLoopVariables = settings.getBoolean(CFG_KEY_PROPAGATE_LOOP_VARIABLES, false);
-    }
-
 }

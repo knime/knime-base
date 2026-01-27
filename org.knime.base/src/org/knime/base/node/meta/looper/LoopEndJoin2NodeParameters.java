@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -41,72 +42,43 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ------------------------------------------------------------------------
- *
- * History
- *   May 27, 2011 (wiswedel): created
  */
+
 package org.knime.base.node.meta.looper;
 
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
+import org.knime.node.parameters.persistence.Persist;
 
 /**
+ * Node parameters for Loop End (Column Append).
  *
- * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
+ * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.2
  */
-final class LoopEndJoinNodeConfiguration {
+@LoadDefaultsForAbsentFields
+final class LoopEndJoin2NodeParameters implements NodeParameters {
 
-    static final String CFG_KEY_HAS_SAME_ROWS_IN_EACH_ITERATION = "hasSameRowsInEachIteration";
+    @Persist(configKey = LoopEndJoinNodeConfiguration.CFG_KEY_HAS_SAME_ROWS_IN_EACH_ITERATION)
+    @Widget(title = "Loop has same RowIDs in each iteration", description = """
+            Check this box if the tables in each iteration have the same number of rows and the same row
+            ordering. If this option is selected, the node does not use an expensive join (requires table
+            sorting) but only puts tables side-by-side. This option does not have any influence on the output
+            table. If the tables do not have the same RowIDs and this option is selected, the node will fail
+            during execution.
+            """)
+    boolean m_hasSameRowsInEachIteration;
 
-    static final String CFG_KEY_PROPAGATE_LOOP_VARIABLES = "propagateLoopVariables";
-
-    private boolean m_hasSameRowsInEachIteration;
-
-    /** @since 4.4 */
-    private boolean m_propagateLoopVariables = false;
-
-    /** @return the hasSameRowsInEachIteration */
-    boolean hasSameRowsInEachIteration() {
-        return m_hasSameRowsInEachIteration;
-    }
-
-    /** @param value the value to set */
-    void setHasSameRowsInEachIteration(final boolean value) {
-        m_hasSameRowsInEachIteration = value;
-    }
-
-    /**
-     * Whether to propagate modification of variables in subsequent loop iterations and in the output of the end node.
-     *
-     * @return the propagateLoopVariables that property.
-     * @since 4.4
-     */
-    boolean propagateLoopVariables() {
-        return m_propagateLoopVariables;
-    }
-
-    /**
-     * Set the {@link #propagateLoopVariables()} property.
-     *
-     * @param value the propagateLoopVariables to set
-     * @since 4.4
-     */
-    void propagateLoopVariables(final boolean value) {
-        m_propagateLoopVariables = value;
-    }
-
-    /** Save current config.
-     * @param settings To save to. */
-    void saveConfiguration(final NodeSettingsWO settings) {
-        settings.addBoolean(CFG_KEY_HAS_SAME_ROWS_IN_EACH_ITERATION, m_hasSameRowsInEachIteration);
-        settings.addBoolean(CFG_KEY_PROPAGATE_LOOP_VARIABLES, m_propagateLoopVariables);
-    }
-
-    /** Load config.
-     * @param settings To load from. */
-    void loadConfiguration(final NodeSettingsRO settings) {
-        m_hasSameRowsInEachIteration = settings.getBoolean(CFG_KEY_HAS_SAME_ROWS_IN_EACH_ITERATION, false);
-        m_propagateLoopVariables = settings.getBoolean(CFG_KEY_PROPAGATE_LOOP_VARIABLES, false);
-    }
+    @Persist(configKey = LoopEndJoinNodeConfiguration.CFG_KEY_PROPAGATE_LOOP_VARIABLES)
+    @Widget(title = "Propagate modified loop variables", description = """
+            If checked, variables whose values are modified within the loop are exported by this node. These
+            variables must be declared outside the loop, i.e. injected into the loop from a side-branch or be
+            available upstream of the corresponding loop start node. For the latter, any modification of a
+            variable is passed back to the start node in subsequent iterations (e.g. moving sum calculation).
+            Note that variables defined by the loop start node itself are excluded as these usually represent
+            loop controls (e.g. "currentIteration").
+            """)
+    boolean m_propagateLoopVariables;
 
 }
