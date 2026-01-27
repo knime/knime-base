@@ -74,6 +74,7 @@ import org.knime.node.parameters.NodeParametersInput;
  *
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  * @since 5.10
+ * @noreference non-public API
  */
 public final class ReaderSpecific {
 

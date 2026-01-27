@@ -127,7 +127,9 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
  *
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  * @param <T> the type used to represent external data [T]ypes
- * @since 5.10
+ * @since 5.1
+ * @noreference non-public API
+ * @noextend non-public API
  */
 @SuppressWarnings("restriction")
 public abstract class TransformationParameters<T>
