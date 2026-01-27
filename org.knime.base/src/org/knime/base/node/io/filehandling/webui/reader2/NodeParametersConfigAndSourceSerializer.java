@@ -75,6 +75,8 @@ import org.knime.node.parameters.NodeParameters;
  *
  * @author Paul Bärnreuther
  * @since 5.10
+ * @noreference non-public API
+ * @noextend non-public API
  */
 @SuppressWarnings("restriction")
 public abstract class NodeParametersConfigAndSourceSerializer<P extends NodeParameters, S extends Source<FSPath>, //

@@ -111,6 +111,7 @@ import org.knime.node.parameters.widget.choices.StringChoicesProvider;
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  * @author Paul Bärnreuther
  * @since 5.10
+ * @noreference non-public API
  */
 @SuppressWarnings("restriction")
 public final class TransformationParametersStateProviders {

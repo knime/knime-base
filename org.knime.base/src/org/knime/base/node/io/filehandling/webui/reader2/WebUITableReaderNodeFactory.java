@@ -78,6 +78,8 @@ import org.knime.node.parameters.NodeParameters;
  * @param <M> the type of {@link MultiTableReadConfig [M]ultiTableReadConfig}
  * @author Paul Bärnreuther
  * @since 5.10
+ * @noreference non-public API
+ * @noextend non-public API
  */
 @SuppressWarnings("restriction")
 public abstract class WebUITableReaderNodeFactory<P extends NodeParameters, S extends Source<FSPath>, //

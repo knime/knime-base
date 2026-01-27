@@ -58,7 +58,7 @@ import org.knime.node.parameters.persistence.ParametersSaver;
  * @param <P> the type of the parameters
  *
  * @author Paul Bärnreuther
- * @since 5.10
+ * @since 5.11
  */
 public abstract class AbstractConfigIDSaver<P> implements ParametersSaver<P> {
 
