@@ -48,6 +48,8 @@
  */
 package org.knime.base.node.io.filehandling.webui.reader2;
 
+import java.util.function.Supplier;
+
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.filehandling.core.connections.FSPath;
@@ -94,16 +96,16 @@ public abstract class BackwardsCompatibleWebUITableReaderNodeFactory<P extends N
     @Override
     public CommonTableReaderNodeModel<FSPath, S, C, T, M>
         createNodeModel(final NodeCreationConfiguration creationConfig) {
-        final var config = createConfig(creationConfig);
+        final Supplier<M> configCreator = () -> createConfig(creationConfig);
         final var pathSettings = createPathSettings(creationConfig);
         final var reader = createMultiTableReader();
         final var serializer = createSerializer();
         final var portConfig = creationConfig.getPortConfig();
         final var legacySourceSettings = createLegacySourceSettings(creationConfig);
         return portConfig.isPresent()
-            ? new BackwardsCompatibleCommonTableReaderNodeModel<>(config, pathSettings, reader, serializer,
+            ? new BackwardsCompatibleCommonTableReaderNodeModel<>(configCreator, pathSettings, reader, serializer,
                 portConfig.get(), legacySourceSettings, this::isLegacyConfiguration)
-            : new BackwardsCompatibleCommonTableReaderNodeModel<>(config, pathSettings, reader, serializer,
+            : new BackwardsCompatibleCommonTableReaderNodeModel<>(configCreator, pathSettings, reader, serializer,
                 legacySourceSettings, this::isLegacyConfiguration);
     }
 
