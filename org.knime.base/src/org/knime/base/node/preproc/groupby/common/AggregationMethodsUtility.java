@@ -44,30 +44,68 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   20 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   15 Dec 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.base.node.preproc.groupby.common;
 
+import java.util.Optional;
+import java.util.stream.Stream;
+
+import org.knime.base.data.aggregation.AggregationFunctionsUtility;
+import org.knime.base.data.aggregation.AggregationMethod;
+import org.knime.base.data.aggregation.AggregationMethods;
 import org.knime.base.data.aggregation.AggregationOperatorParameters;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.webui.node.dialog.FallbackDialogNodeParameters;
+import org.knime.base.data.aggregation.AggregationSpec;
+import org.knime.core.data.DataType;
 
 /**
- * Parameters to display legacy operator settings in "fallback style".
+ * Utility for native (as in "not-DB") aggregation methods.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ *
+ * @since 5.10
  */
-@SuppressWarnings("restriction")
-public final class LegacyAggregationOperatorParameters extends FallbackDialogNodeParameters
-    implements AggregationOperatorParameters {
+public final class AggregationMethodsUtility extends AggregationFunctionsUtility<AggregationMethod> {
+
+    private static final AggregationMethodsUtility INSTANCE = new AggregationMethodsUtility();
 
     /**
-     * Creates parameters from the given node settings.
+     * Gets the singleton instance of this utility.
      *
-     * @param nodeSettings the node settings to read from
+     * @return the singleton instance
      */
-    public LegacyAggregationOperatorParameters(final NodeSettingsRO nodeSettings) {
-        super(nodeSettings);
+    public static AggregationMethodsUtility getInstance() {
+        return INSTANCE;
+    }
+
+    private AggregationMethodsUtility() {
+        // singleton
+    }
+
+    @Override
+    protected AggregationMethod getFunction(final String id) {
+        return AggregationMethods.getMethod4Id(id);
+    }
+
+    @Override
+    protected Stream<AggregationMethod> getCompatibleAggregationFunctions(final DataType type, final boolean sorted) {
+        return AggregationMethods.getCompatibleMethods(type, sorted).stream();
+    }
+
+    @Override
+    protected Stream<AggregationMethod> getFunctions(final boolean sorted) {
+        return AggregationMethods.getInstance().getFunctions(sorted).stream();
+    }
+
+    @Override
+    protected Optional<AggregationMethod> getDefaultFunction(final DataType type) {
+        return Optional.ofNullable(AggregationMethods.getInstance().getDefaultFunction(type));
+    }
+
+    @Override
+    public Optional<Class<? extends AggregationOperatorParameters>>
+        lookupParametersForFunction(final AggregationSpec fun) {
+        return AggregationMethods.getInstance().getParametersClassFor(fun.id());
     }
 
 }
