@@ -47,57 +47,157 @@
  */
 package org.knime.base.node.mine.scorer.numeric2;
 
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
+import org.knime.node.impl.description.ViewDescription;
 
 /**
  * <code>NodeFactory</code> for the "NumericScorer" Node. Computes the distance between the a numeric column's values
  * and predicted values.
  *
  * @author Gabor Bakos
+ * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.2
  * @since 4.0
  */
-public class NumericScorer2NodeFactory extends NodeFactory<NumericScorer2NodeModel> {
-    /**
-     * {@inheritDoc}
-     */
+@SuppressWarnings("restriction")
+public class NumericScorer2NodeFactory extends NodeFactory<NumericScorer2NodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
+
     @Override
     public NumericScorer2NodeModel createNodeModel() {
         return new NumericScorer2NodeModel();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int getNrNodeViews() {
         return 1;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public NodeView<NumericScorer2NodeModel> createNodeView(final int viewIndex,
         final NumericScorer2NodeModel nodeModel) {
         return new NumericScorer2NodeView(nodeModel);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean hasDialog() {
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    private static final String NODE_NAME = "Numeric Scorer";
+
+    private static final String NODE_ICON = "./scorer.png";
+
+    private static final String SHORT_DESCRIPTION = """
+            Computes certain statistics between the a numeric column's values and predicted values.
+            """;
+
+    private static final String FULL_DESCRIPTION = """
+            This node computes certain statistics between the a numeric column's values (r<sub>i</sub>) and
+                predicted (p<sub>i</sub>) values. It computes <a
+                href="http://en.wikipedia.org/wiki/Coefficient_of_determination">R²</a>=1-SS<sub>res</sub>/SS<sub>tot
+                </sub>=1-Σ(p<sub>i</sub>-r<sub>i</sub>)²/Σ(r<sub>i</sub>-1/n*Σr<sub>i</sub>)²
+                (can be negative!), <a href="http://en.wikipedia.org/wiki/Mean_absolute_error">Mean absolute error</a>
+                (1/n*Σ|p<sub>i</sub>-r<sub>i</sub>|), <a
+                href="http://en.wikipedia.org/wiki/Residual_sum_of_squares">Mean squared error</a>
+                (1/n*Σ(p<sub>i</sub>-r<sub>i</sub>)²), <a
+                href="http://en.wikipedia.org/wiki/Root-mean-square_deviation">Root mean squared error</a>
+                (sqrt(1/n*Σ(p<sub>i</sub>-r<sub>i</sub>)²)), <a
+                href="http://en.wikipedia.org/wiki/Mean_signed_difference">Mean signed difference</a>
+                (1/n*Σ(p<sub>i</sub>-r<sub>i</sub>)), <a
+                href="https://en.wikipedia.org/wiki/Mean_absolute_percentage_error">Mean absolute percentage error</a>
+                1/n * Σ((|r<sub>i</sub> - p<sub>i</sub>|)/ |r<sub>i</sub>|), <a
+                href="https://en.wikipedia.org/wiki/Coefficient_of_determination#Adjusted_R2">Adjusted
+                R²</a>=1-(1-R²)(n-1)/(n-p-1) (can be negative!). The computed values can be inspected in the node's view
+                and/or further processed using the output table.
+            """;
+
+    private static final List<PortDescription> INPUT_PORTS = List.of(
+            fixedPort("Table", """
+                Table with predicted and reference numerical data.
+                """)
+    );
+
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(
+            fixedPort("Statistics", """
+                The computed statistical measures: <ul> <li>R² - <a
+                href="http://en.wikipedia.org/wiki/Coefficient_of_determination">coefficient of determination</a>,
+                1-SS_res/SS_tot</li> <li><a href="http://en.wikipedia.org/wiki/Residual_sum_of_squares">Mean squared
+                error</a> - 1/n*Σ((p_i-r_i)²)</li> <li><a href="http://en.wikipedia.org/wiki/Mean_absolute_error">Mean
+                absolute error</a> - 1/n*Σ|p_i-r_i|</li> <li><a
+                href="http://en.wikipedia.org/wiki/Root-mean-square_deviation">Root mean squared error</a> -
+                Sqrt(1/n*Σ((p_i-r_i)²))</li> <li><a href="http://en.wikipedia.org/wiki/Mean_signed_difference">Mean
+                signed difference</a> - 1/n*Σ(p_i - r_i)</li> <li><a
+                href="https://en.wikipedia.org/wiki/Mean_absolute_percentage_error">Mean absolute percentage error</a>
+                1/n * Σ((|r_i - p_i|)/|r_i|)</li> <li><a
+                href="https://en.wikipedia.org/wiki/Coefficient_of_determination#Adjusted_R2">Adjusted
+                R²</a>1-(1-R²)(n-1)/(n-p-1)</li> </ul>
+                """)
+    );
+
+    private static final List<ViewDescription> VIEWS = List.of(
+            new ViewDescription("Statistics", """
+                A table with the statistical measures
+                """)
+    );
+
     @Override
     public NodeDialogPane createNodeDialogPane() {
-        return new NumericScorer2NodeDialog();
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    /**
+     * {@inheritDoc}
+     * @since 5.10
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, NumericScorer2NodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription( //
+            NODE_NAME, //
+            NODE_ICON, //
+            INPUT_PORTS, //
+            OUTPUT_PORTS, //
+            SHORT_DESCRIPTION, //
+            FULL_DESCRIPTION, //
+            List.of(), //
+            NumericScorer2NodeParameters.class, //
+            VIEWS, //
+            NodeType.Other, //
+            List.of(), //
+            null //
+        );
+    }
+
+    /**
+     * {@inheritDoc}
+     * @since 5.10
+     */
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, NumericScorer2NodeParameters.class));
     }
 
 }

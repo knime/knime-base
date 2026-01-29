@@ -1,0 +1,236 @@
+{
+  "data" : {
+    "model" : {
+      "referenceColumn" : "Universe_1_1",
+      "predictedColumn" : "Universe_1_1",
+      "overrideOutput" : false,
+      "outputColumnName" : "Universe_1_1",
+      "flowVariablePrefix" : null,
+      "numberOfPredictors" : 0
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "flowVariablePrefix" : {
+            "type" : [ "string", "null" ],
+            "title" : "Export and prefix flow variables",
+            "description" : "If enabled, the scores will be exported as flow variables with hard coded names and prefixed by the given\nvalue.\n",
+            "default" : ""
+          },
+          "numberOfPredictors" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Number of predictors",
+            "description" : "The number of predictors used to compute the adjusted R squared. The adjusted R squared is calculated as:\n1 - ((1 - R²) * (n - 1)) / (n - p - 1), where n is the number of observations and p is the number of\npredictors.\n",
+            "default" : 0
+          },
+          "outputColumnName" : {
+            "type" : "string",
+            "title" : "Output column name",
+            "description" : "The name of the column in the output.\n"
+          },
+          "overrideOutput" : {
+            "type" : "boolean",
+            "title" : "Override output column name",
+            "description" : "Overrides the name of the column in the output. By default, the name of the predicted column is used.\n",
+            "default" : false
+          },
+          "predictedColumn" : {
+            "type" : "string",
+            "title" : "Predicted column",
+            "description" : "Column with the modeled, predicted data values.\n"
+          },
+          "referenceColumn" : {
+            "type" : "string",
+            "title" : "Reference column",
+            "description" : "Column with the correct, observed, training data values.\n"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/referenceColumn",
+      "options" : {
+        "format" : "dropDown"
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/predictedColumn",
+      "options" : {
+        "format" : "dropDown"
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/overrideOutput",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/outputColumnName",
+      "rule" : {
+        "effect" : "ENABLE",
+        "condition" : {
+          "scope" : "#/properties/model/properties/overrideOutput",
+          "schema" : {
+            "const" : true
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/flowVariablePrefix",
+      "options" : {
+        "hideOnNull" : true
+      },
+      "providedOptions" : [ "default" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/numberOfPredictors",
+      "options" : {
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 2147483647.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 2.147483647E9
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 0.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 0.0
+            }
+          }
+        }
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "referenceColumn" : {
+            "configPaths" : [ [ "columnName" ] ],
+            "route" : [ "reference" ]
+          },
+          "predictedColumn" : {
+            "configPaths" : [ [ "columnName" ] ],
+            "route" : [ "predicted" ]
+          },
+          "overrideOutput" : {
+            "configKey" : "override default output name"
+          },
+          "outputColumnName" : {
+            "configKey" : "output column"
+          },
+          "flowVariablePrefix" : {
+            "configPaths" : [ [ "generate flow variables" ], [ "name prefix for flowvars" ] ]
+          },
+          "numberOfPredictors" : {
+            "configKey" : "number_of_predictors"
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/flowVariablePrefix",
+    "providedOptionName" : "default",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : ""
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/outputColumnName",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : "Universe_1_1"
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/predictedColumn",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Universe_1_1",
+        "text" : "Universe_1_1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Reference Column",
+        "text" : "Reference Column",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Predicted Column",
+        "text" : "Predicted Column",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/referenceColumn",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Universe_1_1",
+        "text" : "Universe_1_1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Reference Column",
+        "text" : "Reference Column",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Predicted Column",
+        "text" : "Predicted Column",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      } ]
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "id" : "after-open-dialog"
+    },
+    "triggerInitially" : true,
+    "dependencies" : [ "#/properties/model/properties/predictedColumn", "#/properties/model/properties/referenceColumn" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/overrideOutput"
+    },
+    "dependencies" : [ "#/properties/model/properties/outputColumnName", "#/properties/model/properties/overrideOutput", "#/properties/model/properties/predictedColumn" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/predictedColumn"
+    },
+    "dependencies" : [ "#/properties/model/properties/outputColumnName", "#/properties/model/properties/overrideOutput", "#/properties/model/properties/predictedColumn" ]
+  } ]
+}
