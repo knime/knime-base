@@ -73,7 +73,7 @@ public final class MultiFileReaderParameters extends AppendFilePathColumnParamet
     /**
      * Reference this interface to position parameters relative to "How to combine columns".
      */
-    @Before(AppendFilePathColumnParameters.AppendFilePathColumn.class)
+    @Before(AppendFilePathColumn.class)
     public interface HowToCombineColumns {
     }
 
@@ -98,26 +98,31 @@ public final class MultiFileReaderParameters extends AppendFilePathColumnParamet
         super.saveToConfig(config);
 
         config.setFailOnDifferingSpecs(m_howToCombineColumns == HowToCombineColumnsOption.FAIL);
-        config.setSpecMergeMode(m_howToCombineColumns == HowToCombineColumnsOption.INTERSECTION
-            ? SpecMergeMode.INTERSECTION : SpecMergeMode.UNION);
+        // The legacy spec merge mode should not be used anymore, as the column filter mode in the table spec config is
+        // used instead
     }
 
     /**
-     * Load the settings from the given config.
+     * Load the settings from the given config. This method does NOT respect the legacy setting {@link SpecMergeMode},
+     * but only loads the {@link ColumnFilterMode}
      *
      * @param config the config to load from
      */
     @SuppressWarnings("deprecation")
-    public void loadFromConfig(final AbstractMultiTableReadConfig<?, ?, ?, ?> config) {
+    public void loadFromConfigAfter4_4(final AbstractMultiTableReadConfig<?, ?, ?, ?> config) {
         super.loadFromConfig(config);
 
         if (config.failOnDifferingSpecs()) {
             // in this case, the result of getSpecMergeMode() is irrelevant, as the specs must be identical anyway
             m_howToCombineColumns = HowToCombineColumnsOption.FAIL;
-        } else if (config.getSpecMergeMode() == SpecMergeMode.INTERSECTION) {
-            m_howToCombineColumns = HowToCombineColumnsOption.INTERSECTION;
         } else {
-            m_howToCombineColumns = HowToCombineColumnsOption.UNION;
+            if (config.getTableSpecConfig() != null && config.getTableSpecConfig().getTableTransformation() != null) {
+                m_howToCombineColumns =
+                    switch (config.getTableSpecConfig().getTableTransformation().getColumnFilterMode()) {
+                        case INTERSECTION -> HowToCombineColumnsOption.INTERSECTION;
+                        case UNION -> HowToCombineColumnsOption.UNION;
+                    };
+            }
         }
     }
 
