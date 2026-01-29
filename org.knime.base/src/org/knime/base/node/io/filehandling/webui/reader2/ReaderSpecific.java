@@ -48,12 +48,12 @@
  */
 package org.knime.base.node.io.filehandling.webui.reader2;
 
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.TableSpecSettings;
 import org.knime.core.data.DataType;
-import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.RawSpecFactory;
 import org.knime.filehandling.core.node.table.reader.TableReader;
@@ -64,6 +64,7 @@ import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec.TypedReaderTableSpecBuilder;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
+import org.knime.node.parameters.NodeParametersInput;
 
 /**
  *
@@ -96,7 +97,7 @@ public final class ReaderSpecific {
          *
          * @return an instance of the multi table read config whose reader specific config is the default one
          */
-        M createMultiTableReadConfig();
+        M createMultiTableReadConfig(NodeParametersInput input);
 
         /**
          * @param <V> the type of tokens a row read in consists of
@@ -178,19 +179,19 @@ public final class ReaderSpecific {
          * {@noimplement} Same for all readers. This method is part of this interface just for convenience.
          */
         @SuppressWarnings("javadoc")
-        default Map<FSLocation, TypedReaderTableSpec<T>> toSpecMap(final ExternalDataTypeSerializer<T> serializer,
+        default Map<String, TypedReaderTableSpec<T>> toSpecMap(final ExternalDataTypeSerializer<T> serializer,
             final TableSpecSettings[] specs) {
-            final var individualSpecs = new LinkedHashMap<FSLocation, TypedReaderTableSpec<T>>();
+            final var individualSpecs = new LinkedHashMap<String, TypedReaderTableSpec<T>>();
             if (specs == null) {
                 return individualSpecs;
             }
             for (final var tableSpec : specs) {
                 final TypedReaderTableSpecBuilder<T> specBuilder = TypedReaderTableSpec.builder();
                 for (final var colSpec : tableSpec.m_spec) {
-                    specBuilder.addColumn(colSpec.m_name, serializer.toExternalType(colSpec.m_type), true);
+                    specBuilder.addColumn(colSpec.m_name, serializer.toExternalType(colSpec.m_type), colSpec.m_hasType);
                 }
                 final var spec = specBuilder.build();
-                individualSpecs.put(tableSpec.m_fsLocation, spec);
+                individualSpecs.put(tableSpec.m_sourceIdentifier, spec);
             }
             return individualSpecs;
         }
@@ -199,12 +200,12 @@ public final class ReaderSpecific {
          * {@noimplement} Same for all readers. This method is part of this interface just for convenience.
          */
         @SuppressWarnings("javadoc")
-        default RawSpec<T> toRawSpec(final Map<FSLocation, TypedReaderTableSpec<T>> spec) {
-            if (spec.isEmpty()) {
+        default RawSpec<T> toRawSpec(final Collection<TypedReaderTableSpec<T>> specs) {
+            if (specs.isEmpty()) {
                 final var emptySpec = new TypedReaderTableSpec<T>();
                 return new RawSpec<>(emptySpec, emptySpec);
             }
-            return new RawSpecFactory<>(getTypeHierarchy()).create(spec.values());
+            return new RawSpecFactory<>(getTypeHierarchy()).create(specs);
         }
     }
 

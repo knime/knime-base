@@ -48,17 +48,27 @@
  */
 package org.knime.base.node.io.filehandling.webui.reader2;
 
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.booleanhelpers.DoNotPersistBoolean;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.filehandling.core.node.table.reader.config.AbstractMultiTableReadConfig;
+import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.layout.Inside;
 import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.persistence.Persistor;
+import org.knime.node.parameters.updates.Effect;
 import org.knime.node.parameters.updates.EffectPredicate;
 import org.knime.node.parameters.updates.EffectPredicateProvider;
 import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.StateProvider;
+import org.knime.node.parameters.updates.ValueProvider;
 import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.choices.Label;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
+
+import java.util.function.Supplier;
 
 /**
  * Parameters for handling schema changes.
@@ -78,6 +88,22 @@ public final class IfSchemaChangesParameters implements NodeParameters {
     static final class IfSchemaChangesOptionRef implements ParameterReference<IfSchemaChangesOption> {
     }
 
+    private static final class IgnoreSchemaChangeRef implements ParameterReference<Boolean> {
+    }
+
+    private static final class IgnoreSchemaChangeWasSetInitiallyRef implements ParameterReference<Boolean> {
+    }
+
+    @Widget(title = "If schema changes, ignore schema change (deprecated)", description = """
+            If set, the node tries to ignore the changes and outputs a table with the old table specification.
+            This option is deprecated. Once unchecked, it will disappear and cannot be selected again, as it may lead
+            to invalid data in the resulting table.
+            """)
+    @ValueReference(IgnoreSchemaChangeRef.class)
+    @Layout(IfSchemaChanges.class)
+    @Effect(predicate = ShowIgnoreSchemaChangePredicate.class, type = Effect.EffectType.SHOW)
+    boolean m_ignoreSchemaChange;
+
     @Widget(title = "If schema changes", description = """
             Specifies the node behavior if the content of the configured file/folder changes between executions,
             i.e., columns are added/removed to/from the file(s) or their types change. The following options are
@@ -86,7 +112,13 @@ public final class IfSchemaChangesParameters implements NodeParameters {
     @ValueSwitchWidget
     @Layout(IfSchemaChanges.class)
     @ValueReference(IfSchemaChangesOptionRef.class)
+    @Effect(predicate = ShowIfSchemaChangePredicate.class, type = Effect.EffectType.SHOW)
     IfSchemaChangesOption m_ifSchemaChangesOption = IfSchemaChangesOption.FAIL;
+
+    @Persistor(DoNotPersistBoolean.class)
+    @ValueReference(IgnoreSchemaChangeWasSetInitiallyRef.class)
+    @ValueProvider(IgnoreSchemaWasSetInitiallyValueProvider.class)
+    boolean m_ignoreSchemaChangeWasSetInitially;
 
     /**
      * Predicate provider for checking if new schema should be used.
@@ -98,6 +130,43 @@ public final class IfSchemaChangesParameters implements NodeParameters {
         }
     }
 
+    static final class ShowIfSchemaChangePredicate implements EffectPredicateProvider {
+
+        @Override
+        public EffectPredicate init(final PredicateInitializer i) {
+            return i.getBoolean(IgnoreSchemaChangeRef.class).isFalse();
+        }
+    }
+
+    static final class ShowIgnoreSchemaChangePredicate implements EffectPredicateProvider {
+
+        @Override
+        public EffectPredicate init(final PredicateInitializer i) {
+            return i.getBoolean(IgnoreSchemaChangeWasSetInitiallyRef.class).isTrue();
+        }
+    }
+
+    /**
+     * Populate the initial value of IgnoreSchemaChangeWasSetInitially once upon loading the dialog. That way, we can
+     * show the deprecated ignore schema change option only if it was set initially. After unchecking it and saving, it
+     * will be hidden and cannot be re-enabled via the dialog.
+     */
+    private static final class IgnoreSchemaWasSetInitiallyValueProvider implements StateProvider<Boolean> {
+
+        Supplier<Boolean> m_ignoreSchemaChange;
+
+        @Override
+        public void init(StateProviderInitializer initializer) {
+            initializer.computeBeforeOpenDialog();
+            m_ignoreSchemaChange = initializer.getValueSupplier(IgnoreSchemaChangeRef.class);
+        }
+
+        @Override
+        public Boolean computeState(NodeParametersInput parametersInput) throws StateComputationFailureException {
+            return m_ignoreSchemaChange.get();
+        }
+    }
+
     /**
      * Saves the settings to the given config. Call this method in a saveToConfig method of an enclosing parameters
      * class.
@@ -105,7 +174,27 @@ public final class IfSchemaChangesParameters implements NodeParameters {
      * @param config the config to save to
      */
     public void saveToConfig(final AbstractMultiTableReadConfig<?, ?, ?, ?> config) {
-        config.setSaveTableSpecConfig(m_ifSchemaChangesOption == IfSchemaChangesOption.FAIL);
+        if (m_ignoreSchemaChange) {
+            config.setSaveTableSpecConfig(true);
+            config.setCheckSavedTableSpec(false);
+        } else {
+            config.setSaveTableSpecConfig(m_ifSchemaChangesOption == IfSchemaChangesOption.FAIL);
+            config.setCheckSavedTableSpec(true);
+        }
+    }
+
+    /**
+     * Load the settings from the given config.
+     *
+     * @param config the config to load from
+     */
+    public void loadFromConfig(final MultiTableReadConfig<?, ?> config) {
+        m_ignoreSchemaChange = !config.checkSavedTableSpec();
+        if (config.saveTableSpecConfig()) {
+            m_ifSchemaChangesOption = IfSchemaChangesOption.FAIL;
+        } else {
+            m_ifSchemaChangesOption = IfSchemaChangesOption.USE_NEW_SCHEMA;
+        }
     }
 
     /**
@@ -116,18 +205,19 @@ public final class IfSchemaChangesParameters implements NodeParameters {
              * Fail if schema has changed.
              */
             @Label(value = "Fail", description = """
-                If set, the node fails if the column names in the file have changed. Changes in column types will not be
-                detected.
-                """) //
+                    If set, the node fails if the column names in the file have changed. Changes in column types
+                    will not be detected.
+                    """) //
             FAIL, //
             /**
              * Use the new schema without transformations.
              */
             @Label(value = "Use new schema", description = """
-                If set, the node will compute a new table specification for the current schema of the file at the time
-                when the node is executed. Note that the node will not output a table specification before execution and
-                that it will not apply transformations, therefore the transformation tab is disabled.
-                """) //
+                    If set, the node will compute a new table specification for the current schema of the file at
+                    the time when the node is executed. Note that the node will not output a table specification
+                    before execution and that it will not apply transformations, therefore the transformation tab
+                    is disabled.
+                    """) //
             USE_NEW_SCHEMA, //
     }
 

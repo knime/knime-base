@@ -56,9 +56,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.knime.base.node.io.filehandling.webui.reader2.MultiFileReaderParameters.HowToCombineColumnsOption;
-import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters;
 // TODO (#4): If your T is not Class<?>, extend TransformationParametersUpdatesTest<T, ...> instead of TransformationParametersUpdatesTestClassBased
-import org.knime.base.node.io.filehandling.webui.reader2.TransformationParametersStateProviderTestUtils.TransformationParametersUpdatesTestClassBased;
+import org.knime.base.node.io.filehandling.webui.testing.reader2.TransformationParametersStateProviderTestUtils.TransformationParametersUpdatesTestClassBased;
+import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters;
 import org.knime.core.data.DataType;
 import org.knime.core.data.def.LongCell;
 import org.knime.core.util.Pair;

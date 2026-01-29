@@ -51,10 +51,13 @@ package org.knime.base.node.io.filehandling.table.reader2;
 import java.util.Optional;
 
 import org.knime.base.node.io.filehandling.table.reader.KnimeTableMultiTableReadConfig;
+import org.knime.base.node.io.filehandling.webui.reader2.AbstractConfigIDSaver;
 import org.knime.base.node.io.filehandling.webui.reader2.MultiFileSelectionPath;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.context.url.URLConfiguration;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.additionalsave.SaveAdditional;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigID;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.updates.ParameterReference;
@@ -88,8 +91,17 @@ class KnimeTableReaderNodeParameters implements NodeParameters {
     static final class KnimeTableReaderParametersRef implements ParameterReference<KnimeTableReaderParameters> {
     }
 
+    @SaveAdditional(ConfigIDSaver.class)
     @ValueReference(KnimeTableReaderParametersRef.class)
     KnimeTableReaderParameters m_knimeTableReaderParameters = new KnimeTableReaderParameters();
+
+    static final class ConfigIDSaver extends AbstractConfigIDSaver<KnimeTableReaderParameters> {
+
+        @Override
+        protected ConfigID createConfigID(final KnimeTableReaderParameters param) {
+            return param.saveToConfig(new KnimeTableMultiTableReadConfig());
+        }
+    }
 
     KnimeTableReaderTransformationParameters m_transformationParameters =
         new KnimeTableReaderTransformationParameters();
@@ -98,11 +110,21 @@ class KnimeTableReaderNodeParameters implements NodeParameters {
         m_knimeTableReaderParameters.saveToSource(sourceSettings);
     }
 
+    void saveToConfig(final KnimeTableMultiTableReadConfig config, final ConfigID existingConfigId) {
+        m_knimeTableReaderParameters.saveToConfig(config);
+        saveTransformationParametersToConfig(config, existingConfigId);
+    }
+
     void saveToConfig(final KnimeTableMultiTableReadConfig config) {
-        final var configID = m_knimeTableReaderParameters.saveToConfig(config);
+        final var configId = m_knimeTableReaderParameters.saveToConfig(config);
+        saveTransformationParametersToConfig(config, configId);
+    }
+
+    private void saveTransformationParametersToConfig(final KnimeTableMultiTableReadConfig config,
+        final ConfigID existingConfigId) {
         m_transformationParameters.saveToConfig(//
             config, m_knimeTableReaderParameters.getSourcePath(), //
-            configID, //
+            existingConfigId, //
             m_knimeTableReaderParameters.getMultiFileReaderParameters()//
         );
     }

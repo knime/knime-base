@@ -54,11 +54,14 @@ import java.util.Set;
 import org.knime.base.node.io.filehandling.webui.FileSystemManagedByPortMessage;
 import org.knime.base.node.io.filehandling.webui.ReferenceStateProvider;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.DefaultFileChooserFilters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelectionMode;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelectionWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.PersistWithin;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
@@ -66,6 +69,8 @@ import org.knime.filehandling.core.connections.FSLocationUtil;
 import org.knime.filehandling.core.connections.RelativeTo;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.persistence.legacy.LegacyMultiFileSelection;
 import org.knime.node.parameters.updates.EffectPredicate;
 import org.knime.node.parameters.updates.EffectPredicateProvider;
 import org.knime.node.parameters.updates.ValueReference;
@@ -104,7 +109,7 @@ public final class MultiFileSelectionParameters implements NodeParameters {
      */
     public static FSLocation urlToSupportedFSLocation(final URL url) {
         var fsLocation = FSLocationUtil.createFromURL(url.toString());
-        /**
+        /*
          * We don't support MOUNTPOINT or HUB_SPACE as source selection in readers using
          * {@link AbstractFileSelectionPath}.
          */
@@ -130,6 +135,10 @@ public final class MultiFileSelectionParameters implements NodeParameters {
         ReferenceStateProvider<MultiFileSelection<DefaultFileChooserFilters>> implements Modification.Reference {
     }
 
+    private static final class FileSystemPortNotAvailableMessageRef extends ReferenceStateProvider<Void>
+        implements Modification.Reference {
+    }
+
     /**
      * Set the file extensions for the file reader widget using {@link Modification} on the implementation of this class
      * or the field where it is used.
@@ -147,12 +156,33 @@ public final class MultiFileSelectionParameters implements NodeParameters {
         protected abstract String[] getExtensions();
     }
 
+    /**
+     * Replace the {@link ReaderLayout.File.Source} layout using {@link Modification} of the file reader widget with a
+     * custom layout.
+     */
+    public abstract static class OverrideReaderSourceLayout implements Modification.Modifier {
+        @Override
+        public void modify(final Modification.WidgetGroupModifier group) {
+            group.find(FileSelectionRef.class).modifyAnnotation(Layout.class)
+                .withProperty("value", getSourceLayoutClass()).modify();
+            group.find(FileSystemPortNotAvailableMessageRef.class).modifyAnnotation(Layout.class)
+                .withProperty("value", getSourceLayoutClass()).modify();
+        }
+
+        /**
+         * @return the layout class that should be used instead of {@link ReaderLayout.File.Source}. It will be applied
+         *         via the {@link Layout} annotation on all nested widgets in the file reader widget.
+         */
+        protected abstract Class<?> getSourceLayoutClass();
+    }
+
+    @Modification.WidgetReference(FileSystemPortNotAvailableMessageRef.class)
     @TextMessage(value = FileSystemManagedByPortMessage.class)
     @Layout(ReaderLayout.File.Source.class)
     Void m_fileSystemFromPortNotAvailableMessage;
 
     /**
-     * Source is public since it is accessed in reader-specifix parameters implementations.
+     * Source is public since it is accessed in reader-specific parameters implementations.
      */
     @ValueReference(FileSelectionRef.class)
     @Layout(ReaderLayout.File.Source.class)
@@ -186,7 +216,7 @@ public final class MultiFileSelectionParameters implements NodeParameters {
         return m_source.getFSLocation().getPath();
     }
 
-    static final class MultiFileSelectionIsActive implements EffectPredicateProvider {
+    public static final class MultiFileSelectionIsActive implements EffectPredicateProvider {
 
         @Override
         public EffectPredicate init(final PredicateInitializer i) {
@@ -196,5 +226,26 @@ public final class MultiFileSelectionParameters implements NodeParameters {
             return i.getMultiFileSelection(FileSelectionRef.class).isMultiFileSelection();
         }
 
+    }
+
+    private static class LegacyFileSelectionParameters implements NodeParameters {
+        @Persist(configKey = "file_selection")
+        @PersistWithin({"settings"})
+        LegacyMultiFileSelection m_legacyMultiFileSelection = new LegacyMultiFileSelection(MultiFileSelectionMode.FILE);
+    }
+
+    /**
+     * Load the settings from legacy settings compatible with/via {@link LegacyFileSelectionParameters}.
+     * 
+     * @param settings the settings to load from, containing legacy file selection parameters under
+     *            "settings.file_selection"
+     * @throws InvalidSettingsException if loading the settings fails
+     */
+    public void loadFromLegacySettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+        var legacyParameters = NodeParametersUtil.loadSettings(settings, LegacyFileSelectionParameters.class);
+        m_source.m_path = legacyParameters.m_legacyMultiFileSelection.m_path;
+        m_source.m_filterMode = legacyParameters.m_legacyMultiFileSelection.m_filterMode;
+        m_source.m_includeSubfolders = legacyParameters.m_legacyMultiFileSelection.m_includeSubfolders;
+        m_source.m_filters = legacyParameters.m_legacyMultiFileSelection.m_filters.toDefaultFileChooserFilters();
     }
 }
