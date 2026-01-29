@@ -186,10 +186,13 @@ public class FileEncodingParameters implements NodeParameters {
      * The selected file encoding option.
      */
     @Widget(title = "File encoding", description = """
-            Defines the character set used to read a CSV file that contains characters in a different encoding. You \
-            can choose from a list of character encodings (UTF-8, UTF-16, etc.), or specify any other encoding \
-            supported by your Java Virtual Machine (VM). The default value uses the default encoding of the Java VM, \
-            which may depend on the locale or the Java property &quot;file.encoding&quot;.
+            Defines the character set used to read or write a file that \
+            contains characters in a different encoding. You can choose from \
+            a list of character encodings (UTF-8, UTF-16, etc.), or specify \
+            any other encoding supported by your Java Virtual Machine (VM). \
+            The default value uses the default encoding of the Java VM, \
+            which may depend on the locale or the Java property \
+            &quot;file.encoding&quot;.
             """, advanced = true)
     @Modification.WidgetReference(FileEncodingOptionModRef.class)
     @ValueReference(FileEncodingRef.class)
@@ -297,20 +300,30 @@ public class FileEncodingParameters implements NodeParameters {
         m_customEncoding = customEncoding;
     }
 
+
     /**
-     * Persistor for file encoding parameters.
+     * Abstract persistor for file encoding parameters.
      *
+     * @author Tim Crundall
      * @since 5.11
      */
-    public static final class FileEncodingPersistor implements NodeParametersPersistor<FileEncodingParameters> {
+    public abstract static class AbstractFileEncodingPersistor
+        implements NodeParametersPersistor<FileEncodingParameters> {
 
-        private static final String CFG_CHARACTER_SET_NAME = "characterSetName";
+        private final String m_cfgCharacterSetName;
 
         private static final String ASCII_CHARSET_NAME = StandardCharsets.US_ASCII.name();
 
+        /**
+         * @param cfgCharacterSetKey the configuration key to use
+         */
+        protected AbstractFileEncodingPersistor(final String cfgCharacterSetKey) {
+            this.m_cfgCharacterSetName = cfgCharacterSetKey;
+        }
+
         @Override
         public FileEncodingParameters load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            final var charsetName = settings.getString(CFG_CHARACTER_SET_NAME, ASCII_CHARSET_NAME);
+            final var charsetName = settings.getString(m_cfgCharacterSetName, ASCII_CHARSET_NAME);
             final var fileEncoding = FileEncodingOption.fromCharsetName(charsetName);
             return new FileEncodingParameters(fileEncoding,
                 fileEncoding == FileEncodingOption.OTHER ? charsetName : null);
@@ -319,13 +332,29 @@ public class FileEncodingParameters implements NodeParameters {
         @Override
         public void save(final FileEncodingParameters param, final NodeSettingsWO settings) {
             final var fileEncoding = param.getFileEncoding();
-            settings.addString(CFG_CHARACTER_SET_NAME,
+            settings.addString(m_cfgCharacterSetName,
                 fileEncoding == FileEncodingOption.OTHER ? param.getCustomEncoding() : fileEncoding.getCharsetName());
         }
 
         @Override
         public String[][] getConfigPaths() {
-            return new String[][]{{CFG_CHARACTER_SET_NAME}};
+            return new String[][]{{m_cfgCharacterSetName}};
         }
+    }
+
+    /**
+     * Persistor for file encoding parameters.
+     *
+     * @since 5.11
+     */
+    public static final class FileEncodingPersistor extends AbstractFileEncodingPersistor {
+
+        /**
+         * Constructor
+         */
+        public FileEncodingPersistor() {
+            super("characterSetName");
+        }
+
     }
 }

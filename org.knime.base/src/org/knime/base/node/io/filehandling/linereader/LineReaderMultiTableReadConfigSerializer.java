@@ -75,35 +75,35 @@ enum LineReaderMultiTableReadConfigSerializer
          */
         INSTANCE;
 
-    private static final String CFG_ROW_HEADER_PREFIX = "row_header_prefix";
+    static final String CFG_ROW_HEADER_PREFIX = "row_header_prefix";
 
-    private static final String CFG_CHARSET = "charset";
+    static final String CFG_CHARSET = "charset";
 
-    private static final String CFG_HAS_COL_HEADER = "use_column_header";
+    static final String CFG_HAS_COL_HEADER = "use_column_header";
 
-    private static final String CFG_CUSTOM_COL_HEADER = "custom_col_header";
+    static final String CFG_CUSTOM_COL_HEADER = "custom_col_header";
 
-    private static final String CFG_LIMIT_DATA_ROWS = "limit_data_rows";
+    static final String CFG_LIMIT_DATA_ROWS = "limit_data_rows";
 
-    private static final String CFG_MAX_ROWS = "max_rows";
+    static final String CFG_MAX_ROWS = "max_rows";
 
-    private static final String CFG_REGEX = "regex";
+    static final String CFG_REGEX = "regex";
 
-    private static final String CFG_USE_REGEX = "use_regex";
+    static final String CFG_USE_REGEX = "use_regex";
 
-    private static final String CFG_EMPTY_LINE_MODE = "empty_line_mode";
+    static final String CFG_EMPTY_LINE_MODE = "empty_line_mode";
 
-    private static final String CFG_EMPTY_REPLACEMENT = "empty_line_replacement";
+    static final String CFG_EMPTY_REPLACEMENT = "empty_line_replacement";
 
-    private static final String CFG_FAIL_DIFFERING_SPECS = "fail_on_different_specs";
+    static final String CFG_FAIL_DIFFERING_SPECS = "fail_on_different_specs";
 
-    private static final String CFG_ADVANCED_SETTINGS_TAB = "advanced_settings";
+    static final String CFG_ADVANCED_SETTINGS_TAB = "advanced_settings";
 
-    private static final String CFG_ENCODING_TAB = "encoding";
+    static final String CFG_ENCODING_TAB = "encoding";
 
-    private static final String CFG_APPEND_PATH_COLUMN = "append_path_column" + SettingsModel.CFGKEY_INTERNAL;
+    static final String CFG_APPEND_PATH_COLUMN = "append_path_column" + SettingsModel.CFGKEY_INTERNAL;
 
-    private static final String CFG_PATH_COLUMN_NAME = "path_column_name" + SettingsModel.CFGKEY_INTERNAL;
+    static final String CFG_PATH_COLUMN_NAME = "path_column_name" + SettingsModel.CFGKEY_INTERNAL;
 
     @Override
     public void loadInDialog(final LineMultiTableReadConfig config, final NodeSettingsRO settings,

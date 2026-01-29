@@ -53,6 +53,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.regex.Pattern;
 
@@ -114,7 +115,8 @@ final class LineRead implements Read<String> {
         final String charSetName = config.getReaderSpecificConfig().getCharSetName();
         final Charset charset = charSetName == null ? Charset.defaultCharset() : Charset.forName(charSetName);
         m_reader = BomEncodingUtils.createBufferedReader(m_compressionAwareStream, charset);
-        m_regexPattern = Pattern.compile(config.getReaderSpecificConfig().getRegex());
+        m_regexPattern = Optional.of(config.getReaderSpecificConfig()).map(LineReaderConfig2::getRegex)
+            .map(Pattern::compile).orElse(null);
         m_linesRead = m_config.useColumnHeaderIdx() ? -1 : 0;
         m_limitRows = m_config.limitRows();
         m_maxRows = m_config.getMaxRows();
