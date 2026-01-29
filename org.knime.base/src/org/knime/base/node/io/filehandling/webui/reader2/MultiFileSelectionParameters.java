@@ -65,7 +65,6 @@ import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.FSLocationUtil;
 import org.knime.filehandling.core.connections.RelativeTo;
 import org.knime.node.parameters.NodeParameters;
-import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.updates.EffectPredicate;
 import org.knime.node.parameters.updates.EffectPredicateProvider;
 import org.knime.node.parameters.updates.ValueReference;
@@ -148,16 +147,14 @@ public final class MultiFileSelectionParameters implements NodeParameters {
     }
 
     @TextMessage(value = FileSystemManagedByPortMessage.class)
-    @Layout(ReaderLayout.File.Source.class)
     Void m_fileSystemFromPortNotAvailableMessage;
 
     /**
      * Source is public since it is accessed in reader-specifix parameters implementations.
      */
     @ValueReference(FileSelectionRef.class)
-    @Layout(ReaderLayout.File.Source.class)
     @Modification.WidgetReference(FileSelectionRef.class)
-    @FileReaderWidget()
+    @FileReaderWidget
     @MultiFileSelectionWidget({MultiFileSelectionMode.FILE, MultiFileSelectionMode.FILES_IN_FOLDERS})
     public MultiFileSelection<DefaultFileChooserFilters> m_source =
         new MultiFileSelection<>(MultiFileSelectionMode.FILE, new DefaultFileChooserFilters());
