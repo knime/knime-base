@@ -346,7 +346,7 @@ public class PredictorHelper {
      * Default provider for the prediction column name optional widget used in various predictor nodes.
      *
      * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
-     * @since 5.10
+     * @since 5.11
      */
     public abstract static class PredictionColumnNameDefaultProvider implements DefaultValueProvider<String> {
 
@@ -403,7 +403,7 @@ public class PredictorHelper {
      * Default provider for the probability suffix optional widget used in various predictor nodes.
      *
      * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
-     * @since 5.10
+     * @since 5.11
      */
     public static final class ProbabilitySuffixDefaultProvider implements DefaultValueProvider<String> {
 

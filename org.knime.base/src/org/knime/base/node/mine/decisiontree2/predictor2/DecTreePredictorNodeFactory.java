@@ -159,7 +159,7 @@ public class DecTreePredictorNodeFactory extends NodeFactory<DecTreePredictorNod
 
     /**
      * {@inheritDoc}
-     * @since 5.10
+     * @since 5.11
      */
     @Override
     public NodeDialog createNodeDialog() {
@@ -186,7 +186,7 @@ public class DecTreePredictorNodeFactory extends NodeFactory<DecTreePredictorNod
 
     /**
      * {@inheritDoc}
-     * @since 5.10
+     * @since 5.11
      */
     @Override
     public KaiNodeInterface createKaiNodeInterface() {

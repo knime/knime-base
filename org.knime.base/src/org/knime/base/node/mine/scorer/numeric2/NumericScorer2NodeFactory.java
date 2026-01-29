@@ -166,7 +166,7 @@ public class NumericScorer2NodeFactory extends NodeFactory<NumericScorer2NodeMod
 
     /**
      * {@inheritDoc}
-     * @since 5.10
+     * @since 5.11
      */
     @Override
     public NodeDialog createNodeDialog() {
@@ -193,7 +193,7 @@ public class NumericScorer2NodeFactory extends NodeFactory<NumericScorer2NodeMod
 
     /**
      * {@inheritDoc}
-     * @since 5.10
+     * @since 5.11
      */
     @Override
     public KaiNodeInterface createKaiNodeInterface() {

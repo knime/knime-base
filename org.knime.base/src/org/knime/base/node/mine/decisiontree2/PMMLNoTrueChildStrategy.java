@@ -103,7 +103,7 @@ public enum PMMLNoTrueChildStrategy {
      * @param representation the string representation
      * @return {@link PMMLNoTrueChildStrategy}
      * @throws InvalidSettingsException if the representation is invalid
-     * @since 5.10
+     * @since 5.11
      */
     public static PMMLNoTrueChildStrategy getFromString(final String representation) throws InvalidSettingsException {
         for (final PMMLNoTrueChildStrategy strategy : values()) {

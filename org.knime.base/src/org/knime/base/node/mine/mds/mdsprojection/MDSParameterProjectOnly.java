@@ -56,7 +56,7 @@ import org.knime.node.parameters.persistence.Persist;
  * Node parameter for enabling whether to only project the data of MDS nodes.
  *
  * @author Robin Gerling, KNIME GmbH, Konstanz, Germany
- * @since 5.10
+ * @since 5.11
  */
 public final class MDSParameterProjectOnly implements NodeParameters {
 

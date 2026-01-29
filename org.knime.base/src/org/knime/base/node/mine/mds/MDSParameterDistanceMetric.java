@@ -57,7 +57,7 @@ import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 /**
  * Node parameter for selecting the distance metric of MDS nodes.
  *
- * @since 5.10
+ * @since 5.11
  */
 public final class MDSParameterDistanceMetric implements NodeParameters {
 

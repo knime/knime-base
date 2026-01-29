@@ -113,7 +113,7 @@ public enum PMMLMissingValueStrategy {
      * @param representation the string representation
      * @return {@link PMMLMissingValueStrategy}
      * @throws InvalidSettingsException if the representation is invalid
-     * @since 5.10
+     * @since 5.11
      */
     public static PMMLMissingValueStrategy getFromString(final String representation) throws InvalidSettingsException {
         for (final PMMLMissingValueStrategy strategy : values()) {

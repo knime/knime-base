@@ -142,7 +142,7 @@ public final class LoopEndJoin2NodeFactory extends NodeFactory<LoopEndJoinNodeMo
 
     /**
      * {@inheritDoc}
-     * @since 5.10
+     * @since 5.11
      */
     @Override
     public NodeDialogPane createNodeDialogPane() {
@@ -151,7 +151,7 @@ public final class LoopEndJoin2NodeFactory extends NodeFactory<LoopEndJoinNodeMo
 
     /**
      * {@inheritDoc}
-     * @since 5.10
+     * @since 5.11
      */
     @Override
     public NodeDialog createNodeDialog() {
@@ -178,7 +178,7 @@ public final class LoopEndJoin2NodeFactory extends NodeFactory<LoopEndJoinNodeMo
 
     /**
      * {@inheritDoc}
-     * @since 5.10
+     * @since 5.11
      */
     @Override
     public KaiNodeInterface createKaiNodeInterface() {

@@ -126,7 +126,7 @@ public final class CollectionSplitNodeFactory extends NodeFactory<CollectionSpli
 
     /**
      * {@inheritDoc}
-     * @since 5.10
+     * @since 5.11
      */
     @Override
     public NodeDialogPane createNodeDialogPane() {
@@ -135,7 +135,7 @@ public final class CollectionSplitNodeFactory extends NodeFactory<CollectionSpli
 
     /**
      * {@inheritDoc}
-     * @since 5.10
+     * @since 5.11
      */
     @Override
     public NodeDialog createNodeDialog() {
@@ -162,7 +162,7 @@ public final class CollectionSplitNodeFactory extends NodeFactory<CollectionSpli
 
     /**
      * {@inheritDoc}
-     * @since 5.10
+     * @since 5.11
      */
     @Override
     public KaiNodeInterface createKaiNodeInterface() {

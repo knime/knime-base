@@ -64,7 +64,7 @@ import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinVa
  *
  * @author Robin Gerling, KNIME GmbH, Konstanz, Germany
  * @author AI Migration Pipeline v1.2
- * @since 5.10
+ * @since 5.11
  */
 @LoadDefaultsForAbsentFields
 @Layout(MDSParametersUseRows.DataSection.class)
