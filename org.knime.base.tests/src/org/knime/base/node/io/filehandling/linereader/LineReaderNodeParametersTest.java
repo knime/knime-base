@@ -41,36 +41,53 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * ---------------------------------------------------------------------
- *
- * History
- *   23 Nov 2020 (lars.schweikardt): created
+ * ------------------------------------------------------------------------
  */
 package org.knime.base.node.io.filehandling.linereader;
 
-import org.knime.node.parameters.widget.choices.Label;
+import java.io.FileInputStream;
+import java.io.IOException;
+
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettings;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
+import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
+import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 
 /**
- * Enum for the handling of empty lines in the Line Reader node.
+ * Snapshot test for {@link LineReaderNodeParameters}.
  *
- * @author Lars Schweikardt, KNIME GmbH, Konstanz, Germany
+ * @author Rupert Ettrich, TNG Technology Consulting GmbH
  */
-enum EmptyLineMode {
-        @Label(value = "Replace with missing cells", description = "Empty lines will be replaced by a missing cell.")
-        REPLACE_BY_MISSING("Replace empty lines with missing cells"), //
-        @Label(value = "Replace with custom text",
-            description = "Empty lines will be replaced by the text entered in the text field below.")
-        REPLACE_EMPTY("Replace empty lines"), //
-        @Label(value = "Skip", description = "Empty lines will be skipped and are not added to the output.")
-        SKIP_EMPTY("Skip empty lines");
+@SuppressWarnings({"restriction", "javadoc"})
+final class LineReaderNodeParametersTest extends DefaultNodeSettingsSnapshotTest {
 
-    private final String m_label;
-
-    private EmptyLineMode(final String label) {
-        m_label = label;
+    LineReaderNodeParametersTest() {
+        super(getConfig());
     }
 
-    String getText() {
-        return m_label;
+    private static SnapshotTestConfiguration getConfig() {
+        return SnapshotTestConfiguration.builder() //
+            // Line Reader is a source node with no input ports (only optional FS connection)
+            .testJsonFormsForModel(LineReaderNodeParameters.class) //
+            .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings()) //
+            .testNodeSettingsStructure(() -> readSettings()) //
+            .build();
     }
+
+    private static LineReaderNodeParameters readSettings() {
+        try {
+            var path = getSnapshotPath(LineReaderNodeParameters.class).getParent().resolve("node_settings")
+                .resolve("LineReaderNodeParameters.xml");
+            try (var fis = new FileInputStream(path.toFile())) {
+                var nodeSettings = NodeSettings.loadFromXML(fis);
+                return NodeParametersUtil.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
+                    LineReaderNodeParameters.class);
+            }
+        } catch (IOException | InvalidSettingsException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
 }

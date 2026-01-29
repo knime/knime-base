@@ -1,0 +1,920 @@
+{
+  "data" : {
+    "model" : {
+      "fileSelection" : {
+        "filterMode" : "FILE",
+        "path" : {
+          "fsCategory" : "LOCAL",
+          "path" : "",
+          "timeout" : 10000,
+          "context" : {
+            "fsToString" : "(LOCAL, )"
+          }
+        },
+        "includeSubfolders" : false,
+        "filters" : {
+          "filterMode" : "FILE",
+          "filterFilesExtension" : false,
+          "filesExtensionExpression" : "",
+          "filesExtensionCaseSensitive" : false,
+          "filterFilesName" : false,
+          "filesNameExpression" : "*",
+          "filesNameFilterType" : "WILDCARD",
+          "filesNameCaseSensitive" : false,
+          "includeHiddenFiles" : true,
+          "includeSpecialFiles" : true,
+          "filterFoldersName" : false,
+          "foldersNameExpression" : "*",
+          "foldersNameFilterType" : "WILDCARD",
+          "foldersNameCaseSensitive" : false,
+          "includeHiddenFolders" : true,
+          "followSymlinks" : false
+        }
+      },
+      "charSet" : {
+        "fileEncoding" : "UTF_8",
+        "customEncoding" : ""
+      },
+      "failOnDifferingSpecs" : true,
+      "rowHeaderPrefix" : "Row",
+      "columnHeaderMode" : "SET_COLUMN_HEADER",
+      "columnHeaderName" : "Column",
+      "emptyLineMode" : "REPLACE_BY_MISSING",
+      "emptyLineReplacement" : "",
+      "regex" : null,
+      "appendPathColumn" : null,
+      "limitRows" : null
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "appendPathColumn" : {
+            "type" : [ "string", "null" ],
+            "title" : "Append path column",
+            "description" : "If enabled, the node will append a path column with the provided name to the output table.\nThis column contains for each row which file it was read from. The node will fail if adding\nthe column with the provided name causes a name collision with any of the columns in the\nread table.\n",
+            "default" : null
+          },
+          "charSet" : {
+            "type" : "object",
+            "properties" : {
+              "customEncoding" : {
+                "type" : "string",
+                "title" : "Custom encoding",
+                "description" : "A custom character set used to read a CSV file.",
+                "default" : ""
+              },
+              "fileEncoding" : {
+                "oneOf" : [ {
+                  "const" : "DEFAULT",
+                  "title" : "OS default"
+                }, {
+                  "const" : "ISO_8859_1",
+                  "title" : "ISO-8859-1"
+                }, {
+                  "const" : "US_ASCII",
+                  "title" : "US-ASCII"
+                }, {
+                  "const" : "UTF_8",
+                  "title" : "UTF-8"
+                }, {
+                  "const" : "UTF_16",
+                  "title" : "UTF-16"
+                }, {
+                  "const" : "UTF_16BE",
+                  "title" : "UTF-16BE"
+                }, {
+                  "const" : "UTF_16LE",
+                  "title" : "UTF-16LE"
+                }, {
+                  "const" : "OTHER",
+                  "title" : "Other"
+                } ],
+                "title" : "File encoding",
+                "description" : "Defines the character set used to read or write a file that contains characters in a different encoding. You can choose from a list of character encodings (UTF-8, UTF-16, etc.), or specify any other encoding supported by your Java Virtual Machine (VM). The default value uses the default encoding of the Java VM, which may depend on the locale or the Java property &quot;file.encoding&quot;.\n\n<ul>\n<li><b>OS default</b>: Uses the default decoding set by the operating system.</li>\n<li><b>ISO-8859-1</b>: ISO Latin Alphabet No. 1, a.k.a. ISO-LATIN-1.</li>\n<li><b>US-ASCII</b>: Seven-bit ASCII, also referred to as US-ASCII.</li>\n<li><b>UTF-8</b>: Eight-bit UCS Transformation Format.</li>\n<li><b>UTF-16</b>: Sixteen-bit UCS Transformation Format, byte order identified by an optional byte-order mark in the file.</li>\n<li><b>UTF-16BE</b>: Sixteen-bit UCS Transformation Format, big-endian byte order.</li>\n<li><b>UTF-16LE</b>: Sixteen-bit UCS Transformation Format, little-endian byte order.</li>\n<li><b>Other</b>: Enter a valid charset name supported by the Java Virtual Machine.</li>\n</ul>",
+                "default" : "UTF_8"
+              }
+            },
+            "default" : {
+              "fileEncoding" : "UTF_8",
+              "customEncoding" : ""
+            }
+          },
+          "columnHeaderMode" : {
+            "oneOf" : [ {
+              "const" : "FIRST_LINE_AS_HEADER",
+              "title" : "Use first line as column header"
+            }, {
+              "const" : "SET_COLUMN_HEADER",
+              "title" : "Set column header"
+            } ],
+            "title" : "Column header",
+            "description" : "Select how the column header should be determined.\n\n<ul>\n<li><b>Use first line as column header</b>: The name of the output column equals the first row of the read file.\n</li>\n<li><b>Set column header</b>: The name of the output column can be set manually in the text field below. The default name is 'Column'.\n</li>\n</ul>",
+            "default" : "SET_COLUMN_HEADER"
+          },
+          "columnHeaderName" : {
+            "type" : "string",
+            "title" : "Column header name",
+            "description" : "The name of the output column. The default is \"Column\".\n",
+            "default" : "Column"
+          },
+          "emptyLineMode" : {
+            "oneOf" : [ {
+              "const" : "REPLACE_BY_MISSING",
+              "title" : "Replace with missing cells"
+            }, {
+              "const" : "REPLACE_EMPTY",
+              "title" : "Replace with custom text"
+            }, {
+              "const" : "SKIP_EMPTY",
+              "title" : "Skip"
+            } ],
+            "title" : "Empty line handling",
+            "description" : "Select how empty lines should be handled.\n\n<ul>\n<li><b>Replace with missing cells</b>: Empty lines will be replaced by a missing cell.</li>\n<li><b>Replace with custom text</b>: Empty lines will be replaced by the text entered in the text field below.</li>\n<li><b>Skip</b>: Empty lines will be skipped and are not added to the output.</li>\n</ul>",
+            "default" : "REPLACE_BY_MISSING"
+          },
+          "emptyLineReplacement" : {
+            "type" : "string",
+            "title" : "Replacement text",
+            "description" : "The text to use as replacement for empty lines.\n",
+            "default" : ""
+          },
+          "failOnDifferingSpecs" : {
+            "type" : "boolean",
+            "title" : "Fail on differing specs",
+            "description" : "If enabled and the specs of the files are different, the node will fail. This option is only\nrelevant when reading multiple files in a folder.\n",
+            "default" : true
+          },
+          "fileSelection" : {
+            "type" : "object",
+            "properties" : {
+              "dummy" : {
+                "type" : "object"
+              },
+              "filterMode" : {
+                "oneOf" : [ {
+                  "const" : "FILE",
+                  "title" : "File"
+                }, {
+                  "const" : "FOLDER",
+                  "title" : "Folder"
+                }, {
+                  "const" : "FILES_IN_FOLDERS",
+                  "title" : "Files in folders"
+                }, {
+                  "const" : "FOLDERS",
+                  "title" : "Folders"
+                }, {
+                  "const" : "FILES_AND_FOLDERS",
+                  "title" : "Files and folders"
+                }, {
+                  "const" : "WORKFLOW",
+                  "title" : "Workflow"
+                } ],
+                "title" : "Type",
+                "description" : "The selection mode.\n<ul>\n<li><b>File</b>: Select a single file.</li>\n<li><b>Files in folders</b>: Select a folder and apply filters to select files within it.</li>\n</ul>",
+                "default" : "FILE"
+              },
+              "filters" : {
+                "type" : "object",
+                "properties" : {
+                  "filesExtensionCaseSensitive" : {
+                    "type" : "boolean",
+                    "title" : "Case sensitive (extensions)",
+                    "description" : "Treat the entered extensions as case sensitive when matching.",
+                    "default" : false
+                  },
+                  "filesExtensionExpression" : {
+                    "type" : "string",
+                    "title" : "File extensions",
+                    "description" : "Semicolon-separated list of file extensions to include (e.g. 'xlsx;xlsm;xls').\nCase-insensitive unless 'Case sensitive (extensions)' is enabled.\n",
+                    "default" : ""
+                  },
+                  "filesNameCaseSensitive" : {
+                    "type" : "boolean",
+                    "title" : "Case sensitive (names)",
+                    "description" : "Make file name filtering case sensitive.",
+                    "default" : false
+                  },
+                  "filesNameExpression" : {
+                    "type" : "string",
+                    "title" : "File name filter pattern",
+                    "description" : "Pattern for file name filtering. With type 'Wildcard', use '*' and '?'.\nWith type 'Regex', enter a Java regular expression.\n",
+                    "default" : "*"
+                  },
+                  "filesNameFilterType" : {
+                    "oneOf" : [ {
+                      "const" : "WILDCARD",
+                      "title" : "Wildcard"
+                    }, {
+                      "const" : "REGEX",
+                      "title" : "Regular Expression"
+                    } ],
+                    "title" : "File name filter type",
+                    "description" : "Choose how to interpret the file name pattern: wildcard or regular expression.",
+                    "default" : "WILDCARD"
+                  },
+                  "filterFilesExtension" : {
+                    "type" : "boolean",
+                    "title" : "Filter by file extension",
+                    "description" : "Enable filtering files by their extension (e.g. 'xlsx;xlsm').",
+                    "default" : false
+                  },
+                  "filterFilesName" : {
+                    "type" : "boolean",
+                    "title" : "Filter by file name",
+                    "description" : "Enable filtering by file name pattern with wildcards or regular expression.",
+                    "default" : false
+                  },
+                  "filterFoldersName" : {
+                    "type" : "boolean",
+                    "title" : "Filter by folder name",
+                    "description" : "Enable filtering of folders by name pattern before descending into them.",
+                    "default" : false
+                  },
+                  "filterMode" : {
+                    "oneOf" : [ {
+                      "const" : "FILE",
+                      "title" : "File"
+                    }, {
+                      "const" : "FOLDER",
+                      "title" : "Folder"
+                    }, {
+                      "const" : "FILES_IN_FOLDERS",
+                      "title" : "Files in folders"
+                    }, {
+                      "const" : "FOLDERS",
+                      "title" : "Folders"
+                    }, {
+                      "const" : "FILES_AND_FOLDERS",
+                      "title" : "Files and folders"
+                    }, {
+                      "const" : "WORKFLOW",
+                      "title" : "Workflow"
+                    } ],
+                    "default" : "FILE"
+                  },
+                  "foldersNameCaseSensitive" : {
+                    "type" : "boolean",
+                    "title" : "Case sensitive (folders)",
+                    "description" : "Make folder name filtering case sensitive.",
+                    "default" : false
+                  },
+                  "foldersNameExpression" : {
+                    "type" : "string",
+                    "title" : "Folder name pattern",
+                    "description" : "Pattern for folder name filtering. Use '*' and '?' with filter type 'Wildcard'.\nWith type 'Regex', enter a Java regular expression.\n",
+                    "default" : "*"
+                  },
+                  "foldersNameFilterType" : {
+                    "oneOf" : [ {
+                      "const" : "WILDCARD",
+                      "title" : "Wildcard"
+                    }, {
+                      "const" : "REGEX",
+                      "title" : "Regular Expression"
+                    } ],
+                    "title" : "Folder name filter type",
+                    "description" : "Choose how to interpret the folder name pattern: wildcard or regular expression.",
+                    "default" : "WILDCARD"
+                  },
+                  "followSymlinks" : {
+                    "type" : "boolean",
+                    "title" : "Follow symlinks",
+                    "description" : "Follow symbolic links while traversing folders (only relevant when selecting a folder).",
+                    "default" : false
+                  },
+                  "includeHiddenFiles" : {
+                    "type" : "boolean",
+                    "title" : "Include hidden files",
+                    "description" : "Include hidden files in the selection.",
+                    "default" : true
+                  },
+                  "includeHiddenFolders" : {
+                    "type" : "boolean",
+                    "title" : "Include hidden folders",
+                    "description" : "Descend into folders that are hidden (if they otherwise pass filters).",
+                    "default" : true
+                  },
+                  "includeSpecialFiles" : {
+                    "type" : "boolean",
+                    "title" : "Include special files",
+                    "description" : "Include special file types (workflows etc).",
+                    "default" : true
+                  }
+                },
+                "default" : {
+                  "filterMode" : "FILE",
+                  "filterFilesExtension" : false,
+                  "filesExtensionExpression" : "",
+                  "filesExtensionCaseSensitive" : false,
+                  "filterFilesName" : false,
+                  "filesNameExpression" : "*",
+                  "filesNameFilterType" : "WILDCARD",
+                  "filesNameCaseSensitive" : false,
+                  "includeHiddenFiles" : true,
+                  "includeSpecialFiles" : true,
+                  "filterFoldersName" : false,
+                  "foldersNameExpression" : "*",
+                  "foldersNameFilterType" : "WILDCARD",
+                  "foldersNameCaseSensitive" : false,
+                  "includeHiddenFolders" : true,
+                  "followSymlinks" : false
+                }
+              },
+              "includeSubfolders" : {
+                "type" : "boolean",
+                "title" : "Include subfolders",
+                "description" : "Whether to include subfolders when selecting multiple files within a folder.",
+                "default" : false
+              },
+              "path" : {
+                "type" : "object",
+                "title" : "Source",
+                "description" : "The path to the file or folder to select."
+              }
+            },
+            "default" : {
+              "filterMode" : "FILE",
+              "path" : {
+                "fsCategory" : "LOCAL",
+                "path" : "",
+                "timeout" : 10000,
+                "context" : {
+                  "fsToString" : "(LOCAL, )"
+                }
+              },
+              "includeSubfolders" : false,
+              "filters" : {
+                "filterMode" : "FILE",
+                "filterFilesExtension" : false,
+                "filesExtensionExpression" : "",
+                "filesExtensionCaseSensitive" : false,
+                "filterFilesName" : false,
+                "filesNameExpression" : "*",
+                "filesNameFilterType" : "WILDCARD",
+                "filesNameCaseSensitive" : false,
+                "includeHiddenFiles" : true,
+                "includeSpecialFiles" : true,
+                "filterFoldersName" : false,
+                "foldersNameExpression" : "*",
+                "foldersNameFilterType" : "WILDCARD",
+                "foldersNameCaseSensitive" : false,
+                "includeHiddenFolders" : true,
+                "followSymlinks" : false
+              }
+            }
+          },
+          "limitRows" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64",
+            "title" : "Limit data rows",
+            "description" : "If enabled, the number of rows which will be read and output by the node is limited\nto the specified value.\n",
+            "default" : null
+          },
+          "regex" : {
+            "type" : [ "string", "null" ],
+            "title" : "Filter with regular expression",
+            "description" : "Include in the output only lines matching the provided regular expression pattern. For example '12.*' will only match lines starting with 12 and have zero or more characters afterwards. The default value is '.*' which matches everything.",
+            "default" : null
+          },
+          "rowHeaderPrefix" : {
+            "type" : "string",
+            "title" : "Row header prefix",
+            "description" : "Specifies the prefix of the row header. The default is \"Row\" and the resulting row headers are\n\"Row0\", \"Row1\", and so on.\n",
+            "default" : "Row"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "label" : "Input File",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/fileSelection",
+        "options" : {
+          "filters" : {
+            "classId" : "org.knime.node.parameters.persistence.legacy.LegacyMultiFileSelection$MultiFileChooserFilters",
+            "uiSchema" : {
+              "elements" : [ {
+                "label" : "File filter options",
+                "type" : "Section",
+                "rule" : {
+                  "effect" : "HIDE",
+                  "condition" : {
+                    "scope" : "#/properties/filterMode",
+                    "schema" : {
+                      "oneOf" : [ {
+                        "const" : "FOLDERS"
+                      } ]
+                    }
+                  }
+                },
+                "elements" : [ {
+                  "type" : "Control",
+                  "scope" : "#/properties/filterFilesExtension",
+                  "options" : {
+                    "format" : "checkbox"
+                  }
+                }, {
+                  "type" : "Control",
+                  "scope" : "#/properties/filesExtensionExpression",
+                  "rule" : {
+                    "effect" : "SHOW",
+                    "condition" : {
+                      "scope" : "#/properties/filterFilesExtension",
+                      "schema" : {
+                        "const" : true
+                      }
+                    }
+                  }
+                }, {
+                  "type" : "Control",
+                  "scope" : "#/properties/filesExtensionCaseSensitive",
+                  "options" : {
+                    "format" : "checkbox"
+                  },
+                  "rule" : {
+                    "effect" : "SHOW",
+                    "condition" : {
+                      "scope" : "#/properties/filterFilesExtension",
+                      "schema" : {
+                        "const" : true
+                      }
+                    }
+                  }
+                }, {
+                  "type" : "Control",
+                  "scope" : "#/properties/filterFilesName",
+                  "options" : {
+                    "format" : "checkbox"
+                  }
+                }, {
+                  "type" : "Control",
+                  "scope" : "#/properties/filesNameExpression",
+                  "rule" : {
+                    "effect" : "SHOW",
+                    "condition" : {
+                      "scope" : "#/properties/filterFilesName",
+                      "schema" : {
+                        "const" : true
+                      }
+                    }
+                  }
+                }, {
+                  "type" : "Control",
+                  "scope" : "#/properties/filesNameFilterType",
+                  "options" : {
+                    "format" : "valueSwitch"
+                  },
+                  "rule" : {
+                    "effect" : "SHOW",
+                    "condition" : {
+                      "scope" : "#/properties/filterFilesName",
+                      "schema" : {
+                        "const" : true
+                      }
+                    }
+                  }
+                }, {
+                  "type" : "Control",
+                  "scope" : "#/properties/filesNameCaseSensitive",
+                  "options" : {
+                    "format" : "checkbox"
+                  },
+                  "rule" : {
+                    "effect" : "SHOW",
+                    "condition" : {
+                      "scope" : "#/properties/filterFilesName",
+                      "schema" : {
+                        "const" : true
+                      }
+                    }
+                  }
+                }, {
+                  "type" : "Control",
+                  "scope" : "#/properties/includeHiddenFiles",
+                  "options" : {
+                    "format" : "checkbox"
+                  }
+                }, {
+                  "type" : "Control",
+                  "scope" : "#/properties/includeSpecialFiles",
+                  "options" : {
+                    "format" : "checkbox"
+                  }
+                } ]
+              }, {
+                "label" : "Folder filter options",
+                "type" : "Section",
+                "elements" : [ {
+                  "type" : "Control",
+                  "scope" : "#/properties/filterFoldersName",
+                  "options" : {
+                    "format" : "checkbox"
+                  }
+                }, {
+                  "type" : "Control",
+                  "scope" : "#/properties/foldersNameExpression",
+                  "rule" : {
+                    "effect" : "ENABLE",
+                    "condition" : {
+                      "scope" : "#/properties/filterFoldersName",
+                      "schema" : {
+                        "const" : true
+                      }
+                    }
+                  }
+                }, {
+                  "type" : "Control",
+                  "scope" : "#/properties/foldersNameFilterType",
+                  "options" : {
+                    "format" : "valueSwitch"
+                  },
+                  "rule" : {
+                    "effect" : "ENABLE",
+                    "condition" : {
+                      "scope" : "#/properties/filterFoldersName",
+                      "schema" : {
+                        "const" : true
+                      }
+                    }
+                  }
+                }, {
+                  "type" : "Control",
+                  "scope" : "#/properties/foldersNameCaseSensitive",
+                  "options" : {
+                    "format" : "checkbox"
+                  },
+                  "rule" : {
+                    "effect" : "ENABLE",
+                    "condition" : {
+                      "scope" : "#/properties/filterFoldersName",
+                      "schema" : {
+                        "const" : true
+                      }
+                    }
+                  }
+                }, {
+                  "type" : "Control",
+                  "scope" : "#/properties/includeHiddenFolders",
+                  "options" : {
+                    "format" : "checkbox"
+                  }
+                } ]
+              }, {
+                "label" : "Link options",
+                "type" : "Section",
+                "elements" : [ {
+                  "type" : "Control",
+                  "scope" : "#/properties/followSymlinks",
+                  "options" : {
+                    "format" : "checkbox"
+                  }
+                } ]
+              } ]
+            }
+          },
+          "isLocal" : true,
+          "possibleFilterModes" : [ "FILE", "FILES_IN_FOLDERS" ],
+          "spaceFSOptions" : {
+            "mountId" : "Local space"
+          },
+          "format" : "multiFileChooser"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/charSet/properties/fileEncoding",
+        "options" : {
+          "isAdvanced" : true,
+          "format" : "dropDown"
+        },
+        "providedOptions" : [ "possibleValues" ]
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/charSet/properties/customEncoding",
+        "options" : {
+          "validation" : {
+            "pattern" : {
+              "errorMessage" : "The field cannot be blank (it must contain at least one non-whitespace character).",
+              "parameters" : {
+                "pattern" : ".*\\S.*"
+              }
+            }
+          },
+          "isAdvanced" : true
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/charSet/properties/fileEncoding",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "OTHER"
+              } ]
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/failOnDifferingSpecs",
+        "options" : {
+          "format" : "checkbox"
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/fileSelection",
+            "schema" : {
+              "properties" : {
+                "filterMode" : {
+                  "oneOf" : [ {
+                    "const" : "FILES_IN_FOLDERS"
+                  }, {
+                    "const" : "FOLDER"
+                  } ]
+                }
+              },
+              "required" : [ "filterMode" ]
+            }
+          }
+        }
+      } ]
+    }, {
+      "label" : "Headers",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/rowHeaderPrefix"
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/columnHeaderMode",
+        "options" : {
+          "format" : "radio",
+          "radioLayout" : "vertical"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/columnHeaderName",
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/columnHeaderMode",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "SET_COLUMN_HEADER"
+              } ]
+            }
+          }
+        }
+      } ]
+    }, {
+      "label" : "Advanced",
+      "type" : "Section",
+      "options" : {
+        "isAdvanced" : true
+      },
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/emptyLineMode",
+        "options" : {
+          "format" : "radio",
+          "radioLayout" : "vertical"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/emptyLineReplacement",
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/emptyLineMode",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "REPLACE_EMPTY"
+              } ]
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/regex",
+        "options" : {
+          "hideOnNull" : true
+        },
+        "providedOptions" : [ "default" ]
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/appendPathColumn",
+        "options" : {
+          "hideOnNull" : true
+        },
+        "providedOptions" : [ "default" ]
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/limitRows",
+        "options" : {
+          "stepSize" : 1000.0,
+          "validation" : {
+            "max" : {
+              "errorMessage" : "Value too large to process without risking precision loss (> 9007199254740991).",
+              "parameters" : {
+                "isExclusive" : false,
+                "max" : 9.007199254740991E15
+              }
+            },
+            "min" : {
+              "errorMessage" : "The value must be at least 0.",
+              "parameters" : {
+                "isExclusive" : false,
+                "min" : 0.0
+              }
+            }
+          },
+          "hideOnNull" : true
+        },
+        "providedOptions" : [ "default" ]
+      } ]
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "fileSelection" : {
+            "type" : "object",
+            "properties" : {
+              "filterMode" : {
+                "configKey" : "filter_mode",
+                "route" : [ "filter_mode" ]
+              },
+              "path" : { },
+              "includeSubfolders" : {
+                "configPaths" : [ [ "include_subfolders" ] ],
+                "route" : [ "filter_mode" ]
+              },
+              "filters" : {
+                "type" : "object",
+                "properties" : {
+                  "filterMode" : {
+                    "configPaths" : [ ]
+                  },
+                  "filterFilesExtension" : {
+                    "configKey" : "filter_files_extension"
+                  },
+                  "filesExtensionExpression" : {
+                    "configKey" : "files_extension_expression"
+                  },
+                  "filesExtensionCaseSensitive" : {
+                    "configKey" : "files_extension_case_sensitive"
+                  },
+                  "filterFilesName" : {
+                    "configKey" : "filter_files_name"
+                  },
+                  "filesNameExpression" : {
+                    "configKey" : "files_name_expression"
+                  },
+                  "filesNameFilterType" : {
+                    "configKey" : "files_name_filter_type"
+                  },
+                  "filesNameCaseSensitive" : {
+                    "configKey" : "files_name_case_sensitive"
+                  },
+                  "includeHiddenFiles" : {
+                    "configKey" : "include_hidden_files"
+                  },
+                  "includeSpecialFiles" : {
+                    "configKey" : "include_special_files"
+                  },
+                  "filterFoldersName" : {
+                    "configKey" : "filter_folders_name"
+                  },
+                  "foldersNameExpression" : {
+                    "configKey" : "folders_name_expression"
+                  },
+                  "foldersNameFilterType" : {
+                    "configKey" : "folders_name_filter_type"
+                  },
+                  "foldersNameCaseSensitive" : {
+                    "configKey" : "folders_name_case_sensitive"
+                  },
+                  "includeHiddenFolders" : {
+                    "configKey" : "include_hidden_folders"
+                  },
+                  "followSymlinks" : {
+                    "configKey" : "follow_links"
+                  }
+                },
+                "configKey" : "filter_options",
+                "route" : [ "filter_mode" ]
+              },
+              "dummy" : {
+                "configPaths" : [ ]
+              }
+            },
+            "configKey" : "file_selection",
+            "route" : [ "settings" ]
+          },
+          "charSet" : {
+            "configPaths" : [ [ "charset" ] ],
+            "route" : [ "encoding" ]
+          },
+          "failOnDifferingSpecs" : {
+            "configKey" : "fail_on_different_specs",
+            "route" : [ "settings" ]
+          },
+          "rowHeaderPrefix" : {
+            "configKey" : "row_header_prefix",
+            "route" : [ "settings" ]
+          },
+          "columnHeaderMode" : {
+            "configPaths" : [ [ "settings", "use_column_header" ] ]
+          },
+          "columnHeaderName" : {
+            "configKey" : "custom_col_header",
+            "route" : [ "settings" ]
+          },
+          "emptyLineMode" : {
+            "configKey" : "empty_line_mode",
+            "route" : [ "advanced_settings" ]
+          },
+          "emptyLineReplacement" : {
+            "configKey" : "empty_line_replacement",
+            "route" : [ "advanced_settings" ]
+          },
+          "regex" : {
+            "configPaths" : [ [ "use_regex" ], [ "regex" ] ],
+            "route" : [ "advanced_settings" ]
+          },
+          "appendPathColumn" : {
+            "configPaths" : [ ],
+            "route" : [ "advanced_settings" ]
+          },
+          "limitRows" : {
+            "configPaths" : [ [ "advanced_settings", "limit_data_rows" ], [ "advanced_settings", "max_rows" ] ]
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/appendPathColumn",
+    "providedOptionName" : "default",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : "Path"
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/charSet/properties/fileEncoding",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "DEFAULT",
+        "text" : "OS default (UTF-8)"
+      }, {
+        "id" : "ISO_8859_1",
+        "text" : "ISO-8859-1"
+      }, {
+        "id" : "US_ASCII",
+        "text" : "US-ASCII"
+      }, {
+        "id" : "UTF_8",
+        "text" : "UTF-8"
+      }, {
+        "id" : "UTF_16",
+        "text" : "UTF-16"
+      }, {
+        "id" : "UTF_16BE",
+        "text" : "UTF-16BE"
+      }, {
+        "id" : "UTF_16LE",
+        "text" : "UTF-16LE"
+      }, {
+        "id" : "OTHER",
+        "text" : "Other"
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/limitRows",
+    "providedOptionName" : "default",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : 50
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/regex",
+    "providedOptionName" : "default",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : ".*"
+    } ]
+  } ]
+}

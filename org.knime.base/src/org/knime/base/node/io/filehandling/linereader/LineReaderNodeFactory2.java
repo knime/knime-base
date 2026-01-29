@@ -48,8 +48,24 @@
  */
 package org.knime.base.node.io.filehandling.linereader;
 
+import static org.knime.node.impl.description.PortDescription.dynamicPort;
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
 import org.knime.base.node.io.filehandling.csv.reader.api.StringReadAdapterFactory;
+import org.knime.core.node.NodeDescription;
+import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.context.NodeCreationConfiguration;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.defaultnodesettings.EnumConfig;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
@@ -63,13 +79,19 @@ import org.knime.filehandling.core.node.table.reader.preview.dialog.AbstractPath
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TreeTypeHierarchy;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeTester;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
 
 /**
  * Node factory for the line reader node.
  *
  * @author Lars Schweikardt, KNIME GmbH, Konstanz, Germany
+ * @author Rupert Ettrich, TNG Technology Consulting GmbH
+ * @author AI Migration Pipeline v1.2
  */
-public final class LineReaderNodeFactory2 extends AbstractTableReaderNodeFactory<LineReaderConfig2, Class<?>, String> {
+@SuppressWarnings("restriction")
+public final class LineReaderNodeFactory2 extends AbstractTableReaderNodeFactory<LineReaderConfig2, Class<?>, String>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     private static final TypeHierarchy<Class<?>, Class<?>> TYPE_HIERARCHY =
         TreeTypeHierarchy.builder(createTypeTester(String.class)).build();
@@ -111,8 +133,7 @@ public final class LineReaderNodeFactory2 extends AbstractTableReaderNodeFactory
         final MultiTableReadFactory<FSPath, LineReaderConfig2, Class<?>> readFactory,
         final ProductionPathProvider<Class<?>> defaultProductionPathFn) {
 
-        return new LineReaderNodeDialog2(createPathSettings(creationConfig), createConfig(creationConfig), readFactory,
-            defaultProductionPathFn);
+        return null;
     }
 
     @Override
@@ -123,6 +144,69 @@ public final class LineReaderNodeFactory2 extends AbstractTableReaderNodeFactory
     @Override
     protected boolean hasDialog() {
         return true;
+    }
+
+    private static final String NODE_NAME = "Line Reader";
+
+    private static final String NODE_ICON = "linereader.png";
+
+    private static final String SHORT_DESCRIPTION = """
+            Reads lines from a file or URL.
+            """;
+
+    private static final String FULL_DESCRIPTION =
+        """
+                <p> Reads lines from a file or URL. Each line will be represented by a single string data
+                cell in a single row. The row prefix and column header can be specified in the dialog. </p>
+                <p> <i>This node can access a variety of different</i> <a
+                href="https://docs.knime.com/2021-06/analytics_platform_file_handling_guide/index.html#analytics-platform-file-systems">
+                <i>file systems.</i></a> <i>More information about file handling in KNIME can be found in
+                the official</i> <a
+                href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html">
+                <i>File Handling Guide.</i></a> </p>
+                """;
+
+    private static final List<PortDescription> INPUT_PORTS =
+        List.of(dynamicPort("File System Connection", "File system connection", """
+                The file system connection.
+                """));
+
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(fixedPort("Lines from the file(s)", """
+            The lines as read from the file(s), each line represented by a single cell in a data row.
+            """));
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public NodeDialogPane createNodeDialogPane() {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, LineReaderNodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription( //
+            NODE_NAME, //
+            NODE_ICON, //
+            INPUT_PORTS, //
+            OUTPUT_PORTS, //
+            SHORT_DESCRIPTION, //
+            FULL_DESCRIPTION, //
+            List.of(), //
+            LineReaderNodeParameters.class, //
+            null, //
+            NodeType.Source, //
+            List.of(), //
+            null //
+        );
+    }
+
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, LineReaderNodeParameters.class));
     }
 
 }
