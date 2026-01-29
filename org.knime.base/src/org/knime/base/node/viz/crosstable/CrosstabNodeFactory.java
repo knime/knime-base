@@ -162,7 +162,7 @@ public class CrosstabNodeFactory extends NodeFactory<CrosstabNodeModel>
 
     /**
      * {@inheritDoc}
-     * @since 5.10
+     * @since 5.11
      */
     @Override
     public NodeDialogPane createNodeDialogPane() {
@@ -171,7 +171,7 @@ public class CrosstabNodeFactory extends NodeFactory<CrosstabNodeModel>
 
     /**
      * {@inheritDoc}
-     * @since 5.10
+     * @since 5.11
      */
     @Override
     public NodeDialog createNodeDialog() {
@@ -198,7 +198,7 @@ public class CrosstabNodeFactory extends NodeFactory<CrosstabNodeModel>
 
     /**
      * {@inheritDoc}
-     * @since 5.10
+     * @since 5.11
      */
     @Override
     public KaiNodeInterface createKaiNodeInterface() {

@@ -147,7 +147,7 @@ public class MDSProjectionNodeFactory extends NodeFactory<MDSProjectionNodeModel
                 """));
 
     /**
-     * @since 5.10
+     * @since 5.11
      */
     @Override
     public NodeDialogPane createNodeDialogPane() {
@@ -155,7 +155,7 @@ public class MDSProjectionNodeFactory extends NodeFactory<MDSProjectionNodeModel
     }
 
     /**
-     * @since 5.10
+     * @since 5.11
      */
     @Override
     public NodeDialog createNodeDialog() {
@@ -181,7 +181,7 @@ public class MDSProjectionNodeFactory extends NodeFactory<MDSProjectionNodeModel
     }
 
     /**
-     * @since 5.10
+     * @since 5.11
      */
     @Override
     public KaiNodeInterface createKaiNodeInterface() {

@@ -60,7 +60,7 @@ import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinVa
  * Common MDS technique related parameters for MDS nodes.
  *
  * @author Robin Gerling, KNIME GmbH, Konstanz, Germany
- * @since 5.10
+ * @since 5.11
  */
 public final class MDSParametersCommonMDS implements NodeParameters {
 
