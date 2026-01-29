@@ -179,16 +179,14 @@ public final class MultiFileSelectionParameters implements NodeParameters {
 
     @Modification.WidgetReference(FileSystemPortNotAvailableMessageRef.class)
     @TextMessage(value = FileSystemManagedByPortMessage.class)
-    @Layout(ReaderLayout.File.Source.class)
     Void m_fileSystemFromPortNotAvailableMessage;
 
     /**
      * Source is public since it is accessed in reader-specific parameters implementations.
      */
     @ValueReference(FileSelectionRef.class)
-    @Layout(ReaderLayout.File.Source.class)
     @Modification.WidgetReference(FileSelectionRef.class)
-    @FileReaderWidget()
+    @FileReaderWidget
     @MultiFileSelectionWidget({MultiFileSelectionMode.FILE, MultiFileSelectionMode.FILES_IN_FOLDERS})
     public MultiFileSelection<DefaultFileChooserFilters> m_source =
         new MultiFileSelection<>(MultiFileSelectionMode.FILE, new DefaultFileChooserFilters());
@@ -242,7 +240,7 @@ public final class MultiFileSelectionParameters implements NodeParameters {
 
     /**
      * Load the settings from legacy settings compatible with/via {@link LegacyFileSelectionParameters}.
-     * 
+     *
      * @param settings the settings to load from, containing legacy file selection parameters under
      *            "settings.file_selection"
      * @throws InvalidSettingsException if loading the settings fails

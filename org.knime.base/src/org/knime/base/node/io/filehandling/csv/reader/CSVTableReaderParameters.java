@@ -55,11 +55,13 @@ import org.knime.base.node.io.filehandling.webui.reader2.MaxNumberOfRowsParamete
 import org.knime.base.node.io.filehandling.webui.reader2.MultiFileReaderParameters;
 import org.knime.base.node.io.filehandling.webui.reader2.MultiFileSelectionParameters;
 import org.knime.base.node.io.filehandling.webui.reader2.MultiFileSelectionPath;
+import org.knime.base.node.io.filehandling.webui.reader2.ReaderLayout;
 import org.knime.base.node.io.filehandling.webui.reader2.SkipFirstDataRowsParameters;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigID;
 import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.layout.Layout;
 
 /**
  * CSV-specific parameters for the CSV Table Reader Node.
@@ -87,6 +89,7 @@ class CSVTableReaderParameters implements NodeParameters {
     }
 
     @Modification(SetCSVExtensions.class)
+    @Layout(ReaderLayout.File.Source.class)
     MultiFileSelectionParameters m_multiFileSelectionParams = new MultiFileSelectionParameters();
 
     SkipFirstDataRowsParameters m_skipFirstDataRowsParams = new SkipFirstDataRowsParameters();

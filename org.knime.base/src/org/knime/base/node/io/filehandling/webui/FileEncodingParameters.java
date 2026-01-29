@@ -186,10 +186,13 @@ public class FileEncodingParameters implements NodeParameters {
      * The selected file encoding option.
      */
     @Widget(title = "File encoding", description = """
-            Defines the character set used to read a CSV file that contains characters in a different encoding. You \
-            can choose from a list of character encodings (UTF-8, UTF-16, etc.), or specify any other encoding \
-            supported by your Java Virtual Machine (VM). The default value uses the default encoding of the Java VM, \
-            which may depend on the locale or the Java property &quot;file.encoding&quot;.
+            Defines the character set used to read or write a file that \
+            contains characters in a different encoding. You can choose from \
+            a list of character encodings (UTF-8, UTF-16, etc.), or specify \
+            any other encoding supported by your Java Virtual Machine (VM). \
+            The default value uses the default encoding of the Java VM, \
+            which may depend on the locale or the Java property \
+            &quot;file.encoding&quot;.
             """, advanced = true)
     @Modification.WidgetReference(FileEncodingOptionModRef.class)
     @ValueReference(FileEncodingRef.class)
