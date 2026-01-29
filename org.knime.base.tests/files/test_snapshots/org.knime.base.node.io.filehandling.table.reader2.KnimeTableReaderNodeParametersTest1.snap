@@ -661,210 +661,206 @@
   },
   "ui_schema" : {
     "elements" : [ {
-      "label" : "File",
-      "type" : "Section",
-      "elements" : [ {
-        "type" : "Control",
-        "id" : "#/properties/model/properties/knimeTableReaderParameters/properties/multiFileSelectionParams/properties/fileSystemFromPortNotAvailableMessage",
-        "options" : {
-          "format" : "textMessage"
-        },
-        "providedOptions" : [ "message" ]
-      }, {
-        "type" : "Control",
-        "scope" : "#/properties/model/properties/knimeTableReaderParameters/properties/multiFileSelectionParams/properties/source",
-        "options" : {
-          "fileExtensions" : [ "table" ],
-          "filters" : {
-            "classId" : "org.knime.core.webui.node.dialog.defaultdialog.internal.file.DefaultFileChooserFilters",
-            "uiSchema" : {
+      "type" : "Control",
+      "id" : "#/properties/model/properties/knimeTableReaderParameters/properties/multiFileSelectionParams/properties/fileSystemFromPortNotAvailableMessage",
+      "options" : {
+        "format" : "textMessage"
+      },
+      "providedOptions" : [ "message" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/knimeTableReaderParameters/properties/multiFileSelectionParams/properties/source",
+      "options" : {
+        "fileExtensions" : [ "table" ],
+        "filters" : {
+          "classId" : "org.knime.core.webui.node.dialog.defaultdialog.internal.file.DefaultFileChooserFilters",
+          "uiSchema" : {
+            "elements" : [ {
+              "label" : "File filter options",
+              "type" : "Section",
+              "rule" : {
+                "effect" : "HIDE",
+                "condition" : {
+                  "scope" : "#/properties/filterMode",
+                  "schema" : {
+                    "oneOf" : [ {
+                      "const" : "FOLDERS"
+                    } ]
+                  }
+                }
+              },
               "elements" : [ {
-                "label" : "File filter options",
-                "type" : "Section",
+                "type" : "Control",
+                "scope" : "#/properties/filterFilesExtension",
+                "options" : {
+                  "format" : "checkbox"
+                }
+              }, {
+                "type" : "Control",
+                "scope" : "#/properties/filesExtensionExpression",
                 "rule" : {
-                  "effect" : "HIDE",
+                  "effect" : "SHOW",
                   "condition" : {
-                    "scope" : "#/properties/filterMode",
+                    "scope" : "#/properties/filterFilesExtension",
                     "schema" : {
-                      "oneOf" : [ {
-                        "const" : "FOLDERS"
-                      } ]
+                      "const" : true
                     }
                   }
+                }
+              }, {
+                "type" : "Control",
+                "scope" : "#/properties/filesExtensionCaseSensitive",
+                "options" : {
+                  "format" : "checkbox"
                 },
-                "elements" : [ {
-                  "type" : "Control",
-                  "scope" : "#/properties/filterFilesExtension",
-                  "options" : {
-                    "format" : "checkbox"
-                  }
-                }, {
-                  "type" : "Control",
-                  "scope" : "#/properties/filesExtensionExpression",
-                  "rule" : {
-                    "effect" : "SHOW",
-                    "condition" : {
-                      "scope" : "#/properties/filterFilesExtension",
-                      "schema" : {
-                        "const" : true
-                      }
+                "rule" : {
+                  "effect" : "SHOW",
+                  "condition" : {
+                    "scope" : "#/properties/filterFilesExtension",
+                    "schema" : {
+                      "const" : true
                     }
                   }
-                }, {
-                  "type" : "Control",
-                  "scope" : "#/properties/filesExtensionCaseSensitive",
-                  "options" : {
-                    "format" : "checkbox"
-                  },
-                  "rule" : {
-                    "effect" : "SHOW",
-                    "condition" : {
-                      "scope" : "#/properties/filterFilesExtension",
-                      "schema" : {
-                        "const" : true
-                      }
-                    }
-                  }
-                }, {
-                  "type" : "Control",
-                  "scope" : "#/properties/filterFilesName",
-                  "options" : {
-                    "format" : "checkbox"
-                  }
-                }, {
-                  "type" : "Control",
-                  "scope" : "#/properties/filesNameExpression",
-                  "rule" : {
-                    "effect" : "SHOW",
-                    "condition" : {
-                      "scope" : "#/properties/filterFilesName",
-                      "schema" : {
-                        "const" : true
-                      }
-                    }
-                  }
-                }, {
-                  "type" : "Control",
-                  "scope" : "#/properties/filesNameFilterType",
-                  "options" : {
-                    "format" : "valueSwitch"
-                  },
-                  "rule" : {
-                    "effect" : "SHOW",
-                    "condition" : {
-                      "scope" : "#/properties/filterFilesName",
-                      "schema" : {
-                        "const" : true
-                      }
-                    }
-                  }
-                }, {
-                  "type" : "Control",
-                  "scope" : "#/properties/filesNameCaseSensitive",
-                  "options" : {
-                    "format" : "checkbox"
-                  },
-                  "rule" : {
-                    "effect" : "SHOW",
-                    "condition" : {
-                      "scope" : "#/properties/filterFilesName",
-                      "schema" : {
-                        "const" : true
-                      }
-                    }
-                  }
-                }, {
-                  "type" : "Control",
-                  "scope" : "#/properties/includeHiddenFiles",
-                  "options" : {
-                    "format" : "checkbox"
-                  }
-                }, {
-                  "type" : "Control",
-                  "scope" : "#/properties/includeSpecialFiles",
-                  "options" : {
-                    "format" : "checkbox"
-                  }
-                } ]
+                }
               }, {
-                "label" : "Folder filter options",
-                "type" : "Section",
-                "elements" : [ {
-                  "type" : "Control",
-                  "scope" : "#/properties/filterFoldersName",
-                  "options" : {
-                    "format" : "checkbox"
-                  }
-                }, {
-                  "type" : "Control",
-                  "scope" : "#/properties/foldersNameExpression",
-                  "rule" : {
-                    "effect" : "ENABLE",
-                    "condition" : {
-                      "scope" : "#/properties/filterFoldersName",
-                      "schema" : {
-                        "const" : true
-                      }
-                    }
-                  }
-                }, {
-                  "type" : "Control",
-                  "scope" : "#/properties/foldersNameFilterType",
-                  "options" : {
-                    "format" : "valueSwitch"
-                  },
-                  "rule" : {
-                    "effect" : "ENABLE",
-                    "condition" : {
-                      "scope" : "#/properties/filterFoldersName",
-                      "schema" : {
-                        "const" : true
-                      }
-                    }
-                  }
-                }, {
-                  "type" : "Control",
-                  "scope" : "#/properties/foldersNameCaseSensitive",
-                  "options" : {
-                    "format" : "checkbox"
-                  },
-                  "rule" : {
-                    "effect" : "ENABLE",
-                    "condition" : {
-                      "scope" : "#/properties/filterFoldersName",
-                      "schema" : {
-                        "const" : true
-                      }
-                    }
-                  }
-                }, {
-                  "type" : "Control",
-                  "scope" : "#/properties/includeHiddenFolders",
-                  "options" : {
-                    "format" : "checkbox"
-                  }
-                } ]
+                "type" : "Control",
+                "scope" : "#/properties/filterFilesName",
+                "options" : {
+                  "format" : "checkbox"
+                }
               }, {
-                "label" : "Link options",
-                "type" : "Section",
-                "elements" : [ {
-                  "type" : "Control",
-                  "scope" : "#/properties/followSymlinks",
-                  "options" : {
-                    "format" : "checkbox"
+                "type" : "Control",
+                "scope" : "#/properties/filesNameExpression",
+                "rule" : {
+                  "effect" : "SHOW",
+                  "condition" : {
+                    "scope" : "#/properties/filterFilesName",
+                    "schema" : {
+                      "const" : true
+                    }
                   }
-                } ]
+                }
+              }, {
+                "type" : "Control",
+                "scope" : "#/properties/filesNameFilterType",
+                "options" : {
+                  "format" : "valueSwitch"
+                },
+                "rule" : {
+                  "effect" : "SHOW",
+                  "condition" : {
+                    "scope" : "#/properties/filterFilesName",
+                    "schema" : {
+                      "const" : true
+                    }
+                  }
+                }
+              }, {
+                "type" : "Control",
+                "scope" : "#/properties/filesNameCaseSensitive",
+                "options" : {
+                  "format" : "checkbox"
+                },
+                "rule" : {
+                  "effect" : "SHOW",
+                  "condition" : {
+                    "scope" : "#/properties/filterFilesName",
+                    "schema" : {
+                      "const" : true
+                    }
+                  }
+                }
+              }, {
+                "type" : "Control",
+                "scope" : "#/properties/includeHiddenFiles",
+                "options" : {
+                  "format" : "checkbox"
+                }
+              }, {
+                "type" : "Control",
+                "scope" : "#/properties/includeSpecialFiles",
+                "options" : {
+                  "format" : "checkbox"
+                }
               } ]
-            }
-          },
-          "isLocal" : true,
-          "possibleFilterModes" : [ "FILE", "FILES_IN_FOLDERS" ],
-          "spaceFSOptions" : {
-            "mountId" : "Local space"
-          },
-          "format" : "multiFileChooser"
-        }
-      } ]
+            }, {
+              "label" : "Folder filter options",
+              "type" : "Section",
+              "elements" : [ {
+                "type" : "Control",
+                "scope" : "#/properties/filterFoldersName",
+                "options" : {
+                  "format" : "checkbox"
+                }
+              }, {
+                "type" : "Control",
+                "scope" : "#/properties/foldersNameExpression",
+                "rule" : {
+                  "effect" : "ENABLE",
+                  "condition" : {
+                    "scope" : "#/properties/filterFoldersName",
+                    "schema" : {
+                      "const" : true
+                    }
+                  }
+                }
+              }, {
+                "type" : "Control",
+                "scope" : "#/properties/foldersNameFilterType",
+                "options" : {
+                  "format" : "valueSwitch"
+                },
+                "rule" : {
+                  "effect" : "ENABLE",
+                  "condition" : {
+                    "scope" : "#/properties/filterFoldersName",
+                    "schema" : {
+                      "const" : true
+                    }
+                  }
+                }
+              }, {
+                "type" : "Control",
+                "scope" : "#/properties/foldersNameCaseSensitive",
+                "options" : {
+                  "format" : "checkbox"
+                },
+                "rule" : {
+                  "effect" : "ENABLE",
+                  "condition" : {
+                    "scope" : "#/properties/filterFoldersName",
+                    "schema" : {
+                      "const" : true
+                    }
+                  }
+                }
+              }, {
+                "type" : "Control",
+                "scope" : "#/properties/includeHiddenFolders",
+                "options" : {
+                  "format" : "checkbox"
+                }
+              } ]
+            }, {
+              "label" : "Link options",
+              "type" : "Section",
+              "elements" : [ {
+                "type" : "Control",
+                "scope" : "#/properties/followSymlinks",
+                "options" : {
+                  "format" : "checkbox"
+                }
+              } ]
+            } ]
+          }
+        },
+        "isLocal" : true,
+        "possibleFilterModes" : [ "FILE", "FILES_IN_FOLDERS" ],
+        "spaceFSOptions" : {
+          "mountId" : "Local space"
+        },
+        "format" : "multiFileChooser"
+      }
     }, {
       "label" : "Data Area",
       "type" : "Section",
