@@ -48,13 +48,18 @@
  */
 package org.knime.base.node.io.filehandling.webui;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
 import org.knime.node.parameters.updates.Effect;
 import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.updates.EffectPredicate;
@@ -245,4 +250,35 @@ public class FileEncodingParameters implements NodeParameters {
         m_customEncoding = customEncoding;
     }
 
+    /**
+     * Persistor for file encoding parameters.
+     *
+     * @since 5.11
+     */
+    public static final class FileEncodingPersistor implements NodeParametersPersistor<FileEncodingParameters> {
+
+        private static final String CFG_CHARACTER_SET_NAME = "characterSetName";
+
+        private static final String ASCII_CHARSET_NAME = StandardCharsets.US_ASCII.name();
+
+        @Override
+        public FileEncodingParameters load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            final var charsetName = settings.getString(CFG_CHARACTER_SET_NAME, ASCII_CHARSET_NAME);
+            final var fileEncoding = FileEncodingOption.fromCharsetName(charsetName);
+            return new FileEncodingParameters(fileEncoding,
+                fileEncoding == FileEncodingOption.OTHER ? charsetName : null);
+        }
+
+        @Override
+        public void save(final FileEncodingParameters param, final NodeSettingsWO settings) {
+            final var fileEncoding = param.getFileEncoding();
+            settings.addString(CFG_CHARACTER_SET_NAME,
+                fileEncoding == FileEncodingOption.OTHER ? param.getCustomEncoding() : fileEncoding.getCharsetName());
+        }
+
+        @Override
+        public String[][] getConfigPaths() {
+            return new String[][]{{CFG_CHARACTER_SET_NAME}};
+        }
+    }
 }
