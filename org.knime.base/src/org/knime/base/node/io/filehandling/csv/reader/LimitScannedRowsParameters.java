@@ -46,53 +46,75 @@
  * History
  *   Nov 24, 2025 (Paul Bärnreuther): created
  */
-package org.knime.base.node.io.filehandling.csv.reader2;
+package org.knime.base.node.io.filehandling.csv.reader;
 
-import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
+import java.util.Optional;
+
+import org.knime.base.node.io.filehandling.csv.reader.LimitScannedRowsParameters.LimitScannedRowsLayout;
 import org.knime.base.node.io.filehandling.webui.ReferenceStateProvider;
+import org.knime.base.node.io.filehandling.webui.reader2.IfSchemaChangesParameters.IfSchemaChanges;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.layout.Before;
 import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.widget.OptionalWidget;
+import org.knime.node.parameters.widget.OptionalWidget.DefaultValueProvider;
 import org.knime.node.parameters.widget.number.NumberInputWidget;
 import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsNonNegativeValidation;
 
 /**
- * Parameters for skipping first lines of file.
+ * Parameters for limiting the number of scanned rows.
  *
  * @author Paul Bärnreuther
  */
-@Layout(FileFormatSection.class)
-final class SkipFirstLinesOfFileParameters implements NodeParameters {
+@Layout(LimitScannedRowsLayout.class)
+final class LimitScannedRowsParameters implements NodeParameters {
 
-    static final class SkipFirstLinesRef extends ReferenceStateProvider<Long> {
+    @Before(IfSchemaChanges.class)
+    interface LimitScannedRowsLayout {
     }
 
-    @Widget(title = "Skip first lines of file", description = """
-            Use this option to skip lines that do not fit in the table structure (e.g. multi-line comments).
-            <br/>
-            The specified number of lines are skipped in the input file before the parsing starts. Skipping lines
-            prevents parallel reading of individual files.
+    static final class MaxDataRowsScannedDefaultProvider implements DefaultValueProvider<Long> {
+        @Override
+        public Long computeState(final NodeParametersInput context) {
+            return 10000L;
+        }
+    }
+
+    static class MaxDataRowsScannedRef extends ReferenceStateProvider<Optional<Long>> {
+    }
+
+    @Widget(title = "Limit scanned rows", description = """
+            If enabled, only the specified number of input <i>rows</i> are used to analyze the file (i.e to
+            determine the column types). This option is recommended for long files where the first <i>n</i> rows are
+            representative for the whole file. The "Skip first data rows" option has no effect on the scanning. Note
+            also, that this option and the "Limit number of rows" option are independent from each other, i.e., if
+            the value in "Limit number of rows" is smaller than the value specified here, we will still read as many
+            rows as specified here.
             """)
-    @ValueReference(SkipFirstLinesRef.class)
+    @ValueReference(MaxDataRowsScannedRef.class)
     @NumberInputWidget(minValidation = IsNonNegativeValidation.class)
-    long m_skipFirstLines;
+    @OptionalWidget(defaultProvider = MaxDataRowsScannedDefaultProvider.class)
+    Optional<Long> m_maxDataRowsScanned = Optional.of(10000L);
 
     /**
      * Save the settings to the given config.
      *
-     * @param csvConfig the config to save to
+     * @param tableReadConfig the config to save to
      */
-    void saveToConfig(final CSVTableReaderConfig csvConfig) {
-        csvConfig.setSkipLines(m_skipFirstLines > 0);
-        csvConfig.setNumLinesToSkip(m_skipFirstLines);
+    void saveToConfig(final DefaultTableReadConfig<?> tableReadConfig) {
+        tableReadConfig.setLimitRowsForSpec(m_maxDataRowsScanned.isPresent());
+        tableReadConfig.setMaxRowsForSpec(m_maxDataRowsScanned.orElse(0L));
     }
 
     @Override
     public void validate() throws InvalidSettingsException {
-        if (m_skipFirstLines < 0) {
-            throw new InvalidSettingsException("The number of lines to skip must be non-negative.");
+        if (m_maxDataRowsScanned.isPresent() && m_maxDataRowsScanned.get() < 0) {
+            throw new InvalidSettingsException("The maximum number of data rows scanned must be non-negative.");
         }
     }
 }

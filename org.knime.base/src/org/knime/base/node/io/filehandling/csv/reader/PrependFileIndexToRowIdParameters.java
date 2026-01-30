@@ -46,9 +46,9 @@
  * History
  *   Nov 24, 2025 (Paul Bärnreuther): created
  */
-package org.knime.base.node.io.filehandling.csv.reader2;
+package org.knime.base.node.io.filehandling.csv.reader;
 
-import org.knime.base.node.io.filehandling.csv.reader2.PrependFileIndexToRowIdParameters.PrependFileIndexToRowIdLayout;
+import org.knime.base.node.io.filehandling.csv.reader.PrependFileIndexToRowIdParameters.PrependFileIndexToRowIdLayout;
 import org.knime.base.node.io.filehandling.webui.reader2.MultiFileReaderParameters;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.node.parameters.NodeParameters;

@@ -46,7 +46,7 @@
  * History
  *   Mar 27, 2024 (Paul Bärnreuther): created
  */
-package org.knime.base.node.io.filehandling.csv.reader2;
+package org.knime.base.node.io.filehandling.csv.reader;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -58,8 +58,8 @@ import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.knime.base.node.io.filehandling.csv.reader2.AutoDetectCSVFormatParameters.AutoDetectButtonRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVFormatParameters.RowDelimiterOption;
+import org.knime.base.node.io.filehandling.csv.reader.AutoDetectCSVFormatParameters.AutoDetectButtonRef;
+import org.knime.base.node.io.filehandling.csv.reader.CSVFormatParameters.RowDelimiterOption;
 import org.knime.base.node.io.filehandling.webui.FileEncodingParameters.FileEncodingOption;
 import org.knime.base.node.io.filehandling.webui.testing.LocalWorkflowContextTest;
 import org.knime.core.node.port.PortObjectSpec;

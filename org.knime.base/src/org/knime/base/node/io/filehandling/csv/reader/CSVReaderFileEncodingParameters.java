@@ -46,54 +46,27 @@
  * History
  *   Nov 24, 2025 (Paul Bärnreuther): created
  */
-package org.knime.base.node.io.filehandling.csv.reader2;
+package org.knime.base.node.io.filehandling.csv.reader;
 
 import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
-import org.knime.base.node.io.filehandling.csv.reader.api.QuoteOption;
-import org.knime.base.node.io.filehandling.webui.ReferenceStateProvider;
-import org.knime.node.parameters.NodeParameters;
-import org.knime.node.parameters.Widget;
+import org.knime.base.node.io.filehandling.csv.reader.CSVReaderFileEncodingParameters.FileEncodingLayout;
+import org.knime.base.node.io.filehandling.webui.FileEncodingParameters;
+import org.knime.base.node.io.filehandling.webui.reader2.ReaderLayout;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.node.parameters.layout.After;
 import org.knime.node.parameters.layout.Layout;
-import org.knime.node.parameters.updates.ValueReference;
-import org.knime.node.parameters.widget.choices.Label;
-import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
 
 /**
- * Parameters for handling quoted strings.
+ * Parameters for file encoding settings.
  *
  * @author Paul Bärnreuther
  */
-@Layout(ValuesSection.Quotes.class)
-final class QuotedStringsParameters implements NodeParameters {
+@Layout(FileEncodingLayout.class)
+final class CSVReaderFileEncodingParameters extends FileEncodingParameters {
 
-    static class ReplaceEmptyQuotedStringsByMissingValuesRef extends ReferenceStateProvider<Boolean> {
+    @After(ReaderLayout.File.Source.class)
+    interface FileEncodingLayout {
     }
-
-    @Widget(title = "Replace empty quoted string by missing values",
-        description = "Select this box if you want <b>quoted</b> empty strings to be replaced by missing value cells.")
-    @ValueReference(ReplaceEmptyQuotedStringsByMissingValuesRef.class)
-    boolean m_replaceEmptyQuotedStringsByMissingValues = true;
-
-    /**
-     * Options for handling quoted strings.
-     */
-    enum QuotedStringsOption {
-            @Label(value = "Remove quotes and trim whitespace", description = "Quotes will be removed from the value "
-                + "followed by trimming any leading/trailing whitespaces.") //
-            REMOVE_QUOTES_AND_TRIM, //
-            @Label(value = "Keep quotes",
-                description = "Quotes of a value will be kept. Note: No trimming will be done inside the quotes.") //
-            KEEP_QUOTES; //
-    }
-
-    static class QuotedStringsOptionRef extends ReferenceStateProvider<QuotedStringsOption> {
-    }
-
-    @Widget(title = "Quoted strings",
-        description = "Specifies the behavior in case there are quoted strings in the input table.", advanced = true)
-    @ValueReference(QuotedStringsOptionRef.class)
-    @RadioButtonsWidget
-    QuotedStringsOption m_quotedStringsOption = QuotedStringsOption.REMOVE_QUOTES_AND_TRIM;
 
     /**
      * Save the settings to the given config.
@@ -101,9 +74,13 @@ final class QuotedStringsParameters implements NodeParameters {
      * @param csvConfig the config to save to
      */
     void saveToConfig(final CSVTableReaderConfig csvConfig) {
-        csvConfig.setReplaceEmptyWithMissing(m_replaceEmptyQuotedStringsByMissingValues);
+        csvConfig.setCharSetName(fileEncodingToCharsetName(m_fileEncoding, m_customEncoding));
+    }
 
-        csvConfig.setQuoteOption(m_quotedStringsOption == QuotedStringsOption.REMOVE_QUOTES_AND_TRIM
-            ? QuoteOption.REMOVE_QUOTES_AND_TRIM : QuoteOption.KEEP_QUOTES);
+    @Override
+    public void validate() throws InvalidSettingsException {
+        if (m_fileEncoding == FileEncodingOption.OTHER && m_customEncoding.isBlank()) {
+            throw new InvalidSettingsException("The specified custom encoding must not be empty.");
+        }
     }
 }

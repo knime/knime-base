@@ -46,7 +46,7 @@
  * History
  *   Jan 10, 2024 (Marc Bux, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.base.node.io.filehandling.csv.reader2;
+package org.knime.base.node.io.filehandling.csv.reader;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -64,7 +64,6 @@ import java.util.Optional;
 import org.apache.xmlbeans.XmlException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.knime.base.node.io.filehandling.csv.reader.CSVMultiTableReadConfig;
 import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
 import org.knime.base.node.io.filehandling.webui.FileEncodingParameters.FileEncodingOption;
 import org.knime.base.node.io.filehandling.webui.reader2.MultiFileSelectionPath;

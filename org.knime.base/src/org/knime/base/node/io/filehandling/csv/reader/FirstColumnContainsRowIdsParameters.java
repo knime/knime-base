@@ -46,71 +46,49 @@
  * History
  *   Nov 24, 2025 (Paul Bärnreuther): created
  */
-package org.knime.base.node.io.filehandling.csv.reader2;
+package org.knime.base.node.io.filehandling.csv.reader;
 
-import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
-import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.button.Icon;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.button.SimpleButtonWidget;
+import org.knime.base.node.io.filehandling.csv.reader.FirstColumnContainsRowIdsParameters.FirstColumnContainsRowIdsLayout;
+import org.knime.base.node.io.filehandling.webui.ReferenceStateProvider;
+import org.knime.base.node.io.filehandling.webui.reader2.MaxNumberOfRowsParameters.LimitNumberOfRows;
+import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.layout.After;
 import org.knime.node.parameters.layout.Layout;
-import org.knime.node.parameters.updates.ButtonReference;
-import org.knime.node.parameters.updates.Effect;
-import org.knime.node.parameters.updates.Effect.EffectType;
-import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.ValueReference;
-import org.knime.node.parameters.widget.number.NumberInputWidget;
-import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsPositiveIntegerValidation;
+import org.knime.node.parameters.updates.util.BooleanReference;
 
 /**
- * Parameters for auto-detecting CSV format.
+ * Parameters for specifying whether the first column contains RowIDs (CSV-specific).
  *
  * @author Paul Bärnreuther
  */
-@SuppressWarnings("restriction")
-@Layout(FileFormatSection.AutodetectFormat.class)
-final class AutoDetectCSVFormatParameters implements NodeParameters {
+@Layout(FirstColumnContainsRowIdsLayout.class)
+final class FirstColumnContainsRowIdsParameters implements NodeParameters {
+
+    @After(LimitNumberOfRows.class)
+    interface FirstColumnContainsRowIdsLayout {
+    }
 
     /**
-     * Reference for the auto-detect button.
+     * Reference for the first column contains row IDs value.
      */
-    static final class AutoDetectButtonRef implements ButtonReference {
+    static class FirstColumnContainsRowIdsRef extends ReferenceStateProvider<Boolean> implements BooleanReference {
     }
 
-    @Widget(title = "Autodetect format", description = """
-            By pressing this button, the format of the file will be guessed automatically. It is not guaranteed that
-            the correct values are being detected.
-            """)
-    @SimpleButtonWidget(ref = AutoDetectButtonRef.class, icon = Icon.RELOAD)
-    @Effect(predicate = FileSystemPortConnectionUtil.ConnectedWithoutFileSystemSpec.class, type = EffectType.DISABLE)
-    Void m_autoDetectButton;
-
-    static final class BufferSizeRef implements ParameterReference<Integer> {
-    }
-
-    @Widget(title = "Number of characters for autodetection", description = """
-            Specifies on how many characters of the selected file should be used for autodetection. The
-            autodetection by default is based on the first 1024 * 1024 characters.
-            """, advanced = true)
-    @ValueReference(BufferSizeRef.class)
-    @NumberInputWidget(minValidation = IsPositiveIntegerValidation.class)
-    int m_numberOfCharactersForAutodetection = CSVTableReaderConfig.DEFAULT_AUTODETECTION_BUFFER_SIZE;
+    @Widget(title = "First column contains RowIDs",
+        description = "Select this box if the first column contains RowIDs (no duplicates allowed).")
+    @ValueReference(FirstColumnContainsRowIdsRef.class)
+    boolean m_firstColumnContainsRowIds;
 
     /**
      * Save the settings to the given config.
      *
-     * @param csvConfig the config to save to
+     * @param tableReadConfig the config to save to
      */
-    void saveToConfig(final CSVTableReaderConfig csvConfig) {
-        csvConfig.setAutoDetectionBufferSize(m_numberOfCharactersForAutodetection);
-    }
-
-    @Override
-    public void validate() throws InvalidSettingsException {
-        if (m_numberOfCharactersForAutodetection <= 0) {
-            throw new InvalidSettingsException("The number of characters for autodetection must be positive.");
-        }
+    void saveToConfig(final DefaultTableReadConfig<?> tableReadConfig) {
+        tableReadConfig.setRowIDIdx(0);
+        tableReadConfig.setUseRowIDIdx(m_firstColumnContainsRowIds);
     }
 }

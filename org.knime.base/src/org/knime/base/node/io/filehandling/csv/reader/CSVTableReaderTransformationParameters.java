@@ -44,54 +44,35 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 24, 2025 (Paul Bärnreuther): created
+ *   May 8, 2024 (marcbux): created
  */
-package org.knime.base.node.io.filehandling.csv.reader2;
+package org.knime.base.node.io.filehandling.csv.reader;
 
-import org.knime.base.node.io.filehandling.csv.reader2.FirstColumnContainsRowIdsParameters.FirstColumnContainsRowIdsLayout;
-import org.knime.base.node.io.filehandling.csv.reader2.IfRowHasFewerColumnsParameters.IfRowHasFewerColumnsLayout;
-import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
-import org.knime.node.parameters.NodeParameters;
-import org.knime.node.parameters.Widget;
-import org.knime.node.parameters.layout.After;
-import org.knime.node.parameters.layout.Layout;
-import org.knime.node.parameters.widget.choices.Label;
-import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
+import org.knime.base.node.io.filehandling.csv.reader.api.StringReadAdapterFactory;
+import org.knime.base.node.io.filehandling.csv.reader.CSVTableReaderSpecific.ProductionPathProviderAndTypeHierarchy;
+import org.knime.base.node.io.filehandling.webui.reader2.ClassBasedTransformationParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigIDLoader;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfigSerializer;
 
 /**
- * Parameters for handling rows with fewer columns.
- *
- * @author Paul Bärnreuther
+ * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-@Layout(IfRowHasFewerColumnsLayout.class)
-final class IfRowHasFewerColumnsParameters implements NodeParameters {
+@SuppressWarnings("restriction")
+@Modification(CSVTableReaderTransformationParametersStateProviders.TransformationSettingsWidgetModification.class)
+final class CSVTableReaderTransformationParameters extends ClassBasedTransformationParameters
+    implements ProductionPathProviderAndTypeHierarchy {
 
-    @After(FirstColumnContainsRowIdsLayout.class)
-    interface IfRowHasFewerColumnsLayout {
+    @Override
+    protected TableSpecConfigSerializer<Class<?>> createTableSpecConfigSerializer(final ConfigIDLoader configIdLoader) {
+        return TableSpecConfigSerializer.createStartingV42(StringReadAdapterFactory.INSTANCE.getProducerRegistry(),
+            configIdLoader, ClassTypeSerializer.SERIALIZER, String.class);
     }
 
-    /**
-     * Options for handling rows with fewer columns.
-     */
-    enum IfRowHasLessColumnsOption {
-            @Label(value = "Fail",
-                description = "if there are shorter rows in the input file the node execution fails.") //
-            FAIL, //
-            @Label(value = "Insert missing", description = "the shorter rows are completed with missing values.") //
-            INSERT_MISSING; //
+    @Override
+    protected String getConfigIdSettingsKey() {
+        return "multi_table_read";
     }
 
-    @Widget(title = "If row has fewer columns",
-        description = "Specifies the behavior in case some rows are shorter than others. ")
-    @ValueSwitchWidget
-    IfRowHasLessColumnsOption m_ifRowHasLessColumnsOption = IfRowHasLessColumnsOption.FAIL;
 
-    /**
-     * Save the settings to the given config.
-     *
-     * @param tableReadConfig the config to save to
-     */
-    void saveToConfig(final DefaultTableReadConfig<?> tableReadConfig) {
-        tableReadConfig.setAllowShortRows(m_ifRowHasLessColumnsOption == IfRowHasLessColumnsOption.INSERT_MISSING);
-    }
 }

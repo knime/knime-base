@@ -46,7 +46,7 @@
  * History
  *   Nov 25, 2025 (Paul Bärnreuther): created
  */
-package org.knime.base.node.io.filehandling.csv.reader2;
+package org.knime.base.node.io.filehandling.csv.reader;
 
 import org.knime.base.node.io.filehandling.webui.reader2.ReaderLayout;
 import org.knime.node.parameters.layout.After;

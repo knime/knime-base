@@ -46,7 +46,7 @@
  * History
  *   May 28, 2024 (marcbux): created
  */
-package org.knime.base.node.io.filehandling.csv.reader2;
+package org.knime.base.node.io.filehandling.csv.reader;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;

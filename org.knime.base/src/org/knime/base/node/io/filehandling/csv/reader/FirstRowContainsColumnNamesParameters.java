@@ -46,60 +46,36 @@
  * History
  *   Nov 24, 2025 (Paul Bärnreuther): created
  */
-package org.knime.base.node.io.filehandling.csv.reader2;
+package org.knime.base.node.io.filehandling.csv.reader;
 
-import java.util.Optional;
-
-import org.knime.base.node.io.filehandling.csv.reader2.LimitScannedRowsParameters.LimitScannedRowsLayout;
+import org.knime.base.node.io.filehandling.csv.reader.FirstRowContainsColumnNamesParameters.FirstRowContainsColumnNamesLayout;
 import org.knime.base.node.io.filehandling.webui.ReferenceStateProvider;
-import org.knime.base.node.io.filehandling.webui.reader2.IfSchemaChangesParameters.IfSchemaChanges;
-import org.knime.core.node.InvalidSettingsException;
+import org.knime.base.node.io.filehandling.webui.reader2.SkipFirstDataRowsParameters.SkipFirstDataRows;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.node.parameters.NodeParameters;
-import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.layout.Before;
 import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.updates.ValueReference;
-import org.knime.node.parameters.widget.OptionalWidget;
-import org.knime.node.parameters.widget.OptionalWidget.DefaultValueProvider;
-import org.knime.node.parameters.widget.number.NumberInputWidget;
-import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsNonNegativeValidation;
 
 /**
- * Parameters for limiting the number of scanned rows.
+ * Parameters for specifying whether the first row contains column names.
  *
  * @author Paul Bärnreuther
  */
-@Layout(LimitScannedRowsLayout.class)
-final class LimitScannedRowsParameters implements NodeParameters {
+@Layout(FirstRowContainsColumnNamesLayout.class)
+final class FirstRowContainsColumnNamesParameters implements NodeParameters {
 
-    @Before(IfSchemaChanges.class)
-    interface LimitScannedRowsLayout {
+    @Before(SkipFirstDataRows.class)
+    interface FirstRowContainsColumnNamesLayout {}
+
+    static class FirstRowContainsColumnNamesRef extends ReferenceStateProvider<Boolean> {
     }
 
-    static final class MaxDataRowsScannedDefaultProvider implements DefaultValueProvider<Long> {
-        @Override
-        public Long computeState(final NodeParametersInput context) {
-            return 10000L;
-        }
-    }
-
-    static class MaxDataRowsScannedRef extends ReferenceStateProvider<Optional<Long>> {
-    }
-
-    @Widget(title = "Limit scanned rows", description = """
-            If enabled, only the specified number of input <i>rows</i> are used to analyze the file (i.e to
-            determine the column types). This option is recommended for long files where the first <i>n</i> rows are
-            representative for the whole file. The "Skip first data rows" option has no effect on the scanning. Note
-            also, that this option and the "Limit number of rows" option are independent from each other, i.e., if
-            the value in "Limit number of rows" is smaller than the value specified here, we will still read as many
-            rows as specified here.
-            """)
-    @ValueReference(MaxDataRowsScannedRef.class)
-    @NumberInputWidget(minValidation = IsNonNegativeValidation.class)
-    @OptionalWidget(defaultProvider = MaxDataRowsScannedDefaultProvider.class)
-    Optional<Long> m_maxDataRowsScanned = Optional.of(10000L);
+    @Widget(title = "First row contains column names",
+        description = "Select this box if the first row contains column name headers.")
+    @ValueReference(FirstRowContainsColumnNamesRef.class)
+    boolean m_firstRowContainsColumnNames = true;
 
     /**
      * Save the settings to the given config.
@@ -107,14 +83,7 @@ final class LimitScannedRowsParameters implements NodeParameters {
      * @param tableReadConfig the config to save to
      */
     void saveToConfig(final DefaultTableReadConfig<?> tableReadConfig) {
-        tableReadConfig.setLimitRowsForSpec(m_maxDataRowsScanned.isPresent());
-        tableReadConfig.setMaxRowsForSpec(m_maxDataRowsScanned.orElse(0L));
-    }
-
-    @Override
-    public void validate() throws InvalidSettingsException {
-        if (m_maxDataRowsScanned.isPresent() && m_maxDataRowsScanned.get() < 0) {
-            throw new InvalidSettingsException("The maximum number of data rows scanned must be non-negative.");
-        }
+        tableReadConfig.setColumnHeaderIdx(0L);
+        tableReadConfig.setUseColumnHeaderIdx(m_firstRowContainsColumnNames);
     }
 }

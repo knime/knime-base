@@ -46,7 +46,7 @@
  * History
  *   Mar 26, 2024 (Paul Bärnreuther): created
  */
-package org.knime.base.node.io.filehandling.csv.reader2;
+package org.knime.base.node.io.filehandling.csv.reader;
 
 import static org.knime.base.node.io.filehandling.csv.reader.CSVFormatAutoDetectionUtil.getCsvParserSettings;
 import static org.knime.base.node.io.filehandling.csv.reader.CSVFormatAutoDetectionUtil.skipLines;
