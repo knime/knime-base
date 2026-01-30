@@ -527,10 +527,7 @@ public final class TransformationParametersStateProviders {
 
             final var path = Optional.ofNullable(unknownElementsType)
                 .flatMap(type -> findProductionPath(colSpec.getType(), type)).orElse(defPath);
-            final var type = path.getConverterFactory().getIdentifier();
-            final var defType = defPath.getConverterFactory().getIdentifier();
-            return new TransformationElementSettings(name, includeInOutput, name, type, defType,
-                defPath.getDestinationType().toPrettyString());
+            return new TransformationElementSettings(name, includeInOutput, name, path, defPath);
 
         }
 
