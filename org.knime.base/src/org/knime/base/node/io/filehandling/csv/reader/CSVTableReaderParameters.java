@@ -46,11 +46,10 @@
  * History
  *   Oct 16, 2025 (Marc Bux, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.base.node.io.filehandling.csv.reader2;
+package org.knime.base.node.io.filehandling.csv.reader;
 
 import java.net.URL;
 
-import org.knime.base.node.io.filehandling.csv.reader.CSVMultiTableReadConfig;
 import org.knime.base.node.io.filehandling.webui.reader2.IfSchemaChangesParameters;
 import org.knime.base.node.io.filehandling.webui.reader2.MaxNumberOfRowsParameters;
 import org.knime.base.node.io.filehandling.webui.reader2.MultiFileReaderParameters;

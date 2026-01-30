@@ -44,46 +44,36 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 24, 2025 (Paul Bärnreuther): created
+ *   Mar 12, 2024 (marcbux): created
  */
-package org.knime.base.node.io.filehandling.csv.reader2;
+package org.knime.base.node.io.filehandling.csv.reader;
 
-import org.knime.base.node.io.filehandling.csv.reader2.FirstRowContainsColumnNamesParameters.FirstRowContainsColumnNamesLayout;
-import org.knime.base.node.io.filehandling.webui.ReferenceStateProvider;
-import org.knime.base.node.io.filehandling.webui.reader2.SkipFirstDataRowsParameters.SkipFirstDataRows;
-import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
-import org.knime.node.parameters.NodeParameters;
-import org.knime.node.parameters.Widget;
-import org.knime.node.parameters.layout.Before;
-import org.knime.node.parameters.layout.Layout;
-import org.knime.node.parameters.updates.ValueReference;
+import org.knime.base.node.io.filehandling.csv.reader.api.EscapeUtils;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
 
-/**
- * Parameters for specifying whether the first row contains column names.
- *
- * @author Paul Bärnreuther
- */
-@Layout(FirstRowContainsColumnNamesLayout.class)
-final class FirstRowContainsColumnNamesParameters implements NodeParameters {
+abstract class StringEscapePersistor implements NodeParametersPersistor<String> {
 
-    @Before(SkipFirstDataRows.class)
-    interface FirstRowContainsColumnNamesLayout {}
+    private final String m_configKey;
 
-    static class FirstRowContainsColumnNamesRef extends ReferenceStateProvider<Boolean> {
+    protected StringEscapePersistor(final String configKey) {
+        m_configKey = configKey;
     }
 
-    @Widget(title = "First row contains column names",
-        description = "Select this box if the first row contains column name headers.")
-    @ValueReference(FirstRowContainsColumnNamesRef.class)
-    boolean m_firstRowContainsColumnNames = true;
+    @Override
+    public String load(final NodeSettingsRO settings) throws InvalidSettingsException {
+        return EscapeUtils.escape(settings.getString(m_configKey));
+    }
 
-    /**
-     * Save the settings to the given config.
-     *
-     * @param tableReadConfig the config to save to
-     */
-    void saveToConfig(final DefaultTableReadConfig<?> tableReadConfig) {
-        tableReadConfig.setColumnHeaderIdx(0L);
-        tableReadConfig.setUseColumnHeaderIdx(m_firstRowContainsColumnNames);
+    @Override
+    public void save(final String escapedString, final NodeSettingsWO settings) {
+        settings.addString(m_configKey, EscapeUtils.unescape(escapedString));
+    }
+
+    @Override
+    public String[][] getConfigPaths() {
+        return new String[][]{{m_configKey}};
     }
 }

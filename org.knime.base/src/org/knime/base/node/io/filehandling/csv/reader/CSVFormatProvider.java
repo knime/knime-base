@@ -46,7 +46,7 @@
  * History
  *   Mar 26, 2024 (Paul Bärnreuther): created
  */
-package org.knime.base.node.io.filehandling.csv.reader2;
+package org.knime.base.node.io.filehandling.csv.reader;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -54,10 +54,10 @@ import java.nio.charset.IllegalCharsetNameException;
 import java.nio.charset.UnsupportedCharsetException;
 import java.util.function.Supplier;
 
-import org.knime.base.node.io.filehandling.csv.reader2.AutoDetectCSVFormatParameters.AutoDetectButtonRef;
-import org.knime.base.node.io.filehandling.csv.reader2.AutoDetectCSVFormatParameters.BufferSizeRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVFormatParameters.CommentStartRef;
-import org.knime.base.node.io.filehandling.csv.reader2.SkipFirstLinesOfFileParameters.SkipFirstLinesRef;
+import org.knime.base.node.io.filehandling.csv.reader.AutoDetectCSVFormatParameters.AutoDetectButtonRef;
+import org.knime.base.node.io.filehandling.csv.reader.AutoDetectCSVFormatParameters.BufferSizeRef;
+import org.knime.base.node.io.filehandling.csv.reader.CSVFormatParameters.CommentStartRef;
+import org.knime.base.node.io.filehandling.csv.reader.SkipFirstLinesOfFileParameters.SkipFirstLinesRef;
 import org.knime.base.node.io.filehandling.webui.FileEncodingParameters;
 import org.knime.base.node.io.filehandling.webui.FileEncodingParameters.CustomEncodingRef;
 import org.knime.base.node.io.filehandling.webui.FileEncodingParameters.FileEncodingOption;

@@ -46,17 +46,16 @@
  * History
  *   Nov 24, 2025 (Paul Bärnreuther): created
  */
-package org.knime.base.node.io.filehandling.csv.reader2;
+package org.knime.base.node.io.filehandling.csv.reader;
 
-import static org.knime.base.node.io.filehandling.csv.reader2.CSVFormatParameters.CustomRowDelimiterPatternValidation.combineMultiCharExceptions;
+import static org.knime.base.node.io.filehandling.csv.reader.CSVFormatParameters.CustomRowDelimiterPatternValidation.combineMultiCharExceptions;
 
 import java.net.URL;
 import java.util.List;
 
-import org.knime.base.node.io.filehandling.csv.reader.OSIndependentNewLineReader;
 import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
 import org.knime.base.node.io.filehandling.csv.reader.api.EscapeUtils;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVFormatProvider.ProviderFromCSVFormat;
+import org.knime.base.node.io.filehandling.csv.reader.CSVFormatProvider.ProviderFromCSVFormat;
 import org.knime.base.node.io.filehandling.webui.ReferenceStateProvider;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.node.parameters.NodeParameters;

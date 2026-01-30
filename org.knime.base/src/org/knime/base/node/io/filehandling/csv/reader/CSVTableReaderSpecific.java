@@ -44,51 +44,61 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 24, 2025 (Paul Bärnreuther): created
+ *   Sep 20, 2024 (Paul Bärnreuther): created
  */
-package org.knime.base.node.io.filehandling.csv.reader2;
+package org.knime.base.node.io.filehandling.csv.reader;
 
-import org.knime.base.node.io.filehandling.csv.reader2.FirstColumnContainsRowIdsParameters.FirstColumnContainsRowIdsLayout;
-import org.knime.base.node.io.filehandling.webui.ReferenceStateProvider;
-import org.knime.base.node.io.filehandling.webui.reader2.MaxNumberOfRowsParameters.LimitNumberOfRows;
-import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
-import org.knime.node.parameters.NodeParameters;
-import org.knime.node.parameters.Widget;
-import org.knime.node.parameters.layout.After;
-import org.knime.node.parameters.layout.Layout;
-import org.knime.node.parameters.updates.ValueReference;
-import org.knime.node.parameters.updates.util.BooleanReference;
+import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReader;
+import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
+import org.knime.base.node.io.filehandling.csv.reader.api.StringReadAdapterFactory;
+import org.knime.base.node.io.filehandling.webui.reader2.ReaderSpecific;
+import org.knime.core.data.convert.map.ProducerRegistry;
+import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
+import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
+import org.knime.node.parameters.NodeParametersInput;
 
-/**
- * Parameters for specifying whether the first column contains RowIDs (CSV-specific).
- *
- * @author Paul Bärnreuther
- */
-@Layout(FirstColumnContainsRowIdsLayout.class)
-final class FirstColumnContainsRowIdsParameters implements NodeParameters {
+final class CSVTableReaderSpecific {
 
-    @After(LimitNumberOfRows.class)
-    interface FirstColumnContainsRowIdsLayout {
+    static final ProductionPathProvider<Class<?>> PRODUCTION_PATH_PROVIDER =
+        StringReadAdapterFactory.INSTANCE.createProductionPathProvider();
+
+    interface ProductionPathProviderAndTypeHierarchy
+        extends ReaderSpecific.ProductionPathProviderAndTypeHierarchy<Class<?>> {
+        @Override
+        default ProductionPathProvider<Class<?>> getProductionPathProvider() {
+            return PRODUCTION_PATH_PROVIDER;
+        }
+
+        @Override
+        default TypeHierarchy<Class<?>, Class<?>> getTypeHierarchy() {
+            return StringReadAdapterFactory.TYPE_HIERARCHY;
+        }
+
+        @Override
+        default ProducerRegistry<Class<?>, ?> getProducerRegistry() {
+            return StringReadAdapterFactory.INSTANCE.getProducerRegistry();
+        }
+
+
     }
 
-    /**
-     * Reference for the first column contains row IDs value.
-     */
-    static class FirstColumnContainsRowIdsRef extends ReferenceStateProvider<Boolean> implements BooleanReference {
+    interface ConfigAndReader extends ReaderSpecific.ConfigAndReader<CSVTableReaderConfig, Class<?>, //
+            CSVMultiTableReadConfig> {
+
+        @Override
+        default CSVMultiTableReadConfig createMultiTableReadConfig(final NodeParametersInput input) {
+            return new CSVMultiTableReadConfig();
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        default CSVTableReader createTableReader() {
+            return new CSVTableReader();
+        }
+
     }
 
-    @Widget(title = "First column contains RowIDs",
-        description = "Select this box if the first column contains RowIDs (no duplicates allowed).")
-    @ValueReference(FirstColumnContainsRowIdsRef.class)
-    boolean m_firstColumnContainsRowIds;
-
-    /**
-     * Save the settings to the given config.
-     *
-     * @param tableReadConfig the config to save to
-     */
-    void saveToConfig(final DefaultTableReadConfig<?> tableReadConfig) {
-        tableReadConfig.setRowIDIdx(0);
-        tableReadConfig.setUseRowIDIdx(m_firstColumnContainsRowIds);
+    private CSVTableReaderSpecific() {
+        // Utility class
     }
 }

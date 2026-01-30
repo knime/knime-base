@@ -46,31 +46,30 @@
  * History
  *   May 15, 2024 (marcbux): created
  */
-package org.knime.base.node.io.filehandling.csv.reader2;
+package org.knime.base.node.io.filehandling.csv.reader;
 
 import java.util.function.Supplier;
 
-import org.knime.base.node.io.filehandling.csv.reader.CSVMultiTableReadConfig;
 import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVFormatParameters.ColumnDelimiterRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVFormatParameters.CommentStartRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVFormatParameters.CustomRowDelimiterRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVFormatParameters.DecimalSeparatorRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVFormatParameters.QuoteCharacterRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVFormatParameters.QuoteEscapeCharacterRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVFormatParameters.RowDelimiterOptionRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVFormatParameters.ThousandsSeparatorRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderNodeParameters.CSVReaderParametersRef;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderSpecific.ConfigAndReader;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderSpecific.ProductionPathProviderAndTypeHierarchy;
-import org.knime.base.node.io.filehandling.csv.reader2.FirstColumnContainsRowIdsParameters.FirstColumnContainsRowIdsRef;
-import org.knime.base.node.io.filehandling.csv.reader2.FirstRowContainsColumnNamesParameters.FirstRowContainsColumnNamesRef;
-import org.knime.base.node.io.filehandling.csv.reader2.LimitMemoryPerColumnParameters.LimitMemoryPerColumnRef;
-import org.knime.base.node.io.filehandling.csv.reader2.LimitScannedRowsParameters.MaxDataRowsScannedRef;
-import org.knime.base.node.io.filehandling.csv.reader2.MaximumNumberOfColumnsParameters.MaximumNumberOfColumnsRef;
-import org.knime.base.node.io.filehandling.csv.reader2.QuotedStringsParameters.QuotedStringsOptionRef;
-import org.knime.base.node.io.filehandling.csv.reader2.QuotedStringsParameters.ReplaceEmptyQuotedStringsByMissingValuesRef;
-import org.knime.base.node.io.filehandling.csv.reader2.SkipFirstLinesOfFileParameters.SkipFirstLinesRef;
+import org.knime.base.node.io.filehandling.csv.reader.CSVFormatParameters.ColumnDelimiterRef;
+import org.knime.base.node.io.filehandling.csv.reader.CSVFormatParameters.CommentStartRef;
+import org.knime.base.node.io.filehandling.csv.reader.CSVFormatParameters.CustomRowDelimiterRef;
+import org.knime.base.node.io.filehandling.csv.reader.CSVFormatParameters.DecimalSeparatorRef;
+import org.knime.base.node.io.filehandling.csv.reader.CSVFormatParameters.QuoteCharacterRef;
+import org.knime.base.node.io.filehandling.csv.reader.CSVFormatParameters.QuoteEscapeCharacterRef;
+import org.knime.base.node.io.filehandling.csv.reader.CSVFormatParameters.RowDelimiterOptionRef;
+import org.knime.base.node.io.filehandling.csv.reader.CSVFormatParameters.ThousandsSeparatorRef;
+import org.knime.base.node.io.filehandling.csv.reader.CSVTableReaderNodeParameters.CSVReaderParametersRef;
+import org.knime.base.node.io.filehandling.csv.reader.CSVTableReaderSpecific.ConfigAndReader;
+import org.knime.base.node.io.filehandling.csv.reader.CSVTableReaderSpecific.ProductionPathProviderAndTypeHierarchy;
+import org.knime.base.node.io.filehandling.csv.reader.FirstColumnContainsRowIdsParameters.FirstColumnContainsRowIdsRef;
+import org.knime.base.node.io.filehandling.csv.reader.FirstRowContainsColumnNamesParameters.FirstRowContainsColumnNamesRef;
+import org.knime.base.node.io.filehandling.csv.reader.LimitMemoryPerColumnParameters.LimitMemoryPerColumnRef;
+import org.knime.base.node.io.filehandling.csv.reader.LimitScannedRowsParameters.MaxDataRowsScannedRef;
+import org.knime.base.node.io.filehandling.csv.reader.MaximumNumberOfColumnsParameters.MaximumNumberOfColumnsRef;
+import org.knime.base.node.io.filehandling.csv.reader.QuotedStringsParameters.QuotedStringsOptionRef;
+import org.knime.base.node.io.filehandling.csv.reader.QuotedStringsParameters.ReplaceEmptyQuotedStringsByMissingValuesRef;
+import org.knime.base.node.io.filehandling.csv.reader.SkipFirstLinesOfFileParameters.SkipFirstLinesRef;
 import org.knime.base.node.io.filehandling.webui.FileEncodingParameters.CustomEncodingRef;
 import org.knime.base.node.io.filehandling.webui.FileEncodingParameters.FileEncodingRef;
 import org.knime.base.node.io.filehandling.webui.reader2.ClassSerializer;

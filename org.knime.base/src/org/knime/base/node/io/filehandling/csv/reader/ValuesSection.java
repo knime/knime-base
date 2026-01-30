@@ -44,36 +44,23 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Mar 12, 2024 (marcbux): created
+ *   Nov 25, 2025 (Paul Bärnreuther): created
  */
-package org.knime.base.node.io.filehandling.csv.reader2;
+package org.knime.base.node.io.filehandling.csv.reader;
 
-import org.knime.base.node.io.filehandling.csv.reader.api.EscapeUtils;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.node.parameters.persistence.NodeParametersPersistor;
+import org.knime.base.node.io.filehandling.webui.reader2.ReaderLayout;
+import org.knime.node.parameters.layout.After;
+import org.knime.node.parameters.layout.Before;
+import org.knime.node.parameters.layout.Section;
 
-abstract class StringEscapePersistor implements NodeParametersPersistor<String> {
-
-    private final String m_configKey;
-
-    protected StringEscapePersistor(final String configKey) {
-        m_configKey = configKey;
+@Section(title = "Values")
+@After(ReaderLayout.DataArea.class)
+@Before(ReaderLayout.ColumnAndDataTypeDetection.class)
+interface ValuesSection {
+    interface Separators { // NOSONAR
     }
 
-    @Override
-    public String load(final NodeSettingsRO settings) throws InvalidSettingsException {
-        return EscapeUtils.escape(settings.getString(m_configKey));
-    }
-
-    @Override
-    public void save(final String escapedString, final NodeSettingsWO settings) {
-        settings.addString(m_configKey, EscapeUtils.unescape(escapedString));
-    }
-
-    @Override
-    public String[][] getConfigPaths() {
-        return new String[][]{{m_configKey}};
+    @After(Separators.class)
+    interface Quotes { // NOSONAR
     }
 }

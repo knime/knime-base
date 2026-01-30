@@ -1381,7 +1381,7 @@
         "scope" : "#/properties/model/properties/csvReaderParameters/properties/autoDetectParams/properties/autoDetectButton",
         "options" : {
           "format" : "simpleButton",
-          "triggerId" : "org.knime.base.node.io.filehandling.csv.reader2.AutoDetectCSVFormatParameters$AutoDetectButtonRef",
+          "triggerId" : "org.knime.base.node.io.filehandling.csv.reader.AutoDetectCSVFormatParameters$AutoDetectButtonRef",
           "icon" : "reload"
         },
         "rule" : {
@@ -2058,7 +2058,7 @@
     "dependencies" : [ "#/properties/model/properties/csvReaderParameters", "#/properties/model/properties/csvReaderParameters/properties/multiFileReaderParams/properties/howToCombineColumns", "#/properties/model/properties/csvReaderParameters/properties/multiFileSelectionParams/properties/source", "#/properties/model/properties/transformationParameters/properties/columnTransformation", "#/properties/model/properties/transformationParameters/properties/specs" ]
   }, {
     "trigger" : {
-      "id" : "org.knime.base.node.io.filehandling.csv.reader2.AutoDetectCSVFormatParameters$AutoDetectButtonRef"
+      "id" : "org.knime.base.node.io.filehandling.csv.reader.AutoDetectCSVFormatParameters$AutoDetectButtonRef"
     },
     "dependencies" : [ "#/properties/model/properties/csvReaderParameters/properties/autoDetectParams/properties/numberOfCharactersForAutodetection", "#/properties/model/properties/csvReaderParameters/properties/csvFormatParams/properties/commentLineCharacter", "#/properties/model/properties/csvReaderParameters/properties/fileEncodingParams/properties/customEncoding", "#/properties/model/properties/csvReaderParameters/properties/fileEncodingParams/properties/fileEncoding", "#/properties/model/properties/csvReaderParameters/properties/multiFileSelectionParams/properties/source", "#/properties/model/properties/csvReaderParameters/properties/skipFirstLinesParams/properties/skipFirstLines" ]
   }, {

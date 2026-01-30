@@ -44,36 +44,51 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 8, 2024 (marcbux): created
+ *   Nov 21, 2025 (Paul Bärnreuther): created
  */
-package org.knime.base.node.io.filehandling.csv.reader2;
+package org.knime.base.node.io.filehandling.csv.reader;
 
-import org.knime.base.node.io.filehandling.csv.reader.ClassTypeSerializer;
-import org.knime.base.node.io.filehandling.csv.reader.api.StringReadAdapterFactory;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVTableReaderSpecific.ProductionPathProviderAndTypeHierarchy;
-import org.knime.base.node.io.filehandling.webui.reader2.ClassBasedTransformationParameters;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
-import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigIDLoader;
-import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfigSerializer;
+import java.io.FileInputStream;
+import java.io.IOException;
+
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettings;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
+import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
+import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 
 /**
- * @author Marc Bux, KNIME GmbH, Berlin, Germany
+ * Tests the {@link CSVTableReaderNodeParameters} persistence.
+ *
+ * @author Paul Bärnreuther
  */
 @SuppressWarnings("restriction")
-@Modification(CSVTableReaderTransformationParametersStateProviders.TransformationSettingsWidgetModification.class)
-final class CSVTableReaderTransformationParameters extends ClassBasedTransformationParameters
-    implements ProductionPathProviderAndTypeHierarchy {
-
-    @Override
-    protected TableSpecConfigSerializer<Class<?>> createTableSpecConfigSerializer(final ConfigIDLoader configIdLoader) {
-        return TableSpecConfigSerializer.createStartingV42(StringReadAdapterFactory.INSTANCE.getProducerRegistry(),
-            configIdLoader, ClassTypeSerializer.SERIALIZER, String.class);
+class CSVTableReaderNodeParametersTest extends DefaultNodeSettingsSnapshotTest {
+    protected CSVTableReaderNodeParametersTest() {
+        super(getConfig());
     }
 
-    @Override
-    protected String getConfigIdSettingsKey() {
-        return "multi_table_read";
+    private static SnapshotTestConfiguration getConfig() {
+        return SnapshotTestConfiguration.builder() //
+            .testJsonFormsForModel(CSVTableReaderNodeParameters.class) //
+            .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings()) //
+            .testNodeSettingsStructure(() -> readSettings()) //
+            .build();
     }
 
+    private static CSVTableReaderNodeParameters readSettings() {
+        try {
+            var path = getSnapshotPath(CSVTableReaderNodeParametersTest.class).getParent().resolve("node_settings")
+                .resolve("CSVTableReaderNodeParameters.xml");
+            try (var fis = new FileInputStream(path.toFile())) {
+                var nodeSettings = NodeSettings.loadFromXML(fis);
+                return NodeParametersUtil.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
+                    CSVTableReaderNodeParameters.class);
+            }
+        } catch (IOException | InvalidSettingsException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
 }

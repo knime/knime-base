@@ -44,51 +44,55 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 21, 2025 (Paul Bärnreuther): created
+ *   Nov 24, 2025 (Paul Bärnreuther): created
  */
-package org.knime.base.node.io.filehandling.csv.reader2;
+package org.knime.base.node.io.filehandling.csv.reader;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-
+import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
+import org.knime.base.node.io.filehandling.webui.ReferenceStateProvider;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettings;
-import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
-import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
-import org.knime.testing.node.dialog.SnapshotTestConfiguration;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.widget.number.NumberInputWidget;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsNonNegativeValidation;
 
 /**
- * Tests the {@link CSVTableReaderNodeParameters} persistence.
+ * Parameters for skipping first lines of file.
  *
  * @author Paul Bärnreuther
  */
-@SuppressWarnings("restriction")
-class CSVTableReaderNodeParametersTest extends DefaultNodeSettingsSnapshotTest {
-    protected CSVTableReaderNodeParametersTest() {
-        super(getConfig());
+@Layout(FileFormatSection.class)
+final class SkipFirstLinesOfFileParameters implements NodeParameters {
+
+    static final class SkipFirstLinesRef extends ReferenceStateProvider<Long> {
     }
 
-    private static SnapshotTestConfiguration getConfig() {
-        return SnapshotTestConfiguration.builder() //
-            .testJsonFormsForModel(CSVTableReaderNodeParameters.class) //
-            .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings()) //
-            .testNodeSettingsStructure(() -> readSettings()) //
-            .build();
+    @Widget(title = "Skip first lines of file", description = """
+            Use this option to skip lines that do not fit in the table structure (e.g. multi-line comments).
+            <br/>
+            The specified number of lines are skipped in the input file before the parsing starts. Skipping lines
+            prevents parallel reading of individual files.
+            """)
+    @ValueReference(SkipFirstLinesRef.class)
+    @NumberInputWidget(minValidation = IsNonNegativeValidation.class)
+    long m_skipFirstLines;
+
+    /**
+     * Save the settings to the given config.
+     *
+     * @param csvConfig the config to save to
+     */
+    void saveToConfig(final CSVTableReaderConfig csvConfig) {
+        csvConfig.setSkipLines(m_skipFirstLines > 0);
+        csvConfig.setNumLinesToSkip(m_skipFirstLines);
     }
 
-    private static CSVTableReaderNodeParameters readSettings() {
-        try {
-            var path = getSnapshotPath(CSVTableReaderNodeParametersTest.class).getParent().resolve("node_settings")
-                .resolve("CSVTableReaderNodeParameters.xml");
-            try (var fis = new FileInputStream(path.toFile())) {
-                var nodeSettings = NodeSettings.loadFromXML(fis);
-                return NodeParametersUtil.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
-                    CSVTableReaderNodeParameters.class);
-            }
-        } catch (IOException | InvalidSettingsException e) {
-            throw new RuntimeException(e);
+    @Override
+    public void validate() throws InvalidSettingsException {
+        if (m_skipFirstLines < 0) {
+            throw new InvalidSettingsException("The number of lines to skip must be non-negative.");
         }
     }
-
 }

@@ -46,43 +46,54 @@
  * History
  *   Nov 24, 2025 (Paul Bärnreuther): created
  */
-package org.knime.base.node.io.filehandling.csv.reader2;
+package org.knime.base.node.io.filehandling.csv.reader;
 
 import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
-import org.knime.base.node.io.filehandling.csv.reader2.MaximumNumberOfColumnsParameters.MaximumNumberOfColumnsLayout;
+import org.knime.base.node.io.filehandling.csv.reader.api.QuoteOption;
 import org.knime.base.node.io.filehandling.webui.ReferenceStateProvider;
-import org.knime.base.node.io.filehandling.webui.reader2.IfSchemaChangesParameters.IfSchemaChanges;
-import org.knime.core.node.InvalidSettingsException;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.Widget;
-import org.knime.node.parameters.layout.After;
 import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.updates.ValueReference;
-import org.knime.node.parameters.widget.number.NumberInputWidget;
-import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsNonNegativeValidation;
+import org.knime.node.parameters.widget.choices.Label;
+import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
 
 /**
- * Parameters for maximum number of columns.
+ * Parameters for handling quoted strings.
  *
  * @author Paul Bärnreuther
  */
-@Layout(MaximumNumberOfColumnsLayout.class)
-public final class MaximumNumberOfColumnsParameters implements NodeParameters {
+@Layout(ValuesSection.Quotes.class)
+final class QuotedStringsParameters implements NodeParameters {
 
-    @After(IfSchemaChanges.class)
-    interface MaximumNumberOfColumnsLayout {
+    static class ReplaceEmptyQuotedStringsByMissingValuesRef extends ReferenceStateProvider<Boolean> {
     }
 
-    static class MaximumNumberOfColumnsRef extends ReferenceStateProvider<Integer> {
+    @Widget(title = "Replace empty quoted string by missing values",
+        description = "Select this box if you want <b>quoted</b> empty strings to be replaced by missing value cells.")
+    @ValueReference(ReplaceEmptyQuotedStringsByMissingValuesRef.class)
+    boolean m_replaceEmptyQuotedStringsByMissingValues = true;
+
+    /**
+     * Options for handling quoted strings.
+     */
+    enum QuotedStringsOption {
+            @Label(value = "Remove quotes and trim whitespace", description = "Quotes will be removed from the value "
+                + "followed by trimming any leading/trailing whitespaces.") //
+            REMOVE_QUOTES_AND_TRIM, //
+            @Label(value = "Keep quotes",
+                description = "Quotes of a value will be kept. Note: No trimming will be done inside the quotes.") //
+            KEEP_QUOTES; //
     }
 
-    @Widget(title = "Maximum number of columns", description = """
-            Sets the number of allowed columns (default 8192 columns) to prevent memory exhaustion. The node will
-                        fail if the number of columns exceeds the set limit.
-            """)
-    @ValueReference(MaximumNumberOfColumnsRef.class)
-    @NumberInputWidget(minValidation = IsNonNegativeValidation.class)
-    int m_maximumNumberOfColumns = 8192;
+    static class QuotedStringsOptionRef extends ReferenceStateProvider<QuotedStringsOption> {
+    }
+
+    @Widget(title = "Quoted strings",
+        description = "Specifies the behavior in case there are quoted strings in the input table.", advanced = true)
+    @ValueReference(QuotedStringsOptionRef.class)
+    @RadioButtonsWidget
+    QuotedStringsOption m_quotedStringsOption = QuotedStringsOption.REMOVE_QUOTES_AND_TRIM;
 
     /**
      * Save the settings to the given config.
@@ -90,13 +101,9 @@ public final class MaximumNumberOfColumnsParameters implements NodeParameters {
      * @param csvConfig the config to save to
      */
     void saveToConfig(final CSVTableReaderConfig csvConfig) {
-        csvConfig.setMaxColumns(m_maximumNumberOfColumns);
-    }
+        csvConfig.setReplaceEmptyWithMissing(m_replaceEmptyQuotedStringsByMissingValues);
 
-    @Override
-    public void validate() throws InvalidSettingsException {
-        if (m_maximumNumberOfColumns < 0) {
-            throw new InvalidSettingsException("The maximum number of columns must be non-negative.");
-        }
+        csvConfig.setQuoteOption(m_quotedStringsOption == QuotedStringsOption.REMOVE_QUOTES_AND_TRIM
+            ? QuoteOption.REMOVE_QUOTES_AND_TRIM : QuoteOption.KEEP_QUOTES);
     }
 }

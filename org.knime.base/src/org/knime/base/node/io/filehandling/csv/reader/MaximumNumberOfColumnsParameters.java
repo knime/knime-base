@@ -44,62 +44,59 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 20, 2024 (Paul Bärnreuther): created
+ *   Nov 24, 2025 (Paul Bärnreuther): created
  */
-package org.knime.base.node.io.filehandling.csv.reader2;
+package org.knime.base.node.io.filehandling.csv.reader;
 
-import org.knime.base.node.io.filehandling.csv.reader.CSVMultiTableReadConfig;
-import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReader;
 import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
-import org.knime.base.node.io.filehandling.csv.reader.api.StringReadAdapterFactory;
-import org.knime.base.node.io.filehandling.webui.reader2.ReaderSpecific;
-import org.knime.core.data.convert.map.ProducerRegistry;
-import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
-import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
-import org.knime.node.parameters.NodeParametersInput;
+import org.knime.base.node.io.filehandling.csv.reader.MaximumNumberOfColumnsParameters.MaximumNumberOfColumnsLayout;
+import org.knime.base.node.io.filehandling.webui.ReferenceStateProvider;
+import org.knime.base.node.io.filehandling.webui.reader2.IfSchemaChangesParameters.IfSchemaChanges;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.layout.After;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.widget.number.NumberInputWidget;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsNonNegativeValidation;
 
-final class CSVTableReaderSpecific {
+/**
+ * Parameters for maximum number of columns.
+ *
+ * @author Paul Bärnreuther
+ */
+@Layout(MaximumNumberOfColumnsLayout.class)
+public final class MaximumNumberOfColumnsParameters implements NodeParameters {
 
-    static final ProductionPathProvider<Class<?>> PRODUCTION_PATH_PROVIDER =
-        StringReadAdapterFactory.INSTANCE.createProductionPathProvider();
-
-    interface ProductionPathProviderAndTypeHierarchy
-        extends ReaderSpecific.ProductionPathProviderAndTypeHierarchy<Class<?>> {
-        @Override
-        default ProductionPathProvider<Class<?>> getProductionPathProvider() {
-            return PRODUCTION_PATH_PROVIDER;
-        }
-
-        @Override
-        default TypeHierarchy<Class<?>, Class<?>> getTypeHierarchy() {
-            return StringReadAdapterFactory.TYPE_HIERARCHY;
-        }
-
-        @Override
-        default ProducerRegistry<Class<?>, ?> getProducerRegistry() {
-            return StringReadAdapterFactory.INSTANCE.getProducerRegistry();
-        }
-
-
+    @After(IfSchemaChanges.class)
+    interface MaximumNumberOfColumnsLayout {
     }
 
-    interface ConfigAndReader extends ReaderSpecific.ConfigAndReader<CSVTableReaderConfig, Class<?>, //
-            CSVMultiTableReadConfig> {
-
-        @Override
-        default CSVMultiTableReadConfig createMultiTableReadConfig(final NodeParametersInput input) {
-            return new CSVMultiTableReadConfig();
-        }
-
-        @SuppressWarnings("unchecked")
-        @Override
-        default CSVTableReader createTableReader() {
-            return new CSVTableReader();
-        }
-
+    static class MaximumNumberOfColumnsRef extends ReferenceStateProvider<Integer> {
     }
 
-    private CSVTableReaderSpecific() {
-        // Utility class
+    @Widget(title = "Maximum number of columns", description = """
+            Sets the number of allowed columns (default 8192 columns) to prevent memory exhaustion. The node will
+                        fail if the number of columns exceeds the set limit.
+            """)
+    @ValueReference(MaximumNumberOfColumnsRef.class)
+    @NumberInputWidget(minValidation = IsNonNegativeValidation.class)
+    int m_maximumNumberOfColumns = 8192;
+
+    /**
+     * Save the settings to the given config.
+     *
+     * @param csvConfig the config to save to
+     */
+    void saveToConfig(final CSVTableReaderConfig csvConfig) {
+        csvConfig.setMaxColumns(m_maximumNumberOfColumns);
+    }
+
+    @Override
+    public void validate() throws InvalidSettingsException {
+        if (m_maximumNumberOfColumns < 0) {
+            throw new InvalidSettingsException("The maximum number of columns must be non-negative.");
+        }
     }
 }

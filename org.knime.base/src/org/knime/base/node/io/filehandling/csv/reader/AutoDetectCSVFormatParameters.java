@@ -46,27 +46,57 @@
  * History
  *   Nov 24, 2025 (Paul Bärnreuther): created
  */
-package org.knime.base.node.io.filehandling.csv.reader2;
+package org.knime.base.node.io.filehandling.csv.reader;
 
 import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
-import org.knime.base.node.io.filehandling.csv.reader2.CSVReaderFileEncodingParameters.FileEncodingLayout;
-import org.knime.base.node.io.filehandling.webui.FileEncodingParameters;
-import org.knime.base.node.io.filehandling.webui.reader2.ReaderLayout;
+import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.node.parameters.layout.After;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.button.Icon;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.button.SimpleButtonWidget;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.updates.ButtonReference;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.widget.number.NumberInputWidget;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsPositiveIntegerValidation;
 
 /**
- * Parameters for file encoding settings.
+ * Parameters for auto-detecting CSV format.
  *
  * @author Paul Bärnreuther
  */
-@Layout(FileEncodingLayout.class)
-final class CSVReaderFileEncodingParameters extends FileEncodingParameters {
+@SuppressWarnings("restriction")
+@Layout(FileFormatSection.AutodetectFormat.class)
+final class AutoDetectCSVFormatParameters implements NodeParameters {
 
-    @After(ReaderLayout.File.Source.class)
-    interface FileEncodingLayout {
+    /**
+     * Reference for the auto-detect button.
+     */
+    static final class AutoDetectButtonRef implements ButtonReference {
     }
+
+    @Widget(title = "Autodetect format", description = """
+            By pressing this button, the format of the file will be guessed automatically. It is not guaranteed that
+            the correct values are being detected.
+            """)
+    @SimpleButtonWidget(ref = AutoDetectButtonRef.class, icon = Icon.RELOAD)
+    @Effect(predicate = FileSystemPortConnectionUtil.ConnectedWithoutFileSystemSpec.class, type = EffectType.DISABLE)
+    Void m_autoDetectButton;
+
+    static final class BufferSizeRef implements ParameterReference<Integer> {
+    }
+
+    @Widget(title = "Number of characters for autodetection", description = """
+            Specifies on how many characters of the selected file should be used for autodetection. The
+            autodetection by default is based on the first 1024 * 1024 characters.
+            """, advanced = true)
+    @ValueReference(BufferSizeRef.class)
+    @NumberInputWidget(minValidation = IsPositiveIntegerValidation.class)
+    int m_numberOfCharactersForAutodetection = CSVTableReaderConfig.DEFAULT_AUTODETECTION_BUFFER_SIZE;
 
     /**
      * Save the settings to the given config.
@@ -74,13 +104,13 @@ final class CSVReaderFileEncodingParameters extends FileEncodingParameters {
      * @param csvConfig the config to save to
      */
     void saveToConfig(final CSVTableReaderConfig csvConfig) {
-        csvConfig.setCharSetName(fileEncodingToCharsetName(m_fileEncoding, m_customEncoding));
+        csvConfig.setAutoDetectionBufferSize(m_numberOfCharactersForAutodetection);
     }
 
     @Override
     public void validate() throws InvalidSettingsException {
-        if (m_fileEncoding == FileEncodingOption.OTHER && m_customEncoding.isBlank()) {
-            throw new InvalidSettingsException("The specified custom encoding must not be empty.");
+        if (m_numberOfCharactersForAutodetection <= 0) {
+            throw new InvalidSettingsException("The number of characters for autodetection must be positive.");
         }
     }
 }

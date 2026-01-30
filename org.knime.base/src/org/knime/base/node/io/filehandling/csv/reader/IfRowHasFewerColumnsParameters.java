@@ -44,23 +44,54 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 25, 2025 (Paul Bärnreuther): created
+ *   Nov 24, 2025 (Paul Bärnreuther): created
  */
-package org.knime.base.node.io.filehandling.csv.reader2;
+package org.knime.base.node.io.filehandling.csv.reader;
 
-import org.knime.base.node.io.filehandling.webui.reader2.ReaderLayout;
+import org.knime.base.node.io.filehandling.csv.reader.FirstColumnContainsRowIdsParameters.FirstColumnContainsRowIdsLayout;
+import org.knime.base.node.io.filehandling.csv.reader.IfRowHasFewerColumnsParameters.IfRowHasFewerColumnsLayout;
+import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.layout.After;
-import org.knime.node.parameters.layout.Before;
-import org.knime.node.parameters.layout.Section;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.widget.choices.Label;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 
-@Section(title = "Values")
-@After(ReaderLayout.DataArea.class)
-@Before(ReaderLayout.ColumnAndDataTypeDetection.class)
-interface ValuesSection {
-    interface Separators { // NOSONAR
+/**
+ * Parameters for handling rows with fewer columns.
+ *
+ * @author Paul Bärnreuther
+ */
+@Layout(IfRowHasFewerColumnsLayout.class)
+final class IfRowHasFewerColumnsParameters implements NodeParameters {
+
+    @After(FirstColumnContainsRowIdsLayout.class)
+    interface IfRowHasFewerColumnsLayout {
     }
 
-    @After(Separators.class)
-    interface Quotes { // NOSONAR
+    /**
+     * Options for handling rows with fewer columns.
+     */
+    enum IfRowHasLessColumnsOption {
+            @Label(value = "Fail",
+                description = "if there are shorter rows in the input file the node execution fails.") //
+            FAIL, //
+            @Label(value = "Insert missing", description = "the shorter rows are completed with missing values.") //
+            INSERT_MISSING; //
+    }
+
+    @Widget(title = "If row has fewer columns",
+        description = "Specifies the behavior in case some rows are shorter than others. ")
+    @ValueSwitchWidget
+    IfRowHasLessColumnsOption m_ifRowHasLessColumnsOption = IfRowHasLessColumnsOption.FAIL;
+
+    /**
+     * Save the settings to the given config.
+     *
+     * @param tableReadConfig the config to save to
+     */
+    void saveToConfig(final DefaultTableReadConfig<?> tableReadConfig) {
+        tableReadConfig.setAllowShortRows(m_ifRowHasLessColumnsOption == IfRowHasLessColumnsOption.INSERT_MISSING);
     }
 }
