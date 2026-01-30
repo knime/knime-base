@@ -47,6 +47,7 @@
 package org.knime.base.node.io.filehandling.webui.reader2.tutorial;
 
 import org.knime.base.node.io.filehandling.webui.reader2.ReaderSpecific;
+import org.knime.core.data.convert.map.ProducerRegistry;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
 import org.knime.node.parameters.NodeParametersInput;
@@ -69,11 +70,18 @@ final class TutorialReaderSpecific {
             return PRODUCTION_PATH_PROVIDER;
         }
 
+        // TODO (#5): Return your ProducerRegistry
+        @Override
+        default ProducerRegistry<Class<?>, ?> getProducerRegistry() {
+            return null;
+        }
+
         // TODO (#5): Return your ReadAdapterFactory's TYPE_HIERARCHY
         @Override
         default TypeHierarchy<Class<?>, Class<?>> getTypeHierarchy() {
             return null;
         }
+
     }
 
     // TODO (#3): Replace with your config and reader types
@@ -82,7 +90,7 @@ final class TutorialReaderSpecific {
         extends ReaderSpecific.ConfigAndReader<DummyTableReaderConfig, Class<?>, DummyMultiTableReadConfig> {
 
         @Override
-        default DummyMultiTableReadConfig createMultiTableReadConfig(NodeParametersInput input) {
+        default DummyMultiTableReadConfig createMultiTableReadConfig(final NodeParametersInput input) {
             return new DummyMultiTableReadConfig(); // TODO (#3): Replace with your MultiTableReadConfig
         }
 

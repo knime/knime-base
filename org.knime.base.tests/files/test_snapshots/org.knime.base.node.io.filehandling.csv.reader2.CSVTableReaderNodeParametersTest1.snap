@@ -147,53 +147,53 @@
         "enforceTypes" : true,
         "columnTransformation" : [ {
           "columnName" : "2",
-          "originalType" : "org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)",
+          "originalProductionPath" : "class java.lang.String->java.lang.String\u0000org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)",
           "originalTypeLabel" : "String",
           "includeInOutput" : true,
           "columnRename" : "2",
-          "type" : "org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)"
+          "productionPath" : "class java.lang.String->java.lang.String\u0000org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)"
         }, {
           "columnName" : "3",
-          "originalType" : "org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)",
+          "originalProductionPath" : "class java.lang.String->java.lang.String\u0000org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)",
           "originalTypeLabel" : "String",
           "includeInOutput" : true,
           "columnRename" : "3",
-          "type" : "org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)"
+          "productionPath" : "class java.lang.String->java.lang.String\u0000org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)"
         }, {
           "columnName" : "first",
-          "originalType" : "org.knime.core.data.def.IntCell$IntCellFactory.create(class java.lang.Integer)",
+          "originalProductionPath" : "class java.lang.Integer->java.lang.Integer\u0000org.knime.core.data.def.IntCell$IntCellFactory.create(class java.lang.Integer)",
           "originalTypeLabel" : "Number (Integer)",
           "includeInOutput" : true,
           "columnRename" : "first",
-          "type" : "org.knime.core.data.def.IntCell$IntCellFactory.create(class java.lang.Integer)"
+          "productionPath" : "class java.lang.Integer->java.lang.Integer\u0000org.knime.core.data.def.IntCell$IntCellFactory.create(class java.lang.Integer)"
         }, {
           "columnName" : "1",
-          "originalType" : "org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)",
+          "originalProductionPath" : "class java.lang.String->java.lang.String\u0000org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)",
           "originalTypeLabel" : "String",
           "includeInOutput" : false,
           "columnRename" : "1",
-          "type" : "org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)"
+          "productionPath" : "class java.lang.String->java.lang.String\u0000org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)"
         }, {
           "columnName" : "third",
-          "originalType" : "org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)",
+          "originalProductionPath" : "class java.lang.String->java.lang.String\u0000org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)",
           "originalTypeLabel" : "String",
           "includeInOutput" : true,
           "columnRename" : "third",
-          "type" : "org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)"
+          "productionPath" : "class java.lang.String->java.lang.String\u0000org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)"
         }, {
           "columnName" : null,
-          "originalType" : "<default-columntype>",
+          "originalProductionPath" : "<default-columntype>",
           "originalTypeLabel" : "Default columntype",
           "includeInOutput" : true,
           "columnRename" : null,
-          "type" : "<default-columntype>"
+          "productionPath" : "<default-columntype>"
         }, {
           "columnName" : "second",
-          "originalType" : "org.knime.core.data.def.IntCell$IntCellFactory.create(class java.lang.Integer)",
+          "originalProductionPath" : "class java.lang.Integer->java.lang.Integer\u0000org.knime.core.data.def.IntCell$IntCellFactory.create(class java.lang.Integer)",
           "originalTypeLabel" : "Number (Integer)",
           "includeInOutput" : true,
           "columnRename" : "second",
-          "type" : "org.knime.core.data.def.IntCell$IntCellFactory.create(class java.lang.Integer)"
+          "productionPath" : "class java.lang.Integer->java.lang.Integer\u0000org.knime.core.data.def.IntCell$IntCellFactory.create(class java.lang.Integer)"
         } ]
       }
     }
@@ -944,13 +944,13 @@
                       "title" : "Include in output",
                       "default" : false
                     },
-                    "originalType" : {
+                    "originalProductionPath" : {
                       "type" : "string"
                     },
                     "originalTypeLabel" : {
                       "type" : "string"
                     },
-                    "type" : {
+                    "productionPath" : {
                       "type" : "string",
                       "title" : "Column type"
                     }
@@ -960,11 +960,11 @@
                 "description" : "Use this option to modify the structure of the table. You can deselect each column to filter it out of the\noutput table, use the arrows to reorder the columns, or change the column name or column type of each\ncolumn. Note that the positions of columns are reset in the dialog if a new file or folder is selected.\nWhether and where to add unknown columns during execution is specified via the special row &lt;any unknown\nnew column&gt;. It is also possible to select the type new columns should be converted to. Note that the\nnode will fail if this conversion is not possible e.g. if the selected type is Integer but the new column is\nof type Double.\n",
                 "default" : [ {
                   "columnName" : null,
-                  "originalType" : "<default-columntype>",
+                  "originalProductionPath" : "<default-columntype>",
                   "originalTypeLabel" : "Default columntype",
                   "includeInOutput" : true,
                   "columnRename" : null,
-                  "type" : "<default-columntype>"
+                  "productionPath" : "<default-columntype>"
                 } ]
               },
               "enforceTypes" : {
@@ -1010,11 +1010,11 @@
               "enforceTypes" : true,
               "columnTransformation" : [ {
                 "columnName" : null,
-                "originalType" : "<default-columntype>",
+                "originalProductionPath" : "<default-columntype>",
                 "originalTypeLabel" : "Default columntype",
                 "includeInOutput" : true,
                 "columnRename" : null,
-                "type" : "<default-columntype>"
+                "productionPath" : "<default-columntype>"
               } ]
             }
           }
@@ -1730,7 +1730,7 @@
             }
           }, {
             "type" : "Control",
-            "scope" : "#/properties/type",
+            "scope" : "#/properties/productionPath",
             "options" : {
               "hideControlHeader" : true,
               "format" : "dropDown"
@@ -1961,11 +1961,15 @@
                   "type" : "object",
                   "properties" : {
                     "columnName" : { },
-                    "originalType" : { },
+                    "originalProductionPath" : {
+                      "configPaths" : [ ]
+                    },
                     "originalTypeLabel" : { },
                     "includeInOutput" : { },
                     "columnRename" : { },
-                    "type" : { }
+                    "productionPath" : {
+                      "configPaths" : [ ]
+                    }
                   }
                 }
               }
@@ -2045,7 +2049,7 @@
     "trigger" : {
       "id" : "ElementResetButton"
     },
-    "dependencies" : [ "#/properties/model/properties/transformationParameters/properties/columnTransformation/items/properties/columnName", "#/properties/model/properties/transformationParameters/properties/columnTransformation/items/properties/originalType" ]
+    "dependencies" : [ "#/properties/model/properties/transformationParameters/properties/columnTransformation/items/properties/columnName", "#/properties/model/properties/transformationParameters/properties/columnTransformation/items/properties/originalProductionPath" ]
   }, {
     "trigger" : {
       "id" : "after-open-dialog"

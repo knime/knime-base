@@ -82,6 +82,7 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.DefaultFileChooserFilters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelection;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.datatype.convert.ProductionPathUtils;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.filehandling.core.connections.FSCategory;
@@ -255,7 +256,7 @@ public final class TransformationParametersStateProviders {
         protected abstract void applyParametersToConfig(M config);
 
         private Collection<DependsOnTypedReaderTableSpecProvider.TypedReaderTableSpecWithLocation<T>>
-            computeStateFromPaths(final List<FSPath> paths, NodeParametersInput input)
+            computeStateFromPaths(final List<FSPath> paths, final NodeParametersInput input)
                 throws StateComputationFailureException {
             final M config = createMultiTableReadConfig(input);
             try {
@@ -496,10 +497,10 @@ public final class TransformationParametersStateProviders {
         private TransformationElementSettings mergeExistingWithNew(final TransformationElementSettings existingElement,
             final TypedReaderColumnSpec<T> newSpec) {
             final var newElement = createNewElement(newSpec);
-            if (!newElement.m_originalType.equals(existingElement.m_originalType)) {
+            if (!newElement.m_originalProductionPath.equals(existingElement.m_originalProductionPath)) {
                 return newElement;
             }
-            newElement.m_type = existingElement.m_type;
+            newElement.m_productionPath = existingElement.m_productionPath;
             newElement.m_columnRename = existingElement.m_columnRename;
             newElement.m_includeInOutput = existingElement.m_includeInOutput;
             return newElement;
@@ -507,10 +508,10 @@ public final class TransformationParametersStateProviders {
         }
 
         private static Optional<DataType> getUnknownElementsType(final TransformationElementSettings unknownElement) {
-            if (TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID.equals(unknownElement.m_type)) {
+            if (TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID.equals(unknownElement.m_productionPath)) {
                 return Optional.empty();
             }
-            return Optional.of(fromDataTypeId(unknownElement.m_type));
+            return Optional.of(fromDataTypeId(unknownElement.m_productionPath));
         }
 
         /**
@@ -528,10 +529,7 @@ public final class TransformationParametersStateProviders {
 
             final var path = Optional.ofNullable(unknownElementsType)
                 .flatMap(type -> findProductionPath(colSpec.getType(), type)).orElse(defPath);
-            final var type = path.getConverterFactory().getIdentifier();
-            final var defType = defPath.getConverterFactory().getIdentifier();
-            return new TransformationElementSettings(name, includeInOutput, name, type, defType,
-                defPath.getDestinationType().toPrettyString());
+            return new TransformationElementSettings(name, includeInOutput, name, path, defPath);
 
         }
 
@@ -589,9 +587,8 @@ public final class TransformationParametersStateProviders {
             }
             final var columnSpec = columnSpecOpt.get();
             final var productionPaths = getProductionPathProvider().getAvailableProductionPaths(columnSpec.getType());
-            return productionPaths.stream().map(
-                p -> new StringChoice(p.getConverterFactory().getIdentifier(), p.getDestinationType().toPrettyString()))
-                .toList();
+            return productionPaths.stream().map(p -> new StringChoice(ProductionPathUtils.getPathIdentifier(p),
+                p.getDestinationType().toPrettyString())).toList();
         }
 
     }

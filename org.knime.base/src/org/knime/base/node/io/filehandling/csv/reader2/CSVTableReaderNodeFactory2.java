@@ -68,6 +68,7 @@ import org.knime.core.util.Version;
 import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.node.table.reader.GenericTableReader;
+import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.ReadAdapterFactory;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigID;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigIDLoader;
@@ -137,6 +138,11 @@ public class CSVTableReaderNodeFactory2 extends WebUITableReaderNodeFactory<CSVT
     @Override
     protected TypeHierarchy<Class<?>, Class<?>> getTypeHierarchy() {
         return StringReadAdapterFactory.TYPE_HIERARCHY;
+    }
+
+    @Override
+    protected ProductionPathProvider<Class<?>> createProductionPathProvider() {
+        return StringReadAdapterFactory.INSTANCE.createProductionPathProvider();
     }
 
     @Override

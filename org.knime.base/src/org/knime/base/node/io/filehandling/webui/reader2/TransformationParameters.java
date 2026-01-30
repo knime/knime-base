@@ -68,12 +68,16 @@ import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameter
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataType;
+import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.WidgetInternal;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.datatype.convert.ProductionPathUtils;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.datatype.convert.ProductionPathUtils.ProductionPathPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.filehandling.core.connections.FSCategory;
@@ -104,7 +108,9 @@ import org.knime.node.parameters.array.ArrayWidget;
 import org.knime.node.parameters.layout.After;
 import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.layout.Section;
+import org.knime.node.parameters.migration.NodeParametersMigration;
 import org.knime.node.parameters.persistence.Persistable;
+import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.updates.Effect;
 import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.updates.EffectPredicate;
@@ -277,19 +283,46 @@ public abstract class TransformationParameters<T>
         @JsonInclude(Include.ALWAYS) // Necessary for the ColumnNameIsNull PredicateProvider to work
         public String m_columnName;
 
-        static class OriginalTypeRef implements ParameterReference<String> {
+        static class OriginalProductionPathRef implements ParameterReference<String> {
         }
 
         /**
          * visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
          */
-        @ValueReference(OriginalTypeRef.class)
-        public String m_originalType;
+        @ValueReference(OriginalProductionPathRef.class)
+        @Persistor(OriginalPathPersistor.class)
+        public String m_originalProductionPath;
 
-        static class OriginalTypeLabelRef implements ParameterReference<String> {
+        static final class OriginalPathPersistor extends ProductionPathPersistor {
+
+            private static final String CFG_ORIGINAL_PRODUCTION_PATH = "originalProductionPath";
+
+            OriginalPathPersistor() {
+                super(CFG_ORIGINAL_PRODUCTION_PATH);
+            }
+
+            @Override
+            public String load(final NodeSettingsRO settings) throws InvalidSettingsException {
+                if (settings.containsKey(CFG_ORIGINAL_PRODUCTION_PATH)) {
+                    return super.load(settings);
+                }
+                return TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID;
+            }
+
+            @Override
+            public void save(final String param, final NodeSettingsWO settings) {
+                if (TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID.equals(param)) {
+                    // do not save default value
+                    return;
+                }
+                super.save(param, settings);
+            }
         }
 
-        @ValueReference(OriginalTypeLabelRef.class)
+        static class OriginalProductionPathLabelRef implements ParameterReference<String> {
+        }
+
+        @ValueReference(OriginalProductionPathLabelRef.class)
         String m_originalTypeLabel;
 
         /**
@@ -322,7 +355,7 @@ public abstract class TransformationParameters<T>
             @Override
             public void init(final StateProviderInitializer initializer) {
                 initializer.computeOnButtonClick(ArrayWidgetInternal.ElementResetButton.class);
-                m_originalTypeSupplier = initializer.getValueSupplier(OriginalTypeRef.class);
+                m_originalTypeSupplier = initializer.getValueSupplier(OriginalProductionPathRef.class);
             }
 
             @Override
@@ -355,7 +388,7 @@ public abstract class TransformationParameters<T>
             @Override
             public void init(final StateProviderInitializer initializer) {
                 initializer.computeOnValueChange(TableSpecSettingsRef.class);
-                m_originalTypeLabelSupplier = initializer.getValueSupplier(OriginalTypeLabelRef.class);
+                m_originalTypeLabelSupplier = initializer.getValueSupplier(OriginalProductionPathLabelRef.class);
             }
 
             @Override
@@ -392,7 +425,36 @@ public abstract class TransformationParameters<T>
         @Modification.WidgetReference(TransformationSettingsWidgetModification.TypeChoicesWidgetRef.class)
         @ValueProvider(TypeResetter.class)
         @Effect(predicate = ArrayWidgetInternal.ElementIsEdited.class, type = EffectType.SHOW)
-        public String m_type;
+        @Persistor(PathPersistor.class)
+        public String m_productionPath;
+
+        static final class PathPersistor extends ProductionPathPersistor {
+
+            private static final String CFG_UNKNOWNS_COLUMN_DATA_TYPE = "unknownsColumnDataType";
+
+            private static final String CFG_PRODUCTION_PATH = "productionPath";
+
+            PathPersistor() {
+                super(CFG_PRODUCTION_PATH);
+            }
+
+            @Override
+            public String load(final NodeSettingsRO settings) throws InvalidSettingsException {
+                if (settings.containsKey(CFG_UNKNOWNS_COLUMN_DATA_TYPE)) {
+                    return settings.getString(CFG_UNKNOWNS_COLUMN_DATA_TYPE);
+                }
+                return super.load(settings);
+            }
+
+            @Override
+            public void save(final String param, final NodeSettingsWO settings) {
+                if (ProductionPathUtils.isPathIdentifier(param)) {
+                    super.save(param, settings);
+                } else {
+                    settings.addString(CFG_UNKNOWNS_COLUMN_DATA_TYPE, param);
+                }
+            }
+        }
 
         TransformationElementSettings() {
         }
@@ -400,22 +462,54 @@ public abstract class TransformationParameters<T>
         /**
          * visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
          */
+        @SuppressWarnings("javadoc")
         public TransformationElementSettings(final String columnName, final boolean includeInOutput,
             final String columnRename, final String type, final String originalType, final String originalTypeLabel) {
             m_columnName = columnName;
             m_includeInOutput = includeInOutput;
             m_columnRename = columnRename;
-            m_type = type; // converter fac id
-            m_originalType = originalType; // converter fac id
+            m_productionPath = type; // converter fac id
+            m_originalProductionPath = originalType; // converter fac id
             m_originalTypeLabel = originalTypeLabel;
+        }
+
+        /**
+         * Constructor for concrete columns.
+         *
+         * @param columnName
+         * @param includeInOutput
+         * @param columnRename
+         * @param productionPath
+         * @param defaultProductionPath
+         */
+        TransformationElementSettings(final String columnName, final boolean includeInOutput, final String columnRename,
+            final ProductionPath productionPath, final ProductionPath defaultProductionPath) {
+            this(columnName, includeInOutput, columnRename, //
+                ProductionPathUtils.getPathIdentifier(productionPath), //
+                ProductionPathUtils.getPathIdentifier(defaultProductionPath), //
+                defaultProductionPath.getDestinationType().toPrettyString() //
+            );
+        }
+
+        /**
+         * Constructor for unknown columns.
+         *
+         * @param includeInOutput
+         * @param dataType Override data type for unknown columns. Leave null for using the default type.
+         */
+        TransformationElementSettings(final boolean includeInOutput, final DataType dataType) {
+            this(null, includeInOutput, null,
+                dataType == null ? TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID : getDataTypeId(dataType),
+                TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID, //
+                TypeChoicesProvider.DEFAULT_COLUMNTYPE_TEXT //
+            );
         }
 
         /**
          * visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
          */
         public static TransformationElementSettings createUnknownElement() {
-            return new TransformationElementSettings(null, true, null, TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID,
-                TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID, TypeChoicesProvider.DEFAULT_COLUMNTYPE_TEXT);
+            return new TransformationElementSettings(true, null);
         }
     }
 
@@ -511,21 +605,20 @@ public abstract class TransformationParameters<T>
         final var transformations = new ArrayList<ColumnTransformation<T>>();
         for (var column : howToCombineColumns.toColumnFilterMode().getRelevantSpec(rawSpec)) {
 
-            final var columnName = column.getName().get(); // NOSONAR in the TypedReaderTableSpecsProvider we make sure that names are always present
-            if (columnName == null) {
-                continue;
-            }
+            // in the TypedReaderTableSpecsProvider we make sure that names are always present
+            final var columnName = column.getName().orElseThrow(IllegalStateException::new);
             final var position = transformationIndexByColumnName.get(columnName);
             final var transformation = m_columnTransformation[position];
-            final var externalType = column.getType();
-            final var productionPath = getProductionPathProvider().getAvailableProductionPaths(externalType).stream()
-                .filter(p -> p.getConverterFactory().getIdentifier().equals(transformation.m_type)).findFirst()
-                .orElseGet(() -> {
-                    LOGGER.error(
-                        String.format("The column '%s' can't be converted to the configured data type.", column));
-                    return getProductionPathProvider().getDefaultProductionPath(externalType);
-                });
-
+            ProductionPath productionPath;
+            try {
+                productionPath =
+                    ProductionPathUtils.fromPathIdentifier(transformation.m_productionPath, getProducerRegistry()); // validate path id
+            } catch (InvalidSettingsException e) {
+                LOGGER.error(String.format(
+                    "The column '%s' can't be converted to the configured data type. Unknown production path: %s",
+                    column, transformation.m_productionPath), e);
+                productionPath = getProductionPathProvider().getDefaultProductionPath(column.getType());
+            }
             transformations.add(new ImmutableColumnTransformation<>(column, productionPath,
                 transformation.m_includeInOutput, position, transformation.m_columnRename));
         }
@@ -537,8 +630,9 @@ public abstract class TransformationParameters<T>
     private static ImmutableUnknownColumnsTransformation determineUnknownTransformation(
         final TransformationElementSettings unknownTransformation, final int unknownColumnsTransformationPosition) {
         DataType forcedUnknownType = null;
-        if (!unknownTransformation.m_type.equals(TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID)) {
-            forcedUnknownType = TransformationParametersStateProviders.fromDataTypeId(unknownTransformation.m_type);
+        if (!unknownTransformation.m_productionPath.equals(TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID)) {
+            forcedUnknownType =
+                TransformationParametersStateProviders.fromDataTypeId(unknownTransformation.m_productionPath);
         }
         return new ImmutableUnknownColumnsTransformation(unknownColumnsTransformationPosition,
             unknownTransformation.m_includeInOutput, forcedUnknownType != null, forcedUnknownType);
@@ -614,8 +708,19 @@ public abstract class TransformationParameters<T>
 
     static final String ROOT_CFG_KEY = "table_spec_config_Internals";
 
+    /**
+     * The factory method to create the table spec config serializer.
+     *
+     * @param configIdLoader the config ID loader
+     * @return the table spec config serializer
+     */
     protected abstract TableSpecConfigSerializer<T> createTableSpecConfigSerializer(ConfigIDLoader configIdLoader);
 
+    /**
+     * The key used in the settings to store all settigns within the config ID.
+     *
+     * @return the config ID settings key
+     */
     protected abstract String getConfigIdSettingsKey();
 
     private TableSpecConfigSerializer<T> createTableSpecConfigSerializer() {
@@ -624,6 +729,12 @@ public abstract class TransformationParameters<T>
         return createTableSpecConfigSerializer(configIdLoader);
     }
 
+    /**
+     * Use this method in a {@link NodeParametersMigration} to load transformation settings from legacy table spec
+     *
+     * @param settings the settings to load from
+     * @throws InvalidSettingsException if loading the settings failed
+     */
     public void loadFromLegacySettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         if (settings.containsKey(ROOT_CFG_KEY)) {
             final var tableSpecConfigSerializer = createTableSpecConfigSerializer();
@@ -688,21 +799,19 @@ public abstract class TransformationParameters<T>
             t.getOriginalName(), //
             t.keep(), //
             t.getName(), //
-            t.getProductionPath().getConverterFactory().getIdentifier(), //
-            defaultProductionPath.getConverterFactory().getIdentifier(), //
-            defaultProductionPath.getDestinationType().toPrettyString());
+            t.getProductionPath(), //
+            defaultProductionPath);
     }
 
     private static TransformationElementSettings toTransformationElementSettings(final UnknownColumnsTransformation t) {
-        return new TransformationElementSettings(null, t.keep(), null, getForcedType(t),
-            TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID, TypeChoicesProvider.DEFAULT_COLUMNTYPE_TEXT);
+        return new TransformationElementSettings(t.keep(), getForcedType(t));
     }
 
-    private static String getForcedType(final UnknownColumnsTransformation t) {
+    private static DataType getForcedType(final UnknownColumnsTransformation t) {
         if (t.forceType()) {
-            return getDataTypeId(t.getForcedType());
+            return t.getForcedType();
         }
-        return TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID;
+        return null;
     }
 
     static String getDataTypeId(final DataType type) {

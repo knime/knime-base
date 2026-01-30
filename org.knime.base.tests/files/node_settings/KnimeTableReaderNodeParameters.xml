@@ -44,13 +44,13 @@
                 <entry key="maximumNumberOfRows_is_present" type="xboolean" value="false"/>
             </config>
             <config key="ifSchemaChangesParams">
-                <entry key="ifSchemaChangesOption" type="xstring" value="FAIL"/>
                 <entry key="ignoreSchemaChange" type="xboolean" value="false"/>
+                <entry key="ifSchemaChangesOption" type="xstring" value="FAIL"/>
             </config>
             <config key="multiFileReaderParams">
-                <entry key="howToCombineColumns" type="xstring" value="UNION"/>
                 <entry key="appendPathColumn" type="xstring" value="File Path"/>
                 <entry key="appendPathColumn_is_present" type="xboolean" value="true"/>
+                <entry key="howToCombineColumns" type="xstring" value="UNION"/>
             </config>
             <config key="useExistingRowIdParams">
                 <entry key="useExistingRowId" type="xboolean" value="true"/>
@@ -58,6 +58,9 @@
             <config key="prependTableIndexParams">
                 <entry key="prependTableIndexToRowId" type="xboolean" value="true"/>
             </config>
+        </config>
+        <config key="configId_Internals">
+            <config key="table_reader"/>
         </config>
         <config key="transformationParameters">
             <config key="specs">
@@ -102,51 +105,80 @@
             <config key="columnTransformation">
                 <config key="0">
                     <entry key="columnName" type="xstring" value="Universe_0_0"/>
-                    <entry key="originalType" type="xstring" value="CELL_CONVERTER_IDENTITY_FACTORY"/>
+                    <config key="originalProductionPath">
+                        <entry key="_converter" type="xstring" value="CELL_CONVERTER_IDENTITY_FACTORY"/>
+                        <entry key="_producer" type="xstring" value="CELL_VALUE_PRODUCER_IDENTITY_FACTORY"/>
+                    </config>
                     <entry key="originalTypeLabel" type="xstring" value="Number (Float)"/>
                     <entry key="includeInOutput" type="xboolean" value="true"/>
                     <entry key="columnRename" type="xstring" value="Universe_0_0"/>
-                    <entry key="type" type="xstring" value="CELL_CONVERTER_IDENTITY_FACTORY"/>
+                    <config key="productionPath">
+                        <entry key="_converter" type="xstring" value="CELL_CONVERTER_IDENTITY_FACTORY"/>
+                        <entry key="_producer" type="xstring" value="CELL_VALUE_PRODUCER_IDENTITY_FACTORY"/>
+                    </config>
                 </config>
                 <config key="1">
                     <entry key="columnName" type="xstring" value="Cluster Membership"/>
-                    <entry key="originalType" type="xstring" value="CELL_CONVERTER_IDENTITY_FACTORY"/>
+                    <config key="originalProductionPath">
+                        <entry key="_converter" type="xstring" value="CELL_CONVERTER_IDENTITY_FACTORY"/>
+                        <entry key="_producer" type="xstring" value="CELL_VALUE_PRODUCER_IDENTITY_FACTORY"/>
+                    </config>
                     <entry key="originalTypeLabel" type="xstring" value="String"/>
                     <entry key="includeInOutput" type="xboolean" value="true"/>
                     <entry key="columnRename" type="xstring" value="Cluster Membership"/>
-                    <entry key="type" type="xstring" value="CELL_CONVERTER_IDENTITY_FACTORY"/>
+                    <config key="productionPath">
+                        <entry key="_converter" type="xstring" value="CELL_CONVERTER_IDENTITY_FACTORY"/>
+                        <entry key="_producer" type="xstring" value="CELL_VALUE_PRODUCER_IDENTITY_FACTORY"/>
+                    </config>
                 </config>
                 <config key="2">
                     <entry key="columnName" type="xstring" value="Universe_0_1"/>
-                    <entry key="originalType" type="xstring" value="CELL_CONVERTER_IDENTITY_FACTORY"/>
+                    <config key="originalProductionPath">
+                        <entry key="_converter" type="xstring" value="CELL_CONVERTER_IDENTITY_FACTORY"/>
+                        <entry key="_producer" type="xstring" value="CELL_VALUE_PRODUCER_IDENTITY_FACTORY"/>
+                    </config>
                     <entry key="originalTypeLabel" type="xstring" value="Number (Float)"/>
                     <entry key="includeInOutput" type="xboolean" value="true"/>
                     <entry key="columnRename" type="xstring" value="Universe_0_1"/>
-                    <entry key="type" type="xstring" value="CELL_CONVERTER_IDENTITY_FACTORY"/>
+                    <config key="productionPath">
+                        <entry key="_converter" type="xstring" value="org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)"/>
+                        <entry key="_producer" type="xstring" value="org.knime.core.data.def.DoubleCell-&gt;java.lang.String"/>
+                    </config>
                 </config>
                 <config key="3">
                     <entry key="columnName" type="xstring" value="Universe_1_0"/>
-                    <entry key="originalType" type="xstring" value="CELL_CONVERTER_IDENTITY_FACTORY"/>
+                    <config key="originalProductionPath">
+                        <entry key="_converter" type="xstring" value="CELL_CONVERTER_IDENTITY_FACTORY"/>
+                        <entry key="_producer" type="xstring" value="CELL_VALUE_PRODUCER_IDENTITY_FACTORY"/>
+                    </config>
                     <entry key="originalTypeLabel" type="xstring" value="Number (Float)"/>
                     <entry key="includeInOutput" type="xboolean" value="true"/>
                     <entry key="columnRename" type="xstring" value="Universe_1_0"/>
-                    <entry key="type" type="xstring" value="CELL_CONVERTER_IDENTITY_FACTORY"/>
+                    <config key="productionPath">
+                        <entry key="_converter" type="xstring" value="CELL_CONVERTER_IDENTITY_FACTORY"/>
+                        <entry key="_producer" type="xstring" value="CELL_VALUE_PRODUCER_IDENTITY_FACTORY"/>
+                    </config>
                 </config>
                 <config key="4">
                     <entry key="columnName" type="xstring" value="Universe_1_1"/>
-                    <entry key="originalType" type="xstring" value="CELL_CONVERTER_IDENTITY_FACTORY"/>
+                    <config key="originalProductionPath">
+                        <entry key="_converter" type="xstring" value="CELL_CONVERTER_IDENTITY_FACTORY"/>
+                        <entry key="_producer" type="xstring" value="CELL_VALUE_PRODUCER_IDENTITY_FACTORY"/>
+                    </config>
                     <entry key="originalTypeLabel" type="xstring" value="Number (Float)"/>
                     <entry key="includeInOutput" type="xboolean" value="true"/>
                     <entry key="columnRename" type="xstring" value="Universe_1_1"/>
-                    <entry key="type" type="xstring" value="CELL_CONVERTER_IDENTITY_FACTORY"/>
+                    <config key="productionPath">
+                        <entry key="_converter" type="xstring" value="CELL_CONVERTER_IDENTITY_FACTORY"/>
+                        <entry key="_producer" type="xstring" value="CELL_VALUE_PRODUCER_IDENTITY_FACTORY"/>
+                    </config>
                 </config>
                 <config key="5">
                     <entry key="columnName" type="xstring" isnull="true" value=""/>
-                    <entry key="originalType" type="xstring" value="&lt;default-columntype&gt;"/>
                     <entry key="originalTypeLabel" type="xstring" value="Default columntype"/>
                     <entry key="includeInOutput" type="xboolean" value="true"/>
                     <entry key="columnRename" type="xstring" isnull="true" value=""/>
-                    <entry key="type" type="xstring" value="&lt;default-columntype&gt;"/>
+                    <entry key="unknownsColumnDataType" type="xstring" value="{&quot;name&quot;:&quot;type&quot;,&quot;value&quot;:{&quot;type&quot;:{&quot;type&quot;:&quot;tree&quot;,&quot;value&quot;:{&quot;cell_class&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;value&quot;:&quot;org.knime.core.data.vector.bitvector.DenseBitVectorCell&quot;},&quot;is_null&quot;:{&quot;type&quot;:&quot;boolean&quot;,&quot;value&quot;:false}}}}}"/>
                 </config>
             </config>
         </config>
@@ -159,7 +191,7 @@
     <entry key="node-bundle-name" type="xstring" value="KNIME Base Nodes"/>
     <entry key="node-bundle-symbolic-name" type="xstring" value="org.knime.base"/>
     <entry key="node-bundle-vendor" type="xstring" value="KNIME AG, Zurich, Switzerland"/>
-    <entry key="node-bundle-version" type="xstring" value="5.9.0.qualifier"/>
+    <entry key="node-bundle-version" type="xstring" value="5.11.0.qualifier"/>
     <entry key="node-feature-name" type="xstring" isnull="true" value=""/>
     <entry key="node-feature-symbolic-name" type="xstring" isnull="true" value=""/>
     <entry key="node-feature-vendor" type="xstring" isnull="true" value=""/>
@@ -183,6 +215,6 @@
     </config>
     <config key="filestores">
         <entry key="file_store_location" type="xstring" isnull="true" value=""/>
-        <entry key="file_store_id" type="xstring" value="c538a65c-197a-46a5-a108-b355e608dc8f"/>
+        <entry key="file_store_id" type="xstring" value="ff4d95bb-d1aa-45af-8089-3111f675abc8"/>
     </config>
 </config>
