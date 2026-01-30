@@ -65,7 +65,7 @@ final class PMMLWriterNodeConfig2 extends PortObjectWriterNodeConfig {
     private static final String[] PMML_SUFFIX = new String[]{".pmml"};
 
     /** Config key for validate PMML checkbox. */
-    private static final String CFG_VALIDATE_PMML = "validate_PMML";
+    static final String CFG_VALIDATE_PMML = "validate_PMML";
 
     /** Settings model storing the validate pmml flag. */
     private final SettingsModelBoolean m_validatePMMLModel = new SettingsModelBoolean(CFG_VALIDATE_PMML, true);
