@@ -59,6 +59,7 @@ import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.util.Version;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.node.table.reader.GenericTableReader;
+import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.ReadAdapterFactory;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigID;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigIDLoader;
@@ -120,6 +121,12 @@ public class TutorialReaderNodeFactory extends WebUITableReaderNodeFactory<Tutor
     // TODO (#5): Return your ReadAdapterFactory's TYPE_HIERARCHY
     @Override
     protected TypeHierarchy<Class<?>, Class<?>> getTypeHierarchy() {
+        return null;
+    }
+
+    // TODO (#5): Return your ProductionPathProvider instance or remove override to use DefaultProductionPathProvider
+    @Override
+    protected ProductionPathProvider<Class<?>> createProductionPathProvider() {
         return null;
     }
 

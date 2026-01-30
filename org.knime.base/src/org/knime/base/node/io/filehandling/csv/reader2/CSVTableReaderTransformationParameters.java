@@ -65,7 +65,7 @@ final class CSVTableReaderTransformationParameters extends ClassBasedTransformat
     implements ProductionPathProviderAndTypeHierarchy {
 
     @Override
-    protected TableSpecConfigSerializer<Class<?>> createTableSpecConfigSerializer(ConfigIDLoader configIdLoader) {
+    protected TableSpecConfigSerializer<Class<?>> createTableSpecConfigSerializer(final ConfigIDLoader configIdLoader) {
         return TableSpecConfigSerializer.createStartingV42(StringReadAdapterFactory.INSTANCE.getProducerRegistry(),
             configIdLoader, ClassTypeSerializer.SERIALIZER, String.class);
     }
@@ -74,4 +74,6 @@ final class CSVTableReaderTransformationParameters extends ClassBasedTransformat
     protected String getConfigIdSettingsKey() {
         return "multi_table_read";
     }
+
+
 }

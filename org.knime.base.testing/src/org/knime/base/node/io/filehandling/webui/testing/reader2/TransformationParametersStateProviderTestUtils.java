@@ -169,8 +169,8 @@ public final class TransformationParametersStateProviderTestUtils {
             assertThat(transformationElements[i].m_columnName).isEqualTo(columnNames[i]);
             assertThat(transformationElements[i].m_includeInOutput).isEqualTo(includeInOutputs[i]);
             assertThat(transformationElements[i].m_columnRename).isEqualTo(columnRenames[i]);
-            assertThat(transformationElements[i].m_type).isEqualTo(types[i]);
-            assertThat(transformationElements[i].m_originalType).isEqualTo(originalTypes[i]);
+            assertThat(transformationElements[i].m_productionPath).isEqualTo(types[i]);
+            assertThat(transformationElements[i].m_originalProductionPath).isEqualTo(originalTypes[i]);
         }
     }
 
@@ -186,7 +186,7 @@ public final class TransformationParametersStateProviderTestUtils {
 
         final var unknownElement = TransformationElementSettings.createUnknownElement();
         unknownElement.m_includeInOutput = false;
-        unknownElement.m_type = DataTypeSerializer.typeToString(unknownColumnsDataType);
+        unknownElement.m_productionPath = DataTypeSerializer.typeToString(unknownColumnsDataType);
 
         transformationSettings.m_columnTransformation =
             new TransformationElementSettings[]{createDummyElement("previousColumn"), unknownElement};
