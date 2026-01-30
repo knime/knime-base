@@ -288,7 +288,34 @@ public abstract class TransformationParameters<T>
          * visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
          */
         @ValueReference(OriginalProductionPathRef.class)
+        @Persistor(OriginalPathPersistor.class)
         public String m_originalProductionPath;
+
+        static final class OriginalPathPersistor extends ProductionPathPersistor {
+
+            private static final String CFG_ORIGINAL_PRODUCTION_PATH = "originalProductionPath";
+
+            OriginalPathPersistor() {
+                super(CFG_ORIGINAL_PRODUCTION_PATH);
+            }
+
+            @Override
+            public String load(final NodeSettingsRO settings) throws InvalidSettingsException {
+                if (settings.containsKey(CFG_ORIGINAL_PRODUCTION_PATH)) {
+                    return super.load(settings);
+                }
+                return TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID;
+            }
+
+            @Override
+            public void save(final String param, final NodeSettingsWO settings) {
+                if (TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID.equals(param)) {
+                    // do not save default value
+                    return;
+                }
+                super.save(param, settings);
+            }
+        }
 
         static class OriginalProductionPathLabelRef implements ParameterReference<String> {
         }

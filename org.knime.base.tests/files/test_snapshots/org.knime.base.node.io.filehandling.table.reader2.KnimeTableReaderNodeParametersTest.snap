@@ -60,11 +60,11 @@
         "enforceTypes" : true,
         "columnTransformation" : [ {
           "columnName" : null,
-          "originalType" : "<default-columntype>",
+          "originalProductionPath" : "<default-columntype>",
           "originalTypeLabel" : "Default columntype",
           "includeInOutput" : true,
           "columnRename" : null,
-          "type" : "<default-columntype>"
+          "productionPath" : "<default-columntype>"
         } ]
       }
     }
@@ -514,13 +514,13 @@
                       "title" : "Include in output",
                       "default" : false
                     },
-                    "originalType" : {
+                    "originalProductionPath" : {
                       "type" : "string"
                     },
                     "originalTypeLabel" : {
                       "type" : "string"
                     },
-                    "type" : {
+                    "productionPath" : {
                       "type" : "string",
                       "title" : "Column type"
                     }
@@ -530,11 +530,11 @@
                 "description" : "Use this option to modify the structure of the table. You can deselect each column to filter it out of the\noutput table, use the arrows to reorder the columns, or change the column name or column type of each\ncolumn. Note that the positions of columns are reset in the dialog if a new file or folder is selected.\nWhether and where to add unknown columns during execution is specified via the special row &lt;any unknown\nnew column&gt;. It is also possible to select the type new columns should be converted to. Note that the\nnode will fail if this conversion is not possible e.g. if the selected type is Integer but the new column is\nof type Double.\n",
                 "default" : [ {
                   "columnName" : null,
-                  "originalType" : "<default-columntype>",
+                  "originalProductionPath" : "<default-columntype>",
                   "originalTypeLabel" : "Default columntype",
                   "includeInOutput" : true,
                   "columnRename" : null,
-                  "type" : "<default-columntype>"
+                  "productionPath" : "<default-columntype>"
                 } ]
               },
               "enforceTypes" : {
@@ -580,11 +580,11 @@
               "enforceTypes" : true,
               "columnTransformation" : [ {
                 "columnName" : null,
-                "originalType" : "<default-columntype>",
+                "originalProductionPath" : "<default-columntype>",
                 "originalTypeLabel" : "Default columntype",
                 "includeInOutput" : true,
                 "columnRename" : null,
-                "type" : "<default-columntype>"
+                "productionPath" : "<default-columntype>"
               } ]
             }
           }
@@ -1016,7 +1016,7 @@
             }
           }, {
             "type" : "Control",
-            "scope" : "#/properties/type",
+            "scope" : "#/properties/productionPath",
             "options" : {
               "hideControlHeader" : true,
               "format" : "dropDown"
@@ -1174,11 +1174,15 @@
                   "type" : "object",
                   "properties" : {
                     "columnName" : { },
-                    "originalType" : { },
+                    "originalProductionPath" : {
+                      "configPaths" : [ ]
+                    },
                     "originalTypeLabel" : { },
                     "includeInOutput" : { },
                     "columnRename" : { },
-                    "type" : { }
+                    "productionPath" : {
+                      "configPaths" : [ ]
+                    }
                   }
                 }
               }
@@ -1220,7 +1224,7 @@
     "trigger" : {
       "id" : "ElementResetButton"
     },
-    "dependencies" : [ "#/properties/model/properties/transformationParameters/properties/columnTransformation/items/properties/columnName", "#/properties/model/properties/transformationParameters/properties/columnTransformation/items/properties/originalType" ]
+    "dependencies" : [ "#/properties/model/properties/transformationParameters/properties/columnTransformation/items/properties/columnName", "#/properties/model/properties/transformationParameters/properties/columnTransformation/items/properties/originalProductionPath" ]
   }, {
     "trigger" : {
       "id" : "after-open-dialog"

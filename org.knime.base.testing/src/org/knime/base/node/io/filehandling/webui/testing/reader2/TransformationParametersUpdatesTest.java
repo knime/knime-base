@@ -72,9 +72,9 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.knime.base.node.io.filehandling.webui.reader.DataTypeStringSerializer;
-import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters;
 import org.knime.base.node.io.filehandling.webui.reader2.MultiFileReaderParameters.HowToCombineColumnsOption;
 import org.knime.base.node.io.filehandling.webui.reader2.ReaderSpecific.ExternalDataTypeSerializer;
+import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters;
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.TableSpecSettings;
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.TransformationElementSettings;
 import org.knime.base.node.io.filehandling.webui.testing.LocalWorkflowContextTest;
@@ -85,6 +85,7 @@ import org.knime.core.data.def.StringCell;
 import org.knime.core.data.xml.XMLCell;
 import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.datatype.convert.ProductionPathUtils;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.IndexedValue;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
@@ -404,13 +405,13 @@ public abstract class TransformationParametersUpdatesTest<R extends WidgetGroup,
     protected abstract T getDoubleType();
 
     private String getDefaultPathIdentifier(final T typeClass) {
-        return getProductionPathProvider().getDefaultProductionPath(typeClass).getConverterFactory().getIdentifier();
+        return ProductionPathUtils.getPathIdentifier(getProductionPathProvider().getDefaultProductionPath(typeClass));
     }
 
     private String getPathIdentifier(final T typeClass, final DataType targetDataType) {
-        return getProductionPathProvider().getAvailableProductionPaths(typeClass).stream()
-            .filter(path -> path.getDestinationType().equals(targetDataType)).findFirst().orElseThrow()
-            .getConverterFactory().getIdentifier();
+        final var productionPath = getProductionPathProvider().getAvailableProductionPaths(typeClass).stream()
+            .filter(path -> path.getDestinationType().equals(targetDataType)).findFirst().orElseThrow();
+        return ProductionPathUtils.getPathIdentifier(productionPath);
     }
 
     protected abstract ProductionPathProvider<T> getProductionPathProvider();
@@ -430,8 +431,8 @@ public abstract class TransformationParametersUpdatesTest<R extends WidgetGroup,
         writeFileWithIntegerAndStringColumn();
 
         final var simulatorResult = getSimulatorResultForUpdatesInElementSettingsArray();
-        final var typeChoicesProviderResult = simulatorResult.getMultiUiStateUpdateAt(
-            List.of(List.of(combineWithPathToTransformationSettings("columnTransformation")), List.of("type")),
+        final var typeChoicesProviderResult = simulatorResult.getMultiUiStateUpdateAt(List
+            .of(List.of(combineWithPathToTransformationSettings("columnTransformation")), List.of("productionPath")),
             "possibleValues");
 
         assertSizeAndIndices(typeChoicesProviderResult, 3);
@@ -463,7 +464,7 @@ public abstract class TransformationParametersUpdatesTest<R extends WidgetGroup,
     void testElementReset() throws IOException {
         simulateSetTransformationElementSettings();
         final var simulatorResult = m_simulator.simulateButtonClick(ArrayWidgetInternal.ElementResetButton.class);
-        final var typeReset = getMultiResultInTransformationElementSettings(simulatorResult, "type");
+        final var typeReset = getMultiResultInTransformationElementSettings(simulatorResult, "productionPath");
         final var columnNameReset = getMultiResultInTransformationElementSettings(simulatorResult, "columnRename");
 
         assertSizeAndIndices(typeReset, 3);
@@ -507,7 +508,7 @@ public abstract class TransformationParametersUpdatesTest<R extends WidgetGroup,
 
     private List<StringChoice> typeChoices(final T type) {
         final var productionPaths = getProductionPathProvider().getAvailableProductionPaths(type);
-        return productionPaths.stream().map(path -> new StringChoice(path.getConverterFactory().getIdentifier(),
+        return productionPaths.stream().map(path -> new StringChoice(ProductionPathUtils.getPathIdentifier(path),
             path.getDestinationType().toPrettyString())).toList();
     }
 
