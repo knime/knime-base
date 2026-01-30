@@ -79,7 +79,7 @@ import org.knime.node.parameters.NodeParameters;
  * @param <M> the type of {@link MultiTableReadConfig}
  *
  * @author Paul Bärnreuther
- * @since 5.10
+ * @since 5.11
  */
 public abstract class BackwardsCompatibleWebUITableReaderNodeFactory<P extends NodeParameters, S extends Source<FSPath>, //
         C extends ReaderSpecificConfig<C>, T, V, //
