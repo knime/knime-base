@@ -495,10 +495,10 @@ public final class TransformationParametersStateProviders {
         private TransformationElementSettings mergeExistingWithNew(final TransformationElementSettings existingElement,
             final TypedReaderColumnSpec<T> newSpec) {
             final var newElement = createNewElement(newSpec);
-            if (!newElement.m_originalType.equals(existingElement.m_originalType)) {
+            if (!newElement.m_originalProductionPath.equals(existingElement.m_originalProductionPath)) {
                 return newElement;
             }
-            newElement.m_type = existingElement.m_type;
+            newElement.m_productionPath = existingElement.m_productionPath;
             newElement.m_columnRename = existingElement.m_columnRename;
             newElement.m_includeInOutput = existingElement.m_includeInOutput;
             return newElement;
@@ -506,10 +506,10 @@ public final class TransformationParametersStateProviders {
         }
 
         private static Optional<DataType> getUnknownElementsType(final TransformationElementSettings unknownElement) {
-            if (TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID.equals(unknownElement.m_type)) {
+            if (TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID.equals(unknownElement.m_productionPath)) {
                 return Optional.empty();
             }
-            return Optional.of(fromDataTypeId(unknownElement.m_type));
+            return Optional.of(fromDataTypeId(unknownElement.m_productionPath));
         }
 
         /**

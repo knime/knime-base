@@ -170,7 +170,7 @@ public final class TransformationParametersStateProviderTestUtils {
             assertThat(transformationElements[i].m_includeInOutput).isEqualTo(includeInOutputs[i]);
             assertThat(transformationElements[i].m_columnRename).isEqualTo(columnRenames[i]);
             assertThat(transformationElements[i].m_type).isEqualTo(types[i]);
-            assertThat(transformationElements[i].m_originalType).isEqualTo(originalTypes[i]);
+            assertThat(transformationElements[i].m_originalProductionPath).isEqualTo(originalTypes[i]);
         }
     }
 

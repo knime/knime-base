@@ -68,12 +68,15 @@ import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameter
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataType;
+import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.WidgetInternal;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.datatype.convert.ProductionPathUtils;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.datatype.convert.ProductionPathUtils.ProductionPathPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.filehandling.core.connections.FSCategory;
@@ -104,7 +107,9 @@ import org.knime.node.parameters.array.ArrayWidget;
 import org.knime.node.parameters.layout.After;
 import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.layout.Section;
+import org.knime.node.parameters.migration.NodeParametersMigration;
 import org.knime.node.parameters.persistence.Persistable;
+import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.updates.Effect;
 import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.updates.EffectPredicate;
@@ -275,19 +280,19 @@ public abstract class TransformationParameters<T>
         @JsonInclude(Include.ALWAYS) // Necessary for the ColumnNameIsNull PredicateProvider to work
         public String m_columnName;
 
-        static class OriginalTypeRef implements ParameterReference<String> {
+        static class OriginalProductionPathRef implements ParameterReference<String> {
         }
 
         /**
          * visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
          */
-        @ValueReference(OriginalTypeRef.class)
-        public String m_originalType;
+        @ValueReference(OriginalProductionPathRef.class)
+        public String m_originalProductionPath;
 
-        static class OriginalTypeLabelRef implements ParameterReference<String> {
+        static class OriginalProductionPathLabelRef implements ParameterReference<String> {
         }
 
-        @ValueReference(OriginalTypeLabelRef.class)
+        @ValueReference(OriginalProductionPathLabelRef.class)
         String m_originalTypeLabel;
 
         /**
@@ -320,7 +325,7 @@ public abstract class TransformationParameters<T>
             @Override
             public void init(final StateProviderInitializer initializer) {
                 initializer.computeOnButtonClick(ArrayWidgetInternal.ElementResetButton.class);
-                m_originalTypeSupplier = initializer.getValueSupplier(OriginalTypeRef.class);
+                m_originalTypeSupplier = initializer.getValueSupplier(OriginalProductionPathRef.class);
             }
 
             @Override
@@ -353,7 +358,7 @@ public abstract class TransformationParameters<T>
             @Override
             public void init(final StateProviderInitializer initializer) {
                 initializer.computeOnValueChange(TableSpecSettingsRef.class);
-                m_originalTypeLabelSupplier = initializer.getValueSupplier(OriginalTypeLabelRef.class);
+                m_originalTypeLabelSupplier = initializer.getValueSupplier(OriginalProductionPathLabelRef.class);
             }
 
             @Override
@@ -390,7 +395,14 @@ public abstract class TransformationParameters<T>
         @Modification.WidgetReference(TransformationSettingsWidgetModification.TypeChoicesWidgetRef.class)
         @ValueProvider(TypeResetter.class)
         @Effect(predicate = ArrayWidgetInternal.ElementIsEdited.class, type = EffectType.SHOW)
-        public String m_type;
+        @Persistor(PathPersistor.class)
+        public String m_productionPath;
+
+        static final class PathPersistor extends ProductionPathPersistor {
+            PathPersistor() {
+                super("production_path");
+            }
+        }
 
         TransformationElementSettings() {
         }
@@ -403,8 +415,8 @@ public abstract class TransformationParameters<T>
             m_columnName = columnName;
             m_includeInOutput = includeInOutput;
             m_columnRename = columnRename;
-            m_type = type; // converter fac id
-            m_originalType = originalType; // converter fac id
+            m_productionPath = type; // converter fac id
+            m_originalProductionPath = originalType; // converter fac id
             m_originalTypeLabel = originalTypeLabel;
         }
 
@@ -515,15 +527,16 @@ public abstract class TransformationParameters<T>
             }
             final var position = transformationIndexByColumnName.get(columnName);
             final var transformation = m_columnTransformation[position];
-            final var externalType = column.getType();
-            final var productionPath = getProductionPathProvider().getAvailableProductionPaths(externalType).stream()
-                .filter(p -> p.getConverterFactory().getIdentifier().equals(transformation.m_type)).findFirst()
-                .orElseGet(() -> {
-                    LOGGER.error(
-                        String.format("The column '%s' can't be converted to the configured data type.", column));
-                    return getProductionPathProvider().getDefaultProductionPath(externalType);
-                });
-
+            ProductionPath productionPath;
+            try {
+                productionPath =
+                    ProductionPathUtils.fromPathIdentifier(transformation.m_productionPath, getProducerRegistry()); // validate path id
+            } catch (InvalidSettingsException e) {
+                LOGGER.error(String.format(
+                    "The column '%s' can't be converted to the configured data type. Unknown production path: %s",
+                    column, transformation.m_productionPath));
+                productionPath = getProductionPathProvider().getDefaultProductionPath(column.getType());
+            }
             transformations.add(new ImmutableColumnTransformation<>(column, productionPath,
                 transformation.m_includeInOutput, position, transformation.m_columnRename));
         }
@@ -535,8 +548,9 @@ public abstract class TransformationParameters<T>
     private static ImmutableUnknownColumnsTransformation determineUnknownTransformation(
         final TransformationElementSettings unknownTransformation, final int unknownColumnsTransformationPosition) {
         DataType forcedUnknownType = null;
-        if (!unknownTransformation.m_type.equals(TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID)) {
-            forcedUnknownType = TransformationParametersStateProviders.fromDataTypeId(unknownTransformation.m_type);
+        if (!unknownTransformation.m_productionPath.equals(TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID)) {
+            forcedUnknownType =
+                TransformationParametersStateProviders.fromDataTypeId(unknownTransformation.m_productionPath);
         }
         return new ImmutableUnknownColumnsTransformation(unknownColumnsTransformationPosition,
             unknownTransformation.m_includeInOutput, forcedUnknownType != null, forcedUnknownType);
@@ -612,9 +626,21 @@ public abstract class TransformationParameters<T>
 
     static final String ROOT_CFG_KEY = "table_spec_config_Internals";
 
+    /**
+     * The factory method to create the table spec config serializer.
+     *
+     * @param configIdLoader the config ID loader
+     * @return the table spec config serializer
+     */
     protected abstract TableSpecConfigSerializer<T> createTableSpecConfigSerializer(ConfigIDLoader configIdLoader);
 
+    /**
+     * The key used in the settings to store all settigns within the config ID.
+     *
+     * @return the config ID settings key
+     */
     protected abstract String getConfigIdSettingsKey();
+
 
     private TableSpecConfigSerializer<T> createTableSpecConfigSerializer() {
         final ConfigIDLoader configIdLoader =
@@ -622,6 +648,12 @@ public abstract class TransformationParameters<T>
         return createTableSpecConfigSerializer(configIdLoader);
     }
 
+    /**
+     * Use this method in a {@link NodeParametersMigration} to load transformation settings from legacy table spec
+     *
+     * @param settings the settings to load from
+     * @throws InvalidSettingsException if loading the settings failed
+     */
     public void loadFromLegacySettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         if (settings.containsKey(ROOT_CFG_KEY)) {
             final var tableSpecConfigSerializer = createTableSpecConfigSerializer();
@@ -686,8 +718,8 @@ public abstract class TransformationParameters<T>
             t.getOriginalName(), //
             t.keep(), //
             t.getName(), //
-            t.getProductionPath().getConverterFactory().getIdentifier(), //
-            defaultProductionPath.getConverterFactory().getIdentifier(), //
+            ProductionPathUtils.getPathIdentifier(t.getProductionPath()), //
+            ProductionPathUtils.getPathIdentifier(defaultProductionPath), //
             defaultProductionPath.getDestinationType().toPrettyString());
     }
 
