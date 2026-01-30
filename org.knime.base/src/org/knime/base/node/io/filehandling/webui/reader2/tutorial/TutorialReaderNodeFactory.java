@@ -59,7 +59,11 @@ import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.util.Version;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.node.table.reader.GenericTableReader;
+import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.ReadAdapterFactory;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigID;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigIDLoader;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.NodeSettingsConfigID;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
 import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
 
@@ -69,7 +73,7 @@ import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
  * @author KNIME AG, Zurich, Switzerland
  */
 // TODO (#4): Adjust Class<?> (T) and String (V) to match your TableReader's type parameters if needed
-public class TutorialReaderNodeFactory extends WebUITableReaderNodeFactory<TutorialReaderNodeParameters, FSPath, //
+public class TutorialReaderNodeFactory extends WebUITableReaderNodeFactory<TutorialReaderNodeParameters, //
         MultiFileSelectionPath, DummyTableReaderConfig, Class<?>, String, DummyMultiTableReadConfig> {
 
     @SuppressWarnings("javadoc")
@@ -120,24 +124,41 @@ public class TutorialReaderNodeFactory extends WebUITableReaderNodeFactory<Tutor
         return null;
     }
 
+    // TODO (#5): Return your ProductionPathProvider instance or remove override to use DefaultProductionPathProvider
+    @Override
+    protected ProductionPathProvider<Class<?>> createProductionPathProvider() {
+        return null;
+    }
+
     @Override
     protected TutorialConfigAndSourceSerializer createSerializer() {
         return new TutorialConfigAndSourceSerializer();
     }
 
     private final class TutorialConfigAndSourceSerializer
-        extends NodeParametersConfigAndSourceSerializer<TutorialReaderNodeParameters, FSPath, MultiFileSelectionPath, //
+        extends NodeParametersConfigAndSourceSerializer<TutorialReaderNodeParameters, MultiFileSelectionPath, //
                 DummyTableReaderConfig, Class<?>, DummyMultiTableReadConfig> {
         protected TutorialConfigAndSourceSerializer() {
             super(TutorialReaderNodeParameters.class);
         }
 
         @Override
-        protected void saveToSourceAndConfig(final TutorialReaderNodeParameters params,
+        protected void saveToSourceAndConfig(final TutorialReaderNodeParameters params, final ConfigID configId,
             final MultiFileSelectionPath sourceSettings, final DummyMultiTableReadConfig config) {
             params.saveToSource(sourceSettings);
-            params.saveToConfig(config);
+            params.saveToConfig(config, configId);
         }
+
+        @Override
+        protected ConfigIDLoader getConfigIDLoader() {
+            /**
+             * TODO (#8): In case we stay backwards-compatible, return configIDLoader from before (usually an enum
+             * instance used in the constructor of the mutli table read config).
+             */
+            return settings -> new NodeSettingsConfigID(
+                settings.getNodeSettings(new TutorialReaderTransformationParameters().getConfigIdSettingsKey()));
+        }
+
     }
 
     @Override

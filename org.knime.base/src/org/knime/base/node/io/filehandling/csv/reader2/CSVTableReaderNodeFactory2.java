@@ -68,7 +68,11 @@ import org.knime.core.util.Version;
 import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.node.table.reader.GenericTableReader;
+import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.ReadAdapterFactory;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigID;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigIDLoader;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.NodeSettingsConfigID;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
 import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
 
@@ -79,7 +83,7 @@ import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
 @SuppressWarnings("restriction")
-public class CSVTableReaderNodeFactory2 extends WebUITableReaderNodeFactory<CSVTableReaderNodeParameters, FSPath, //
+public class CSVTableReaderNodeFactory2 extends WebUITableReaderNodeFactory<CSVTableReaderNodeParameters, //
         MultiFileSelectionPath, CSVTableReaderConfig, Class<?>, String, CSVMultiTableReadConfig> {
 
     @SuppressWarnings("javadoc")
@@ -137,22 +141,34 @@ public class CSVTableReaderNodeFactory2 extends WebUITableReaderNodeFactory<CSVT
     }
 
     @Override
+    protected ProductionPathProvider<Class<?>> createProductionPathProvider() {
+        return StringReadAdapterFactory.INSTANCE.createProductionPathProvider();
+    }
+
+    @Override
     protected CSVConfigAndSourceSerializer createSerializer() {
         return new CSVConfigAndSourceSerializer();
     }
 
     private final class CSVConfigAndSourceSerializer
-        extends NodeParametersConfigAndSourceSerializer<CSVTableReaderNodeParameters, FSPath, MultiFileSelectionPath, //
+        extends NodeParametersConfigAndSourceSerializer<CSVTableReaderNodeParameters, MultiFileSelectionPath, //
                 CSVTableReaderConfig, Class<?>, CSVMultiTableReadConfig> {
         protected CSVConfigAndSourceSerializer() {
             super(CSVTableReaderNodeParameters.class);
         }
 
         @Override
-        protected void saveToSourceAndConfig(final CSVTableReaderNodeParameters params,
+        protected void saveToSourceAndConfig(final CSVTableReaderNodeParameters params, final ConfigID configId,
             final MultiFileSelectionPath sourceSettings, final CSVMultiTableReadConfig config) {
             params.saveToSource(sourceSettings);
-            params.saveToConfig(config);
+            params.saveToConfig(config, configId);
+        }
+
+        @Override
+        protected ConfigIDLoader getConfigIDLoader() {
+            // TODO: Return configIDLoader from CSVMultiTableReadConfig when available after moving this factory back to the original package.
+            return settings -> new NodeSettingsConfigID(
+                settings.getNodeSettings(new CSVTableReaderTransformationParameters().getConfigIdSettingsKey()));
         }
     }
 

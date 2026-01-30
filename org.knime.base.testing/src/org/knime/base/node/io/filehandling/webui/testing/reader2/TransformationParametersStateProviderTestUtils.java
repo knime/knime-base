@@ -46,7 +46,7 @@
  * History
  *   May 28, 2024 (marcbux): created
  */
-package org.knime.base.node.io.filehandling.webui.reader2;
+package org.knime.base.node.io.filehandling.webui.testing.reader2;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -55,7 +55,10 @@ import java.util.function.Function;
 import java.util.function.UnaryOperator;
 import java.util.stream.IntStream;
 
+import org.knime.base.node.io.filehandling.webui.reader2.ClassSerializer;
+import org.knime.base.node.io.filehandling.webui.reader2.DataTypeSerializer;
 import org.knime.base.node.io.filehandling.webui.reader2.ReaderSpecific.ExternalDataTypeSerializer;
+import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters;
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.ColumnSpecSettings;
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.TableSpecSettings;
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.TransformationElementSettings;
@@ -75,7 +78,7 @@ import org.knime.testing.node.dialog.updates.UpdateSimulator.UpdateSimulatorResu
  *
  * @author Paul Bärnreuther
  */
-public class TransformationParametersStateProviderTestUtils {
+public final class TransformationParametersStateProviderTestUtils {
 
     private TransformationParametersStateProviderTestUtils() {
         // Utility class
@@ -96,6 +99,7 @@ public class TransformationParametersStateProviderTestUtils {
         final var spec = specs[0];
         if (file != null) {
             assertThat(spec.m_fsLocation.getPath()).isEqualTo(file);
+            assertThat(spec.m_sourceIdentifier).isEqualTo(file);
         }
         assertThat(spec.m_spec).hasSize(columNames.length);
         for (int i = 0; i < columNames.length; i++) {
@@ -127,10 +131,10 @@ public class TransformationParametersStateProviderTestUtils {
     public static void setExistingTableSpecs(final TransformationParameters<?> transformationSettings,
         final List<String> columnNames, final List<String> columnTypes) {
         final var columnSpecSettings = IntStream.range(0, columnNames.size())
-            .mapToObj(i -> new ColumnSpecSettings(columnNames.get(i), columnTypes.get(i)))
+            .mapToObj(i -> new ColumnSpecSettings(columnNames.get(i), columnTypes.get(i), true))
             .toArray(ColumnSpecSettings[]::new);
-        transformationSettings.m_specs = new TableSpecSettings[]{
-            new TableSpecSettings(new FSLocation(FSCategory.LOCAL, "existingSource"), columnSpecSettings)};
+        transformationSettings.m_specs = new TableSpecSettings[]{new TableSpecSettings("existingSource",
+            new FSLocation(FSCategory.LOCAL, "existingSource"), columnSpecSettings)};
     }
 
     /**
@@ -165,8 +169,8 @@ public class TransformationParametersStateProviderTestUtils {
             assertThat(transformationElements[i].m_columnName).isEqualTo(columnNames[i]);
             assertThat(transformationElements[i].m_includeInOutput).isEqualTo(includeInOutputs[i]);
             assertThat(transformationElements[i].m_columnRename).isEqualTo(columnRenames[i]);
-            assertThat(transformationElements[i].m_type).isEqualTo(types[i]);
-            assertThat(transformationElements[i].m_originalType).isEqualTo(originalTypes[i]);
+            assertThat(transformationElements[i].m_productionPath).isEqualTo(types[i]);
+            assertThat(transformationElements[i].m_originalProductionPath).isEqualTo(originalTypes[i]);
         }
     }
 
@@ -182,7 +186,7 @@ public class TransformationParametersStateProviderTestUtils {
 
         final var unknownElement = TransformationElementSettings.createUnknownElement();
         unknownElement.m_includeInOutput = false;
-        unknownElement.m_type = DataTypeSerializer.typeToString(unknownColumnsDataType);
+        unknownElement.m_productionPath = DataTypeSerializer.typeToString(unknownColumnsDataType);
 
         transformationSettings.m_columnTransformation =
             new TransformationElementSettings[]{createDummyElement("previousColumn"), unknownElement};
@@ -235,26 +239,26 @@ public class TransformationParametersStateProviderTestUtils {
      * @author Paul Bärnreuther
      * @param <S> the settings type
      */
-    public static abstract class TransformationParametersUpdatesTestClassBased<S extends WidgetGroup>
+    public abstract static class TransformationParametersUpdatesTestClassBased<S extends WidgetGroup>
         extends TransformationParametersUpdatesTest<S, Class<?>> {
 
         @Override
-        Class<?> getIntType() {
+        protected Class<?> getIntType() {
             return Integer.class;
         }
 
         @Override
-        Class<?> getStringType() {
+        protected Class<?> getStringType() {
             return String.class;
         }
 
         @Override
-        Class<?> getDoubleType() {
+        protected Class<?> getDoubleType() {
             return Double.class;
         }
 
         @Override
-        ExternalDataTypeSerializer<Class<?>> getExternalDataTypeSerializer() {
+        protected ExternalDataTypeSerializer<Class<?>> getExternalDataTypeSerializer() {
             return new ClassSerializer() {
             };
         }
@@ -268,26 +272,26 @@ public class TransformationParametersStateProviderTestUtils {
      * @author Paul Bärnreuther
      * @param <S> the settings type
      */
-    public static abstract class TransformationParametersUpdatesTestDataTypeBased<S extends WidgetGroup>
+    public abstract static class TransformationParametersUpdatesTestDataTypeBased<S extends WidgetGroup>
         extends TransformationParametersUpdatesTest<S, DataType> {
 
         @Override
-        DataType getIntType() {
+        protected DataType getIntType() {
             return IntCell.TYPE;
         }
 
         @Override
-        DataType getStringType() {
+        protected DataType getStringType() {
             return StringCell.TYPE;
         }
 
         @Override
-        DataType getDoubleType() {
+        protected DataType getDoubleType() {
             return DoubleCell.TYPE;
         }
 
         @Override
-        ExternalDataTypeSerializer<DataType> getExternalDataTypeSerializer() {
+        protected ExternalDataTypeSerializer<DataType> getExternalDataTypeSerializer() {
             return new DataTypeSerializer() {
             };
         }

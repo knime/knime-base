@@ -55,9 +55,11 @@ import org.knime.base.node.preproc.manipulator.TableManipulatorConfig;
 import org.knime.base.node.preproc.manipulator.mapping.DataTypeTypeHierarchy;
 import org.knime.base.node.preproc.manipulator.mapping.DataValueReadAdapterFactory;
 import org.knime.core.data.DataType;
+import org.knime.core.data.convert.map.ProducerRegistry;
 import org.knime.filehandling.core.node.table.reader.DefaultProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
+import org.knime.node.parameters.NodeParametersInput;
 
 /**
  * Reader-specific interfaces for the Table Reader Node.
@@ -78,6 +80,11 @@ final class KnimeTableReaderSpecific {
         }
 
         @Override
+        default ProducerRegistry<DataType, ?> getProducerRegistry() {
+            return DataValueReadAdapterFactory.INSTANCE.getProducerRegistry();
+        }
+
+        @Override
         default TypeHierarchy<DataType, DataType> getTypeHierarchy() {
             return DataTypeTypeHierarchy.INSTANCE;
         }
@@ -87,7 +94,7 @@ final class KnimeTableReaderSpecific {
         extends ReaderSpecific.ConfigAndReader<TableManipulatorConfig, DataType, KnimeTableMultiTableReadConfig> {
 
         @Override
-        default KnimeTableMultiTableReadConfig createMultiTableReadConfig() {
+        default KnimeTableMultiTableReadConfig createMultiTableReadConfig(final NodeParametersInput input) {
             return new KnimeTableMultiTableReadConfig();
         }
 

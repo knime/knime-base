@@ -51,7 +51,10 @@ package org.knime.base.node.io.filehandling.webui.reader2;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Supplier;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
 import org.knime.base.node.io.filehandling.webui.reader.CommonReaderTransformationSettings.ConfigIdSettings;
@@ -65,13 +68,19 @@ import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameter
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataType;
+import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.WidgetInternal;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.datatype.convert.ProductionPathUtils;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.datatype.convert.ProductionPathUtils.ProductionPathPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
+import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.data.location.FSLocationValueMetaData;
 import org.knime.filehandling.core.data.location.cell.SimpleFSLocationCellFactory;
@@ -80,7 +89,10 @@ import org.knime.filehandling.core.node.table.reader.ImmutableColumnTransformati
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigID;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigIDLoader;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.DefaultTableSpecConfig;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.NodeSettingsConfigID;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfigSerializer;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.ImmutableUnknownColumnsTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
@@ -96,7 +108,9 @@ import org.knime.node.parameters.array.ArrayWidget;
 import org.knime.node.parameters.layout.After;
 import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.layout.Section;
+import org.knime.node.parameters.migration.NodeParametersMigration;
 import org.knime.node.parameters.persistence.Persistable;
+import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.updates.Effect;
 import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.updates.EffectPredicate;
@@ -119,7 +133,9 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
  *
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  * @param <T> the type used to represent external data [T]ypes
- * @since 5.10
+ * @since 5.1
+ * @noreference non-public API
+ * @noextend non-public API
  */
 @SuppressWarnings("restriction")
 public abstract class TransformationParameters<T>
@@ -133,15 +149,16 @@ public abstract class TransformationParameters<T>
     @Effect(predicate = UseNewSchema.class, type = EffectType.HIDE)
     @After(MultipleFileHandling.class)
     interface Transformation {
-        String DESCRIPTION = """
-            Use this option to modify the structure of the table. You can deselect each column to filter it out of the
-            output table, use the arrows to reorder the columns, or change the column name or column type of each
-            column. Note that the positions of columns are reset in the dialog if a new file or folder is selected.
-            Whether and where to add unknown columns during execution is specified via the special row &lt;any unknown
-            new column&gt;. It is also possible to select the type new columns should be converted to. Note that the
-            node will fail if this conversion is not possible e.g. if the selected type is Integer but the new column is
-            of type Double.
-            """;
+        String DESCRIPTION =
+            """
+                    Use this option to modify the structure of the table. You can deselect each column to filter it out of the
+                    output table, use the arrows to reorder the columns, or change the column name or column type of each
+                    column. Note that the positions of columns are reset in the dialog if a new file or folder is selected.
+                    Whether and where to add unknown columns during execution is specified via the special row &lt;any unknown
+                    new column&gt;. It is also possible to select the type new columns should be converted to. Note that the
+                    node will fail if this conversion is not possible e.g. if the selected type is Integer but the new column is
+                    of type Double.
+                    """;
 
         /**
          * Enforce type mappings as configured in the dialog.
@@ -158,17 +175,30 @@ public abstract class TransformationParameters<T>
     }
 
     /**
-     * The serializable and persistable equivalent of the {@link TypedReaderColumnSpec}
+     * The serializable and persistable equivalent of the {@link TypedReaderColumnSpec}. Visible for testing classes in
+     * org.knime.base.node.io.filehandling.webui.testing
      */
-    static final class ColumnSpecSettings implements NodeParameters {
+    public static final class ColumnSpecSettings implements NodeParameters {
 
-        String m_name;
+        /**
+         * visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
+         */
+        public String m_name;
 
-        String m_type;
+        /**
+         * visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
+         */
+        public String m_type;
 
-        ColumnSpecSettings(final String name, final String type) {
+        boolean m_hasType;
+
+        /**
+         * Visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
+         */
+        public ColumnSpecSettings(final String name, final String type, final boolean hasType) {
             m_name = name;
             m_type = type;
+            m_hasType = hasType;
         }
 
         ColumnSpecSettings() {
@@ -180,11 +210,27 @@ public abstract class TransformationParameters<T>
      */
     public static final class TableSpecSettings implements NodeParameters {
 
-        FSLocation m_fsLocation;
+        /**
+         * visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
+         */
+        public FSLocation m_fsLocation;
 
-        ColumnSpecSettings[] m_spec;
+        /**
+         * visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
+         */
+        public String m_sourceIdentifier;
 
-        TableSpecSettings(final FSLocation fsLocation, final ColumnSpecSettings[] spec) {
+        /**
+         * visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
+         */
+        public ColumnSpecSettings[] m_spec;
+
+        /**
+         * visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
+         */
+        public TableSpecSettings(final String sourceIdentifier, final FSLocation fsLocation,
+            final ColumnSpecSettings[] spec) {
+            m_sourceIdentifier = sourceIdentifier;
             m_fsLocation = fsLocation;
             m_spec = spec;
         }
@@ -199,8 +245,12 @@ public abstract class TransformationParameters<T>
     @ValueReference(TableSpecSettingsRef.class)
     // for adding dynamic and provider
     @Modification.WidgetReference(TransformationSettingsWidgetModification.SpecsRef.class)
-    // Note that this field remains `null` until it is updated by the state provider when specs could be computed.
-    TableSpecSettings[] m_specs;
+
+    /*
+     * Note that this field remains `null` until it is updated by the state provider when specs could be computed.
+     * visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
+     */
+    public TableSpecSettings[] m_specs;
 
     @Widget(title = "Enforce types", description = """
             Controls how columns whose type changes are dealt with.
@@ -211,7 +261,10 @@ public abstract class TransformationParameters<T>
     @Layout(Transformation.EnforceTypes.class)
     boolean m_enforceTypes = true;
 
-    static class TransformationElementSettings implements WidgetGroup, Persistable {
+    /**
+     * Visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
+     */
+    public static class TransformationElementSettings implements WidgetGroup, Persistable {
 
         static class ColumnNameRef implements ParameterReference<String> {
         }
@@ -223,25 +276,61 @@ public abstract class TransformationParameters<T>
             }
         }
 
+        /**
+         * visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
+         */
         @ValueReference(ColumnNameRef.class)
         @JsonInclude(Include.ALWAYS) // Necessary for the ColumnNameIsNull PredicateProvider to work
-        String m_columnName;
+        public String m_columnName;
 
-        static class OriginalTypeRef implements ParameterReference<String> {
+        static class OriginalProductionPathRef implements ParameterReference<String> {
         }
 
-        @ValueReference(OriginalTypeRef.class)
-        String m_originalType;
+        /**
+         * visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
+         */
+        @ValueReference(OriginalProductionPathRef.class)
+        @Persistor(OriginalPathPersistor.class)
+        public String m_originalProductionPath;
 
-        static class OriginalTypeLabelRef implements ParameterReference<String> {
+        static final class OriginalPathPersistor extends ProductionPathPersistor {
+
+            private static final String CFG_ORIGINAL_PRODUCTION_PATH = "originalProductionPath";
+
+            OriginalPathPersistor() {
+                super(CFG_ORIGINAL_PRODUCTION_PATH);
+            }
+
+            @Override
+            public String load(final NodeSettingsRO settings) throws InvalidSettingsException {
+                if (settings.containsKey(CFG_ORIGINAL_PRODUCTION_PATH)) {
+                    return super.load(settings);
+                }
+                return TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID;
+            }
+
+            @Override
+            public void save(final String param, final NodeSettingsWO settings) {
+                if (TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID.equals(param)) {
+                    // do not save default value
+                    return;
+                }
+                super.save(param, settings);
+            }
         }
 
-        @ValueReference(OriginalTypeLabelRef.class)
+        static class OriginalProductionPathLabelRef implements ParameterReference<String> {
+        }
+
+        @ValueReference(OriginalProductionPathLabelRef.class)
         String m_originalTypeLabel;
 
+        /**
+         * Visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
+         */
         @Widget(title = "Include in output", description = "") // TODO NOSONAR UIEXT-1901 add description
         @ArrayWidgetInternal.ElementCheckboxWidget
-        boolean m_includeInOutput;
+        public boolean m_includeInOutput;
 
         static final class ColumnNameResetter implements StateProvider<String> {
 
@@ -266,7 +355,7 @@ public abstract class TransformationParameters<T>
             @Override
             public void init(final StateProviderInitializer initializer) {
                 initializer.computeOnButtonClick(ArrayWidgetInternal.ElementResetButton.class);
-                m_originalTypeSupplier = initializer.getValueSupplier(OriginalTypeRef.class);
+                m_originalTypeSupplier = initializer.getValueSupplier(OriginalProductionPathRef.class);
             }
 
             @Override
@@ -299,7 +388,7 @@ public abstract class TransformationParameters<T>
             @Override
             public void init(final StateProviderInitializer initializer) {
                 initializer.computeOnValueChange(TableSpecSettingsRef.class);
-                m_originalTypeLabelSupplier = initializer.getValueSupplier(OriginalTypeLabelRef.class);
+                m_originalTypeLabelSupplier = initializer.getValueSupplier(OriginalProductionPathLabelRef.class);
             }
 
             @Override
@@ -316,38 +405,111 @@ public abstract class TransformationParameters<T>
             }
         }
 
+        /**
+         * visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
+         */
         @Widget(title = "Column name", description = "")
         @WidgetInternal(hideControlHeader = true)
         @ValueProvider(ColumnNameResetter.class)
         @Effect(predicate = ElementIsEditedAndColumnNameIsNotNull.class, type = EffectType.SHOW)
         @JsonInclude(Include.ALWAYS) // Necessary for comparison against m_columnName
         @TextInputWidget(patternValidation = ColumnNameValidationUtils.ColumnNameValidation.class)
-        String m_columnRename;
+        public String m_columnRename;
 
+        /**
+         * visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
+         */
         @Widget(title = "Column type", description = "")
         @WidgetInternal(hideControlHeader = true)
         // for adding dynamic choices
         @Modification.WidgetReference(TransformationSettingsWidgetModification.TypeChoicesWidgetRef.class)
         @ValueProvider(TypeResetter.class)
         @Effect(predicate = ArrayWidgetInternal.ElementIsEdited.class, type = EffectType.SHOW)
-        String m_type;
+        @Persistor(PathPersistor.class)
+        public String m_productionPath;
+
+        static final class PathPersistor extends ProductionPathPersistor {
+
+            private static final String CFG_UNKNOWNS_COLUMN_DATA_TYPE = "unknownsColumnDataType";
+
+            private static final String CFG_PRODUCTION_PATH = "productionPath";
+
+            PathPersistor() {
+                super(CFG_PRODUCTION_PATH);
+            }
+
+            @Override
+            public String load(final NodeSettingsRO settings) throws InvalidSettingsException {
+                if (settings.containsKey(CFG_UNKNOWNS_COLUMN_DATA_TYPE)) {
+                    return settings.getString(CFG_UNKNOWNS_COLUMN_DATA_TYPE);
+                }
+                return super.load(settings);
+            }
+
+            @Override
+            public void save(final String param, final NodeSettingsWO settings) {
+                if (ProductionPathUtils.isPathIdentifier(param)) {
+                    super.save(param, settings);
+                } else {
+                    settings.addString(CFG_UNKNOWNS_COLUMN_DATA_TYPE, param);
+                }
+            }
+        }
 
         TransformationElementSettings() {
         }
 
-        TransformationElementSettings(final String columnName, final boolean includeInOutput, final String columnRename,
-            final String type, final String originalType, final String originalTypeLabel) {
+        /**
+         * visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
+         */
+        @SuppressWarnings("javadoc")
+        public TransformationElementSettings(final String columnName, final boolean includeInOutput,
+            final String columnRename, final String type, final String originalType, final String originalTypeLabel) {
             m_columnName = columnName;
             m_includeInOutput = includeInOutput;
             m_columnRename = columnRename;
-            m_type = type; // converter fac id
-            m_originalType = originalType; // converter fac id
+            m_productionPath = type; // converter fac id
+            m_originalProductionPath = originalType; // converter fac id
             m_originalTypeLabel = originalTypeLabel;
         }
 
-        static TransformationElementSettings createUnknownElement() {
-            return new TransformationElementSettings(null, true, null, TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID,
-                TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID, TypeChoicesProvider.DEFAULT_COLUMNTYPE_TEXT);
+        /**
+         * Constructor for concrete columns.
+         *
+         * @param columnName
+         * @param includeInOutput
+         * @param columnRename
+         * @param productionPath
+         * @param defaultProductionPath
+         */
+        TransformationElementSettings(final String columnName, final boolean includeInOutput, final String columnRename,
+            final ProductionPath productionPath, final ProductionPath defaultProductionPath) {
+            this(columnName, includeInOutput, columnRename, //
+                ProductionPathUtils.getPathIdentifier(productionPath), //
+                ProductionPathUtils.getPathIdentifier(defaultProductionPath), //
+                defaultProductionPath.getDestinationType().toPrettyString() //
+            );
+        }
+
+        /**
+         * Constructor for unknown columns.
+         *
+         * @param includeInOutput
+         * @param dataType Override data type for unknown columns. Leave null for using the default type.
+         */
+        TransformationElementSettings(final boolean includeInOutput, final DataType dataType) {
+            this(null, includeInOutput, null,
+                dataType == null ? TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID : getDataTypeId(dataType),
+                TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID, //
+                TypeChoicesProvider.DEFAULT_COLUMNTYPE_TEXT //
+            );
+        }
+
+        /**
+         * visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
+         */
+        public static TransformationElementSettings createUnknownElement() {
+            return new TransformationElementSettings(true, null);
         }
     }
 
@@ -365,7 +527,8 @@ public abstract class TransformationParameters<T>
             TransformationElementSettingsArrayWidgetRef.class)
     @Effect(predicate = FileSystemPortConnectionUtil.ConnectedWithoutFileSystemSpec.class, type = EffectType.HIDE)
     @Layout(Transformation.ColumnTransformation.class)
-    TransformationElementSettings[] m_columnTransformation =
+    // visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
+    public TransformationElementSettings[] m_columnTransformation =
         new TransformationElementSettings[]{TransformationElementSettings.createUnknownElement()};
 
     /**
@@ -381,7 +544,27 @@ public abstract class TransformationParameters<T>
     public <C extends ReaderSpecificConfig<C>> void saveToConfig(final MultiTableReadConfig<C, T> config,
         final String sourcePath, //
         final ConfigID configId, //
-        final MultiFileReaderParameters multiFileReaderParameters//
+        final MultiFileReaderParameters multiFileReaderParameters //
+    ) {
+        saveToConfig(config, sourcePath, configId, multiFileReaderParameters, false);
+    }
+
+    /**
+     * Call this method in a reader node's ConfigAndSourceSerializer to save the transformation settings to the config
+     * used in the model.
+     *
+     * @param <C> the reader specific config type
+     * @param config the config to save the transformation settings to.
+     * @param sourcePath the path of the currently selected source.
+     * @param configId the config ID to use for the table spec config
+     * @param multiFileReaderParameters for determining how to combine columns and whether a path column is appended.
+     * @param skipEmptyColumns whether to skip empty columns when determining the transformations
+     */
+    public <C extends ReaderSpecificConfig<C>> void saveToConfig(final MultiTableReadConfig<C, T> config,
+        final String sourcePath, //
+        final ConfigID configId, //
+        final MultiFileReaderParameters multiFileReaderParameters, //
+        final boolean skipEmptyColumns //
     ) {
 
         if (m_specs == null) {
@@ -389,24 +572,25 @@ public abstract class TransformationParameters<T>
         }
 
         final var individualSpecs = toSpecMap(this, m_specs);
-        final var rawSpec = toRawSpec(individualSpecs);
+        final var rawSpec = toRawSpec(individualSpecs.values());
         final var transformations = determineTransformations(rawSpec, multiFileReaderParameters.m_howToCombineColumns);
         final var tableTransformation = new DefaultTableTransformation<T>(rawSpec, transformations.getFirst(),
             multiFileReaderParameters.m_howToCombineColumns.toColumnFilterMode(), transformations.getSecond(),
-            m_enforceTypes, false);
+            m_enforceTypes, skipEmptyColumns);
 
         final var appendPathColumnOpt = multiFileReaderParameters.m_appendPathColumn;
         DataColumnSpec itemIdentifierColumnSpec =
             appendPathColumnOpt.isPresent() ? determineAppendPathColumnSpec(appendPathColumnOpt.get()) : null;
 
-        final var tableSpecConfig = DefaultTableSpecConfig.createFromTransformationModel(sourcePath,
-            config.getConfigID(), individualSpecs, tableTransformation, itemIdentifierColumnSpec);
+        final var tableSpecConfig = DefaultTableSpecConfig.createFromTransformationModel(sourcePath, configId,
+            individualSpecs, tableTransformation, itemIdentifierColumnSpec);
 
         config.setTableSpecConfig(tableSpecConfig);
 
     }
 
     private Pair<ArrayList<ColumnTransformation<T>>, UnknownColumnsTransformation>
+
         determineTransformations(final RawSpec<T> rawSpec, final HowToCombineColumnsOption howToCombineColumns) {
         final Map<String, Integer> transformationIndexByColumnName = new HashMap<>();
         int unknownColumnsTransformationPosition = -1;
@@ -421,21 +605,20 @@ public abstract class TransformationParameters<T>
         final var transformations = new ArrayList<ColumnTransformation<T>>();
         for (var column : howToCombineColumns.toColumnFilterMode().getRelevantSpec(rawSpec)) {
 
-            final var columnName = column.getName().get(); // NOSONAR in the TypedReaderTableSpecsProvider we make sure that names are always present
-            if (columnName == null) {
-                continue;
-            }
+            // in the TypedReaderTableSpecsProvider we make sure that names are always present
+            final var columnName = column.getName().orElseThrow(IllegalStateException::new);
             final var position = transformationIndexByColumnName.get(columnName);
             final var transformation = m_columnTransformation[position];
-            final var externalType = column.getType();
-            final var productionPath = getProductionPathProvider().getAvailableProductionPaths(externalType).stream()
-                .filter(p -> p.getConverterFactory().getIdentifier().equals(transformation.m_type)).findFirst()
-                .orElseGet(() -> {
-                    LOGGER.error(
-                        String.format("The column '%s' can't be converted to the configured data type.", column));
-                    return getProductionPathProvider().getDefaultProductionPath(externalType);
-                });
-
+            ProductionPath productionPath;
+            try {
+                productionPath =
+                    ProductionPathUtils.fromPathIdentifier(transformation.m_productionPath, getProducerRegistry()); // validate path id
+            } catch (InvalidSettingsException e) {
+                LOGGER.error(String.format(
+                    "The column '%s' can't be converted to the configured data type. Unknown production path: %s",
+                    column, transformation.m_productionPath), e);
+                productionPath = getProductionPathProvider().getDefaultProductionPath(column.getType());
+            }
             transformations.add(new ImmutableColumnTransformation<>(column, productionPath,
                 transformation.m_includeInOutput, position, transformation.m_columnRename));
         }
@@ -447,8 +630,9 @@ public abstract class TransformationParameters<T>
     private static ImmutableUnknownColumnsTransformation determineUnknownTransformation(
         final TransformationElementSettings unknownTransformation, final int unknownColumnsTransformationPosition) {
         DataType forcedUnknownType = null;
-        if (!unknownTransformation.m_type.equals(TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID)) {
-            forcedUnknownType = TransformationParametersStateProviders.fromDataTypeId(unknownTransformation.m_type);
+        if (!unknownTransformation.m_productionPath.equals(TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID)) {
+            forcedUnknownType =
+                TransformationParametersStateProviders.fromDataTypeId(unknownTransformation.m_productionPath);
         }
         return new ImmutableUnknownColumnsTransformation(unknownColumnsTransformationPosition,
             unknownTransformation.m_includeInOutput, forcedUnknownType != null, forcedUnknownType);
@@ -520,6 +704,118 @@ public abstract class TransformationParameters<T>
                 });
             }
         }
+    }
+
+    static final String ROOT_CFG_KEY = "table_spec_config_Internals";
+
+    /**
+     * The factory method to create the table spec config serializer.
+     *
+     * @param configIdLoader the config ID loader
+     * @return the table spec config serializer
+     */
+    protected abstract TableSpecConfigSerializer<T> createTableSpecConfigSerializer(ConfigIDLoader configIdLoader);
+
+    /**
+     * The key used in the settings to store all settigns within the config ID.
+     *
+     * @return the config ID settings key
+     */
+    protected abstract String getConfigIdSettingsKey();
+
+    private TableSpecConfigSerializer<T> createTableSpecConfigSerializer() {
+        final ConfigIDLoader configIdLoader =
+            s -> new NodeSettingsConfigID(s.getNodeSettings(getConfigIdSettingsKey()));
+        return createTableSpecConfigSerializer(configIdLoader);
+    }
+
+    /**
+     * Use this method in a {@link NodeParametersMigration} to load transformation settings from legacy table spec
+     *
+     * @param settings the settings to load from
+     * @throws InvalidSettingsException if loading the settings failed
+     */
+    public void loadFromLegacySettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+        if (settings.containsKey(ROOT_CFG_KEY)) {
+            final var tableSpecConfigSerializer = createTableSpecConfigSerializer();
+            final var tableSpecConfig = tableSpecConfigSerializer.load(settings.getNodeSettings(ROOT_CFG_KEY));
+
+            try {
+                final var fsLocations = tableSpecConfig.getItemIdentifierColumn().map(colSpec -> {
+                    // read metadata and set first fs location with empty path as placeholder
+                    return colSpec.getMetaDataOfType(FSLocationValueMetaData.class)
+                        .map(FSLocationValueMetaData::getFSLocationSpecs).stream()//
+                        .flatMap(Set::stream)//
+                        .map(locSpec -> new FSLocation(locSpec.getFileSystemCategory(),
+                            locSpec.getFileSystemSpecifier().orElse(null), ""))
+                        .toArray(FSLocation[]::new);
+                });
+                final var items = tableSpecConfig.getItems();
+                final var specs = IntStream.range(0, items.size()).mapToObj(i -> {
+                    final var key = items.get(i);
+                    // Use a placeholder FSLocation with empty path when there's no item identifier column
+                    // to avoid NPEs during serialization (null is not supported there as of now)
+                    final var fsLocation = fsLocations.filter(locs -> i < locs.length).map(locs -> locs[i])
+                        .orElseGet(() -> new FSLocation(FSCategory.RELATIVE, null, ""));
+                    final var spec = tableSpecConfig.getSpec(key);
+                    final var colSpecs = spec.stream()
+                        .map(colSpec -> new ColumnSpecSettings(colSpec.getName().get(),
+                            toSerializableType(colSpec.getType()), colSpec.hasType()))
+                        .toArray(ColumnSpecSettings[]::new);
+                    return new TableSpecSettings(key, fsLocation, colSpecs);
+                }).toArray(TableSpecSettings[]::new);
+                m_specs = specs;
+                m_enforceTypes = tableSpecConfig.getTableTransformation().enforceTypes();
+            } catch (final Exception e) { // NOSONAR The dialog can still work even if loading persistor settings fails
+                LOGGER.error("Error while loading persistor settings from table spec config.", e);
+            }
+
+            final var transformationElements =
+                tableSpecConfig.getTableTransformation().stream().map(this::getTransformationElement).toList();
+            final var unknownTransformationElement =
+                getTransformationElement(tableSpecConfig.getTableTransformation().getTransformationForUnknownColumns());
+            m_columnTransformation =
+                Stream.concat(transformationElements.stream(), Stream.of(unknownTransformationElement))
+                    .sorted((t1, t2) -> t1.getFirst() - t2.getFirst()).map(Pair::getSecond)
+                    .toArray(TransformationElementSettings[]::new);
+        }
+    }
+
+    private Pair<Integer, TransformationElementSettings>
+        getTransformationElement(final ColumnTransformation<T> knownTransformation) {
+        return new Pair<>(knownTransformation.getPosition(), toTransformationElementSettings(knownTransformation));
+    }
+
+    private static Pair<Integer, TransformationElementSettings>
+        getTransformationElement(final UnknownColumnsTransformation unknownColumnsTransformation) {
+        return new Pair<>(unknownColumnsTransformation.getPosition(),
+            toTransformationElementSettings(unknownColumnsTransformation));
+    }
+
+    private TransformationElementSettings toTransformationElementSettings(final ColumnTransformation<T> t) {
+        final var defaultProductionPath =
+            getProductionPathProvider().getDefaultProductionPath(t.getExternalSpec().getType());
+        return new TransformationElementSettings( //
+            t.getOriginalName(), //
+            t.keep(), //
+            t.getName(), //
+            t.getProductionPath(), //
+            defaultProductionPath);
+    }
+
+    private static TransformationElementSettings toTransformationElementSettings(final UnknownColumnsTransformation t) {
+        return new TransformationElementSettings(t.keep(), getForcedType(t));
+    }
+
+    private static DataType getForcedType(final UnknownColumnsTransformation t) {
+        if (t.forceType()) {
+            return t.getForcedType();
+        }
+        return null;
+    }
+
+    static String getDataTypeId(final DataType type) {
+        return DataTypeSerializer.typeToString(type);
     }
 
 }

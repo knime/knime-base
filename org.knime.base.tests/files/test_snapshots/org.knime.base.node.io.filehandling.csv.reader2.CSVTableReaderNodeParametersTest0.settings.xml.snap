@@ -37,6 +37,7 @@
             <entry key="maximumNumberOfRows_is_present" type="xboolean" value="false"/>
         </config>
         <config key="ifSchemaChangesParams">
+            <entry key="ignoreSchemaChange" type="xboolean" value="false"/>
             <entry key="ifSchemaChangesOption" type="xstring" value="FAIL"/>
         </config>
         <config key="multiFileReaderParams">
@@ -92,6 +93,37 @@
             <entry key="prependFileIndexToRowId" type="xboolean" value="false"/>
         </config>
     </config>
+    <config key="configId_Internals">
+        <config key="multi_table_read">
+            <config key="settings">
+                <entry key="has_column_header" type="xboolean" value="true"/>
+                <entry key="has_row_id" type="xboolean" value="false"/>
+                <entry key="comment_char" type="xstring" value="#"/>
+                <entry key="column_delimiter" type="xstring" value=","/>
+                <entry key="quote_char" type="xstring" value="&quot;"/>
+                <entry key="quote_escape_char" type="xstring" value="&quot;"/>
+                <entry key="row_delimiter" type="xstring" value="%%00010"/>
+                <entry key="use_line_break_row_delimiter" type="xboolean" value="true"/>
+            </config>
+            <config key="advanced_settings">
+                <entry key="quote_option" type="xstring" value="REMOVE_QUOTES_AND_TRIM"/>
+                <entry key="replace_empty_quotes_with_missing" type="xboolean" value="true"/>
+                <entry key="limit_data_rows_scanned" type="xboolean" value="true"/>
+                <entry key="max_data_rows_scanned" type="xlong" value="10000"/>
+                <entry key="thousands_separator" type="xstring" value="%%00000"/>
+                <entry key="decimal_separator" type="xstring" value="."/>
+            </config>
+            <config key="encoding">
+                <entry key="charset" type="xstring" value="UTF-8"/>
+            </config>
+            <config key="limit_rows">
+                <entry key="skip_lines" type="xboolean" value="false"/>
+                <entry key="number_of_lines_to_skip" type="xlong" value="0"/>
+                <entry key="skip_data_rows" type="xboolean" value="false"/>
+                <entry key="number_of_rows_to_skip" type="xlong" value="0"/>
+            </config>
+        </config>
+    </config>
     <config key="transformationParameters">
         <config key="specs">
             <config key="0">
@@ -100,18 +132,22 @@
                     <entry key="file_system_type" type="xstring" value="LOCAL"/>
                     <entry key="path" type="xstring" value="/Users/paulbaernreuther/knime/files/test.txt"/>
                 </config>
+                <entry key="sourceIdentifier" type="xstring" value="/Users/paulbaernreuther/knime/files/test.txt"/>
                 <config key="spec">
                     <config key="0">
                         <entry key="name" type="xstring" value="1"/>
                         <entry key="type" type="xstring" value="java.lang.String"/>
+                        <entry key="hasType" type="xboolean" value="true"/>
                     </config>
                     <config key="1">
                         <entry key="name" type="xstring" value="2"/>
                         <entry key="type" type="xstring" value="java.lang.String"/>
+                        <entry key="hasType" type="xboolean" value="true"/>
                     </config>
                     <config key="2">
                         <entry key="name" type="xstring" value="3"/>
                         <entry key="type" type="xstring" value="java.lang.String"/>
+                        <entry key="hasType" type="xboolean" value="true"/>
                     </config>
                 </config>
             </config>
@@ -121,18 +157,22 @@
                     <entry key="file_system_type" type="xstring" value="LOCAL"/>
                     <entry key="path" type="xstring" value="/Users/paulbaernreuther/knime/files/test.csv"/>
                 </config>
+                <entry key="sourceIdentifier" type="xstring" value="/Users/paulbaernreuther/knime/files/test.csv"/>
                 <config key="spec">
                     <config key="0">
                         <entry key="name" type="xstring" value="first"/>
                         <entry key="type" type="xstring" value="java.lang.Integer"/>
+                        <entry key="hasType" type="xboolean" value="true"/>
                     </config>
                     <config key="1">
                         <entry key="name" type="xstring" value="second"/>
                         <entry key="type" type="xstring" value="java.lang.Integer"/>
+                        <entry key="hasType" type="xboolean" value="true"/>
                     </config>
                     <config key="2">
                         <entry key="name" type="xstring" value="third"/>
                         <entry key="type" type="xstring" value="java.lang.String"/>
+                        <entry key="hasType" type="xboolean" value="true"/>
                     </config>
                 </config>
             </config>
@@ -141,59 +181,94 @@
         <config key="columnTransformation">
             <config key="0">
                 <entry key="columnName" type="xstring" value="2"/>
-                <entry key="originalType" type="xstring" value="org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)"/>
+                <config key="originalProductionPath">
+                    <entry key="_converter" type="xstring" value="org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)"/>
+                    <entry key="_producer" type="xstring" value="class java.lang.String-&gt;java.lang.String"/>
+                </config>
                 <entry key="originalTypeLabel" type="xstring" value="String"/>
                 <entry key="includeInOutput" type="xboolean" value="true"/>
                 <entry key="columnRename" type="xstring" value="2"/>
-                <entry key="type" type="xstring" value="org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)"/>
+                <config key="productionPath">
+                    <entry key="_converter" type="xstring" value="org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)"/>
+                    <entry key="_producer" type="xstring" value="class java.lang.String-&gt;java.lang.String"/>
+                </config>
             </config>
             <config key="1">
                 <entry key="columnName" type="xstring" value="3"/>
-                <entry key="originalType" type="xstring" value="org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)"/>
+                <config key="originalProductionPath">
+                    <entry key="_converter" type="xstring" value="org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)"/>
+                    <entry key="_producer" type="xstring" value="class java.lang.String-&gt;java.lang.String"/>
+                </config>
                 <entry key="originalTypeLabel" type="xstring" value="String"/>
                 <entry key="includeInOutput" type="xboolean" value="true"/>
                 <entry key="columnRename" type="xstring" value="3"/>
-                <entry key="type" type="xstring" value="org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)"/>
+                <config key="productionPath">
+                    <entry key="_converter" type="xstring" value="org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)"/>
+                    <entry key="_producer" type="xstring" value="class java.lang.String-&gt;java.lang.String"/>
+                </config>
             </config>
             <config key="2">
                 <entry key="columnName" type="xstring" value="first"/>
-                <entry key="originalType" type="xstring" value="org.knime.core.data.def.IntCell$IntCellFactory.create(class java.lang.Integer)"/>
+                <config key="originalProductionPath">
+                    <entry key="_converter" type="xstring" value="org.knime.core.data.def.IntCell$IntCellFactory.create(class java.lang.Integer)"/>
+                    <entry key="_producer" type="xstring" value="class java.lang.Integer-&gt;java.lang.Integer"/>
+                </config>
                 <entry key="originalTypeLabel" type="xstring" value="Number (Integer)"/>
                 <entry key="includeInOutput" type="xboolean" value="true"/>
                 <entry key="columnRename" type="xstring" value="first"/>
-                <entry key="type" type="xstring" value="org.knime.core.data.def.IntCell$IntCellFactory.create(class java.lang.Integer)"/>
+                <config key="productionPath">
+                    <entry key="_converter" type="xstring" value="org.knime.core.data.def.IntCell$IntCellFactory.create(class java.lang.Integer)"/>
+                    <entry key="_producer" type="xstring" value="class java.lang.Integer-&gt;java.lang.Integer"/>
+                </config>
             </config>
             <config key="3">
                 <entry key="columnName" type="xstring" value="1"/>
-                <entry key="originalType" type="xstring" value="org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)"/>
+                <config key="originalProductionPath">
+                    <entry key="_converter" type="xstring" value="org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)"/>
+                    <entry key="_producer" type="xstring" value="class java.lang.String-&gt;java.lang.String"/>
+                </config>
                 <entry key="originalTypeLabel" type="xstring" value="String"/>
                 <entry key="includeInOutput" type="xboolean" value="false"/>
                 <entry key="columnRename" type="xstring" value="1"/>
-                <entry key="type" type="xstring" value="org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)"/>
+                <config key="productionPath">
+                    <entry key="_converter" type="xstring" value="org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)"/>
+                    <entry key="_producer" type="xstring" value="class java.lang.String-&gt;java.lang.String"/>
+                </config>
             </config>
             <config key="4">
                 <entry key="columnName" type="xstring" value="third"/>
-                <entry key="originalType" type="xstring" value="org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)"/>
+                <config key="originalProductionPath">
+                    <entry key="_converter" type="xstring" value="org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)"/>
+                    <entry key="_producer" type="xstring" value="class java.lang.String-&gt;java.lang.String"/>
+                </config>
                 <entry key="originalTypeLabel" type="xstring" value="String"/>
                 <entry key="includeInOutput" type="xboolean" value="true"/>
                 <entry key="columnRename" type="xstring" value="third"/>
-                <entry key="type" type="xstring" value="org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)"/>
+                <config key="productionPath">
+                    <entry key="_converter" type="xstring" value="org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)"/>
+                    <entry key="_producer" type="xstring" value="class java.lang.String-&gt;java.lang.String"/>
+                </config>
             </config>
             <config key="5">
                 <entry key="columnName" type="xstring" isnull="true" value=""/>
-                <entry key="originalType" type="xstring" value="&lt;default-columntype&gt;"/>
                 <entry key="originalTypeLabel" type="xstring" value="Default columntype"/>
                 <entry key="includeInOutput" type="xboolean" value="true"/>
                 <entry key="columnRename" type="xstring" isnull="true" value=""/>
-                <entry key="type" type="xstring" value="&lt;default-columntype&gt;"/>
+                <entry key="unknownsColumnDataType" type="xstring" value="&lt;default-columntype&gt;"/>
             </config>
             <config key="6">
                 <entry key="columnName" type="xstring" value="second"/>
-                <entry key="originalType" type="xstring" value="org.knime.core.data.def.IntCell$IntCellFactory.create(class java.lang.Integer)"/>
+                <config key="originalProductionPath">
+                    <entry key="_converter" type="xstring" value="org.knime.core.data.def.IntCell$IntCellFactory.create(class java.lang.Integer)"/>
+                    <entry key="_producer" type="xstring" value="class java.lang.Integer-&gt;java.lang.Integer"/>
+                </config>
                 <entry key="originalTypeLabel" type="xstring" value="Number (Integer)"/>
                 <entry key="includeInOutput" type="xboolean" value="true"/>
                 <entry key="columnRename" type="xstring" value="second"/>
-                <entry key="type" type="xstring" value="org.knime.core.data.def.IntCell$IntCellFactory.create(class java.lang.Integer)"/>
+                <config key="productionPath">
+                    <entry key="_converter" type="xstring" value="org.knime.core.data.def.IntCell$IntCellFactory.create(class java.lang.Integer)"/>
+                    <entry key="_producer" type="xstring" value="class java.lang.Integer-&gt;java.lang.Integer"/>
+                </config>
             </config>
         </config>
     </config>
