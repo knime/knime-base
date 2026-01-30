@@ -410,7 +410,7 @@ public abstract class TransformationParameters<T>
             }
 
             @Override
-            public String load(NodeSettingsRO settings) throws InvalidSettingsException {
+            public String load(final NodeSettingsRO settings) throws InvalidSettingsException {
                 if (settings.containsKey(CFG_UNKNOWNS_COLUMN_DATA_TYPE)) {
                     return settings.getString(CFG_UNKNOWNS_COLUMN_DATA_TYPE);
                 }
@@ -418,7 +418,7 @@ public abstract class TransformationParameters<T>
             }
 
             @Override
-            public void save(String param, NodeSettingsWO settings) {
+            public void save(final String param, final NodeSettingsWO settings) {
                 if (ProductionPathUtils.isPathIdentifier(param)) {
                     super.save(param, settings);
                 } else {
@@ -433,6 +433,7 @@ public abstract class TransformationParameters<T>
         /**
          * visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
          */
+        @SuppressWarnings("javadoc")
         public TransformationElementSettings(final String columnName, final boolean includeInOutput,
             final String columnRename, final String type, final String originalType, final String originalTypeLabel) {
             m_columnName = columnName;
@@ -446,34 +447,33 @@ public abstract class TransformationParameters<T>
         /**
          * Constructor for concrete columns.
          *
-         * visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
-         *
          * @param columnName
          * @param includeInOutput
          * @param columnRename
          * @param productionPath
          * @param defaultProductionPath
          */
-        public TransformationElementSettings(final String columnName, final boolean includeInOutput,
-            final String columnRename, final ProductionPath productionPath,
-            final ProductionPath defaultProductionPath) {
-            this(columnName, includeInOutput, columnRename, ProductionPathUtils.getPathIdentifier(productionPath),
-                ProductionPathUtils.getPathIdentifier(defaultProductionPath),
-                defaultProductionPath.getDestinationType().toPrettyString());
+        TransformationElementSettings(final String columnName, final boolean includeInOutput, final String columnRename,
+            final ProductionPath productionPath, final ProductionPath defaultProductionPath) {
+            this(columnName, includeInOutput, columnRename, //
+                ProductionPathUtils.getPathIdentifier(productionPath), //
+                ProductionPathUtils.getPathIdentifier(defaultProductionPath), //
+                defaultProductionPath.getDestinationType().toPrettyString() //
+            );
         }
 
         /**
          * Constructor for unknown columns.
          *
-         * visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
-         *
          * @param includeInOutput
          * @param dataType Override data type for unknown columns. Leave null for using the default type.
          */
-        public TransformationElementSettings(final boolean includeInOutput, final DataType dataType) {
+        TransformationElementSettings(final boolean includeInOutput, final DataType dataType) {
             this(null, includeInOutput, null,
                 dataType == null ? TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID : getDataTypeId(dataType),
-                TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID, TypeChoicesProvider.DEFAULT_COLUMNTYPE_TEXT);
+                TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID, //
+                TypeChoicesProvider.DEFAULT_COLUMNTYPE_TEXT //
+            );
         }
 
         /**
