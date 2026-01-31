@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <component id="org.knime.base" version="2">
+    <resource path="META-INF/MANIFEST.MF" type="org.knime.base.node.mine.knn.KnnNodeDialogPane2">
+        <filter comment="kNN node migration - dialog was no API" id="305324134">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.mine.knn.KnnNodeDialogPane2"/>
+                <message_argument value="org.knime.base_5.11.0"/>
+            </message_arguments>
+        </filter>
+    </resource>
     <resource path="src/org/knime/base/node/io/filehandling/webui/reader2/AppendFilePathColumnParameters.java" type="org.knime.base.node.io.filehandling.webui.reader2.AppendFilePathColumnParameters">
         <filter comment="non-public API" id="1143996420">
             <message_arguments>
