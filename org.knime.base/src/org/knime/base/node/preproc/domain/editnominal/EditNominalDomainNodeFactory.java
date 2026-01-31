@@ -46,15 +46,35 @@
  */
 package org.knime.base.node.preproc.domain.editnominal;
 
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
 
 /**
  *
  * @author Marcel Hanser
+ * @author Paul Baernreuther, KNIME GmbH, Germany
+ * @author AI Migration Pipeline v1.2
  */
-public final class EditNominalDomainNodeFactory extends NodeFactory<EditNominalDomainNodeModel> {
+@SuppressWarnings("restriction")
+public final class EditNominalDomainNodeFactory extends NodeFactory<EditNominalDomainNodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     /**
      * {@inheritDoc}
@@ -89,12 +109,62 @@ public final class EditNominalDomainNodeFactory extends NodeFactory<EditNominalD
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    private static final String NODE_NAME = "Edit Nominal Domain";
+
+    private static final String NODE_ICON = "domain2.png";
+
+    private static final String SHORT_DESCRIPTION = """
+            Manages possible values of domains.
+            """;
+
+    private static final String FULL_DESCRIPTION = """
+            <p> Resorts and/or inserts interactively possible values to the domain of a certain column of the input
+                table. This allows the configuration of downstream nodes on an amended domain list, e.g. a histogram
+                that should show an empty bin for a value that is not actually present in the data. Also, the sorting on
+                the domain values can be changed. This might be useful for instance for many predictor nodes, which add
+                a new column for each possible value to the prediction output table, whereby the order of the columns is
+                determined by the ordering in the domain. </p>
+            """;
+
+    private static final List<PortDescription> INPUT_PORTS = List.of(fixedPort("Input", """
+            Input data.
+            """));
+
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(fixedPort("Output", """
+            Input data with changed specification.
+            """));
+
     @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new EditNominalDomainNodeDialogPane();
+    public NodeDialogPane createNodeDialogPane() {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, EditNominalDomainNodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription( //
+            NODE_NAME, //
+            NODE_ICON, //
+            INPUT_PORTS, //
+            OUTPUT_PORTS, //
+            SHORT_DESCRIPTION, //
+            FULL_DESCRIPTION, //
+            List.of(), //
+            EditNominalDomainNodeParameters.class, //
+            null, //
+            NodeType.Manipulator, //
+            List.of(), //
+            null // since version; not a new node
+        );
+    }
+
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, EditNominalDomainNodeParameters.class));
     }
 
 }
