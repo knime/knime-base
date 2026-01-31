@@ -44,55 +44,128 @@
  */
 package org.knime.base.node.mine.knn;
 
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
 
 /**
  * This factory creates all necessary object for the kNN node.
  *
  * @author Michael Berthold, University of Konstanz
+ * @author Bernd Wiswedel, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.2
  * @since 3.7
  */
-public class KnnNodeFactory2 extends NodeFactory<KnnNodeModel2> {
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new KnnNodeDialogPane2();
-    }
+@SuppressWarnings("restriction")
+public class KnnNodeFactory2 extends NodeFactory<KnnNodeModel2> implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public KnnNodeModel2 createNodeModel() {
         return new KnnNodeModel2();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public NodeView<KnnNodeModel2> createNodeView(final int viewIndex,
             final KnnNodeModel2 nodeModel) {
         return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected int getNrNodeViews() {
         return 0;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected boolean hasDialog() {
         return true;
+    }
+    private static final String NODE_NAME = "K Nearest Neighbor";
+    private static final String NODE_ICON = "./knn.png";
+    private static final String SHORT_DESCRIPTION = """
+            Classifies a set of test data based on the k Nearest Neighbor algorithm using the training data.
+            """;
+    private static final String FULL_DESCRIPTION = """
+            Classifies a set of test data based on the k Nearest Neighbor algorithm using the training data. The
+                underlying algorithm uses a KD tree and should therefore exhibit reasonable performance. However, this
+                type of classifier is still only suited for a few thousand to ten thousand or so training instances. All
+                (and only) numeric columns and the Euclidean distance are used in this implementation. All other columns
+                (of non-numeric type) in the test data are being forwarded as-is to the output.
+            """;
+    private static final List<PortDescription> INPUT_PORTS = List.of(
+            fixedPort("Training Data", """
+                Input port for the training data
+                """),
+            fixedPort("Test Data", """
+                Input port for the test data
+                """)
+    );
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(
+            fixedPort("Classified Data", """
+                Output data with class labels
+                """)
+    );
+
+    private static final List<String> KEYWORDS = List.of( //
+        "classification", //
+        "nearest neighbor", //
+        "knn" //
+    );
+
+    /**
+     * @since 5.11
+     */
+    @Override
+    public NodeDialogPane createNodeDialogPane() {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    /**
+     * @since 5.11
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, KnnNodeFactory2Parameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription( //
+            NODE_NAME, //
+            NODE_ICON, //
+            INPUT_PORTS, //
+            OUTPUT_PORTS, //
+            SHORT_DESCRIPTION, //
+            FULL_DESCRIPTION, //
+            List.of(), //
+            KnnNodeFactory2Parameters.class, //
+            null, //
+            NodeType.Learner, //
+            KEYWORDS, //
+            null //
+        );
+    }
+
+    /**
+     * @since 5.11
+     */
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, KnnNodeFactory2Parameters.class));
     }
 }
