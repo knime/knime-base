@@ -55,6 +55,18 @@ import org.knime.core.node.NodeSettingsWO;
  * @since 3.7
  */
 public class KnnSettings2 {
+    /** Configuration key for the class column setting */
+    static final String CFG_CLASS_COLUMN = "classColumn";
+
+    /** Configuration key for the number of neighbors (k) setting */
+    static final String CFG_K = "k";
+
+    /** Configuration key for the weight by distance setting */
+    static final String CFG_WEIGHT_BY_DISTANCE = "weightByDistance";
+
+    /** Configuration key for the output class probabilities setting */
+    static final String CFG_OUTPUT_CLASS_PROBABILITIES = "outputClassProbabilities";
+
     private String m_classColumn;
 
     private int m_k = 3;
@@ -152,10 +164,10 @@ public class KnnSettings2 {
      * @param settings a node settings object
      */
     public void saveSettings(final NodeSettingsWO settings) {
-        settings.addString("classColumn", m_classColumn);
-        settings.addInt("k", m_k);
-        settings.addBoolean("weightByDistance", m_weightByDistance);
-        settings.addBoolean("outputClassProbabilities", m_classProbabilities);
+        settings.addString(CFG_CLASS_COLUMN, m_classColumn);
+        settings.addInt(CFG_K, m_k);
+        settings.addBoolean(CFG_WEIGHT_BY_DISTANCE, m_weightByDistance);
+        settings.addBoolean(CFG_OUTPUT_CLASS_PROBABILITIES, m_classProbabilities);
     }
 
     /**
@@ -166,12 +178,11 @@ public class KnnSettings2 {
      */
     public void loadSettings(final NodeSettingsRO settings)
             throws InvalidSettingsException {
-        m_classColumn = settings.getString("classColumn");
-        m_k = settings.getInt("k");
-        m_weightByDistance = settings.getBoolean("weightByDistance");
+        m_classColumn = settings.getString(CFG_CLASS_COLUMN);
+        m_k = settings.getInt(CFG_K);
+        m_weightByDistance = settings.getBoolean(CFG_WEIGHT_BY_DISTANCE);
 
         /* since 2.6 */
-        m_classProbabilities = settings.getBoolean("outputClassProbabilities",
-                false);
+        m_classProbabilities = settings.getBoolean(CFG_OUTPUT_CLASS_PROBABILITIES, false);
     }
 }
