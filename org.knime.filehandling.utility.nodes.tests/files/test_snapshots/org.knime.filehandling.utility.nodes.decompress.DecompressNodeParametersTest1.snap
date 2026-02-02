@@ -1,0 +1,431 @@
+{
+  "data" : {
+    "model" : {
+      "sourceFile" : {
+        "file" : {
+          "path" : {
+            "fsCategory" : "LOCAL",
+            "path" : "/home/magnus/Downloads/tmp/Askir.zip",
+            "timeout" : 10000,
+            "context" : {
+              "fsToString" : "(LOCAL, /home/magnus/Downloads/tmp/Askir.zip)"
+            }
+          }
+        }
+      },
+      "destinationFolder" : {
+        "file" : {
+          "path" : {
+            "fsCategory" : "LOCAL",
+            "path" : "/home/magnus/Downloads",
+            "timeout" : 10000,
+            "context" : {
+              "fsToString" : "(LOCAL, /home/magnus/Downloads)"
+            }
+          }
+        },
+        "createMissingFolders" : false,
+        "overwritePolicy" : "ignore"
+      },
+      "guessEncoding" : true,
+      "charSet" : {
+        "fileEncoding" : "OTHER",
+        "customEncoding" : "CP437"
+      }
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "charSet" : {
+            "type" : "object",
+            "properties" : {
+              "customEncoding" : {
+                "type" : "string",
+                "title" : "Custom encoding",
+                "description" : "A custom character set used to read a CSV file.",
+                "default" : ""
+              },
+              "fileEncoding" : {
+                "oneOf" : [ {
+                  "const" : "DEFAULT",
+                  "title" : "OS default"
+                }, {
+                  "const" : "ISO_8859_1",
+                  "title" : "ISO-8859-1"
+                }, {
+                  "const" : "US_ASCII",
+                  "title" : "US-ASCII"
+                }, {
+                  "const" : "UTF_8",
+                  "title" : "UTF-8"
+                }, {
+                  "const" : "UTF_16",
+                  "title" : "UTF-16"
+                }, {
+                  "const" : "UTF_16BE",
+                  "title" : "UTF-16BE"
+                }, {
+                  "const" : "UTF_16LE",
+                  "title" : "UTF-16LE"
+                }, {
+                  "const" : "OTHER",
+                  "title" : "Other"
+                } ],
+                "title" : "File encoding",
+                "description" : "Defines the character set which is used to read files that contain characters in a different encoding.\nYou can choose from a list of character encodings (UTF-8, UTF-16, etc.), or specify any other encoding\nsupported by your Java Virtual Machine (VM). The default value uses the default encoding of the Java VM,\n which may depend on the locale or the Java property &quot;file.encoding&quot;.\n\n<ul>\n<li><b>OS default</b>: Uses the default decoding set by the operating system.</li>\n<li><b>ISO-8859-1</b>: ISO Latin Alphabet No. 1, a.k.a. ISO-LATIN-1.</li>\n<li><b>US-ASCII</b>: Seven-bit ASCII, also referred to as US-ASCII.</li>\n<li><b>UTF-8</b>: Eight-bit UCS Transformation Format.</li>\n<li><b>UTF-16</b>: Sixteen-bit UCS Transformation Format, byte order identified by an optional byte-order mark in the file.</li>\n<li><b>UTF-16BE</b>: Sixteen-bit UCS Transformation Format, big-endian byte order.</li>\n<li><b>UTF-16LE</b>: Sixteen-bit UCS Transformation Format, little-endian byte order.</li>\n<li><b>Other</b>: Enter a valid charset name supported by the Java Virtual Machine.</li>\n</ul>",
+                "default" : "UTF_8"
+              }
+            },
+            "default" : {
+              "fileEncoding" : "UTF_8",
+              "customEncoding" : ""
+            }
+          },
+          "destinationFolder" : {
+            "type" : "object",
+            "properties" : {
+              "createMissingFolders" : {
+                "type" : "boolean",
+                "title" : "Create missing folders",
+                "description" : "If enabled, missing folders in the specified path will be created automatically.",
+                "default" : false
+              },
+              "file" : {
+                "type" : "object",
+                "properties" : {
+                  "path" : {
+                    "type" : "object",
+                    "default" : {
+                      "fsCategory" : "LOCAL",
+                      "path" : "",
+                      "timeout" : 10000,
+                      "context" : {
+                        "fsToString" : "(LOCAL, )"
+                      }
+                    }
+                  }
+                },
+                "title" : "Folder",
+                "description" : "Enter a valid directory path where the files should be extracted to. The required syntax of a\npath depends on the chosen file system, such as \"C:\\path\\to\\folder\" (Local File System on\nWindows) or \"/path/to/folder\" (Local File System on Linux/MacOS and Mountpoint). For file\nsystems connected via input port, the node description of the respective connector node\ndescribes the required path format. You can also choose a previously selected folder from the\ndrop-down list, or select a location from the \"Browse...\" dialog.\n",
+                "default" : {
+                  "path" : {
+                    "fsCategory" : "LOCAL",
+                    "path" : "",
+                    "timeout" : 10000,
+                    "context" : {
+                      "fsToString" : "(LOCAL, )"
+                    }
+                  }
+                }
+              },
+              "overwritePolicy" : {
+                "oneOf" : [ {
+                  "const" : "fail",
+                  "title" : "Fail"
+                }, {
+                  "const" : "overwrite",
+                  "title" : "Overwrite"
+                }, {
+                  "const" : "ignore",
+                  "title" : "Ignore"
+                }, {
+                  "const" : "append",
+                  "title" : "Append"
+                } ],
+                "title" : "If exists",
+                "description" : "Specify the behavior of the node in case the output file already exists.<ul><li><b>Overwrite</b>: Will replace any existing file.</li><li><b>Ignore</b>: Will ignore if a file already exists and continues the copying process.</li><li><b>Fail</b>: Will issue an error during the node's execution (to prevent unintentional overwrite).</li></ul>",
+                "default" : "overwrite"
+              }
+            },
+            "default" : {
+              "file" : {
+                "path" : {
+                  "fsCategory" : "LOCAL",
+                  "path" : "",
+                  "timeout" : 10000,
+                  "context" : {
+                    "fsToString" : "(LOCAL, )"
+                  }
+                }
+              },
+              "createMissingFolders" : false,
+              "overwritePolicy" : "overwrite"
+            }
+          },
+          "guessEncoding" : {
+            "type" : "boolean",
+            "title" : "Guess file name encoding from archive file extension",
+            "description" : "If selected, tries to guess the encoding for the names of the files to decompress based on file extension\nof the archive file. For example, it will use UTF-8 for .zip files,\n<a href=\"https://en.wikipedia.org/wiki/Code_page_437\">CP437</a> for .arj, and\n<a href=\"https://en.wikipedia.org/wiki/ASCII\">US-ASCII</a> for .cpio. Unfortunately, the encoding cannot\nalways be correctly guessed. If you notice that the names of decompressed files contain '?' characters,\nthen the encoding was wrongly guessed. In this case, uncheck the box and pick the correct encoding.\n",
+            "default" : true
+          },
+          "sourceFile" : {
+            "type" : "object",
+            "properties" : {
+              "file" : {
+                "type" : "object",
+                "properties" : {
+                  "path" : {
+                    "type" : "object",
+                    "default" : {
+                      "fsCategory" : "LOCAL",
+                      "path" : "",
+                      "timeout" : 10000,
+                      "context" : {
+                        "fsToString" : "(LOCAL, )"
+                      }
+                    }
+                  }
+                },
+                "title" : "File",
+                "description" : "Enter a path to an archive file to be decompressed. The required syntax of a path depends on\nthe chosen file system, such as \"C:\\path\\to\\file\" (Local File System on Windows) or\n\"/path/to/file\" (Local File System on Linux/MacOS and Mountpoint). For file systems connected\nvia input port, the node description of the respective connector node describes the required\npath format. You can also choose a previously selected file from the drop-down list, or select\na file from the \"Browse...\" dialog. Note that browsing is disabled in some cases.\n",
+                "default" : {
+                  "path" : {
+                    "fsCategory" : "LOCAL",
+                    "path" : "",
+                    "timeout" : 10000,
+                    "context" : {
+                      "fsToString" : "(LOCAL, )"
+                    }
+                  }
+                }
+              }
+            },
+            "default" : {
+              "file" : {
+                "path" : {
+                  "fsCategory" : "LOCAL",
+                  "path" : "",
+                  "timeout" : 10000,
+                  "context" : {
+                    "fsToString" : "(LOCAL, )"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "label" : "Source",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/sourceFile/properties/file",
+        "options" : {
+          "fileSystems" : [ "CONNECTED", "LOCAL", "SPACE", "EMBEDDED", "CUSTOM_URL" ],
+          "isLocal" : true,
+          "isWriter" : true,
+          "selectionMode" : "FILE",
+          "spaceFSOptions" : {
+            "mountId" : "Local space"
+          },
+          "format" : "fileChooser"
+        },
+        "providedOptions" : [ "connectedFSOptions" ]
+      } ]
+    }, {
+      "label" : "Destination",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/destinationFolder/properties/file",
+        "options" : {
+          "fileSystems" : [ "CONNECTED", "LOCAL", "SPACE", "EMBEDDED" ],
+          "isLocal" : true,
+          "isWriter" : true,
+          "selectionMode" : "FOLDER",
+          "spaceFSOptions" : {
+            "mountId" : "Local space"
+          },
+          "format" : "fileChooser"
+        },
+        "providedOptions" : [ "connectedFSOptions" ]
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/destinationFolder/properties/createMissingFolders",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/destinationFolder/properties/overwritePolicy",
+        "options" : {
+          "format" : "valueSwitch"
+        },
+        "providedOptions" : [ "possibleValues" ]
+      } ]
+    }, {
+      "label" : "Encoding",
+      "type" : "Section",
+      "options" : {
+        "isAdvanced" : true
+      },
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/guessEncoding",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/charSet/properties/fileEncoding",
+        "options" : {
+          "isAdvanced" : true,
+          "format" : "dropDown"
+        },
+        "providedOptions" : [ "possibleValues" ],
+        "rule" : {
+          "effect" : "DISABLE",
+          "condition" : {
+            "scope" : "#/properties/model/properties/guessEncoding",
+            "schema" : {
+              "const" : true
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/charSet/properties/customEncoding",
+        "options" : {
+          "validation" : {
+            "pattern" : {
+              "errorMessage" : "The field cannot be blank (it must contain at least one non-whitespace character).",
+              "parameters" : {
+                "pattern" : ".*\\S.*"
+              }
+            }
+          },
+          "isAdvanced" : true
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "type" : "AND",
+            "conditions" : [ {
+              "scope" : "#/properties/model/properties/charSet/properties/fileEncoding",
+              "schema" : {
+                "oneOf" : [ {
+                  "const" : "OTHER"
+                } ]
+              }
+            }, {
+              "scope" : "#/properties/model/properties/guessEncoding",
+              "schema" : {
+                "const" : false
+              }
+            } ]
+          }
+        }
+      } ]
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "sourceFile" : {
+            "type" : "object",
+            "properties" : {
+              "file" : {
+                "configPaths" : [ [ "path" ] ]
+              }
+            },
+            "configKey" : "source_location"
+          },
+          "destinationFolder" : {
+            "type" : "object",
+            "properties" : {
+              "file" : {
+                "configPaths" : [ [ "path" ] ]
+              },
+              "createMissingFolders" : {
+                "configKey" : "create_missing_folders"
+              },
+              "overwritePolicy" : {
+                "configKey" : "if_path_exists"
+              }
+            },
+            "configKey" : "destination_location"
+          },
+          "guessEncoding" : {
+            "configKey" : "guess_encoding"
+          },
+          "charSet" : {
+            "configPaths" : [ [ "charset" ] ]
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/charSet/properties/fileEncoding",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "DEFAULT",
+        "text" : "OS default (UTF-8)"
+      }, {
+        "id" : "ISO_8859_1",
+        "text" : "ISO-8859-1"
+      }, {
+        "id" : "US_ASCII",
+        "text" : "US-ASCII"
+      }, {
+        "id" : "UTF_8",
+        "text" : "UTF-8"
+      }, {
+        "id" : "UTF_16",
+        "text" : "UTF-16"
+      }, {
+        "id" : "UTF_16BE",
+        "text" : "UTF-16BE"
+      }, {
+        "id" : "UTF_16LE",
+        "text" : "UTF-16LE"
+      }, {
+        "id" : "OTHER",
+        "text" : "Other"
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/destinationFolder/properties/file",
+    "providedOptionName" : "connectedFSOptions",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : null
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/destinationFolder/properties/overwritePolicy",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "overwrite",
+        "text" : "Overwrite"
+      }, {
+        "id" : "ignore",
+        "text" : "Ignore"
+      }, {
+        "id" : "fail",
+        "text" : "Fail"
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/sourceFile/properties/file",
+    "providedOptionName" : "connectedFSOptions",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : null
+    } ]
+  } ]
+}

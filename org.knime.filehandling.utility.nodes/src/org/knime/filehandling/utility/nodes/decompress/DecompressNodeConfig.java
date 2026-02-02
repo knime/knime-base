@@ -69,9 +69,9 @@ import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelF
  */
 final class DecompressNodeConfig {
 
-    private static final String BZ2_EXTENSION = "bz2";
+    static final String BZ2_EXTENSION = "bz2";
 
-    private static final String GZIP_EXTENSION = "gzip";
+    static final String GZIP_EXTENSION = "gzip";
 
     static final String[] FILE_EXTENSIONS = new String[]{//
         "." + ArchiveStreamFactory.ZIP, //
@@ -84,15 +84,15 @@ final class DecompressNodeConfig {
         "." + CompressorStreamFactory.GZIP,//
         "." + GZIP_EXTENSION};
 
-    private static final String CFG_INPUT_FILE = "source_location";
+    static final String CFG_INPUT_FILE = "source_location";
 
-    private static final String CFG_OUTPUT_LOCATION = "destination_location";
+    static final String CFG_OUTPUT_LOCATION = "destination_location";
 
-    private static final String CFG_CHARSET = "charset";
+    static final String CFG_CHARSET = "charset";
 
-    private static final String CFG_GUESS_ENCODING = "guess_encoding";
+    static final String CFG_GUESS_ENCODING = "guess_encoding";
 
-    private static final String DEFAULT_CHARSET = "CP437";
+    static final String DEFAULT_CHARSET = "CP437";
 
     private final SettingsModelReaderFileChooser m_inputFileChooserModel;
 

@@ -56,6 +56,7 @@ import java.util.Objects;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
@@ -64,6 +65,7 @@ import org.knime.node.parameters.updates.Effect;
 import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.updates.EffectPredicate;
 import org.knime.node.parameters.updates.EffectPredicateProvider;
+import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.EnumChoice;
@@ -78,6 +80,7 @@ import org.knime.node.parameters.widget.text.TextInputWidgetValidation.PatternVa
  * @author Rupert Ettrich
  * @since 5.10
  */
+@SuppressWarnings("restriction")
 public class FileEncodingParameters implements NodeParameters {
 
     /**
@@ -176,6 +179,9 @@ public class FileEncodingParameters implements NodeParameters {
     public static class FileEncodingRef extends ReferenceStateProvider<FileEncodingOption> {
     }
 
+    interface FileEncodingOptionModRef extends ParameterReference<FileEncodingOption>, Modification.Reference {
+    }
+
     /**
      * The selected file encoding option.
      */
@@ -185,11 +191,33 @@ public class FileEncodingParameters implements NodeParameters {
             supported by your Java Virtual Machine (VM). The default value uses the default encoding of the Java VM, \
             which may depend on the locale or the Java property &quot;file.encoding&quot;.
             """, advanced = true)
+    @Modification.WidgetReference(FileEncodingOptionModRef.class)
     @ValueReference(FileEncodingRef.class)
     @ChoicesProvider(EncodingChoicesProvider.class)
     protected FileEncodingOption m_fileEncoding = FileEncodingOption.UTF_8;
 
-    static final class IsOtherEncoding implements EffectPredicateProvider {
+    /**
+     * Generalizes the description of the file encoding option widget to general input file types.
+     *
+     * @param group the widget group modifier
+     * @since 5.11
+     */
+    public static void generalizeFileEncodingDescription(final Modification.WidgetGroupModifier group) {
+        group.find(FileEncodingOptionModRef.class).modifyAnnotation(Widget.class).withProperty("description", """
+                Defines the character set which is used to read files that contain characters in a different encoding.
+                You can choose from a list of character encodings (UTF-8, UTF-16, etc.), or specify any other encoding
+                supported by your Java Virtual Machine (VM). The default value uses the default encoding of the Java VM,
+                 which may depend on the locale or the Java property &quot;file.encoding&quot;.
+                """).modify();
+    }
+
+    /**
+     * The effect predicate provider that checks whether the selected encoding is custom.
+     *
+     * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
+     * @since 5.11
+     */
+    public static final class IsOtherEncoding implements EffectPredicateProvider {
         @Override
         public EffectPredicate init(final PredicateInitializer i) {
             return i.getEnum(FileEncodingRef.class).isOneOf(FileEncodingOption.OTHER);
@@ -202,14 +230,33 @@ public class FileEncodingParameters implements NodeParameters {
     public static class CustomEncodingRef extends ReferenceStateProvider<String> {
     }
 
+    interface CustomEncodingModRef extends ParameterReference<String>, Modification.Reference {
+    }
+
     /**
      * If {@link FileEncodingOption#OTHER } is selected, this field is used to contain the custom file encoding.
      */
     @Widget(title = "Custom encoding", description = "A custom character set used to read a CSV file.", advanced = true)
     @ValueReference(CustomEncodingRef.class)
+    @Modification.WidgetReference(CustomEncodingModRef.class)
     @Effect(predicate = IsOtherEncoding.class, type = EffectType.SHOW)
     @TextInputWidget(patternValidation = IsNotBlankValidation.class)
     protected String m_customEncoding = "";
+
+    /**
+     * Changes the effect predicate provider of the custom encoding field.
+     *
+     * @param group the widget group modifier
+     * @param predicateProviderClass the new predicate provider class
+     * @since 5.11
+     */
+    public static void changeEffectPredicateProviderOfCustomEncoding(final Modification.WidgetGroupModifier group,
+        final Class<? extends EffectPredicateProvider> predicateProviderClass) {
+        if (predicateProviderClass != null) {
+            group.find(CustomEncodingModRef.class).modifyAnnotation(Effect.class)
+                .withProperty("predicate", predicateProviderClass).modify();
+        }
+    }
 
     /**
      * Returns the charset name of the selected encoding.
