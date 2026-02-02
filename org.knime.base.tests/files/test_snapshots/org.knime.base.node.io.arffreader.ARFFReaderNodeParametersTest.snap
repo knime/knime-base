@@ -1,0 +1,64 @@
+{
+  "data" : {
+    "model" : {
+      "fileUrl" : "",
+      "rowPrefix" : "Row"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "fileUrl" : {
+            "type" : "string",
+            "title" : "Input file location",
+            "description" : "The location of the ARFF file to read. Can be a local file or a URL.",
+            "default" : ""
+          },
+          "rowPrefix" : {
+            "type" : "string",
+            "title" : "RowID prefix",
+            "description" : "Prefix for the generated RowIDs. The RowIDs will be in the form 'prefix + rownumber'. If left empty, the RowIDs will just be the row numbers.",
+            "default" : "Row"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/fileUrl",
+      "options" : {
+        "fileExtensions" : [ "arff" ],
+        "fileSystem" : "LOCAL",
+        "isLocal" : true,
+        "format" : "stringFileChooser"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/rowPrefix",
+      "options" : {
+        "placeholder" : "Row"
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "fileUrl" : {
+            "configKey" : "FileURL"
+          },
+          "rowPrefix" : {
+            "configKey" : "RowPrefix"
+          }
+        }
+      }
+    }
+  }
+}
