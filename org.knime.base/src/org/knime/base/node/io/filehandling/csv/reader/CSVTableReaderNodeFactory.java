@@ -44,66 +44,145 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 6, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Dec 11, 2023 (Marc Bux, KNIME GmbH, Berlin, Germany): created
  */
 package org.knime.base.node.io.filehandling.csv.reader;
 
+import static org.knime.node.impl.description.PortDescription.dynamicPort;
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
 import java.util.Optional;
 
+import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReader;
 import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
+import org.knime.base.node.io.filehandling.csv.reader.api.StringReadAdapterFactory;
+import org.knime.base.node.io.filehandling.webui.reader2.MultiFileSelectionPath;
+import org.knime.base.node.io.filehandling.webui.reader2.NodeParametersConfigAndSourceSerializer;
+import org.knime.base.node.io.filehandling.webui.reader2.WebUITableReaderNodeFactory;
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.context.NodeCreationConfiguration;
-import org.knime.core.node.context.url.URLConfiguration;
-import org.knime.filehandling.core.connections.FSLocationUtil;
+import org.knime.core.util.Version;
+import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.filehandling.core.connections.FSPath;
-import org.knime.filehandling.core.defaultnodesettings.EnumConfig;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
-import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
-import org.knime.filehandling.core.node.table.reader.MultiTableReadFactory;
+import org.knime.filehandling.core.node.table.reader.GenericTableReader;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
-import org.knime.filehandling.core.node.table.reader.preview.dialog.AbstractPathTableReaderNodeDialog;
+import org.knime.filehandling.core.node.table.reader.ReadAdapterFactory;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigID;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigIDLoader;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.NodeSettingsConfigID;
+import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
 
 /**
- * Node factory for the prototype CSV reader based on the new table reader framework.
+ * Node factory for the CSV reader node that operates similar to the {@link CSVTableReaderNodeFactory} but features a
+ * modern / Web UI {@link NodeDialog}.
  *
- * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
+ * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-public class CSVTableReaderNodeFactory extends AbstractCSVTableReaderNodeFactory { //NOSONAR
+@SuppressWarnings("restriction")
+public class CSVTableReaderNodeFactory extends WebUITableReaderNodeFactory<CSVTableReaderNodeParameters, //
+        MultiFileSelectionPath, CSVTableReaderConfig, Class<?>, String, CSVMultiTableReadConfig> {
 
-    private static final String[] FILE_SUFFIXES = new String[]{".csv", ".tsv", ".txt", ".gz"};
+    @SuppressWarnings("javadoc")
+    public CSVTableReaderNodeFactory() {
+        super(CSVTableReaderNodeParameters.class);
+    }
+
+    private static final String FULL_DESCRIPTION = """
+            Use this node to read CSV files into your workflow. The node will produce a data table with numbers and
+            types of columns guessed automatically.
+            """;
 
     @Override
-    protected SettingsModelReaderFileChooser createPathSettings(final NodeCreationConfiguration nodeCreationConfig) {
-        final SettingsModelReaderFileChooser settingsModel = new SettingsModelReaderFileChooser("file_selection",
-            nodeCreationConfig.getPortConfig().orElseThrow(IllegalStateException::new), FS_CONNECT_GRP_ID,
-            EnumConfig.create(FilterMode.FILE, FilterMode.FILES_IN_FOLDERS), FILE_SUFFIXES);
-        final Optional<? extends URLConfiguration> urlConfig = nodeCreationConfig.getURLConfig();
-        if (urlConfig.isPresent()) {
-            settingsModel
-                .setLocation(FSLocationUtil.createFromURL(urlConfig.get().getUrl().toString()));
-        }
-        return settingsModel;
+    protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() { // NOSONAR only to make this visible to testing
+        return super.createPortsConfigBuilder();
     }
 
     @Override
-    protected AbstractPathTableReaderNodeDialog<CSVTableReaderConfig, Class<?>> createNodeDialogPane(
-        final NodeCreationConfiguration creationConfig,
-        final MultiTableReadFactory<FSPath, CSVTableReaderConfig, Class<?>> readFactory,
-        final ProductionPathProvider<Class<?>> productionPathProvider) {
-        final boolean isDragNDrop = creationConfig.getURLConfig().isPresent();
+    protected NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription( //
+            "CSV Reader", //
+            "csvreader.png", //
+            List.of(dynamicPort(FS_CONNECT_GRP_ID, "File System Connection", "The file system connection.")), //
+            List.of(fixedPort("File Table",
+                "Data table based on the file being read with number and types of columns guessed automatically.")), //
+            "Reads CSV files", //
+            FULL_DESCRIPTION, //
+            List.of(), //
+            CSVTableReaderNodeParameters.class, //
+            null, //
+            NodeType.Source, //
+            List.of("Text", "Comma", "File", "Input", "Read"), //
+            new Version(5, 9, 0) //
+        );
+    }
 
-        return new CSVTableReaderNodeDialog(createPathSettings(creationConfig), createConfig(creationConfig),
-            readFactory, productionPathProvider, isDragNDrop);
+    @Override
+    protected ReadAdapterFactory<Class<?>, String> getReadAdapterFactory() {
+        return StringReadAdapterFactory.INSTANCE;
+    }
+
+    @Override
+    protected GenericTableReader<FSPath, CSVTableReaderConfig, Class<?>, String> createReader() {
+        return new CSVTableReader();
+    }
+
+    @Override
+    protected String extractRowKey(final String value) {
+        return value;
+    }
+
+    @Override
+    protected TypeHierarchy<Class<?>, Class<?>> getTypeHierarchy() {
+        return StringReadAdapterFactory.TYPE_HIERARCHY;
+    }
+
+    @Override
+    protected ProductionPathProvider<Class<?>> createProductionPathProvider() {
+        return StringReadAdapterFactory.INSTANCE.createProductionPathProvider();
+    }
+
+    @Override
+    protected CSVConfigAndSourceSerializer createSerializer() {
+        return new CSVConfigAndSourceSerializer();
+    }
+
+    private final class CSVConfigAndSourceSerializer
+        extends NodeParametersConfigAndSourceSerializer<CSVTableReaderNodeParameters, MultiFileSelectionPath, //
+                CSVTableReaderConfig, Class<?>, CSVMultiTableReadConfig> {
+        protected CSVConfigAndSourceSerializer() {
+            super(CSVTableReaderNodeParameters.class);
+        }
+
+        @Override
+        protected void saveToSourceAndConfig(final CSVTableReaderNodeParameters params, final ConfigID configId,
+            final MultiFileSelectionPath sourceSettings, final CSVMultiTableReadConfig config) {
+            params.saveToSource(sourceSettings);
+            params.saveToConfig(config, configId);
+        }
+
+        @Override
+        protected ConfigIDLoader getConfigIDLoader() {
+            // TODO: Return configIDLoader from CSVMultiTableReadConfig when available after moving this factory back to the original package.
+            return settings -> new NodeSettingsConfigID(
+                settings.getNodeSettings(new CSVTableReaderTransformationParameters().getConfigIdSettingsKey()));
+        }
+    }
+
+    @Override
+    protected MultiFileSelectionPath createPathSettings(final NodeCreationConfiguration nodeCreationConfig) {
+        final var source = new MultiFileSelectionPath();
+        final var defaultParams = new CSVTableReaderNodeParameters(nodeCreationConfig);
+        defaultParams.saveToSource(source);
+        return source;
     }
 
     @Override
     protected CSVMultiTableReadConfig createConfig(final NodeCreationConfiguration nodeCreationConfig) {
-        final CSVMultiTableReadConfig cfg = super.createConfig(nodeCreationConfig);
-        final Optional<? extends URLConfiguration> urlConfig = nodeCreationConfig.getURLConfig();
-        if (urlConfig.isPresent() && urlConfig.get().getUrl().toString().endsWith(".tsv")) { //NOSONAR
-            cfg.getReaderSpecificConfig().setDelimiter("\t");
-        }
+        final var cfg = new CSVMultiTableReadConfig();
+        final var defaultParams = new CSVTableReaderNodeParameters(nodeCreationConfig);
+        defaultParams.saveToConfig(cfg);
         return cfg;
     }
-
 }

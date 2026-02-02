@@ -95,13 +95,13 @@ import org.xml.sax.SAXException;
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
 @SuppressWarnings("restriction")
-class CSVTableReaderNodeModel2Test extends LocalWorkflowContextTest {
+class CSVTableReaderNodeModelTest extends LocalWorkflowContextTest {
 
     private NativeNodeContainer m_csvReader;
 
     @BeforeEach
     void addCSVReaderToWorkflow() throws IOException {
-        m_csvReader = WorkflowManagerUtil.createAndAddNode(m_wfm, new CSVTableReaderNodeFactory2());
+        m_csvReader = WorkflowManagerUtil.createAndAddNode(m_wfm, new CSVTableReaderNodeFactory());
     }
 
     @Test
@@ -218,7 +218,7 @@ class CSVTableReaderNodeModel2Test extends LocalWorkflowContextTest {
                 CSVTableReaderConfig, Class<?>, CSVMultiTableReadConfig>>
         implements NodeDialogFactory {
 
-        private final CSVTableReaderNodeFactory2 m_delegate = new CSVTableReaderNodeFactory2();
+        private final CSVTableReaderNodeFactory m_delegate = new CSVTableReaderNodeFactory();
 
         private final URL m_url;
 
