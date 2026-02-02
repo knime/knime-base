@@ -62,6 +62,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvid
  * directly be used as StatePrtoviders. Once this is implemented, this ReferenceStateProvider class can be removed.
  *
  * @param <V> the type of the associated field in the {@link DefaultNodeSettings}.
+ * @since 5.4
  */
 @SuppressWarnings("restriction")
 public abstract class ReferenceStateProvider<V> implements Reference<V>, StateProvider<V> {

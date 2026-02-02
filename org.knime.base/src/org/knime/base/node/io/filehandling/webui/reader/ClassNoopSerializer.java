@@ -54,6 +54,7 @@ import org.knime.base.node.io.filehandling.webui.reader.ReaderSpecific.ExternalD
  * A serializer for classes that does not change the class, since Class<?> is already serializable.
  *
  * @author Paul Bärnreuther
+ * @since 5.4
  */
 public interface ClassNoopSerializer extends ExternalDataTypeSerializer<Class<?>, Class<?>> {
 

@@ -56,6 +56,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.Effe
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
+ * @since 5.4
  */
 @SuppressWarnings({"restriction", "java:S1214", "java:S103"})
 public interface CommonReaderLayout {
