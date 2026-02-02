@@ -62,6 +62,7 @@ import org.knime.core.node.config.base.JSONConfig.WriterConfig;
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
+ * @since 5.4
  */
 public interface DataTypeStringSerializer extends ExternalDataTypeSerializer<String, DataType> {
 

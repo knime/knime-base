@@ -63,6 +63,7 @@ import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
  * paths are also validated and respective exceptions are thrown if the settings yield invalid paths.
  *
  * @author Paul Bärnreuther
+ * @since 5.4
  */
 @SuppressWarnings("restriction")
 public final class FileChooserPathAccessor extends AbstractFileChooserPathAccessor {

@@ -85,6 +85,7 @@ import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
  * reader nodes, while slight modifications are possible via {@link Modification}.
  *
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
+ * @since 5.4
  */
 @SuppressWarnings("restriction")
 public final class CommonReaderNodeSettings {

@@ -100,6 +100,7 @@ import org.knime.filehandling.core.node.table.reader.selector.UnknownColumnsTran
  * @param <S> the type used to [S]erialize external data types
  * @param <T> the type used to represent external data [T]ypes
  * @param <R> the [R]eader specific implementation of {@link CommonReaderTransformationSettings}
+ * @since 5.4
  */
 @SuppressWarnings("restriction")
 public abstract class CommonReaderTransformationSettingsPersistor<C extends ReaderSpecificConfig<C>, //

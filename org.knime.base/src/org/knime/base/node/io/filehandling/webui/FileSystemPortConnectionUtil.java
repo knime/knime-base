@@ -63,6 +63,7 @@ import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
  * Utility around accessing the file system port of a reader node
  *
  * @author Paul Bärnreuther
+ * @since 5.4
  */
 @SuppressWarnings("restriction")
 public final class FileSystemPortConnectionUtil {

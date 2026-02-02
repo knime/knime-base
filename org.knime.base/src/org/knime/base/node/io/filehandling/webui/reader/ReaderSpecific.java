@@ -73,6 +73,7 @@ import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarch
  * the methods with default implementations and extend those by the respective classes.
  *
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
+ * @since 5.4
  */
 public final class ReaderSpecific {
 
