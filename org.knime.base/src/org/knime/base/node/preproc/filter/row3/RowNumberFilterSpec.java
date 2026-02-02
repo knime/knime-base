@@ -56,8 +56,11 @@ import org.knime.base.data.filter.row.v2.OffsetFilter;
 import org.knime.base.data.filter.row.v2.OffsetFilter.Operator;
 import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterCriterion;
 import org.knime.base.node.preproc.filter.row3.AbstractRowFilterNodeSettings.FilterMode;
+import org.knime.core.data.DataCell;
 import org.knime.core.data.LongValue;
+import org.knime.core.data.def.LongCell;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.message.Message;
 import org.knime.core.node.util.CheckUtils;
 
 
@@ -126,6 +129,22 @@ final class RowNumberFilterSpec {
         return outputMode == FilterMode.MATCHING ? matchedNonMatchedPartition : matchedNonMatchedPartition.swapped();
     }
 
+    private static long toRowNumberValue(final DataCell dataCell) throws InvalidSettingsException {
+        if (dataCell instanceof LongValue longVal) {
+            return longVal.getLongValue();
+        }
+        if (dataCell == null || dataCell.isMissing()) {
+            throw Message.builder() //
+                .withSummary("Row number value is missing") //
+                .addResolutions("Reconfigure the node to provide a row number reference value.").build().orElseThrow() //
+                .toInvalidSettingsException();
+        }
+        throw Message.builder() //
+            .withSummary("Row number value is not stored as %s, found %s".formatted(LongCell.TYPE, dataCell.getType())) //
+            .addResolutions("Reconfigure the filter criterion to correct its type.").build().orElseThrow() //
+            .toInvalidSettingsException();
+    }
+
     /**
      * If supported, get the criterion as a row number filter specification.
      *
@@ -134,11 +153,8 @@ final class RowNumberFilterSpec {
      * @throws InvalidSettingsException if the filter criterion contains an unsupported operator or the value is missing
      */
     static RowNumberFilterSpec toFilterSpec(final FilterCriterion criterion) throws InvalidSettingsException {
-        final var value = (criterion.m_predicateValues.getCellAt(0)//
-            .filter(cell -> !cell.isMissing())//
-            .map(LongValue.class::cast)//
-            .orElseThrow(() -> new InvalidSettingsException("Row number value is missing")))//
-                .getLongValue();
+        @SuppressWarnings("restriction")
+        final var value = toRowNumberValue(criterion.m_predicateValues.getCellAt(0).orElse(null));
         if (criterion.m_operator == FilterOperator.FIRST_N_ROWS || criterion.m_operator == FilterOperator.LAST_N_ROWS) {
             CheckUtils.checkSetting(value >= 0, "Number of rows must not be negative: %d", value);
         } else {
