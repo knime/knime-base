@@ -58,7 +58,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.knime.base.node.io.filehandling.csv.reader.CSVTableReaderNodeFactory2;
+import org.knime.base.node.io.filehandling.csv.reader.CSVTableReaderNodeFactory;
 import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil.ConnectedWithoutFileSystemSpec;
 import org.knime.base.node.io.filehandling.webui.testing.LocalWorkflowContextTest;
 import org.knime.core.node.context.ports.ExtendablePortGroup;
@@ -95,7 +95,7 @@ class FileSystemPortConnectionUtilTest extends LocalWorkflowContextTest {
 
     @BeforeEach
     void addCSVReaderToWorkflow() throws IOException {
-        m_csvReader = WorkflowManagerUtil.createAndAddNode(m_wfm, new CSVTableReaderNodeFactory2());
+        m_csvReader = WorkflowManagerUtil.createAndAddNode(m_wfm, new CSVTableReaderNodeFactory());
 
     }
 
