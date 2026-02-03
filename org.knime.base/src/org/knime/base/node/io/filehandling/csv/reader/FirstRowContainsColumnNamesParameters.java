@@ -86,4 +86,13 @@ final class FirstRowContainsColumnNamesParameters implements NodeParameters {
         tableReadConfig.setColumnHeaderIdx(0L);
         tableReadConfig.setUseColumnHeaderIdx(m_firstRowContainsColumnNames);
     }
+
+    /**
+     * Load settings from config.
+     *
+     * @param config the config to load from
+     */
+    void loadFromConfig(final CSVMultiTableReadConfig config) {
+        m_firstRowContainsColumnNames = config.getTableReadConfig().useColumnHeaderIdx();
+    }
 }

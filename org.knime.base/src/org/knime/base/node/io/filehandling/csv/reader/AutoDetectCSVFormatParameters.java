@@ -107,6 +107,15 @@ final class AutoDetectCSVFormatParameters implements NodeParameters {
         csvConfig.setAutoDetectionBufferSize(m_numberOfCharactersForAutodetection);
     }
 
+    /**
+     * Load settings from config.
+     *
+     * @param config the config to load from
+     */
+    void loadFromConfig(final CSVMultiTableReadConfig config) {
+        m_numberOfCharactersForAutodetection = config.getReaderSpecificConfig().getAutoDetectionBufferSize();
+    }
+
     @Override
     public void validate() throws InvalidSettingsException {
         if (m_numberOfCharactersForAutodetection <= 0) {

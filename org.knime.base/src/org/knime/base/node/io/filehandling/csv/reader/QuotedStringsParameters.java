@@ -106,4 +106,17 @@ final class QuotedStringsParameters implements NodeParameters {
         csvConfig.setQuoteOption(m_quotedStringsOption == QuotedStringsOption.REMOVE_QUOTES_AND_TRIM
             ? QuoteOption.REMOVE_QUOTES_AND_TRIM : QuoteOption.KEEP_QUOTES);
     }
+
+    /**
+     * Load settings from config.
+     *
+     * @param config the config to load from
+     */
+    void loadFromConfig(final CSVMultiTableReadConfig config) {
+        final var csvConfig = config.getReaderSpecificConfig();
+        m_replaceEmptyQuotedStringsByMissingValues = csvConfig.replaceEmptyWithMissing();
+        m_quotedStringsOption = csvConfig.getQuoteOption() == QuoteOption.REMOVE_QUOTES_AND_TRIM
+            ? QuotedStringsOption.REMOVE_QUOTES_AND_TRIM
+            : QuotedStringsOption.KEEP_QUOTES;
+    }
 }

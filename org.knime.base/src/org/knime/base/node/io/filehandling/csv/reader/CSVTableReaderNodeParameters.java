@@ -59,6 +59,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.additionalsave.Sa
 import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigID;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.migration.Migration;
 import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.ValueReference;
 
@@ -67,6 +68,7 @@ import org.knime.node.parameters.updates.ValueReference;
  *
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
+@Migration(CSVTableReaderMigration.class)
 class CSVTableReaderNodeParameters implements NodeParameters {
 
     CSVTableReaderNodeParameters(final NodeParametersInput input) {

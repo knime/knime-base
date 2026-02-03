@@ -91,4 +91,13 @@ final class FirstColumnContainsRowIdsParameters implements NodeParameters {
         tableReadConfig.setRowIDIdx(0);
         tableReadConfig.setUseRowIDIdx(m_firstColumnContainsRowIds);
     }
+
+    /**
+     * Load settings from config.
+     *
+     * @param config the config to load from
+     */
+    void loadFromConfig(final CSVMultiTableReadConfig config) {
+        m_firstColumnContainsRowIds = config.getTableReadConfig().useRowIDIdx();
+    }
 }

@@ -116,6 +116,15 @@ public final class SkipFirstDataRowsParameters implements NodeParameters {
     }
 
     /**
+     * Load settings from config.
+     *
+     * @param tableReadConfig the config to load from
+     */
+    public void loadFromConfig(final DefaultTableReadConfig<?> tableReadConfig) {
+        m_skipFirstDataRows = tableReadConfig.skipRows() ? tableReadConfig.getNumRowsToSkip() : 0;
+    }
+
+    /**
      * Get the skip first data rows value.
      *
      * @return the number of rows to skip

@@ -85,4 +85,13 @@ final class PrependFileIndexToRowIdParameters implements NodeParameters {
     void saveToConfig(final DefaultTableReadConfig<?> tableReadConfig) {
         tableReadConfig.setPrependSourceIdxToRowId(m_prependFileIndexToRowId);
     }
+
+    /**
+     * Load settings from config.
+     *
+     * @param config the config to load from
+     */
+    void loadFromConfig(final CSVMultiTableReadConfig config) {
+        m_prependFileIndexToRowId = config.getTableReadConfig().prependSourceIdxToRowID();
+    }
 }

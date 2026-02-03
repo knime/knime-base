@@ -77,6 +77,19 @@ final class CSVReaderFileEncodingParameters extends FileEncodingParameters {
         csvConfig.setCharSetName(fileEncodingToCharsetName(m_fileEncoding, m_customEncoding));
     }
 
+    /**
+     * Load settings from config.
+     *
+     * @param config the config to load from
+     */
+    void loadFromConfig(final CSVMultiTableReadConfig config) {
+        final var charsetName = config.getReaderSpecificConfig().getCharSetName();
+        m_fileEncoding = FileEncodingOption.fromCharsetName(charsetName);
+        if (m_fileEncoding == FileEncodingOption.OTHER) {
+            m_customEncoding = charsetName;
+        }
+    }
+
     @Override
     public void validate() throws InvalidSettingsException {
         if (m_fileEncoding == FileEncodingOption.OTHER && m_customEncoding.isBlank()) {
