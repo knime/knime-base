@@ -81,7 +81,7 @@ class CSVTableReaderMigration implements NodeParametersMigration<CSVTableReaderN
         newSettings.m_csvReaderParameters.m_skipFirstDataRowsParams.loadFromConfig(config.getTableReadConfig());
         newSettings.m_csvReaderParameters.m_maxNumberOfRowsParams.loadFromConfig(config.getTableReadConfig());
         newSettings.m_csvReaderParameters.m_ifSchemaChangesParams.loadFromConfig(config);
-        newSettings.m_csvReaderParameters.m_multiFileReaderParams.loadFromConfigAfter4_4(config);
+        newSettings.m_csvReaderParameters.m_multiFileReaderParams.loadFromConfigBefore4_4(config);
         newSettings.m_csvReaderParameters.m_fileEncodingParams.loadFromConfig(config);
         newSettings.m_csvReaderParameters.m_skipFirstLinesParams.loadFromConfig(config);
         newSettings.m_csvReaderParameters.m_csvFormatParams.loadFromConfig(config);
