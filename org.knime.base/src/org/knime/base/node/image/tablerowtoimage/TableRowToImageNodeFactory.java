@@ -46,56 +46,115 @@
  */
 package org.knime.base.node.image.tablerowtoimage;
 
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
 
 /**
+ * Node factory for the Table to Image node.
  *
  * @author Kilian Thiel, KNIME.com AG, Zurich
+ * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.2
  * @since 2.7
  */
+@SuppressWarnings("restriction")
 public class TableRowToImageNodeFactory extends
-        NodeFactory<TableRowToImageNodeModel> {
+        NodeFactory<TableRowToImageNodeModel> implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public TableRowToImageNodeModel createNodeModel() {
         return new TableRowToImageNodeModel();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected int getNrNodeViews() {
         return 0;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public NodeView<TableRowToImageNodeModel> createNodeView(
             final int viewIndex, final TableRowToImageNodeModel nodeModel) {
         return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected boolean hasDialog() {
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    private static final String NODE_NAME = "Table to Image";
+
+    private static final String NODE_ICON = "./tablerow_to_image.png";
+
+    private static final String SHORT_DESCRIPTION = """
+            Converts an image contained in a table row to an image object.
+            """;
+
+    private static final String FULL_DESCRIPTION = """
+            Converts an image contained in the first row of the specified column into an image object. If the table
+                consists of more than one row, all other rows will be ignored and a warning will be displayed.
+            """;
+
+    private static final List<PortDescription> INPUT_PORTS = List.of(
+            fixedPort("Input table", """
+                Input table containing the image to convert.
+                """)
+    );
+
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(
+            fixedPort("Image port", """
+                Image port containing the converted image.
+                """)
+    );
+
     @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new TableRowToImageNodeDialog();
+    public NodeDialogPane createNodeDialogPane() {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
     }
+
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, TableRowToImageNodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription( //
+            NODE_NAME, //
+            NODE_ICON, //
+            INPUT_PORTS, //
+            OUTPUT_PORTS, //
+            SHORT_DESCRIPTION, //
+            FULL_DESCRIPTION, //
+            List.of(), //
+            TableRowToImageNodeParameters.class, //
+            null, //
+            NodeType.Other, //
+            List.of(), //
+            null //
+        );
+    }
+
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, TableRowToImageNodeParameters.class));
+    }
+
 }
