@@ -72,14 +72,14 @@ import org.knime.core.node.port.image.ImagePortObject;
 import org.knime.core.node.port.image.ImagePortObjectSpec;
 
 /**
+ * Node model of the Table to Image node.
  *
  * @author Kilian Thiel, KNIME.com AG, Zurich
  * @since 2.7
  */
 class TableRowToImageNodeModel extends NodeModel {
 
-    private SettingsModelString m_imageColSettingsModel =
-            TableRowToImageNodeDialog.getImageColumnSettingsModel();
+    private SettingsModelString m_imageColSettingsModel = getImageColumnSettingsModel();
 
     /**
      * New node model with on image port input and a data table output.
@@ -171,6 +171,11 @@ class TableRowToImageNodeModel extends NodeModel {
             }
         }
         return -1;
+    }
+
+    private static SettingsModelString getImageColumnSettingsModel() {
+        return new SettingsModelString(TableRowToImageConfigKeys.CFGKEY_COLUMN,
+                "");
     }
 
     /**

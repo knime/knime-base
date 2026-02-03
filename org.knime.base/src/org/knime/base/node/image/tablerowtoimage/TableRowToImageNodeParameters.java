@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -40,41 +41,70 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * ---------------------------------------------------------------------
- *
- * Created on 22.08.2012 by kilian
+ * ------------------------------------------------------------------------
  */
+
 package org.knime.base.node.image.tablerowtoimage;
 
+import java.util.Optional;
+
+import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.image.ImageValue;
-import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
-import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelection;
-import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
+import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.ValueProvider;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.updates.legacy.ColumnNameAutoGuessValueProvider;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.util.ColumnSelectionUtil;
+import org.knime.node.parameters.widget.choices.util.CompatibleColumnsProvider;
 
 /**
+ * Node parameters for Table to Image.
  *
- * @author Kilian Thiel, KNIME.com AG, Zurich
- * @since 2.7
+ * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.2
  */
-class TableRowToImageNodeDialog extends DefaultNodeSettingsPane {
+@LoadDefaultsForAbsentFields
+@SuppressWarnings("restriction")
+final class TableRowToImageNodeParameters implements NodeParameters {
 
-    /**
-     * @return The settings model string containing the name of the image
-     * column.
-     */
-    public static SettingsModelString getImageColumnSettingsModel() {
-        return new SettingsModelString(TableRowToImageConfigKeys.CFGKEY_COLUMN,
-                "");
+    @Persist(configKey = TableRowToImageConfigKeys.CFGKEY_COLUMN)
+    @Widget(title = "Image column", description = "Specifies the column containing the image to convert.")
+    @ChoicesProvider(ImageColumnChoicesProvider.class)
+    @ValueProvider(ImageColumnProvider.class)
+    @ValueReference(ImageColumnRef.class)
+    String m_imageColumn = "";
+
+    static final class ImageColumnRef implements ParameterReference<String> {
     }
 
-    /**
-     * Constructor of <code>TableRowToImageNodeDialog</code>.
-     */
-    @SuppressWarnings("unchecked")
-    public TableRowToImageNodeDialog() {
+    static final class ImageColumnChoicesProvider extends CompatibleColumnsProvider {
 
-        addDialogComponent(new DialogComponentColumnNameSelection(
-                getImageColumnSettingsModel(), "Image column", 0,
-                ImageValue.class));
+        protected ImageColumnChoicesProvider() {
+            super(ImageValue.class);
+        }
+
     }
+
+    static final class ImageColumnProvider extends ColumnNameAutoGuessValueProvider {
+
+        protected ImageColumnProvider() {
+            super(ImageColumnRef.class);
+        }
+
+        @Override
+        protected Optional<DataColumnSpec> autoGuessColumn(final NodeParametersInput parametersInput) {
+            final var compatibleCols =
+                ColumnSelectionUtil.getCompatibleColumnsOfFirstPort(parametersInput, ImageValue.class);
+            return compatibleCols.isEmpty() ? Optional.empty()
+                : Optional.of(compatibleCols.get(compatibleCols.size() - 1));
+        }
+
+    }
+
 }
