@@ -85,7 +85,6 @@ enum CSVMultiTableReadConfigSerializer
 
         INSTANCE;
 
-
     private static final String CFG_MAX_NUM_CHUNKS_PER_FILE = "max_num_chunks_per_file";
 
     private static final String CFG_MIN_CHUNK_SIZE = "min_chunk_size_in_bytes";
@@ -219,8 +218,17 @@ enum CSVMultiTableReadConfigSerializer
 
     }
 
+    /**
+     * Loads the {@link ColumnFilterMode} for old workflows that were initially created with version 4.2 or 4.3. In
+     * these versions, the {@link SpecMergeMode} was stored in the advanced settings tab and the
+     * {@link ColumnFilterMode} was derived from it. From version 4.3 onwards, the {@link ColumnFilterMode} is stored
+     * directly as part of the {@link TableSpecConfig}. See implementation for details.
+     *
+     * @param advancedSettings The advanced settings node.
+     * @return The loaded {@link ColumnFilterMode} or <code>null</code> if not applicable.
+     */
     @SuppressWarnings("deprecation")
-    private static ColumnFilterMode loadColumnFilterModeForOldWorkflows(final NodeSettingsRO advancedSettings) {
+    public static ColumnFilterMode loadColumnFilterModeForOldWorkflows(final NodeSettingsRO advancedSettings) {
         final SpecMergeMode specMergeMode = loadSpecMergeModeForOldWorkflows(advancedSettings);
         return specMergeMode != null ? specMergeMode.getColumnFilterMode() : null;
     }

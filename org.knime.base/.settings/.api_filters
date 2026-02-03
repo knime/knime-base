@@ -86,49 +86,6 @@
             </message_arguments>
         </filter>
     </resource>
-    <resource path="src/org/knime/base/node/io/filehandling/webui/reader2/ReaderSpecific.java" type="org.knime.base.node.io.filehandling.webui.reader2.ReaderSpecific$ConfigAndReader">
-        <filter comment="non-public API" id="403804204">
-            <message_arguments>
-                <message_argument value="org.knime.base.node.io.filehandling.webui.reader2.ReaderSpecific.ConfigAndReader"/>
-                <message_argument value="createMultiTableReadConfig(NodeParametersInput)"/>
-            </message_arguments>
-        </filter>
-        <filter comment="non-public API" id="405901410">
-            <message_arguments>
-                <message_argument value="org.knime.base.node.io.filehandling.webui.reader2.ReaderSpecific.ConfigAndReader"/>
-                <message_argument value="createMultiTableReadConfig()"/>
-            </message_arguments>
-        </filter>
-        <filter comment="non-public API" id="1211105284">
-            <message_arguments>
-                <message_argument value="createMultiTableReadConfig(NodeParametersInput)"/>
-            </message_arguments>
-        </filter>
-    </resource>
-    <resource path="src/org/knime/base/node/io/filehandling/webui/reader2/ReaderSpecific.java" type="org.knime.base.node.io.filehandling.webui.reader2.ReaderSpecific$ProductionPathProviderAndTypeHierarchy">
-        <filter comment="non-public API" id="403804204">
-            <message_arguments>
-                <message_argument value="org.knime.base.node.io.filehandling.webui.reader2.ReaderSpecific.ProductionPathProviderAndTypeHierarchy"/>
-                <message_argument value="getProducerRegistry()"/>
-            </message_arguments>
-        </filter>
-        <filter comment="non-public API" id="405901410">
-            <message_arguments>
-                <message_argument value="org.knime.base.node.io.filehandling.webui.reader2.ReaderSpecific.ProductionPathProviderAndTypeHierarchy"/>
-                <message_argument value="toRawSpec(Map&lt;FSLocation,TypedReaderTableSpec&lt;T&gt;&gt;)"/>
-            </message_arguments>
-        </filter>
-        <filter comment="non-public API" id="1211105284">
-            <message_arguments>
-                <message_argument value="getProducerRegistry()"/>
-            </message_arguments>
-        </filter>
-        <filter comment="non-public API" id="1211105284">
-            <message_arguments>
-                <message_argument value="toRawSpec(Collection&lt;TypedReaderTableSpec&lt;T&gt;&gt;)"/>
-            </message_arguments>
-        </filter>
-    </resource>
     <resource path="src/org/knime/base/node/io/filehandling/webui/reader2/TransformationParameters.java" type="org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters$ColumnSpecSettings">
         <filter comment="non-public API" id="1143996420">
             <message_arguments>
@@ -162,19 +119,6 @@
         <filter comment="non-public API" id="1143996420">
             <message_arguments>
                 <message_argument value="org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.TransformationElementSettings"/>
-            </message_arguments>
-        </filter>
-    </resource>
-    <resource path="src/org/knime/base/node/io/filehandling/webui/reader2/TransformationParametersStateProviders.java" type="org.knime.base.node.io.filehandling.webui.reader2.TransformationParametersStateProviders$TypedReaderTableSpecsProvider">
-        <filter comment="non-public API" id="338792546">
-            <message_arguments>
-                <message_argument value="org.knime.base.node.io.filehandling.webui.reader2.TransformationParametersStateProviders.TypedReaderTableSpecsProvider"/>
-                <message_argument value="computeState(NodeParametersInput)"/>
-            </message_arguments>
-        </filter>
-        <filter comment="non-public API" id="1143996420">
-            <message_arguments>
-                <message_argument value="computeState(NodeParametersInput)"/>
             </message_arguments>
         </filter>
     </resource>
