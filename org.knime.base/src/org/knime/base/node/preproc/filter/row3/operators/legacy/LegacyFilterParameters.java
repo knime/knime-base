@@ -51,12 +51,15 @@ package org.knime.base.node.preproc.filter.row3.operators.legacy;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.util.Optional;
 import java.util.OptionalInt;
 
 import org.knime.base.node.preproc.filter.row3.RowIdentifiers;
 import org.knime.base.node.preproc.filter.row3.operators.rownumber.RowNumberFilterSpec;
+import org.knime.core.data.DataCell;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataValue;
+import org.knime.core.data.DataValueComparator;
 import org.knime.core.data.LongValue;
 import org.knime.core.data.v2.IndexedRowReadPredicate;
 import org.knime.core.node.InvalidSettingsException;
@@ -75,7 +78,7 @@ import org.knime.node.parameters.NodeParameters;
  *
  * @author Paul Bärnreuther
  */
-@SuppressWarnings({ "restriction", "deprecation" })
+@SuppressWarnings({"restriction", "deprecation"})
 public class LegacyFilterParameters implements FilterValueParameters {
 
     String m_legacySettings; // string since it needs to be serializable
@@ -214,10 +217,58 @@ public class LegacyFilterParameters implements FilterValueParameters {
     public DataValue[] stash() {
         try {
             final var loaded = getLoaded();
-            return loaded.m_predicateValues.getCellAt(0).stream().toArray(DataValue[]::new);
+            return getFirstCellOptional(loaded).stream().toArray(DataValue[]::new);
         } catch (final InvalidSettingsException e) {
             // Illegal since settings have been validated before
             throw new IllegalStateException("Could not load legacy settings", e);
+        }
+    }
+
+    /**
+     * Method used to find out whether settings need to be marked as dirty when having stashed from legacy settings.
+     *
+     * Comparison is performed by using the type of the legacy cell at index 0 to compare the stashed value at index 0
+     * using the {@link DataValueComparator}.
+     *
+     *
+     * @param otherStash the stashed values to compare to
+     * @return true if the stashed values are the same as the current ones
+     */
+    public boolean hasSameStash(final DataValue[] otherStash) {
+        if (otherStash.length > 1) {
+            return false;
+        }
+        try {
+            final var loaded = getLoaded();
+            final var currentCellOpt = getFirstCellOptional(loaded);
+            if (currentCellOpt.isEmpty()) {
+                return otherStash.length == 0;
+            }
+            if (otherStash.length == 0) {
+                return false;
+            }
+            final var currentCell = currentCellOpt.get();
+            final var currentType = currentCell.getType();
+            final var otherStashValue = otherStash[0];
+            if (otherStashValue == null) {
+                return false;
+            }
+            final var otherCell = otherStashValue.materializeDataCell();
+            if (otherCell.getType().isCompatible(currentType.getPreferredValueClass())) {
+                return currentType.getComparator().compare(currentCell, otherCell) == 0;
+            }
+            return false;
+        } catch (final InvalidSettingsException e) {
+            // Illegal since settings have been validated before
+            throw new IllegalStateException("Could not load legacy settings", e);
+        }
+    }
+
+    private static Optional<DataCell> getFirstCellOptional(final LoadedLegacyFilterParameters loaded) {
+        try {
+            return loaded.m_predicateValues.getCellAt(0);
+        } catch (final ArrayIndexOutOfBoundsException e) {
+            return Optional.empty();
         }
     }
 
