@@ -124,6 +124,7 @@ public final class MaxNumberOfRowsParameters implements NodeParameters {
      * Load settings from config.
      *
      * @param tableReadConfig the config to load from
+     * @since 5.11
      */
     public void loadFromConfig(final AbstractTableReadConfig<?> tableReadConfig) {
         if (tableReadConfig.limitRows()) {
