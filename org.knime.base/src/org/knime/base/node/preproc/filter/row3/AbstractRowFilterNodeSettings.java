@@ -68,6 +68,7 @@ import org.knime.base.node.preproc.filter.row3.operators.rownumber.RowNumberFilt
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
+import org.knime.core.data.DataValue;
 import org.knime.core.data.RowKey;
 import org.knime.core.data.v2.IndexedRowReadPredicate;
 import org.knime.core.node.InvalidSettingsException;
@@ -101,6 +102,7 @@ import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.StateProvider;
 import org.knime.node.parameters.updates.ValueProvider;
 import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.updates.internal.StateProviderInitializerInternal;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.Label;
 import org.knime.node.parameters.widget.choices.StringChoice;
@@ -474,6 +476,7 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
         }
 
         @Layout(Condition.ValueInput.class)
+        @ValueProvider(LegacyFilterValueParametersTransformer.class)
         @DynamicParameters(value = FilterValueParametersProvider.class,
             widgetAppearingInNodeDescription = @Widget(title = "Filter value",
                 description = """
@@ -495,6 +498,57 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
         FilterValueParameters m_filterValueParameters;
 
         static final class CurrentFilterValueParametersRef implements ParameterReference<FilterValueParameters> {
+        }
+
+        /**
+         * Transforms legacy filter parameters to the new format on load, without marking the dialog as dirty. We only
+         * want to prevent this dirtyness in case the transformation does not change the parameters in a way that would
+         * be visible to the user.
+         *
+         * We indicate that by checking whether the stash of the transformed parameters is equal to the stash of the
+         * legacy parameters. If they are equal, we can safely replace the parameters without marking the dialog as
+         * dirty.
+         */
+        static final class LegacyFilterValueParametersTransformer implements StateProvider<FilterValueParameters> {
+
+            private Supplier<FilterValueParameters> m_currentValue;
+
+            private Supplier<String> m_currentOperatorId;
+
+            private Supplier<StringOrEnum<RowIdentifiers>> m_selectedColumn;
+
+            private Supplier<DataType> m_previousDataType;
+
+            @Override
+            public void init(final StateProviderInitializer initializer) {
+                ((StateProviderInitializerInternal)initializer).computeOnParametersLoaded();
+                m_currentValue = initializer.getValueSupplier(CurrentFilterValueParametersRef.class);
+                m_currentOperatorId = initializer.getValueSupplier(OperatorIdRef.class);
+                m_selectedColumn = initializer.getValueSupplier(SelectedColumnRef.class);
+                m_previousDataType = initializer.getValueSupplier(ColumnDataTypeRef.class);
+            }
+
+            @Override
+            public FilterValueParameters computeState(final NodeParametersInput context)
+                throws StateComputationFailureException {
+                final var currentValue = m_currentValue.get();
+
+                // Only transform if the current parameters are legacy parameters
+                if (!(currentValue instanceof LegacyFilterParameters)) {
+                    throw new StateComputationFailureException();
+                }
+
+                final var newParams = FilterValueParametersProvider.toNewParameters(context, m_selectedColumn.get(),
+                    m_currentOperatorId.get(), currentValue, m_previousDataType);
+
+                final var newStash = newParams == null ? new DataValue[0] : newParams.stash();
+                if (((LegacyFilterParameters)currentValue).hasSameStash(newStash)) {
+                    return newParams;
+                }
+                throw new StateComputationFailureException();
+            }
+
+
         }
 
         static class FilterValueParametersProvider implements DynamicParametersProvider<FilterValueParameters> {
