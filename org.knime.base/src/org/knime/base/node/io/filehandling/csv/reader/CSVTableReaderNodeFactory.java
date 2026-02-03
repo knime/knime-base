@@ -75,8 +75,7 @@ import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarch
 import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
 
 /**
- * Node factory for the CSV reader node that operates similar to the {@link CSVTableReaderNodeFactory} but features a
- * modern / Web UI {@link NodeDialog}.
+ * Node factory for the CSV reader with a modern / Web UI {@link NodeDialog}.
  *
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
