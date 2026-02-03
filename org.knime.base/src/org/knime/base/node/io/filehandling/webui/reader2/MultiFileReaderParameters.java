@@ -104,7 +104,7 @@ public final class MultiFileReaderParameters extends AppendFilePathColumnParamet
     }
 
     @Override
-    public void loadFromConfig(MultiTableReadConfig<?, ?> config) {
+    public void loadFromConfig(final MultiTableReadConfig<?, ?> config) {
         throw new UnsupportedOperationException("Use either loadFromConfigBefore4_4 or loadFromConfigAfter4_4");
     }
 
@@ -112,6 +112,7 @@ public final class MultiFileReaderParameters extends AppendFilePathColumnParamet
      * Load the settings from the given config. This method respects the legacy setting {@link SpecMergeMode}
      *
      * @param config the config to load from
+     * @since 5.11
      */
     @SuppressWarnings("deprecation")
     public void loadFromConfigBefore4_4(final AbstractMultiTableReadConfig<?, ?, ?, ?> config) {
