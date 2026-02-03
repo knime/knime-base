@@ -865,7 +865,8 @@
             "route" : [ "settings" ]
           },
           "charSet" : {
-            "configPaths" : [ [ "encoding", "charset" ] ]
+            "configPaths" : [ [ "charset" ] ],
+            "route" : [ "encoding" ]
           },
           "failOnDifferingSpecs" : {
             "configKey" : "fail_on_different_specs",

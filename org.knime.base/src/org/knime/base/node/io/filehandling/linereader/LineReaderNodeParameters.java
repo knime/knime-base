@@ -171,6 +171,7 @@ class LineReaderNodeParameters implements NodeParameters {
             """)
     @Persistor(FileEncodingPersistor.class)
     @Advanced
+    @PersistWithin(value = {CFG_ENCODING_TAB})
     @Layout(FileSection.class)
     @Migrate
     FileEncodingParameters m_charSet = new FileEncodingParameters();
@@ -424,43 +425,10 @@ class LineReaderNodeParameters implements NodeParameters {
         }
     }
 
-    static class FileEncodingPersistor implements NodeParametersPersistor<FileEncodingParameters> {
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public FileEncodingParameters load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            final var encodingSettings = settings.getNodeSettings(CFG_ENCODING_TAB);
-            final var currentCharsetName =
-                encodingSettings.getString(CFG_CHARSET, FileEncodingOption.DEFAULT.getCharsetName());
-            final var currentEncoding = FileEncodingOption.fromCharsetName(currentCharsetName);
-            final var fileEncodingParameters = new FileEncodingParameters(currentEncoding,
-                currentEncoding == FileEncodingOption.OTHER ? currentCharsetName : null);
-            return fileEncodingParameters;
+    static class FileEncodingPersistor extends FileEncodingParameters.AbstractFileEncodingPersistor {
+        public FileEncodingPersistor() {
+            super(CFG_CHARSET);
         }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public void save(final FileEncodingParameters param, final NodeSettingsWO settings) {
-            final var fileEncoding = param.getFileEncoding();
-            final var customEncoding = param.getCustomEncoding();
-            final var charsetName =
-                fileEncoding == FileEncodingOption.OTHER ? customEncoding : fileEncoding.getCharsetName();
-            final var encodingSettings = SettingsUtils.getOrAdd(settings, CFG_ENCODING_TAB);
-            encodingSettings.addString(CFG_CHARSET, charsetName);
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public String[][] getConfigPaths() {
-            return new String[][]{{CFG_ENCODING_TAB, CFG_CHARSET}};
-        }
-
     }
 
 }
