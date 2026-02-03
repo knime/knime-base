@@ -94,7 +94,10 @@ class CSVTableReaderMigration implements NodeParametersMigration<CSVTableReaderN
         newSettings.m_csvReaderParameters.m_maxColumnsParams.loadFromConfig(config);
         newSettings.m_csvReaderParameters.m_limitMemoryParams.loadFromConfig(config);
         newSettings.m_csvReaderParameters.m_prependFileIndexParams.loadFromConfig(config);
-        newSettings.m_transformationParameters.loadFromLegacySettings(settings);
+
+        final var legacyColumnFilterMode = CSVMultiTableReadConfigSerializer
+            .loadColumnFilterModeForOldWorkflows(settings.getNodeSettings(ADVANCED_SETTINGS_KEY));
+        newSettings.m_transformationParameters.loadFromLegacySettings(settings, legacyColumnFilterMode);
 
         return newSettings;
     }
@@ -103,8 +106,7 @@ class CSVTableReaderMigration implements NodeParametersMigration<CSVTableReaderN
     public List<ConfigMigration<CSVTableReaderNodeParameters>> getConfigMigrations() {
         return List.of(//
             ConfigMigration.builder(CSVTableReaderMigration::load) //
-                .withMatcher(s -> s.containsKey(SETTINGS_KEY))
-                .withDeprecatedConfigPath(SETTINGS_KEY)//
+                .withMatcher(s -> s.containsKey(SETTINGS_KEY)).withDeprecatedConfigPath(SETTINGS_KEY)//
                 .withDeprecatedConfigPath(ADVANCED_SETTINGS_KEY)//
                 .withDeprecatedConfigPath(LIMIT_ROWS_KEY)//
                 .withDeprecatedConfigPath(ENCODING_KEY)//
