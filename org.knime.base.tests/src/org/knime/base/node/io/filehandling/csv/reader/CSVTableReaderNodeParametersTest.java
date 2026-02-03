@@ -62,6 +62,7 @@ import org.knime.testing.node.dialog.SnapshotTestConfiguration;
  * Tests the {@link CSVTableReaderNodeParameters} persistence.
  *
  * @author Paul Bärnreuther
+ * @author Thomas Reifenberger
  */
 @SuppressWarnings("restriction")
 class CSVTableReaderNodeParametersTest extends DefaultNodeSettingsSnapshotTest {
@@ -74,13 +75,24 @@ class CSVTableReaderNodeParametersTest extends DefaultNodeSettingsSnapshotTest {
             .testJsonFormsForModel(CSVTableReaderNodeParameters.class) //
             .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings()) //
             .testNodeSettingsStructure(() -> readSettings()) //
+            // Tests for migration from old settings model
+            .testNodeSettingsStructure(() -> readSettings("_4.2.5_empty")) //
+            .testNodeSettingsStructure(() -> readSettings("_4.2.5_configured")) //
+            .testNodeSettingsStructure(() -> readSettings("_5.8.0_empty")) //
+            .testNodeSettingsStructure(() -> readSettings("_5.8.0_configured")) //
+            .testNodeSettingsStructure(() -> readSettings("_5.8.0_transformation")) //
+            // End of migration tests
             .build();
     }
 
     private static CSVTableReaderNodeParameters readSettings() {
+        return readSettings("");
+    }
+
+    private static CSVTableReaderNodeParameters readSettings(final String suffix) {
         try {
             var path = getSnapshotPath(CSVTableReaderNodeParametersTest.class).getParent().resolve("node_settings")
-                .resolve("CSVTableReaderNodeParameters.xml");
+                .resolve("CSVTableReaderNodeParameters" + suffix + ".xml");
             try (var fis = new FileInputStream(path.toFile())) {
                 var nodeSettings = NodeSettings.loadFromXML(fis);
                 return NodeParametersUtil.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),

@@ -1886,7 +1886,10 @@
               }
             }
           }
-        }
+        },
+        "propertiesDeprecatedConfigKeys" : [ {
+          "deprecated" : [ [ "settings" ], [ "advanced_settings" ], [ "limit_rows" ], [ "encoding" ], [ "table_spec_config_Internals" ] ]
+        } ]
       }
     }
   },
