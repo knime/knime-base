@@ -57,20 +57,25 @@ import java.util.Optional;
 import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReader;
 import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
 import org.knime.base.node.io.filehandling.csv.reader.api.StringReadAdapterFactory;
+import org.knime.base.node.io.filehandling.webui.reader2.BackwardsCompatibleWebUITableReaderNodeFactory;
 import org.knime.base.node.io.filehandling.webui.reader2.MultiFileSelectionPath;
 import org.knime.base.node.io.filehandling.webui.reader2.NodeParametersConfigAndSourceSerializer;
-import org.knime.base.node.io.filehandling.webui.reader2.WebUITableReaderNodeFactory;
 import org.knime.core.node.NodeDescription;
 import org.knime.core.node.context.NodeCreationConfiguration;
+import org.knime.core.node.context.url.URLConfiguration;
 import org.knime.core.util.Version;
 import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.filehandling.core.connections.FSLocationUtil;
 import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.defaultnodesettings.EnumConfig;
+import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
+import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
 import org.knime.filehandling.core.node.table.reader.GenericTableReader;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.ReadAdapterFactory;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigID;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigIDLoader;
-import org.knime.filehandling.core.node.table.reader.config.tablespec.NodeSettingsConfigID;
+import org.knime.filehandling.core.node.table.reader.paths.SourceSettings;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
 import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
 
@@ -80,7 +85,7 @@ import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
 @SuppressWarnings("restriction")
-public class CSVTableReaderNodeFactory extends WebUITableReaderNodeFactory<CSVTableReaderNodeParameters, //
+public class CSVTableReaderNodeFactory extends BackwardsCompatibleWebUITableReaderNodeFactory<CSVTableReaderNodeParameters, //
         MultiFileSelectionPath, CSVTableReaderConfig, Class<?>, String, CSVMultiTableReadConfig> {
 
     @SuppressWarnings("javadoc")
@@ -163,9 +168,7 @@ public class CSVTableReaderNodeFactory extends WebUITableReaderNodeFactory<CSVTa
 
         @Override
         protected ConfigIDLoader getConfigIDLoader() {
-            // TODO: Return configIDLoader from CSVMultiTableReadConfig when available after moving this factory back to the original package.
-            return settings -> new NodeSettingsConfigID(
-                settings.getNodeSettings(new CSVTableReaderTransformationParameters().getConfigIdSettingsKey()));
+            return CSVMultiTableReadConfigSerializer.INSTANCE;
         }
     }
 
@@ -183,5 +186,17 @@ public class CSVTableReaderNodeFactory extends WebUITableReaderNodeFactory<CSVTa
         final var defaultParams = new CSVTableReaderNodeParameters(nodeCreationConfig);
         defaultParams.saveToConfig(cfg);
         return cfg;
+    }
+
+    @Override
+    protected SourceSettings<FSPath> createLegacySourceSettings(final NodeCreationConfiguration nodeCreationConfig) {
+        final SettingsModelReaderFileChooser settingsModel = new SettingsModelReaderFileChooser("file_selection",
+            nodeCreationConfig.getPortConfig().orElseThrow(IllegalStateException::new), FS_CONNECT_GRP_ID,
+            EnumConfig.create(FilterMode.FILE, FilterMode.FILES_IN_FOLDERS));
+        final Optional<? extends URLConfiguration> urlConfig = nodeCreationConfig.getURLConfig();
+        if (urlConfig.isPresent()) {
+            settingsModel.setLocation(FSLocationUtil.createFromURL(urlConfig.get().getUrl().toString()));
+        }
+        return settingsModel;
     }
 }
