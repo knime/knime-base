@@ -93,6 +93,15 @@ public final class MaximumNumberOfColumnsParameters implements NodeParameters {
         csvConfig.setMaxColumns(m_maximumNumberOfColumns);
     }
 
+    /**
+     * Load settings from config.
+     *
+     * @param config the config to load from
+     */
+    void loadFromConfig(final CSVMultiTableReadConfig config) {
+        m_maximumNumberOfColumns = config.getReaderSpecificConfig().getMaxColumns();
+    }
+
     @Override
     public void validate() throws InvalidSettingsException {
         if (m_maximumNumberOfColumns < 0) {

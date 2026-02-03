@@ -94,4 +94,15 @@ final class IfRowHasFewerColumnsParameters implements NodeParameters {
     void saveToConfig(final DefaultTableReadConfig<?> tableReadConfig) {
         tableReadConfig.setAllowShortRows(m_ifRowHasLessColumnsOption == IfRowHasLessColumnsOption.INSERT_MISSING);
     }
+
+    /**
+     * Load settings from config.
+     *
+     * @param config the config to load from
+     */
+    void loadFromConfig(final CSVMultiTableReadConfig config) {
+        m_ifRowHasLessColumnsOption = config.getTableReadConfig().allowShortRows()
+            ? IfRowHasLessColumnsOption.INSERT_MISSING
+            : IfRowHasLessColumnsOption.FAIL;
+    }
 }

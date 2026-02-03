@@ -317,6 +317,34 @@ final class CSVFormatParameters implements NodeParameters {
         csvConfig.setThousandsSeparator(m_thousandsSeparator);
     }
 
+    /**
+     * Load settings from config.
+     *
+     * @param config the config to load from
+     */
+    void loadFromConfig(final CSVMultiTableReadConfig config) {
+        final var csvConfig = config.getReaderSpecificConfig();
+
+        m_commentLineCharacter = csvConfig.getComment();
+
+        m_rowDelimiterOption = csvConfig.useLineBreakRowDelimiter()
+            ? RowDelimiterOption.LINE_BREAK
+            : RowDelimiterOption.CUSTOM;
+        m_customRowDelimiter = EscapeUtils.escape(csvConfig.getLineSeparator());
+
+        m_columnDelimiter = EscapeUtils.escape(csvConfig.getDelimiter());
+
+        m_quotedStringsContainNoRowDelimiters = csvConfig.noRowDelimitersInQuotes();
+
+        m_quoteCharacter = csvConfig.getQuote();
+
+        m_quoteEscapeCharacter = csvConfig.getQuoteEscape();
+
+        m_decimalSeparator = csvConfig.getDecimalSeparator();
+
+        m_thousandsSeparator = csvConfig.getThousandsSeparator();
+    }
+
     @Override
     public void validate() throws InvalidSettingsException {
         if (m_commentLineCharacter.length() > 1) {

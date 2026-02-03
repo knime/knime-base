@@ -89,6 +89,16 @@ final class SkipFirstLinesOfFileParameters implements NodeParameters {
         csvConfig.setNumLinesToSkip(m_skipFirstLines);
     }
 
+    /**
+     * Load settings from config.
+     *
+     * @param config the config to load from
+     */
+    void loadFromConfig(final CSVMultiTableReadConfig config) {
+        final var csvConfig = config.getReaderSpecificConfig();
+        m_skipFirstLines = csvConfig.skipLines() ? csvConfig.getNumLinesToSkip() : 0;
+    }
+
     @Override
     public void validate() throws InvalidSettingsException {
         if (m_skipFirstLines < 0) {

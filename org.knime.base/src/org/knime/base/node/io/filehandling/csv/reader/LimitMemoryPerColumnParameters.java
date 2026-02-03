@@ -88,4 +88,13 @@ final class LimitMemoryPerColumnParameters implements NodeParameters {
     void saveToConfig(final CSVTableReaderConfig csvConfig) {
         csvConfig.limitCharsPerColumn(m_limitMemoryPerColumn);
     }
+
+    /**
+     * Load settings from config.
+     *
+     * @param config the config to load from
+     */
+    void loadFromConfig(final CSVMultiTableReadConfig config) {
+        m_limitMemoryPerColumn = config.getReaderSpecificConfig().isCharsPerColumnLimited();
+    }
 }

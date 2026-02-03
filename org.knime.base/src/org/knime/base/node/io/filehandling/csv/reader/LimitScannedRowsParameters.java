@@ -111,6 +111,20 @@ final class LimitScannedRowsParameters implements NodeParameters {
         tableReadConfig.setMaxRowsForSpec(m_maxDataRowsScanned.orElse(0L));
     }
 
+    /**
+     * Load settings from config.
+     *
+     * @param config the config to load from
+     */
+    void loadFromConfig(final CSVMultiTableReadConfig config) {
+        final var tableReadConfig = config.getTableReadConfig();
+        if (tableReadConfig.limitRowsForSpec()) {
+            m_maxDataRowsScanned = Optional.of(tableReadConfig.getMaxRowsForSpec());
+        } else {
+            m_maxDataRowsScanned = Optional.empty();
+        }
+    }
+
     @Override
     public void validate() throws InvalidSettingsException {
         if (m_maxDataRowsScanned.isPresent() && m_maxDataRowsScanned.get() < 0) {

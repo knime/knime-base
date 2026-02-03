@@ -121,6 +121,19 @@ public final class MaxNumberOfRowsParameters implements NodeParameters {
     }
 
     /**
+     * Load settings from config.
+     *
+     * @param tableReadConfig the config to load from
+     */
+    public void loadFromConfig(final AbstractTableReadConfig<?> tableReadConfig) {
+        if (tableReadConfig.limitRows()) {
+            m_maximumNumberOfRows = Optional.of(tableReadConfig.getMaxRows());
+        } else {
+            m_maximumNumberOfRows = Optional.empty();
+        }
+    }
+
+    /**
      * Get the maximum number of rows value.
      *
      * @return the optional maximum number of rows
