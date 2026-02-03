@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
+    <config key="csvReaderParameters">
+        <config key="multiFileSelectionParams">
+            <config key="source">
+                <entry key="filterMode" type="xstring" value="FILE"/>
+                <config key="path">
+                    <entry key="location_present" type="xboolean" value="true"/>
+                    <entry key="file_system_type" type="xstring" value="LOCAL"/>
+                    <entry key="path" type="xstring" value=""/>
+                </config>
+                <entry key="includeSubfolders" type="xboolean" value="false"/>
+                <config key="filters">
+                    <entry key="filterFilesExtension" type="xboolean" value="false"/>
+                    <entry key="filesExtensionExpression" type="xstring" value=""/>
+                    <entry key="filesExtensionCaseSensitive" type="xboolean" value="false"/>
+                    <entry key="filterFilesName" type="xboolean" value="false"/>
+                    <entry key="filesNameExpression" type="xstring" value="*"/>
+                    <entry key="filesNameFilterType" type="xstring" value="WILDCARD"/>
+                    <entry key="filesNameCaseSensitive" type="xboolean" value="false"/>
+                    <entry key="includeHiddenFiles" type="xboolean" value="false"/>
+                    <entry key="includeSpecialFiles" type="xboolean" value="true"/>
+                    <entry key="filterFoldersName" type="xboolean" value="false"/>
+                    <entry key="foldersNameExpression" type="xstring" value="*"/>
+                    <entry key="foldersNameFilterType" type="xstring" value="WILDCARD"/>
+                    <entry key="foldersNameCaseSensitive" type="xboolean" value="false"/>
+                    <entry key="includeHiddenFolders" type="xboolean" value="false"/>
+                    <entry key="followSymlinks" type="xboolean" value="true"/>
+                </config>
+            </config>
+        </config>
+        <config key="skipFirstDataRowsParams">
+            <entry key="skipFirstDataRows" type="xlong" value="0"/>
+        </config>
+        <config key="maxNumberOfRowsParams">
+            <entry key="maximumNumberOfRows" type="xlong" value="0"/>
+            <entry key="maximumNumberOfRows_is_present" type="xboolean" value="false"/>
+        </config>
+        <config key="ifSchemaChangesParams">
+            <entry key="ignoreSchemaChange" type="xboolean" value="false"/>
+            <entry key="ifSchemaChangesOption" type="xstring" value="FAIL"/>
+        </config>
+        <config key="multiFileReaderParams">
+            <entry key="appendPathColumn" type="xstring" isnull="true" value=""/>
+            <entry key="appendPathColumn_is_present" type="xboolean" value="false"/>
+            <entry key="howToCombineColumns" type="xstring" value="FAIL"/>
+        </config>
+        <config key="fileEncodingParams">
+            <entry key="fileEncoding" type="xstring" value="UTF_8"/>
+            <entry key="customEncoding" type="xstring" value=""/>
+        </config>
+        <config key="skipFirstLinesParams">
+            <entry key="skipFirstLines" type="xlong" value="0"/>
+        </config>
+        <config key="csvFormatParams">
+            <entry key="commentLineCharacter" type="xstring" value="#"/>
+            <entry key="rowDelimiterOption" type="xstring" value="LINE_BREAK"/>
+            <entry key="customRowDelimiter" type="xstring" value="\n"/>
+            <entry key="columnDelimiter" type="xstring" value=","/>
+            <entry key="quotedStringsContainNoRowDelimiters" type="xboolean" value="false"/>
+            <entry key="quoteCharacter" type="xstring" value="&quot;"/>
+            <entry key="quoteEscapeCharacter" type="xstring" value="&quot;"/>
+            <entry key="decimalSeparator" type="xstring" value="."/>
+            <entry key="thousandsSeparator" type="xstring" value="%%00000"/>
+        </config>
+        <config key="autoDetectParams">
+            <entry key="numberOfCharactersForAutodetection" type="xint" value="1048576"/>
+        </config>
+        <config key="firstRowContainsColumnNamesParams">
+            <entry key="firstRowContainsColumnNames" type="xboolean" value="true"/>
+        </config>
+        <config key="firstColumnContainsRowIdsParams">
+            <entry key="firstColumnContainsRowIds" type="xboolean" value="false"/>
+        </config>
+        <config key="ifRowHasFewerColumnsParams">
+            <entry key="ifRowHasLessColumnsOption" type="xstring" value="FAIL"/>
+        </config>
+        <config key="quotedStringsParams">
+            <entry key="replaceEmptyQuotedStringsByMissingValues" type="xboolean" value="true"/>
+            <entry key="quotedStringsOption" type="xstring" value="REMOVE_QUOTES_AND_TRIM"/>
+        </config>
+        <config key="limitScannedRowsParams">
+            <entry key="maxDataRowsScanned" type="xlong" value="10000"/>
+            <entry key="maxDataRowsScanned_is_present" type="xboolean" value="true"/>
+        </config>
+        <config key="maxColumnsParams">
+            <entry key="maximumNumberOfColumns" type="xint" value="8192"/>
+        </config>
+        <config key="limitMemoryParams">
+            <entry key="limitMemoryPerColumn" type="xboolean" value="true"/>
+        </config>
+        <config key="prependFileIndexParams">
+            <entry key="prependFileIndexToRowId" type="xboolean" value="false"/>
+        </config>
+    </config>
+    <config key="configId_Internals">
+        <config key="multi_table_read">
+            <config key="settings">
+                <entry key="has_column_header" type="xboolean" value="true"/>
+                <entry key="has_row_id" type="xboolean" value="false"/>
+                <entry key="comment_char" type="xstring" value="#"/>
+                <entry key="column_delimiter" type="xstring" value=","/>
+                <entry key="quote_char" type="xstring" value="&quot;"/>
+                <entry key="quote_escape_char" type="xstring" value="&quot;"/>
+                <entry key="row_delimiter" type="xstring" value="%%00010"/>
+                <entry key="use_line_break_row_delimiter" type="xboolean" value="true"/>
+            </config>
+            <config key="advanced_settings">
+                <entry key="quote_option" type="xstring" value="REMOVE_QUOTES_AND_TRIM"/>
+                <entry key="replace_empty_quotes_with_missing" type="xboolean" value="true"/>
+                <entry key="limit_data_rows_scanned" type="xboolean" value="true"/>
+                <entry key="max_data_rows_scanned" type="xlong" value="10000"/>
+                <entry key="thousands_separator" type="xstring" value="%%00000"/>
+                <entry key="decimal_separator" type="xstring" value="."/>
+            </config>
+            <config key="encoding">
+                <entry key="charset" type="xstring" value="UTF-8"/>
+            </config>
+            <config key="limit_rows">
+                <entry key="skip_lines" type="xboolean" value="false"/>
+                <entry key="number_of_lines_to_skip" type="xlong" value="0"/>
+                <entry key="skip_data_rows" type="xboolean" value="false"/>
+                <entry key="number_of_rows_to_skip" type="xlong" value="0"/>
+            </config>
+        </config>
+    </config>
+    <config key="transformationParameters">
+        <config key="specs">
+            <entry key="is_null" type="xboolean" value="true"/>
+        </config>
+        <entry key="enforceTypes" type="xboolean" value="true"/>
+        <config key="columnTransformation">
+            <config key="0">
+                <entry key="columnName" type="xstring" isnull="true" value=""/>
+                <entry key="originalTypeLabel" type="xstring" value="Default columntype"/>
+                <entry key="includeInOutput" type="xboolean" value="true"/>
+                <entry key="columnRename" type="xstring" isnull="true" value=""/>
+                <entry key="unknownsColumnDataType" type="xstring" value="&lt;default-columntype&gt;"/>
+            </config>
+        </config>
+    </config>
+</config>
