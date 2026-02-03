@@ -99,8 +99,12 @@ public final class MultiFileReaderParameters extends AppendFilePathColumnParamet
         super.saveToConfig(config);
 
         config.setFailOnDifferingSpecs(m_howToCombineColumns == HowToCombineColumnsOption.FAIL);
-        // The legacy spec merge mode should not be used anymore, as the column filter mode in the table spec config is
-        // used instead
+        // The legacy spec merge mode is still used as a fallback, see DefaultTableTransformationFactory.createNew()
+        switch (m_howToCombineColumns) {
+            case INTERSECTION -> config.setSpecMergeMode(SpecMergeMode.INTERSECTION);
+            case UNION -> config.setSpecMergeMode(SpecMergeMode.UNION);
+            case FAIL -> config.setSpecMergeMode(SpecMergeMode.FAIL_ON_DIFFERING_SPECS);
+        }
     }
 
     @Override
