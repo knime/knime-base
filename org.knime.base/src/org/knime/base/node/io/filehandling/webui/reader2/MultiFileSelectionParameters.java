@@ -49,6 +49,7 @@
 package org.knime.base.node.io.filehandling.webui.reader2;
 
 import java.net.URL;
+import java.util.EnumSet;
 import java.util.Set;
 
 import org.knime.base.node.io.filehandling.webui.FileSystemManagedByPortMessage;
@@ -204,6 +205,11 @@ public final class MultiFileSelectionParameters implements NodeParameters {
     @Override
     public void validate() throws InvalidSettingsException {
         m_source.validate();
+        final var allowedFilterModes = EnumSet.of(MultiFileSelectionMode.FILE, MultiFileSelectionMode.FILES_IN_FOLDERS);
+        if (!allowedFilterModes.contains(m_source.m_filterMode)) {
+            throw new InvalidSettingsException(
+                "The filter mode " + m_source.m_filterMode + " is not supported by this node.");
+        }
     }
 
     /**
