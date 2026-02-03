@@ -37,7 +37,7 @@
             <entry key="maximumNumberOfRows_is_present" type="xboolean" value="true"/>
         </config>
         <config key="ifSchemaChangesParams">
-            <entry key="ignoreSchemaChange" type="xboolean" value="false"/>
+            <entry key="ignoreSchemaChange" type="xboolean" value="true"/>
             <entry key="ifSchemaChangesOption" type="xstring" value="FAIL"/>
         </config>
         <config key="multiFileReaderParams">
@@ -172,10 +172,10 @@
                 </config>
                 <entry key="originalTypeLabel" type="xstring" value="Number (Integer)"/>
                 <entry key="includeInOutput" type="xboolean" value="true"/>
-                <entry key="columnRename" type="xstring" value="renamed"/>
+                <entry key="columnRename" type="xstring" value="1"/>
                 <config key="productionPath">
-                    <entry key="_converter" type="xstring" value="org.knime.core.data.def.DoubleCell$DoubleCellFactory.create(class java.lang.Double)"/>
-                    <entry key="_producer" type="xstring" value="class java.lang.Double-&gt;java.lang.Double"/>
+                    <entry key="_converter" type="xstring" value="org.knime.core.data.def.IntCell$IntCellFactory.create(class java.lang.Integer)"/>
+                    <entry key="_producer" type="xstring" value="class java.lang.Integer-&gt;java.lang.Integer"/>
                 </config>
             </config>
             <config key="1">

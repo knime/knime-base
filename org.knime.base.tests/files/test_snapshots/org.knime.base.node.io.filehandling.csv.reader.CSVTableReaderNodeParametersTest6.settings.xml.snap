@@ -19,13 +19,13 @@
                     <entry key="filesNameFilterType" type="xstring" value="WILDCARD"/>
                     <entry key="filesNameCaseSensitive" type="xboolean" value="false"/>
                     <entry key="includeHiddenFiles" type="xboolean" value="false"/>
-                    <entry key="includeSpecialFiles" type="xboolean" value="true"/>
+                    <entry key="includeSpecialFiles" type="xboolean" value="false"/>
                     <entry key="filterFoldersName" type="xboolean" value="false"/>
                     <entry key="foldersNameExpression" type="xstring" value="*"/>
                     <entry key="foldersNameFilterType" type="xstring" value="WILDCARD"/>
                     <entry key="foldersNameCaseSensitive" type="xboolean" value="false"/>
                     <entry key="includeHiddenFolders" type="xboolean" value="false"/>
-                    <entry key="followSymlinks" type="xboolean" value="true"/>
+                    <entry key="followSymlinks" type="xboolean" value="false"/>
                 </config>
             </config>
         </config>
@@ -37,16 +37,16 @@
             <entry key="maximumNumberOfRows_is_present" type="xboolean" value="true"/>
         </config>
         <config key="ifSchemaChangesParams">
-            <entry key="ignoreSchemaChange" type="xboolean" value="true"/>
+            <entry key="ignoreSchemaChange" type="xboolean" value="false"/>
             <entry key="ifSchemaChangesOption" type="xstring" value="FAIL"/>
         </config>
         <config key="multiFileReaderParams">
             <entry key="appendPathColumn" type="xstring" isnull="true" value=""/>
             <entry key="appendPathColumn_is_present" type="xboolean" value="false"/>
-            <entry key="howToCombineColumns" type="xstring" value="UNION"/>
+            <entry key="howToCombineColumns" type="xstring" value="INTERSECTION"/>
         </config>
         <config key="fileEncodingParams">
-            <entry key="fileEncoding" type="xstring" value="DEFAULT"/>
+            <entry key="fileEncoding" type="xstring" value="UTF_8"/>
             <entry key="customEncoding" type="xstring" value=""/>
         </config>
         <config key="skipFirstLinesParams">
@@ -114,7 +114,7 @@
                 <entry key="decimal_separator" type="xstring" value="."/>
             </config>
             <config key="encoding">
-                <entry key="charset" type="xstring" isnull="true" value=""/>
+                <entry key="charset" type="xstring" value="UTF-8"/>
             </config>
             <config key="limit_rows">
                 <entry key="skip_lines" type="xboolean" value="true"/>
@@ -142,7 +142,7 @@
                     <config key="1">
                         <entry key="name" type="xstring" value="Column1"/>
                         <entry key="type" type="xstring" value="java.lang.String"/>
-                        <entry key="hasType" type="xboolean" value="true"/>
+                        <entry key="hasType" type="xboolean" value="false"/>
                     </config>
                     <config key="2">
                         <entry key="name" type="xstring" value="ENCRYPTED"/>
@@ -162,9 +162,16 @@
                 </config>
             </config>
         </config>
-        <entry key="enforceTypes" type="xboolean" value="true"/>
+        <entry key="enforceTypes" type="xboolean" value="false"/>
         <config key="columnTransformation">
             <config key="0">
+                <entry key="columnName" type="xstring" isnull="true" value=""/>
+                <entry key="originalTypeLabel" type="xstring" value="Default columntype"/>
+                <entry key="includeInOutput" type="xboolean" value="true"/>
+                <entry key="columnRename" type="xstring" isnull="true" value=""/>
+                <entry key="unknownsColumnDataType" type="xstring" value="&lt;default-columntype&gt;"/>
+            </config>
+            <config key="1">
                 <entry key="columnName" type="xstring" value="1"/>
                 <config key="originalProductionPath">
                     <entry key="_converter" type="xstring" value="org.knime.core.data.def.IntCell$IntCellFactory.create(class java.lang.Integer)"/>
@@ -174,32 +181,11 @@
                 <entry key="includeInOutput" type="xboolean" value="true"/>
                 <entry key="columnRename" type="xstring" value="renamed"/>
                 <config key="productionPath">
-                    <entry key="_converter" type="xstring" value="org.knime.core.data.def.LongCell$LongCellFactory.create(class java.lang.Integer)"/>
-                    <entry key="_producer" type="xstring" value="class java.lang.Integer-&gt;java.lang.Integer"/>
+                    <entry key="_converter" type="xstring" value="org.knime.core.data.def.LongCell$LongCellFactory.create(class java.lang.Long)"/>
+                    <entry key="_producer" type="xstring" value="class java.lang.Long-&gt;java.lang.Long"/>
                 </config>
-            </config>
-            <config key="1">
-                <entry key="columnName" type="xstring" isnull="true" value=""/>
-                <entry key="originalTypeLabel" type="xstring" value="Default columntype"/>
-                <entry key="includeInOutput" type="xboolean" value="true"/>
-                <entry key="columnRename" type="xstring" isnull="true" value=""/>
-                <entry key="unknownsColumnDataType" type="xstring" value="&lt;default-columntype&gt;"/>
             </config>
             <config key="2">
-                <entry key="columnName" type="xstring" value="Column1"/>
-                <config key="originalProductionPath">
-                    <entry key="_converter" type="xstring" value="org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)"/>
-                    <entry key="_producer" type="xstring" value="class java.lang.String-&gt;java.lang.String"/>
-                </config>
-                <entry key="originalTypeLabel" type="xstring" value="String"/>
-                <entry key="includeInOutput" type="xboolean" value="true"/>
-                <entry key="columnRename" type="xstring" value="Column1"/>
-                <config key="productionPath">
-                    <entry key="_converter" type="xstring" value="org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)"/>
-                    <entry key="_producer" type="xstring" value="class java.lang.String-&gt;java.lang.String"/>
-                </config>
-            </config>
-            <config key="3">
                 <entry key="columnName" type="xstring" value="ENCRYPTED"/>
                 <config key="originalProductionPath">
                     <entry key="_converter" type="xstring" value="org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)"/>
@@ -213,7 +199,7 @@
                     <entry key="_producer" type="xstring" value="class java.lang.String-&gt;java.lang.String"/>
                 </config>
             </config>
-            <config key="4">
+            <config key="3">
                 <entry key="columnName" type="xstring" value="01.01.2026"/>
                 <config key="originalProductionPath">
                     <entry key="_converter" type="xstring" value="org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)"/>
@@ -227,7 +213,7 @@
                     <entry key="_producer" type="xstring" value="class java.lang.String-&gt;java.lang.String"/>
                 </config>
             </config>
-            <config key="5">
+            <config key="4">
                 <entry key="columnName" type="xstring" value="'{&quot;a&quot;:&quot;b&quot;}'"/>
                 <config key="originalProductionPath">
                     <entry key="_converter" type="xstring" value="org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)"/>
@@ -236,6 +222,20 @@
                 <entry key="originalTypeLabel" type="xstring" value="String"/>
                 <entry key="includeInOutput" type="xboolean" value="true"/>
                 <entry key="columnRename" type="xstring" value="'{&quot;a&quot;:&quot;b&quot;}'"/>
+                <config key="productionPath">
+                    <entry key="_converter" type="xstring" value="org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)"/>
+                    <entry key="_producer" type="xstring" value="class java.lang.String-&gt;java.lang.String"/>
+                </config>
+            </config>
+            <config key="5">
+                <entry key="columnName" type="xstring" value="Column1"/>
+                <config key="originalProductionPath">
+                    <entry key="_converter" type="xstring" value="org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)"/>
+                    <entry key="_producer" type="xstring" value="class java.lang.String-&gt;java.lang.String"/>
+                </config>
+                <entry key="originalTypeLabel" type="xstring" value="String"/>
+                <entry key="includeInOutput" type="xboolean" value="true"/>
+                <entry key="columnRename" type="xstring" value="Column1"/>
                 <config key="productionPath">
                     <entry key="_converter" type="xstring" value="org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)"/>
                     <entry key="_producer" type="xstring" value="class java.lang.String-&gt;java.lang.String"/>
