@@ -165,8 +165,9 @@ public class LegacyFilterParameters implements FilterValueParameters {
             throw new InvalidSettingsException("Column \"%s\" could not be found in input table".formatted(column));
         }
         final var loaded = getLoaded();
-        return loaded.m_operator.translateToPredicate(loaded.m_predicateValues, columnIndex,
-            spec.getColumnSpec(columnIndex).getType());
+        final var columnType = spec.getColumnSpec(columnIndex).getType();
+        loaded.m_predicateValues.validate(column.getStringChoice(), columnType);
+        return loaded.m_operator.translateToPredicate(loaded.m_predicateValues, columnIndex, columnType);
 
     }
 
