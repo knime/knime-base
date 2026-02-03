@@ -78,6 +78,7 @@ class CSVTableReaderNodeParametersTest extends DefaultNodeSettingsSnapshotTest {
             // Tests for migration from old settings model
             .testNodeSettingsStructure(() -> readSettings("_4.2.5_empty")) //
             .testNodeSettingsStructure(() -> readSettings("_4.2.5_configured")) //
+            .testNodeSettingsStructure(() -> readSettings("_4.3.4_transformation")) //
             .testNodeSettingsStructure(() -> readSettings("_5.8.0_empty")) //
             .testNodeSettingsStructure(() -> readSettings("_5.8.0_configured")) //
             .testNodeSettingsStructure(() -> readSettings("_5.8.0_transformation")) //
