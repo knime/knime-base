@@ -49,8 +49,10 @@
 package org.knime.base.node.io.filehandling.webui.reader2;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
@@ -802,8 +804,36 @@ public abstract class TransformationParameters<T>
         final var unknownTransformationElement =
             getTransformationElement(tableSpecConfig.getTableTransformation().getTransformationForUnknownColumns());
         m_columnTransformation = Stream.concat(transformationElements.stream(), Stream.of(unknownTransformationElement))
-            .sorted((t1, t2) -> t1.getFirst() - t2.getFirst()).map(Pair::getSecond)
+            .sorted(new ColumnTransformationComparator(unknownTransformationElement)) //
+            .map(Pair::getSecond) //
             .toArray(TransformationElementSettings[]::new);
+    }
+
+    private record ColumnTransformationComparator(Pair<Integer, TransformationElementSettings> m_unknownElement)
+        implements Comparator<Pair<Integer, TransformationElementSettings>> {
+
+        @Override
+        public int compare(final Pair<Integer, TransformationElementSettings> a,
+            final Pair<Integer, TransformationElementSettings> b) {
+            var aPos = a.getFirst();
+            var bPos = b.getFirst();
+            if (!Objects.equals(aPos, bPos)) {
+                return Integer.compare(aPos, bPos);
+            }
+            /*
+             * Workaround for legacy behaviour: The "unknown columns" placeholder might have the same index as a known
+             * column. It should be inserted at its position, shifting all subsequent columns (including the one with
+             * the same index) to the right. This comparator implicitly assumes that there is only one
+             * "unknown columns" element.
+             */
+            if (a == m_unknownElement) {
+                return -1;
+            }
+            if (b == m_unknownElement) {
+                return 1;
+            }
+            return 0;
+        }
     }
 
     private Pair<Integer, TransformationElementSettings>
