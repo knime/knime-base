@@ -91,8 +91,10 @@ import org.knime.node.parameters.layout.After;
 import org.knime.node.parameters.layout.HorizontalLayout;
 import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.layout.Section;
+import org.knime.node.parameters.migration.ConfigMigration;
 import org.knime.node.parameters.migration.Migrate;
 import org.knime.node.parameters.migration.Migration;
+import org.knime.node.parameters.migration.NodeParametersMigration;
 import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.updates.Effect;
 import org.knime.node.parameters.updates.Effect.EffectType;
@@ -125,6 +127,13 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
 
     AbstractRowFilterNodeSettings(final NodeParametersInput context) {
         m_predicates = new FilterCriterion[]{new FilterCriterion(context)};
+    }
+
+    @Override
+    public void validate() throws InvalidSettingsException {
+        for (final var criterion : m_predicates) {
+            criterion.validate();
+        }
     }
 
     enum Criteria {
@@ -216,6 +225,36 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
         }
 
         static final class SelectedColumnRef implements ParameterReference<StringOrEnum<RowIdentifiers>> {
+        }
+
+
+        /* Workaround for legacy Row Filter settings that need to be validated in the dialog, but not in the model. */
+        @ValueProvider(SetToTrueProvider.class)
+        @Migration(LoadTrueForLegacySettings.class)
+        boolean m_expectColumnTypePresent;
+
+        static final class SetToTrueProvider implements StateProvider<Boolean> {
+            @Override
+            public void init(final StateProviderInitializer initializer) {
+                initializer.computeBeforeOpenDialog();
+            }
+
+            @Override
+            public Boolean computeState(final NodeParametersInput context) {
+                return Boolean.TRUE;
+            }
+        }
+
+        static final class LoadTrueForLegacySettings implements NodeParametersMigration<Boolean> {
+
+            @Override
+            public List<ConfigMigration<Boolean>> getConfigMigrations() {
+                return List.of(ConfigMigration.builder(settings -> Boolean.FALSE)
+                    .withMatcher(settings -> !settings.containsKey("expectColumnTypePresent"))
+                    .withDeprecatedConfigPath(LegacyFilterParametersMigration.PREDICATE_VALUES_KEY)
+                    .build());
+            }
+
         }
 
         /**
@@ -391,6 +430,11 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
 
         @Override
         public void validate() throws InvalidSettingsException {
+            if (m_expectColumnTypePresent && m_column.getEnumChoice().isEmpty() && m_columnType == null) {
+                throw new InvalidSettingsException(
+                    "Missing column \"%s\" of unknown type. ".formatted(m_column.getStringChoice())
+                    + "Execute predecessor node(s) first or choose a different column.");
+            }
             if (m_filterValueParameters != null) {
                 m_filterValueParameters.validate();
             }
