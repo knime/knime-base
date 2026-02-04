@@ -6,6 +6,7 @@
         "column" : {
           "regularChoice" : "BoolCol"
         },
+        "expectColumnTypePresent" : false,
         "columnType" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
         "operator" : "IS_TRUE"
       } ],
@@ -86,6 +87,10 @@
                   "type" : "string",
                   "default" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}"
                 },
+                "expectColumnTypePresent" : {
+                  "type" : "boolean",
+                  "default" : false
+                },
                 "filterValueParameters" : {
                   "type" : "object"
                 },
@@ -103,6 +108,7 @@
               "column" : {
                 "regularChoice" : "BoolCol"
               },
+              "expectColumnTypePresent" : false,
               "columnType" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
               "operator" : "IS_TRUE"
             } ]
@@ -216,6 +222,11 @@
                     "deprecated" : [ [ "column" ] ]
                   } ]
                 },
+                "expectColumnTypePresent" : {
+                  "deprecatedConfigKeys" : [ {
+                    "deprecated" : [ [ "predicateValues" ] ]
+                  } ]
+                },
                 "columnType" : {
                   "configPaths" : [ [ "columnType", "cell_class" ] ]
                 },
@@ -278,6 +289,12 @@
       "value" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}"
     } ]
   }, {
+    "scope" : "#/properties/model/properties/predicates/items/properties/expectColumnTypePresent",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : true
+    } ]
+  }, {
     "scope" : "#/properties/model/properties/predicates/items/properties/filterValueParameters",
     "values" : [ {
       "indices" : [ 0 ],
@@ -318,6 +335,7 @@
         "column" : {
           "regularChoice" : "BoolCol"
         },
+        "expectColumnTypePresent" : false,
         "columnType" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
         "operator" : "IS_TRUE"
       }

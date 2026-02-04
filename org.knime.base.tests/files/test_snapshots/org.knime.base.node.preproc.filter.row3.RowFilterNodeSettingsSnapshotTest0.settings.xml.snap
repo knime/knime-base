@@ -7,6 +7,7 @@
                 <entry key="regularChoice" type="xstring" isnull="true" value=""/>
                 <entry key="specialChoice_Internals" type="xstring" value="ROW_ID"/>
             </config>
+            <entry key="expectColumnTypePresent" type="xboolean" value="false"/>
             <config key="columnType">
                 <entry key="is_null" type="xboolean" value="true"/>
             </config>
@@ -22,6 +23,7 @@
                 <entry key="regularChoice" type="xstring" value="StringCol"/>
                 <entry key="specialChoice_Internals" type="xstring" isnull="true" value=""/>
             </config>
+            <entry key="expectColumnTypePresent" type="xboolean" value="false"/>
             <config key="columnType">
                 <entry key="cell_class" type="xstring" value="org.knime.core.data.def.StringCell"/>
                 <entry key="is_null" type="xboolean" value="false"/>
@@ -38,6 +40,7 @@
                 <entry key="regularChoice" type="xstring" value="LongCol"/>
                 <entry key="specialChoice_Internals" type="xstring" isnull="true" value=""/>
             </config>
+            <entry key="expectColumnTypePresent" type="xboolean" value="false"/>
             <config key="columnType">
                 <entry key="cell_class" type="xstring" value="org.knime.core.data.def.LongCell"/>
                 <entry key="is_null" type="xboolean" value="false"/>
