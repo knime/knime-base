@@ -1,0 +1,112 @@
+{
+  "data" : {
+    "model" : {
+      "seedParameters" : {
+        "useSeed" : false,
+        "seed" : "0"
+      }
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "seedParameters" : {
+            "type" : "object",
+            "properties" : {
+              "drawSeed" : {
+                "type" : "object",
+                "title" : "Draw new seed",
+                "description" : "Generate a new random seed and set it in the Random seed input above for reproducible runs.\n"
+              },
+              "seed" : {
+                "type" : "string",
+                "title" : "Random seed",
+                "description" : "The seed value used for random number generation. Use the same seed to get identical shuffling results\nacross multiple executions. You can enter a custom value or use the button below to generate a new\nrandom seed.\n",
+                "default" : "0"
+              },
+              "useSeed" : {
+                "type" : "boolean",
+                "title" : "Use seed",
+                "description" : "When enabled, the shuffling will use a fixed seed value, making the randomization reproducible across\nmultiple executions. When disabled, each execution will produce different random shuffling results,\nproviding real randomness.\n",
+                "default" : false
+              }
+            },
+            "default" : {
+              "useSeed" : false,
+              "seed" : "0"
+            }
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/seedParameters/properties/useSeed",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/seedParameters/properties/seed",
+      "options" : {
+        "validation" : {
+          "pattern" : {
+            "errorMessage" : "Please enter a valid integer number between -9223372036854775808 to 9223372036854775807.",
+            "parameters" : {
+              "pattern" : "[+-]?(0|[1-9][0-9]{0,18})"
+            }
+          }
+        }
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/seedParameters/properties/useSeed",
+          "schema" : {
+            "const" : true
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/seedParameters/properties/drawSeed",
+      "options" : {
+        "format" : "simpleButton",
+        "triggerId" : "org.knime.base.node.preproc.shuffle.ShuffleNodeParameters$SeedParameters$DrawSeedButtonRef"
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/seedParameters/properties/useSeed",
+          "schema" : {
+            "const" : true
+          }
+        }
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "seedParameters" : {
+            "configPaths" : [ [ "random_seed" ] ]
+          }
+        }
+      }
+    }
+  },
+  "globalUpdates" : [ {
+    "trigger" : {
+      "id" : "org.knime.base.node.preproc.shuffle.ShuffleNodeParameters$SeedParameters$DrawSeedButtonRef"
+    },
+    "dependencies" : [ ]
+  } ]
+}
