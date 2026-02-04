@@ -64,7 +64,10 @@ import org.knime.node.parameters.migration.NodeParametersMigration;
 @SuppressWarnings("restriction")
 public class LegacyFilterParametersMigration implements NodeParametersMigration<FilterValueParameters> {
 
-    private static final String PREDICATE_VALUES_KEY = "predicateValues";
+    /**
+     * Key for the legacy predicate values.
+     */
+    public static final String PREDICATE_VALUES_KEY = "predicateValues";
 
     @Override
     public List<ConfigMigration<FilterValueParameters>> getConfigMigrations() {
