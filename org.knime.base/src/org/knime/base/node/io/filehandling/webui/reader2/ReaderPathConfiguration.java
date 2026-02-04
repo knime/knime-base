@@ -232,9 +232,9 @@ public class ReaderPathConfiguration {
 
         final RelativeTo relativeTo = RelativeTo.fromSettingsValue(specifier.get()); // NOSONAR isPresent checked above
         switch (relativeTo) {
-            case SPACE:
+            case SPACE, WORKFLOW:
                 // FileSystemOption.SPACE maps to RELATIVE/SPACE
-                checkFileSystemAvailable(FileSystemOption.SPACE, "Relative to " + RelativeTo.SPACE.getLabel());
+                checkFileSystemAvailable(FileSystemOption.SPACE, "Relative to " + relativeTo.getLabel());
                 break;
             case WORKFLOW_DATA:
                 // FileSystemOption.EMBEDDED maps to RELATIVE/WORKFLOW_DATA
