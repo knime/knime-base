@@ -44,46 +44,129 @@
  */
 package org.knime.base.node.preproc.colcompare;
 
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
 
 /**
  * Factory for the Column Comparator node.
  * @author Thomas Gabriel, University of Konstanz
+ * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.2
  */
-public class ColumnComparatorNodeFactory
-        extends NodeFactory<ColumnComparatorNodeModel> {
+@SuppressWarnings("restriction")
+public class ColumnComparatorNodeFactory extends NodeFactory<ColumnComparatorNodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
-    /** {@inheritDoc} */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new ColumnComparatorNodeDialogPane();
-    }
-
-    /** {@inheritDoc} */
     @Override
     public ColumnComparatorNodeModel createNodeModel() {
         return new ColumnComparatorNodeModel();
     }
 
-    /** {@inheritDoc} */
     @Override
     public NodeView<ColumnComparatorNodeModel> createNodeView(
             final int viewIndex, final ColumnComparatorNodeModel nodeModel) {
         return null;
     }
 
-    /** {@inheritDoc} */
     @Override
     protected int getNrNodeViews() {
         return 0;
     }
 
-    /** {@inheritDoc} */
     @Override
     protected boolean hasDialog() {
         return true;
+    }
+
+    private static final String NODE_NAME = "Column Comparator";
+
+    private static final String NODE_ICON = "./column_compare.png";
+
+    private static final String SHORT_DESCRIPTION = """
+            Compares the cell values of two columns row-wise using different comparison methods. A new column is
+                appended with the result of the comparison.
+            """;
+
+    private static final String FULL_DESCRIPTION = """
+            Compares the cell values of two selected columns row-wise. A number of different comparison methods are
+                available: equal, not_equal, less, greater, less_equal, and greater_equal. A new column is appended
+                holding either the left or right column value, a missing cell, or a user specified tag. The type of the
+                appended column depends on the selected content: If a user defined tag is selected, the result column is
+                of type string, in all other case the type is determined by the type of the selected columns.
+            """;
+
+    private static final List<PortDescription> INPUT_PORTS = List.of(
+            fixedPort("Input", """
+                Arbitrary input data.
+                """)
+    );
+
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(
+            fixedPort("Input with comparison column", """
+                Input data plus comparison column.
+                """)
+    );
+
+    /**
+     * {@inheritDoc}
+     * @since 5.11
+     */
+    @Override
+    public NodeDialogPane createNodeDialogPane() {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    /**
+     * {@inheritDoc}
+     * @since 5.11
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, ColumnComparatorNodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription( //
+            NODE_NAME, //
+            NODE_ICON, //
+            INPUT_PORTS, //
+            OUTPUT_PORTS, //
+            SHORT_DESCRIPTION, //
+            FULL_DESCRIPTION, //
+            List.of(), //
+            ColumnComparatorNodeParameters.class, //
+            null, //
+            NodeType.Manipulator, //
+            List.of(), //
+            null //
+        );
+    }
+
+    /**
+     * {@inheritDoc}
+     * @since 5.11
+     */
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, ColumnComparatorNodeParameters.class));
     }
 
 }
