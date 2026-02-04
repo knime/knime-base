@@ -1,0 +1,316 @@
+{
+  "data" : {
+    "model" : {
+      "operator" : "EQUAL",
+      "matchOption" : "LEFT_VALUE",
+      "matchValue" : "TRUE",
+      "mismatchOption" : "RIGHT_VALUE",
+      "mismatchValue" : "FALSE",
+      "newColumn" : "compare_result"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "firstColumn" : {
+            "type" : "string",
+            "title" : "Left column",
+            "description" : "Left column selected for comparison."
+          },
+          "matchOption" : {
+            "oneOf" : [ {
+              "const" : "LEFT_VALUE",
+              "title" : "Left value"
+            }, {
+              "const" : "RIGHT_VALUE",
+              "title" : "Right value"
+            }, {
+              "const" : "MISSING",
+              "title" : "Missing"
+            }, {
+              "const" : "USER_DEFINED",
+              "title" : "User-defined"
+            } ],
+            "title" : "Operator result 'true'",
+            "description" : "Depending on the result of the selected operator, a certain value is set into the new column.\nSelect one of the following options for the operator result 'true'.\n\n<ul>\n<li><b>Left value</b>: The value of the left column is set in the result column.</li>\n<li><b>Right value</b>: The value of the right column is set in the result column.</li>\n<li><b>Missing</b>: A missing cell is set in the result column.</li>\n<li><b>User-defined</b>: The text entered in the 'Tag' field is set in the result column.</li>\n</ul>",
+            "default" : "LEFT_VALUE"
+          },
+          "matchValue" : {
+            "type" : "string",
+            "title" : "Tag",
+            "description" : "The text to set in the result column when the operator result is 'true'.",
+            "default" : "TRUE"
+          },
+          "mismatchOption" : {
+            "oneOf" : [ {
+              "const" : "LEFT_VALUE",
+              "title" : "Left value"
+            }, {
+              "const" : "RIGHT_VALUE",
+              "title" : "Right value"
+            }, {
+              "const" : "MISSING",
+              "title" : "Missing"
+            }, {
+              "const" : "USER_DEFINED",
+              "title" : "User-defined"
+            } ],
+            "title" : "Operator result 'false'",
+            "description" : "Depending on the result of the selected operator, a certain value is set into the new column.\nSelect one of the following options for the operator result 'false'.\n\n<ul>\n<li><b>Left value</b>: The value of the left column is set in the result column.</li>\n<li><b>Right value</b>: The value of the right column is set in the result column.</li>\n<li><b>Missing</b>: A missing cell is set in the result column.</li>\n<li><b>User-defined</b>: The text entered in the 'Tag' field is set in the result column.</li>\n</ul>",
+            "default" : "RIGHT_VALUE"
+          },
+          "mismatchValue" : {
+            "type" : "string",
+            "title" : "Tag",
+            "description" : "The text to set in the result column when the operator result is 'false'.",
+            "default" : "FALSE"
+          },
+          "newColumn" : {
+            "type" : "string",
+            "title" : "Output column name",
+            "description" : "Name of the output column.",
+            "default" : "compare_result"
+          },
+          "operator" : {
+            "oneOf" : [ {
+              "const" : "EQUAL",
+              "title" : "Equals"
+            }, {
+              "const" : "NOTEQUAL",
+              "title" : "Not equals to"
+            }, {
+              "const" : "LESS",
+              "title" : "Less than"
+            }, {
+              "const" : "LESSEQUAL",
+              "title" : "Less or equal than"
+            }, {
+              "const" : "GREATER",
+              "title" : "Greater than"
+            }, {
+              "const" : "GREATEREQUAL",
+              "title" : "Greater or equal than"
+            } ],
+            "title" : "Operator",
+            "description" : "Comparison is done based on the selected operator option.\n\n<ul>\n<li><b>Equals</b>: Tests if both cell values are equal.</li>\n<li><b>Not equals to</b>: Tests if both cell values are not equal.</li>\n<li><b>Less than</b>: Tests if the left cell value is less than the right cell value.\n</li>\n<li><b>Less or equal than</b>: Tests if the left cell value is less than or equal to the right cell value.\n</li>\n<li><b>Greater than</b>: Tests if the left cell value is greater than the right cell value.\n</li>\n<li><b>Greater or equal than</b>: Tests if the left cell value is greater than or equal to the right cell value.\n</li>\n</ul>",
+            "default" : "EQUAL"
+          },
+          "secondColumn" : {
+            "type" : "string",
+            "title" : "Right column",
+            "description" : "Right column selected for comparison."
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "label" : "Column and Operator",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/firstColumn",
+        "options" : {
+          "format" : "dropDown"
+        },
+        "providedOptions" : [ "possibleValues" ]
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/operator"
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/secondColumn",
+        "options" : {
+          "format" : "dropDown"
+        },
+        "providedOptions" : [ "possibleValues" ]
+      } ]
+    }, {
+      "label" : "Replacement Method",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/matchOption"
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/matchValue",
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/matchOption",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "USER_DEFINED"
+              } ]
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/mismatchOption",
+        "options" : {
+          "format" : "dropDown"
+        },
+        "providedOptions" : [ "possibleValues" ]
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/mismatchValue",
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/mismatchOption",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "USER_DEFINED"
+              } ]
+            }
+          }
+        }
+      } ]
+    }, {
+      "label" : "Output Column",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/newColumn",
+        "options" : {
+          "placeholder" : "compare_result"
+        }
+      } ]
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "firstColumn" : {
+            "configKey" : "first_column"
+          },
+          "operator" : {
+            "configPaths" : [ [ "comparator_method" ] ]
+          },
+          "secondColumn" : {
+            "configKey" : "second_column"
+          },
+          "matchOption" : {
+            "configKey" : "match_option"
+          },
+          "matchValue" : {
+            "configKey" : "match_value"
+          },
+          "mismatchOption" : {
+            "configKey" : "mismatch_option"
+          },
+          "mismatchValue" : {
+            "configKey" : "mismatch_value"
+          },
+          "newColumn" : {
+            "configKey" : "new_col_name"
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/firstColumn",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Cluster Membership",
+        "text" : "Cluster Membership",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "Universe_0_0",
+        "text" : "Universe_0_0",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "Other Column",
+        "text" : "Other Column",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/mismatchOption",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "RIGHT_VALUE",
+        "text" : "Right value"
+      }, {
+        "id" : "MISSING",
+        "text" : "Missing"
+      }, {
+        "id" : "USER_DEFINED",
+        "text" : "User-defined"
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/secondColumn",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : "Other Column"
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/secondColumn",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Cluster Membership",
+        "text" : "Cluster Membership",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "Universe_0_0",
+        "text" : "Universe_0_0",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "Other Column",
+        "text" : "Other Column",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "id" : "after-open-dialog"
+    },
+    "triggerInitially" : true,
+    "dependencies" : [ "#/properties/model/properties/firstColumn" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/firstColumn"
+    },
+    "dependencies" : [ "#/properties/model/properties/firstColumn", "#/properties/model/properties/secondColumn" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/matchOption"
+    },
+    "dependencies" : [ "#/properties/model/properties/matchOption", "#/properties/model/properties/mismatchOption" ]
+  } ]
+}

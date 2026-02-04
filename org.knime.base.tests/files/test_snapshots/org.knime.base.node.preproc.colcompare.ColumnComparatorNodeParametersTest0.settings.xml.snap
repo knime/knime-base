@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
+    <entry key="first_column" type="xstring" value="Cluster Membership"/>
+    <entry key="comparator_method" type="xstring" value="=="/>
+    <entry key="second_column" type="xstring" value="Universe_0_0"/>
+    <entry key="match_option" type="xstring" value="LEFT_VALUE"/>
+    <entry key="match_value" type="xstring" value="TRUE"/>
+    <entry key="mismatch_option" type="xstring" value="RIGHT_VALUE"/>
+    <entry key="mismatch_value" type="xstring" value="FALSE"/>
+    <entry key="new_col_name" type="xstring" value="compare_result"/>
+</config>

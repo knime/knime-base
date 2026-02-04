@@ -69,6 +69,7 @@ import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelectio
 import org.knime.core.node.defaultnodesettings.DialogComponentString;
 import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.node.parameters.widget.choices.Label;
 
 /**
  * Comparator node dialog pane to select two columns for comparison, replacement
@@ -77,6 +78,15 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
  * @author Thomas Gabriel, University of Konstanz
  */
 public class ColumnComparatorNodeDialogPane extends NodeDialogPane {
+
+    static final String CFGKEY_FIRST_COLUMN = "first_column";
+    static final String CFGKEY_SECOND_COLUMN = "second_column";
+    static final String CFGKEY_COMPARATOR_METHOD = "comparator_method";
+    static final String CFGKEY_MATCH_OPTION = "match_option";
+    static final String CFGKEY_MATCH_VALUE = "match_value";
+    static final String CFGKEY_MISMATCH_OPTION = "mismatch_option";
+    static final String CFGKEY_MISMATCH_VALUE = "mismatch_value";
+    static final String CFGKEY_NEW_COLUMN_NAME = "new_col_name";
 
     private final DialogComponentColumnNameSelection m_firstColumn =
         new DialogComponentColumnNameSelection(
@@ -204,7 +214,7 @@ public class ColumnComparatorNodeDialogPane extends NodeDialogPane {
      * @return model comparator method
      */
     static SettingsModelString createComparatorMethod() {
-        return new SettingsModelString("comparator_method",
+        return new SettingsModelString(CFGKEY_COMPARATOR_METHOD,
                 ComparatorMethod.EQUAL.toString());
     }
 
@@ -212,14 +222,14 @@ public class ColumnComparatorNodeDialogPane extends NodeDialogPane {
      * @return settings model for first column selection
      */
     static SettingsModelString createFirstColumnModel() {
-        return new SettingsModelString("first_column", null);
+        return new SettingsModelString(CFGKEY_FIRST_COLUMN, null);
     }
 
     /**
      * @return settings model for second column selection
      */
     static SettingsModelString createSecondColumnModel() {
-        return new SettingsModelString("second_column", null);
+        return new SettingsModelString(CFGKEY_SECOND_COLUMN, null);
     }
 
     /**
@@ -232,7 +242,7 @@ public class ColumnComparatorNodeDialogPane extends NodeDialogPane {
      * @return check box model for missing value replacement
      */
     static SettingsModelString createMismatchOption() {
-        return new SettingsModelString("mismatch_option",
+        return new SettingsModelString(CFGKEY_MISMATCH_OPTION,
                 REPL_OPTIONS[1]);
     }
 
@@ -240,7 +250,7 @@ public class ColumnComparatorNodeDialogPane extends NodeDialogPane {
      * @return check box model for missing value replacement
      */
     static SettingsModelString createMatchOption() {
-        return new SettingsModelString("match_option",
+        return new SettingsModelString(CFGKEY_MATCH_OPTION,
                 REPL_OPTIONS[0]);
     }
 
@@ -249,7 +259,7 @@ public class ColumnComparatorNodeDialogPane extends NodeDialogPane {
      */
     static SettingsModelString createMatchValue() {
         SettingsModelString model =
-            new SettingsModelString("match_value", "TRUE");
+            new SettingsModelString(CFGKEY_MATCH_VALUE, "TRUE");
         model.setEnabled(false);
         return model;
     }
@@ -259,7 +269,7 @@ public class ColumnComparatorNodeDialogPane extends NodeDialogPane {
      */
     static SettingsModelString createMismatchValue() {
         SettingsModelString model =
-            new SettingsModelString("mismatch_value", "FALSE");
+            new SettingsModelString(CFGKEY_MISMATCH_VALUE, "FALSE");
         model.setEnabled(false);
         return model;
     }
@@ -268,7 +278,7 @@ public class ColumnComparatorNodeDialogPane extends NodeDialogPane {
      * @return settings model for new column
      */
     static SettingsModelString createNewColumnName() {
-        return new SettingsModelString("new_col_name", "compare_result");
+        return new SettingsModelString(CFGKEY_NEW_COLUMN_NAME, "compare_result");
     }
 
     /**
@@ -276,8 +286,9 @@ public class ColumnComparatorNodeDialogPane extends NodeDialogPane {
      */
     public enum ComparatorMethod {
         /**
-         *
+         * Tests if both cell values are equal.
          */
+        @Label(value = "Equals", description = "Tests if both cell values are equal.")
         EQUAL {
             /**
              * {@inheritDoc}
@@ -295,8 +306,9 @@ public class ColumnComparatorNodeDialogPane extends NodeDialogPane {
             }
         },
         /**
-         *
+         * Tests if both cell values are not equal.
          */
+        @Label(value = "Not equals to", description = "Tests if both cell values are not equal.")
         NOTEQUAL {
             /**
              * {@inheritDoc}
@@ -314,8 +326,11 @@ public class ColumnComparatorNodeDialogPane extends NodeDialogPane {
             }
         },
         /**
-         *
+         * Tests if the left cell value is less than the right cell value.
          */
+        @Label(value = "Less than", description = """
+                Tests if the left cell value is less than the right cell value.
+                """)
         LESS {
             /**
              * {@inheritDoc}
@@ -333,8 +348,11 @@ public class ColumnComparatorNodeDialogPane extends NodeDialogPane {
             }
         },
         /**
-         *
+         * Tests if the left cell value is less than or equal to the right cell value.
          */
+        @Label(value = "Less or equal than", description = """
+                Tests if the left cell value is less than or equal to the right cell value.
+                """)
         LESSEQUAL {
             /**
              * {@inheritDoc}
@@ -352,8 +370,11 @@ public class ColumnComparatorNodeDialogPane extends NodeDialogPane {
             }
         },
         /**
-         *
+         * Tests if the left cell value is greater than the right cell value.
          */
+        @Label(value = "Greater than", description = """
+                Tests if the left cell value is greater than the right cell value.
+                """)
         GREATER {
             /**
              * {@inheritDoc}
@@ -371,8 +392,11 @@ public class ColumnComparatorNodeDialogPane extends NodeDialogPane {
             }
         },
         /**
-         *
+         * Tests if the left cell value is greater than or equal to the right cell value.
          */
+        @Label(value = "Greater or equal than", description = """
+                Tests if the left cell value is greater than or equal to the right cell value.
+                """)
         GREATEREQUAL {
             /**
              * {@inheritDoc}
