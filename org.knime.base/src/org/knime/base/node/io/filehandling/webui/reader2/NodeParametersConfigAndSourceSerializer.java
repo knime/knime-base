@@ -113,7 +113,9 @@ public abstract class NodeParametersConfigAndSourceSerializer<P extends NodePara
             m_params = NodeParametersUtil.createSettings(m_paramsClass, new PortObjectSpec[0]);
         }
         NodeParametersUtil.saveSettings(m_paramsClass, m_params, settings);
-        ConfigIDSerializationUtil.saveID(CFG_ID_KEY, m_configID, settings);
+        if (m_configID != null) {
+            ConfigIDSerializationUtil.saveID(CFG_ID_KEY, m_configID, settings);
+        }
     }
 
     @Override
