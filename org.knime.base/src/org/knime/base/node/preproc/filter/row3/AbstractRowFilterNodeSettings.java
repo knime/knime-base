@@ -62,6 +62,7 @@ import org.knime.base.node.preproc.filter.row3.operators.FilterOperatorsUtil;
 import org.knime.base.node.preproc.filter.row3.operators.defaults.StringWithCaseParameters;
 import org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterParameters;
 import org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterParametersMigration;
+import org.knime.base.node.preproc.filter.row3.operators.rowkey.RowKeyEqualsParameters;
 import org.knime.base.node.preproc.filter.row3.operators.rowkey.RowKeyFilterOperator;
 import org.knime.base.node.preproc.filter.row3.operators.rownumber.RowNumberFilterOperator;
 import org.knime.base.node.preproc.filter.row3.operators.rownumber.RowNumberFilterSpec;
@@ -539,7 +540,7 @@ abstract class AbstractRowFilterNodeSettings implements NodeParameters {
                     """))
         @ValueReference(CurrentFilterValueParametersRef.class)
         @Migration(LegacyFilterParametersMigration.class)
-        FilterValueParameters m_filterValueParameters;
+        FilterValueParameters m_filterValueParameters = new RowKeyEqualsParameters("");
 
         static final class CurrentFilterValueParametersRef implements ParameterReference<FilterValueParameters> {
         }
