@@ -70,6 +70,7 @@ public class TutorialReaderParameters implements NodeParameters {
     // TODO (#6): Add reader-specific parameter fields here
 
     TutorialReaderParameters(final URL url) {
+        m_multiFileSelectionParams = new MultiFileSelectionParameters(url);
         // TODO (#6): Initialize URL-dependent defaults here if needed
     }
 
