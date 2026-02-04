@@ -6,6 +6,7 @@
         "column" : {
           "specialChoice" : "ROW_ID"
         },
+        "expectColumnTypePresent" : false,
         "operator" : "NEQ",
         "filterValueParameters" : {
           "@class" : "org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterParameters",
@@ -15,6 +16,7 @@
         "column" : {
           "regularChoice" : "StringCol"
         },
+        "expectColumnTypePresent" : false,
         "operator" : "WILDCARD",
         "filterValueParameters" : {
           "@class" : "org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterParameters",
@@ -24,6 +26,7 @@
         "column" : {
           "regularChoice" : "LongCol"
         },
+        "expectColumnTypePresent" : false,
         "operator" : "WILDCARD",
         "filterValueParameters" : {
           "@class" : "org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterParameters",
@@ -33,6 +36,7 @@
         "column" : {
           "regularChoice" : "BooleanCol"
         },
+        "expectColumnTypePresent" : false,
         "operator" : "IS_FALSE",
         "filterValueParameters" : {
           "@class" : "org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterParameters",
@@ -42,6 +46,7 @@
         "column" : {
           "regularChoice" : "UriSetCol"
         },
+        "expectColumnTypePresent" : false,
         "operator" : "IS_NOT_MISSING",
         "filterValueParameters" : {
           "@class" : "org.knime.base.node.preproc.filter.row3.operators.legacy.LegacyFilterParameters",
@@ -125,6 +130,10 @@
                   "type" : "string",
                   "default" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}"
                 },
+                "expectColumnTypePresent" : {
+                  "type" : "boolean",
+                  "default" : false
+                },
                 "filterValueParameters" : {
                   "type" : "object"
                 },
@@ -142,6 +151,7 @@
               "column" : {
                 "regularChoice" : "BoolCol"
               },
+              "expectColumnTypePresent" : false,
               "columnType" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
               "operator" : "IS_TRUE"
             } ]
@@ -254,6 +264,11 @@
                     "deprecated" : [ [ "column" ] ]
                   } ]
                 },
+                "expectColumnTypePresent" : {
+                  "deprecatedConfigKeys" : [ {
+                    "deprecated" : [ [ "predicateValues" ] ]
+                  } ]
+                },
                 "columnType" : {
                   "configPaths" : [ [ "columnType", "cell_class" ] ]
                 },
@@ -317,6 +332,12 @@
     }, {
       "indices" : [ 1 ],
       "value" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.StringCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}"
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/predicates/items/properties/expectColumnTypePresent",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : true
     } ]
   }, {
     "scope" : "#/properties/model/properties/predicates/items/properties/filterValueParameters",
@@ -446,6 +467,7 @@
         "column" : {
           "regularChoice" : "BoolCol"
         },
+        "expectColumnTypePresent" : false,
         "columnType" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
         "operator" : "IS_TRUE"
       }
