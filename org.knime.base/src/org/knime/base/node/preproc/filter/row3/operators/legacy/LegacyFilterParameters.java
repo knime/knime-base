@@ -61,12 +61,14 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.DataValueComparator;
 import org.knime.core.data.LongValue;
+import org.knime.core.data.def.LongCell;
 import org.knime.core.data.v2.IndexedRowReadPredicate;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.config.base.JSONConfig;
 import org.knime.core.node.config.base.JSONConfig.WriterConfig;
+import org.knime.core.node.message.Message;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
@@ -188,7 +190,23 @@ public class LegacyFilterParameters implements FilterValueParameters {
             return predicateFactory.get().createPredicate(OptionalInt.empty(), loaded.m_predicateValues);
         }
         return toFilterSpec().toOffsetFilter(optionalTableSize).asPredicate();
+    }
 
+    private static long toRowNumberValue(final DataCell dataCell) throws InvalidSettingsException {
+        if (dataCell instanceof LongValue longVal) {
+            return longVal.getLongValue();
+        }
+        if (dataCell == null || dataCell.isMissing()) {
+            throw Message.builder() //
+                .withSummary("Row number value is missing") //
+                .addResolutions("Reconfigure the node to provide a row number reference value.").build().orElseThrow()//
+                .toInvalidSettingsException();
+        }
+        throw Message.builder() //
+            .withSummary("Row number value is not stored as %s, found %s"
+                .formatted(LongCell.TYPE, dataCell.getType()))//
+            .addResolutions("Reconfigure the filter criterion to correct its type.").build().orElseThrow() //
+            .toInvalidSettingsException();
     }
 
     /**
@@ -199,11 +217,7 @@ public class LegacyFilterParameters implements FilterValueParameters {
      */
     public RowNumberFilterSpec toFilterSpec() throws InvalidSettingsException {
         final var loaded = getLoaded();
-        final var value = (loaded.m_predicateValues.getCellAt(0)//
-            .filter(cell -> !cell.isMissing())//
-            .map(LongValue.class::cast)//
-            .orElseThrow(() -> new InvalidSettingsException("Row number value is missing")))//
-                .getLongValue();
+        final var value = toRowNumberValue(loaded.m_predicateValues.getCellAt(0).orElse(null));
         if (loaded.m_operator == LegacyFilterOperator.FIRST_N_ROWS
             || loaded.m_operator == LegacyFilterOperator.LAST_N_ROWS) {
             CheckUtils.checkSetting(value >= 0, "Number of rows must not be negative: %d", value);
