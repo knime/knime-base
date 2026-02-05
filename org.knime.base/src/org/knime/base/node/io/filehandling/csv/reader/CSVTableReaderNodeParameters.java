@@ -125,7 +125,8 @@ class CSVTableReaderNodeParameters implements NodeParameters {
         m_transformationParameters.saveToConfig(//
             config, m_csvReaderParameters.getSourcePath(), //
             existingConfigId, //
-            m_csvReaderParameters.getMultiFileReaderParameters()//
+            m_csvReaderParameters.getMultiFileReaderParameters(), //
+            m_csvReaderParameters.getIfSchemaChangesParameters() //
         );
     }
 

@@ -129,6 +129,14 @@
             </message_arguments>
         </filter>
     </resource>
+    <resource path="src/org/knime/base/node/io/filehandling/webui/reader2/TransformationParameters.java" type="org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters">
+        <filter comment="non-public API" id="338792546">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters"/>
+                <message_argument value="saveToConfig(MultiTableReadConfig&lt;C,T&gt;, String, ConfigID, MultiFileReaderParameters)"/>
+            </message_arguments>
+        </filter>
+    </resource>
     <resource path="src/org/knime/base/node/io/filehandling/webui/reader2/TransformationParameters.java" type="org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters$ColumnSpecSettings">
         <filter comment="non-public API" id="1143996420">
             <message_arguments>
