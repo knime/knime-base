@@ -42,89 +42,49 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- *
- * History
- *   16.03.2016 (adrian): created
  */
 package org.knime.base.node.meta.feature.selection;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.NodeSettings;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
+import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
+import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 
 /**
- *
- * @author Adrian Nembach, KNIME.com
+ * Snapshot test for Feature Selection Loop End node parameters.
  */
-public class FeatureSelectionLoopEndSettings {
-    static final String CFG_SCORE_VARIABLE = "scoreVariable";
-    static final String CFG_IS_MINIMIZE = "isMinimize";
+@SuppressWarnings("restriction")
+final class FeatureSelectionLoopEndNodeParametersTest extends DefaultNodeSettingsSnapshotTest {
 
-    private String m_scoreVariableName;
-    private boolean m_isMinimize;
-
-    /**
-     *
-     */
-    public FeatureSelectionLoopEndSettings() {
-        m_isMinimize = false;
-        m_scoreVariableName = "";
+    FeatureSelectionLoopEndNodeParametersTest() {
+        super(getConfig());
     }
 
-    /**
-     * @return the name of the score flow variable
-     */
-    public String getScoreVariableName() {
-        return m_scoreVariableName;
+    private static SnapshotTestConfiguration getConfig() {
+        return SnapshotTestConfiguration.builder() //
+            .testJsonFormsForModel(FeatureSelectionLoopEndNodeParameters.class) //
+            .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings()) //
+            .testNodeSettingsStructure(() -> readSettings()) //
+            .build();
     }
 
-    /**
-     * @param scoreVariableName the name of the score flow variable
-     */
-    public void setScoreVariableName(final String scoreVariableName) {
-        m_scoreVariableName = scoreVariableName;
+    private static FeatureSelectionLoopEndNodeParameters readSettings() {
+        try {
+            var path = getSnapshotPath(FeatureSelectionLoopEndNodeParameters.class).getParent()
+                .resolve("node_settings").resolve("FeatureSelectionLoopEndNodeParameters.xml");
+            try (var fis = new FileInputStream(path.toFile())) {
+                var nodeSettings = NodeSettings.loadFromXML(fis);
+                return NodeParametersUtil.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
+                    FeatureSelectionLoopEndNodeParameters.class);
+            }
+        } catch (IOException | InvalidSettingsException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
-    /**
-     * @return true if the score should be minimized
-     */
-    public boolean isMinimize() {
-        return m_isMinimize;
-    }
-
-    /**
-     * @param isMinimize true if the score should be minimized
-     */
-    public void setIsMinimize(final boolean isMinimize) {
-        m_isMinimize = isMinimize;
-    }
-
-    /**
-     * @param settings the settings to save to
-     */
-    public void save(final NodeSettingsWO settings) {
-        settings.addString(CFG_SCORE_VARIABLE, m_scoreVariableName);
-        settings.addBoolean(CFG_IS_MINIMIZE, m_isMinimize);
-    }
-
-    /**
-     * Load method for the usage in the NodeModel
-     *
-     * @param settings the settings to load from
-     * @throws InvalidSettingsException thrown if any of the keys is missing in <b>settings</b>
-     */
-    public void loadInModel(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_scoreVariableName = settings.getString(CFG_SCORE_VARIABLE);
-        m_isMinimize = settings.getBoolean(CFG_IS_MINIMIZE);
-    }
-
-    /**
-     * Load method for the usage in the dialog
-     *
-     * @param settings the settings to load from
-     */
-    public void loadInDialog(final NodeSettingsRO settings) {
-        m_scoreVariableName = settings.getString(CFG_SCORE_VARIABLE, "");
-        m_isMinimize = settings.getBoolean(CFG_IS_MINIMIZE, false);
-    }
 }
