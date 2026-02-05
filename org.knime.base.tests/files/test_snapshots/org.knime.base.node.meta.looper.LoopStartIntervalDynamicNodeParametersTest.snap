@@ -1,0 +1,142 @@
+{
+  "data" : {
+    "model" : {
+      "from" : 0.0,
+      "to" : 1.0,
+      "step" : 0.01,
+      "variableType" : "DOUBLE",
+      "prefix" : "loop_"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "from" : {
+            "type" : "number",
+            "format" : "double",
+            "title" : "From",
+            "description" : "The interval start value (inclusive).",
+            "default" : 0.0
+          },
+          "prefix" : {
+            "type" : "string",
+            "title" : "Variable prefix",
+            "description" : "The prefix of the variable names.",
+            "default" : "loop_"
+          },
+          "step" : {
+            "type" : "number",
+            "format" : "double",
+            "title" : "Step",
+            "description" : "The step size by which the value is increased after each iteration. Negative step sizes are\npossible, if <i>from</i> is greater than <i>to</i>.\n",
+            "default" : 0.01
+          },
+          "to" : {
+            "type" : "number",
+            "format" : "double",
+            "title" : "To",
+            "description" : "The interval end value (inclusive).",
+            "default" : 1.0
+          },
+          "variableType" : {
+            "oneOf" : [ {
+              "const" : "DOUBLE",
+              "title" : "Double"
+            }, {
+              "const" : "LONG",
+              "title" : "Long"
+            }, {
+              "const" : "INTEGER",
+              "title" : "Integer"
+            } ],
+            "title" : "Loop variable type",
+            "description" : "Select the type of the variable that is exposed by the node (integers, longs or doubles). The\nnode creates variables for <i>from</i>, <i>to</i>, <i>step</i> and the current <i>value</i>. Keep in mind\nthat this only affects the type of the variables. Internally doubles are used to keep track of the\nloop state. This means that the values may be rounded to fit the specified type.\n\n<ul>\n<li><b>Double</b>: The variables are of type double.</li>\n<li><b>Long</b>: The variables are of type long.</li>\n<li><b>Integer</b>: The variables are of type integer.</li>\n</ul>",
+            "default" : "DOUBLE"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/from"
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/to",
+      "providedOptions" : [ "validation.max", "validation.min" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/step"
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/variableType",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/prefix"
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "from" : {
+            "configKey" : "from"
+          },
+          "to" : {
+            "configKey" : "to"
+          },
+          "step" : {
+            "configKey" : "step"
+          },
+          "variableType" : {
+            "configKey" : "variableType"
+          },
+          "prefix" : {
+            "configKey" : "prefix"
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/to",
+    "providedOptionName" : "validation.max",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : null
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/to",
+    "providedOptionName" : "validation.min",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : {
+        "parameters" : {
+          "min" : 0.0,
+          "isExclusive" : false
+        },
+        "errorMessage" : "To must be bigger than from if step size is positive."
+      }
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/from"
+    },
+    "dependencies" : [ "#/properties/model/properties/from", "#/properties/model/properties/step" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/step"
+    },
+    "dependencies" : [ "#/properties/model/properties/from", "#/properties/model/properties/step" ]
+  } ]
+}

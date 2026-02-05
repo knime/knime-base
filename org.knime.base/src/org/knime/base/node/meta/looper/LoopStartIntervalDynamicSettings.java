@@ -60,6 +60,16 @@ import org.knime.core.node.NodeSettingsWO;
  */
 final class LoopStartIntervalDynamicSettings {
 
+    static final String CFG_FROM = "from";
+
+    static final String CFG_TO = "to";
+
+    static final String CFG_STEP = "step";
+
+    static final String CFG_PREFIX = "prefix";
+
+    static final String CFG_VARIABLE_TYPE = "variableType";
+
     private double m_from = 0;
 
     private double m_to = 1;
@@ -143,10 +153,10 @@ final class LoopStartIntervalDynamicSettings {
      * @param settings a node settings object
      */
     void loadSettingsForDialog(final NodeSettingsRO settings) {
-        m_from = settings.getDouble("from", 0);
-        m_to = settings.getDouble("to", 1);
-        m_step = settings.getDouble("step", 0.01);
-        m_prefix = settings.getString("prefix", "loop_");
+        m_from = settings.getDouble(CFG_FROM, 0);
+        m_to = settings.getDouble(CFG_TO, 1);
+        m_step = settings.getDouble(CFG_STEP, 0.01);
+        m_prefix = settings.getString(CFG_PREFIX, "loop_");
     }
 
     /**
@@ -156,11 +166,11 @@ final class LoopStartIntervalDynamicSettings {
      * @throws InvalidSettingsException if some settings are missing
      */
     void loadSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_from = settings.getDouble("from");
-        m_to = settings.getDouble("to");
-        m_step = settings.getDouble("step");
-        if (settings.containsKey("prefix")) {
-            m_prefix = settings.getString("prefix");
+        m_from = settings.getDouble(CFG_FROM);
+        m_to = settings.getDouble(CFG_TO);
+        m_step = settings.getDouble(CFG_STEP);
+        if (settings.containsKey(CFG_PREFIX)) {
+            m_prefix = settings.getString(CFG_PREFIX);
         }
     }
 
@@ -170,9 +180,9 @@ final class LoopStartIntervalDynamicSettings {
      * @param settings a node settings object
      */
     void saveSettingsTo(final NodeSettingsWO settings) {
-        settings.addDouble("from", m_from);
-        settings.addDouble("to", m_to);
-        settings.addDouble("step", m_step);
-        settings.addString("prefix", m_prefix);
+        settings.addDouble(CFG_FROM, m_from);
+        settings.addDouble(CFG_TO, m_to);
+        settings.addDouble(CFG_STEP, m_step);
+        settings.addString(CFG_PREFIX, m_prefix);
     }
 }

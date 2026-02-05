@@ -64,6 +64,7 @@ import org.knime.core.node.util.ButtonGroupEnumInterface;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.workflow.LoopStartNodeTerminator;
 import org.knime.core.node.workflow.VariableType;
+import org.knime.node.parameters.widget.choices.Label;
 
 /**
  * This is the model for the interval loop start node. It lets the user defined an interval in which a variable is
@@ -83,7 +84,7 @@ final class LoopStartIntervalDynamicNodeModel extends NodeModel implements LoopS
     private OutputType m_variableType = OutputType.DOUBLE;
 
     static SettingsModelString createVariableTypeSettings() {
-        return new SettingsModelString("variableType", OutputType.DOUBLE.name());
+        return new SettingsModelString(LoopStartIntervalDynamicSettings.CFG_VARIABLE_TYPE, OutputType.DOUBLE.name());
     }
 
     /**
@@ -231,7 +232,13 @@ final class LoopStartIntervalDynamicNodeModel extends NodeModel implements LoopS
     }
 
     enum OutputType implements ButtonGroupEnumInterface {
-            DOUBLE("double"), LONG("long"), INTEGER("integer");
+
+            @Label(value = "Double", description = "The variables are of type double.")
+            DOUBLE("double"), //
+            @Label(value = "Long", description = "The variables are of type long.")
+            LONG("long"), //
+            @Label(value = "Integer", description = "The variables are of type integer.")
+            INTEGER("integer");
 
         final String m_text;
 
