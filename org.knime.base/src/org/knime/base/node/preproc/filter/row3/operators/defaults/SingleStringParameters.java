@@ -49,7 +49,8 @@
 package org.knime.base.node.preproc.filter.row3.operators.defaults;
 
 import org.apache.commons.lang3.StringUtils;
-import org.knime.base.node.preproc.filter.row3.operators.defaults.TypeMappingUtils.ConverterException;
+import org.knime.base.util.typemapping.TypeMappingUtils;
+import org.knime.base.util.typemapping.TypeMappingUtils.ConverterException;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
