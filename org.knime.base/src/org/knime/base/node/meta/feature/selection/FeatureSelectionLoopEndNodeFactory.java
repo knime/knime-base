@@ -48,54 +48,139 @@
  */
 package org.knime.base.node.meta.feature.selection;
 
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.ExternalResource;
+import org.knime.node.impl.description.PortDescription;
 
 /**
+ * This is the factory for the "Feature Selection Loop End" Node.
  *
  * @author adrian
+ * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.2
  */
-public class FeatureSelectionLoopEndNodeFactory extends NodeFactory<FeatureSelectionLoopEndNodeModel> {
+@SuppressWarnings("restriction")
+public class FeatureSelectionLoopEndNodeFactory extends NodeFactory<FeatureSelectionLoopEndNodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public FeatureSelectionLoopEndNodeModel createNodeModel() {
         return new FeatureSelectionLoopEndNodeModel();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected int getNrNodeViews() {
         return 0;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public NodeView<FeatureSelectionLoopEndNodeModel> createNodeView(final int viewIndex,
         final FeatureSelectionLoopEndNodeModel nodeModel) {
         return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected boolean hasDialog() {
         return true;
     }
 
+    private static final String NODE_NAME = "Feature Selection Loop End";
+
+    private static final String NODE_ICON = "featureselection-end.png";
+
+    private static final String SHORT_DESCRIPTION = """
+            End node for a feature selection loop
+            """;
+
+    private static final String FULL_DESCRIPTION = """
+            This is the end of a feature selection loop which selects features according to a feature selection
+                strategy. It allows you to select a flow variable that contains a prediction score (usually from a
+                preceding <i>Scorer</i> node). You then need to specify whether the score variable should be minimized
+                or maximized.
+            """;
+
+    private static final List<PortDescription> INPUT_PORTS = List.of(
+            fixedPort("Flow variable with score", """
+                Flow variable connection that contains the variable you want to use as score.
+                """)
+    );
+
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(
+            fixedPort("Result Table", """
+                Table containing details on the selection.
+                """),
+            fixedPort("Feature Selection Model", """
+                A model that represents the different feature sets with the associated scores.
+                """)
+    );
+
+    private static final List<ExternalResource> LINKS = List.of(
+         new ExternalResource(
+            "https://docs.knime.com/latest/analytics_platform_flow_control_guide/index.html#loops", """
+                KNIME Flow Control Guide: Section Loops
+                """)
+    );
+
     /**
      * {@inheritDoc}
+     * @since 5.11
      */
     @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new FeatureSelectionLoopEndNodeDialogPane();
+    public NodeDialogPane createNodeDialogPane() {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
     }
+
+    /**
+     * {@inheritDoc}
+     * @since 5.11
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, FeatureSelectionLoopEndNodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription( //
+            NODE_NAME, //
+            NODE_ICON, //
+            INPUT_PORTS, //
+            OUTPUT_PORTS, //
+            SHORT_DESCRIPTION, //
+            FULL_DESCRIPTION, //
+            LINKS, //
+            FeatureSelectionLoopEndNodeParameters.class, //
+            null, //
+            NodeType.LoopEnd, //
+            List.of(), //
+            null //
+        );
+    }
+
+    /**
+     * {@inheritDoc}
+     * @since 5.11
+     */
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, FeatureSelectionLoopEndNodeParameters.class));
+    }
+
 }

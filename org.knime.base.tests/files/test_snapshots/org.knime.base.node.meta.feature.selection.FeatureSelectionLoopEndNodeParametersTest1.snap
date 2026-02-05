@@ -1,0 +1,76 @@
+{
+  "data" : {
+    "model" : {
+      "scoreVariableName" : "Universe_0_1",
+      "isMinimize" : false
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "isMinimize" : {
+            "type" : "boolean",
+            "title" : "Minimize score",
+            "description" : "Check this option if you want to minimize the score (if you use error as score, for example, and you want\nto minimize error). If the option is left unchecked, the score will be maximized.\n",
+            "default" : false
+          },
+          "scoreVariableName" : {
+            "type" : "string",
+            "title" : "Score",
+            "description" : "The flow variable that contains the score for the model.\n"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/scoreVariableName",
+      "options" : {
+        "format" : "dropDown"
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/isMinimize",
+      "options" : {
+        "format" : "checkbox"
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "scoreVariableName" : {
+            "configKey" : "scoreVariable"
+          },
+          "isMinimize" : {
+            "configKey" : "isMinimize"
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/scoreVariableName",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ ]
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "id" : "after-open-dialog"
+    },
+    "triggerInitially" : true,
+    "dependencies" : [ "#/properties/model/properties/scoreVariableName" ]
+  } ]
+}
