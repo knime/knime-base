@@ -51,6 +51,7 @@ package org.knime.base.node.preproc.filter.row3.operators.defaults;
 import java.util.List;
 import java.util.function.Predicate;
 
+import org.knime.base.util.typemapping.TypeMappingUtils;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataType;
