@@ -173,4 +173,8 @@ class CSVTableReaderParameters implements NodeParameters {
         return m_multiFileReaderParams;
     }
 
+    IfSchemaChangesParameters getIfSchemaChangesParameters() {
+        return m_ifSchemaChangesParams;
+    }
+
 }

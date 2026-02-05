@@ -125,7 +125,8 @@ class KnimeTableReaderNodeParameters implements NodeParameters {
         m_transformationParameters.saveToConfig(//
             config, m_knimeTableReaderParameters.getSourcePath(), //
             existingConfigId, //
-            m_knimeTableReaderParameters.getMultiFileReaderParameters()//
+            m_knimeTableReaderParameters.getMultiFileReaderParameters(), //
+            m_knimeTableReaderParameters.getIfSchemaChangesParameters() //
         );
     }
 

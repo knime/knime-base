@@ -128,6 +128,8 @@ import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
+import static org.knime.base.node.io.filehandling.webui.reader2.IfSchemaChangesParameters.IfSchemaChangesOption.USE_NEW_SCHEMA;
+
 /**
  * Extend these settings to define the transformation settings for a reader node. Use the {@link ConfigIdSettings}
  * generic to define dependencies of reader specific settings to how the data is read. To enable dialog updates, use
@@ -543,13 +545,15 @@ public abstract class TransformationParameters<T>
      * @param sourcePath the path of the currently selected source.
      * @param configId the config ID to use for the table spec config
      * @param multiFileReaderParameters for determining how to combine columns and whether a path column is appended.
+     * @param ifSchemaChangesParameters for determining whether to save the transformations at all
      */
     public <C extends ReaderSpecificConfig<C>> void saveToConfig(final MultiTableReadConfig<C, T> config,
         final String sourcePath, //
         final ConfigID configId, //
-        final MultiFileReaderParameters multiFileReaderParameters //
+        final MultiFileReaderParameters multiFileReaderParameters, //
+        final IfSchemaChangesParameters ifSchemaChangesParameters //
     ) {
-        saveToConfig(config, sourcePath, configId, multiFileReaderParameters, false);
+        saveToConfig(config, sourcePath, configId, multiFileReaderParameters, ifSchemaChangesParameters, false);
     }
 
     /**
@@ -561,16 +565,25 @@ public abstract class TransformationParameters<T>
      * @param sourcePath the path of the currently selected source.
      * @param configId the config ID to use for the table spec config
      * @param multiFileReaderParameters for determining how to combine columns and whether a path column is appended.
+     * @param ifSchemaChangesParameters for determining whether to save the transformations at all
      * @param skipEmptyColumns whether to skip empty columns when determining the transformations
      */
     public <C extends ReaderSpecificConfig<C>> void saveToConfig(final MultiTableReadConfig<C, T> config,
         final String sourcePath, //
         final ConfigID configId, //
         final MultiFileReaderParameters multiFileReaderParameters, //
+        final IfSchemaChangesParameters ifSchemaChangesParameters, //
         final boolean skipEmptyColumns //
     ) {
 
         if (m_specs == null) {
+            return;
+        }
+
+        if (ifSchemaChangesParameters.m_ifSchemaChangesOption == USE_NEW_SCHEMA) {
+            // the old readers did not save the spec at all if that option was set, and the old reader code still
+            // implicitly assumes that (i.e. setting the USE_NEW_SCHEMA is not sufficient to actually use the new schema
+            // if the old schema is still present)
             return;
         }
 

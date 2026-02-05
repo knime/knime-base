@@ -121,7 +121,8 @@ class TutorialReaderNodeParameters implements NodeParameters {
         m_transformationParameters.saveToConfig(//
             config, m_tutorialReaderParameters.getSourcePath(), //
             existingConfigId, //
-            m_tutorialReaderParameters.getMultiFileParameters() //
+            m_tutorialReaderParameters.getMultiFileParameters(), //
+            m_tutorialReaderParameters.getIfSchemaChangesParameters() //
         );
     }
 
