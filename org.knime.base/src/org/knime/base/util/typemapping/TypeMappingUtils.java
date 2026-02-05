@@ -46,7 +46,7 @@
  * History
  *   Sep 3, 2024 (Paul Bärnreuther): created
  */
-package org.knime.base.node.preproc.filter.row3.operators.defaults;
+package org.knime.base.util.typemapping;
 
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -67,7 +67,7 @@ import org.knime.core.node.ExecutionContext;
  *
  * @author Paul Bärnreuther
  */
-final class TypeMappingUtils {
+public final class TypeMappingUtils {
 
     private static final JavaToDataCellConverterRegistry TO_DATACELL = JavaToDataCellConverterRegistry.getInstance();
 
@@ -86,7 +86,7 @@ final class TypeMappingUtils {
      * @return data cell for the string representation
      * @throws ConverterException in case the string value could not be converted into the given data type
      */
-    static DataCell readDataCellFromString(final DataType dataType, final String value)
+    public static DataCell readDataCellFromString(final DataType dataType, final String value)
         throws ConverterException {
         if (value == null) {
             return DataType.getMissingCell();
@@ -134,7 +134,7 @@ final class TypeMappingUtils {
      * @return string representation of the cell
      * @throws ConverterException if conversion fails
      */
-    static String getStringFromDataCell(final DataCell dataCell) throws ConverterException {
+    public static String getStringFromDataCell(final DataCell dataCell) throws ConverterException {
         if (dataCell.isMissing()) {
             throw new IllegalArgumentException("Cannot get string from MissingCell");
         }
@@ -160,7 +160,7 @@ final class TypeMappingUtils {
      * @param type type to check
      * @return {@code true} if the given type is supported, {@code false} otherwise
      */
-    static boolean supportsDataType(final DataType type) {
+    public static boolean supportsDataType(final DataType type) {
         return isOfNonCollectionType(type) && supportsSerialization(type);
     }
 
@@ -226,7 +226,7 @@ final class TypeMappingUtils {
     /**
      * Exception to indicate serious converter exceptions indicating a value cannot be serialized or deserialized.
      */
-    static final class ConverterException extends Exception {
+    public static final class ConverterException extends Exception {
 
         private static final long serialVersionUID = 1L;
 

@@ -1726,7 +1726,14 @@
       </node>
       <node
             category-path="/io/io-other"
+            factory-class="org.knime.base.node.io.tablecreator.TableCreator3NodeFactory"
+            >
+      </node>
+      <node
+            category-path="/io/io-other"
             factory-class="org.knime.base.node.io.tablecreator.TableCreator2NodeFactory"
+            deprecated="true"
+            after="org.knime.base.node.io.tablecreator.TableCreator3NodeFactory"
             >
       </node>
       <node

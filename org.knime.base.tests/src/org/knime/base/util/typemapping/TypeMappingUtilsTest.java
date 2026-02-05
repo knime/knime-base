@@ -46,14 +46,14 @@
  * History
  *   1 Dec 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.filter.row3.operators.defaults;
+package org.knime.base.util.typemapping;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import org.junit.jupiter.api.Test;
-import org.knime.base.node.preproc.filter.row3.operators.defaults.TypeMappingUtils.ConverterException;
+import org.knime.base.util.typemapping.TypeMappingUtils.ConverterException;
 import org.knime.core.data.DataType;
 import org.knime.core.data.collection.ListCell;
 import org.knime.core.data.def.IntCell;
