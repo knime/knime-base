@@ -47,21 +47,40 @@
  */
 package org.knime.base.node.meta.looper;
 
+import static org.knime.node.impl.description.PortDescription.dynamicPort;
+
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.knime.core.node.ConfigurableNodeFactory;
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeView;
 import org.knime.core.node.context.NodeCreationConfiguration;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.ExternalResource;
+import org.knime.node.impl.description.PortDescription;
 
 /**
  * This is the factory for the interval loop node.
  *
  * @author Jannik Löscher, KNIME GmbH, Konstanz, Germany
+ * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.2
  * @since 4.5
  */
+@SuppressWarnings("restriction")
 public final class LoopStartIntervalDynamicNodeFactory extends
-        ConfigurableNodeFactory<LoopStartIntervalDynamicNodeModel> {
+    ConfigurableNodeFactory<LoopStartIntervalDynamicNodeModel> implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     @Override
     protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
@@ -76,10 +95,6 @@ public final class LoopStartIntervalDynamicNodeFactory extends
         return new LoopStartIntervalDynamicNodeModel(config.getInputPorts(), config.getOutputPorts());
     }
 
-    @Override
-    protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
-        return new LoopStartIntervalDynamicNodeDialog();
-    }
 
     @Override
     protected int getNrNodeViews() {
@@ -95,6 +110,80 @@ public final class LoopStartIntervalDynamicNodeFactory extends
     @Override
     protected boolean hasDialog() {
         return true;
+    }
+    private static final String NODE_NAME = "Interval Loop Start";
+    private static final String NODE_ICON = "interval_variables_looper.png";
+    private static final String SHORT_DESCRIPTION = """
+            Node at the start of a loop
+            """;
+    private static final String FULL_DESCRIPTION = """
+            The Interval LoopStart is the node that starts a loop which increases a variable within a user-defined
+            interval by a certain amount. This is very handy for nodes inside a loop that take a continuous
+            parameter. The current value is accessible via the scope variable <tt>loop_value</tt> . At the end of
+            the loop you need LoopEnd, which collects the results from all loop iterations. All nodes in between are
+            executed as many times as you specify in the dialog of LoopStart. <p> The input ports are just passed
+            through to the output ports. You can add an arbitrary number of port pairs by using the “…” menu. </p>
+            """;
+    private static final List<PortDescription> INPUT_PORTS = List.of(
+            dynamicPort("Pass through", "Any port object", """
+                The input data, which can be a data table or any other arbitrary port object.
+                """)
+    );
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(
+            dynamicPort("Pass through", "Unaltered input", """
+                The unaltered input object
+                """)
+    );
+    private static final List<ExternalResource> LINKS = List.of(
+         new ExternalResource(
+            "https://docs.knime.com/latest/analytics_platform_flow_control_guide/index.html#loops", """
+                KNIME Flow Control Guide: Section Loops
+                """)
+    );
+
+    /**
+     * {@inheritDoc}
+     * @since 5.11
+     */
+    @Override
+    public NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    /**
+     * {@inheritDoc}
+     * @since 5.11
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, LoopStartIntervalDynamicNodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription( //
+            NODE_NAME, //
+            NODE_ICON, //
+            INPUT_PORTS, //
+            OUTPUT_PORTS, //
+            SHORT_DESCRIPTION, //
+            FULL_DESCRIPTION, //
+            LINKS, //
+            LoopStartIntervalDynamicNodeParameters.class, //
+            null, //
+            NodeType.LoopStart, //
+            List.of(), //
+            null //
+        );
+    }
+
+    /**
+     * {@inheritDoc}
+     * @since 5.11
+     */
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, LoopStartIntervalDynamicNodeParameters.class));
     }
 
 }
