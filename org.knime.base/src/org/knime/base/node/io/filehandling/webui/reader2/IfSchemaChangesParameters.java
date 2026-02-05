@@ -178,8 +178,16 @@ public final class IfSchemaChangesParameters implements NodeParameters {
             config.setSaveTableSpecConfig(true);
             config.setCheckSavedTableSpec(false);
         } else {
-            config.setSaveTableSpecConfig(m_ifSchemaChangesOption == IfSchemaChangesOption.FAIL);
-            config.setCheckSavedTableSpec(true);
+            switch (m_ifSchemaChangesOption) {
+                case USE_NEW_SCHEMA -> {
+                    config.setSaveTableSpecConfig(false);
+                    config.setCheckSavedTableSpec(false);
+                }
+                case FAIL -> {
+                    config.setSaveTableSpecConfig(true);
+                    config.setCheckSavedTableSpec(true);
+                }
+            }
         }
     }
 
@@ -189,10 +197,16 @@ public final class IfSchemaChangesParameters implements NodeParameters {
      * @param config the config to load from
      */
     public void loadFromConfig(final MultiTableReadConfig<?, ?> config) {
-        m_ignoreSchemaChange = !config.checkSavedTableSpec();
         if (config.saveTableSpecConfig()) {
+            /*
+             * The legacy setting is only relevant for the fail option, otherwise the new schema will be used anyway.
+             * This is consistent with how that flag was originally mapped to the three radio buttons 
+             * "Fail", "Use new schema", "Ignore (deprecated)"
+             */
+            m_ignoreSchemaChange = !config.checkSavedTableSpec();
             m_ifSchemaChangesOption = IfSchemaChangesOption.FAIL;
         } else {
+            m_ignoreSchemaChange = false;
             m_ifSchemaChangesOption = IfSchemaChangesOption.USE_NEW_SCHEMA;
         }
     }
