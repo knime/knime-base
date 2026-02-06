@@ -49,8 +49,10 @@
 package org.knime.base.node.io.filehandling.webui.reader2;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
@@ -93,6 +95,7 @@ import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigIDLo
 import org.knime.filehandling.core.node.table.reader.config.tablespec.DefaultTableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.NodeSettingsConfigID;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfigSerializer;
+import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.ImmutableUnknownColumnsTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
@@ -124,6 +127,8 @@ import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
+import static org.knime.base.node.io.filehandling.webui.reader2.IfSchemaChangesParameters.IfSchemaChangesOption.USE_NEW_SCHEMA;
 
 /**
  * Extend these settings to define the transformation settings for a reader node. Use the {@link ConfigIdSettings}
@@ -540,13 +545,15 @@ public abstract class TransformationParameters<T>
      * @param sourcePath the path of the currently selected source.
      * @param configId the config ID to use for the table spec config
      * @param multiFileReaderParameters for determining how to combine columns and whether a path column is appended.
+     * @param ifSchemaChangesParameters for determining whether to save the transformations at all
      */
     public <C extends ReaderSpecificConfig<C>> void saveToConfig(final MultiTableReadConfig<C, T> config,
         final String sourcePath, //
         final ConfigID configId, //
-        final MultiFileReaderParameters multiFileReaderParameters //
+        final MultiFileReaderParameters multiFileReaderParameters, //
+        final IfSchemaChangesParameters ifSchemaChangesParameters //
     ) {
-        saveToConfig(config, sourcePath, configId, multiFileReaderParameters, false);
+        saveToConfig(config, sourcePath, configId, multiFileReaderParameters, ifSchemaChangesParameters, false);
     }
 
     /**
@@ -558,16 +565,25 @@ public abstract class TransformationParameters<T>
      * @param sourcePath the path of the currently selected source.
      * @param configId the config ID to use for the table spec config
      * @param multiFileReaderParameters for determining how to combine columns and whether a path column is appended.
+     * @param ifSchemaChangesParameters for determining whether to save the transformations at all
      * @param skipEmptyColumns whether to skip empty columns when determining the transformations
      */
     public <C extends ReaderSpecificConfig<C>> void saveToConfig(final MultiTableReadConfig<C, T> config,
         final String sourcePath, //
         final ConfigID configId, //
         final MultiFileReaderParameters multiFileReaderParameters, //
+        final IfSchemaChangesParameters ifSchemaChangesParameters, //
         final boolean skipEmptyColumns //
     ) {
 
         if (m_specs == null) {
+            return;
+        }
+
+        if (ifSchemaChangesParameters.m_ifSchemaChangesOption == USE_NEW_SCHEMA) {
+            // the old readers did not save the spec at all if that option was set, and the old reader code still
+            // implicitly assumes that (i.e. setting the USE_NEW_SCHEMA is not sufficient to actually use the new schema
+            // if the old schema is still present)
             return;
         }
 
@@ -739,45 +755,97 @@ public abstract class TransformationParameters<T>
         if (settings.containsKey(ROOT_CFG_KEY)) {
             final var tableSpecConfigSerializer = createTableSpecConfigSerializer();
             final var tableSpecConfig = tableSpecConfigSerializer.load(settings.getNodeSettings(ROOT_CFG_KEY));
+            loadFromTableSpecConfig((DefaultTableSpecConfig<T>)tableSpecConfig);
+        }
+    }
 
-            try {
-                final var fsLocations = tableSpecConfig.getItemIdentifierColumn().map(colSpec -> {
-                    // read metadata and set first fs location with empty path as placeholder
-                    return colSpec.getMetaDataOfType(FSLocationValueMetaData.class)
-                        .map(FSLocationValueMetaData::getFSLocationSpecs).stream()//
-                        .flatMap(Set::stream)//
-                        .map(locSpec -> new FSLocation(locSpec.getFileSystemCategory(),
-                            locSpec.getFileSystemSpecifier().orElse(null), ""))
-                        .toArray(FSLocation[]::new);
-                });
-                final var items = tableSpecConfig.getItems();
-                final var specs = IntStream.range(0, items.size()).mapToObj(i -> {
-                    final var key = items.get(i);
-                    // Use a placeholder FSLocation with empty path when there's no item identifier column
-                    // to avoid NPEs during serialization (null is not supported there as of now)
-                    final var fsLocation = fsLocations.filter(locs -> i < locs.length).map(locs -> locs[i])
-                        .orElseGet(() -> new FSLocation(FSCategory.RELATIVE, null, ""));
-                    final var spec = tableSpecConfig.getSpec(key);
-                    final var colSpecs = spec.stream()
+    /**
+     * Use this method in a {@link NodeParametersMigration} to load transformation settings from legacy table spec
+     *
+     * @param settings the settings to load from
+     * @param columnFilterMode the column filter mode to use if stored outside the table spec config (which is the case
+     *            for older workflows created with 4.2 and potentially 4.3)
+     * @throws InvalidSettingsException if loading the settings failed
+     */
+    public void loadFromLegacySettings(final NodeSettingsRO settings, final ColumnFilterMode columnFilterMode)
+        throws InvalidSettingsException {
+        if (settings.containsKey(ROOT_CFG_KEY)) {
+            final var tableSpecConfigSerializer = createTableSpecConfigSerializer();
+
+            final var additionalParameters =
+                TableSpecConfigSerializer.AdditionalParameters.create().withColumnFilterMode(columnFilterMode);
+            final var tableSpecConfig =
+                tableSpecConfigSerializer.load(settings.getNodeSettings(ROOT_CFG_KEY), additionalParameters);
+            loadFromTableSpecConfig((DefaultTableSpecConfig<T>)tableSpecConfig);
+        }
+    }
+
+    private void loadFromTableSpecConfig(final DefaultTableSpecConfig<T> tableSpecConfig) {
+        try {
+            final var fsLocations = tableSpecConfig.getItemIdentifierColumn().map(colSpec -> {
+                // read metadata and set first fs location with empty path as placeholder
+                return colSpec.getMetaDataOfType(FSLocationValueMetaData.class)
+                    .map(FSLocationValueMetaData::getFSLocationSpecs).stream()//
+                    .flatMap(Set::stream)//
+                    .map(locSpec -> new FSLocation(locSpec.getFileSystemCategory(),
+                        locSpec.getFileSystemSpecifier().orElse(null), ""))
+                    .toArray(FSLocation[]::new);
+            });
+            final var items = tableSpecConfig.getItems();
+            final var specs = IntStream.range(0, items.size()).mapToObj(i -> {
+                final var key = items.get(i);
+                // Use a placeholder FSLocation with empty path when there's no item identifier column
+                // to avoid NPEs during serialization (null is not supported there as of now)
+                final var fsLocation = fsLocations.filter(locs -> i < locs.length).map(locs -> locs[i])
+                    .orElseGet(() -> new FSLocation(FSCategory.RELATIVE, null, ""));
+                final var spec = tableSpecConfig.getSpec(key);
+                final var colSpecs =
+                    spec.stream()
                         .map(colSpec -> new ColumnSpecSettings(colSpec.getName().get(),
                             toSerializableType(colSpec.getType()), colSpec.hasType()))
                         .toArray(ColumnSpecSettings[]::new);
-                    return new TableSpecSettings(key, fsLocation, colSpecs);
-                }).toArray(TableSpecSettings[]::new);
-                m_specs = specs;
-                m_enforceTypes = tableSpecConfig.getTableTransformation().enforceTypes();
-            } catch (final Exception e) { // NOSONAR The dialog can still work even if loading persistor settings fails
-                LOGGER.error("Error while loading persistor settings from table spec config.", e);
-            }
+                return new TableSpecSettings(key, fsLocation, colSpecs);
+            }).toArray(TableSpecSettings[]::new);
+            m_specs = specs;
+            m_enforceTypes = tableSpecConfig.getTableTransformation().enforceTypes();
+        } catch (final Exception e) { // NOSONAR The dialog can still work even if loading persistor settings fails
+            LOGGER.error("Error while loading persistor settings from table spec config.", e);
+        }
 
-            final var transformationElements =
-                tableSpecConfig.getTableTransformation().stream().map(this::getTransformationElement).toList();
-            final var unknownTransformationElement =
-                getTransformationElement(tableSpecConfig.getTableTransformation().getTransformationForUnknownColumns());
-            m_columnTransformation =
-                Stream.concat(transformationElements.stream(), Stream.of(unknownTransformationElement))
-                    .sorted((t1, t2) -> t1.getFirst() - t2.getFirst()).map(Pair::getSecond)
-                    .toArray(TransformationElementSettings[]::new);
+        final var transformationElements =
+            tableSpecConfig.getTableTransformation().stream().map(this::getTransformationElement).toList();
+        final var unknownTransformationElement =
+            getTransformationElement(tableSpecConfig.getTableTransformation().getTransformationForUnknownColumns());
+        m_columnTransformation = Stream.concat(transformationElements.stream(), Stream.of(unknownTransformationElement))
+            .sorted(new ColumnTransformationComparator(unknownTransformationElement)) //
+            .map(Pair::getSecond) //
+            .toArray(TransformationElementSettings[]::new);
+    }
+
+    private record ColumnTransformationComparator(Pair<Integer, TransformationElementSettings> m_unknownElement)
+        implements Comparator<Pair<Integer, TransformationElementSettings>> {
+
+        @Override
+        public int compare(final Pair<Integer, TransformationElementSettings> a,
+            final Pair<Integer, TransformationElementSettings> b) {
+            var aPos = a.getFirst();
+            var bPos = b.getFirst();
+            if (!Objects.equals(aPos, bPos)) {
+                return Integer.compare(aPos, bPos);
+            }
+            /*
+             * Workaround for legacy behaviour: The "unknown columns" placeholder might have the same index as a known
+             * column. It should be inserted at its position, shifting all subsequent columns (including the one with
+             * the same index) to the right. This comparator implicitly assumes that there is only one
+             * "unknown columns" element.
+             */
+            if (a == m_unknownElement) {
+                return -1;
+            }
+            if (b == m_unknownElement) {
+                return 1;
+            }
+            return 0;
         }
     }
 

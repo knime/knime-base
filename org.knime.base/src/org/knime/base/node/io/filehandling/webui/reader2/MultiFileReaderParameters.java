@@ -50,6 +50,7 @@ package org.knime.base.node.io.filehandling.webui.reader2;
 
 import org.knime.filehandling.core.node.table.reader.SpecMergeMode;
 import org.knime.filehandling.core.node.table.reader.config.AbstractMultiTableReadConfig;
+import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.layout.Before;
@@ -98,8 +99,49 @@ public final class MultiFileReaderParameters extends AppendFilePathColumnParamet
         super.saveToConfig(config);
 
         config.setFailOnDifferingSpecs(m_howToCombineColumns == HowToCombineColumnsOption.FAIL);
-        // The legacy spec merge mode should not be used anymore, as the column filter mode in the table spec config is
-        // used instead
+        // The legacy spec merge mode is still used as a fallback, see DefaultTableTransformationFactory.createNew()
+        switch (m_howToCombineColumns) {
+            case INTERSECTION -> config.setSpecMergeMode(SpecMergeMode.INTERSECTION);
+            case UNION -> config.setSpecMergeMode(SpecMergeMode.UNION);
+            case FAIL -> config.setSpecMergeMode(SpecMergeMode.FAIL_ON_DIFFERING_SPECS);
+        }
+    }
+
+    @Override
+    public void loadFromConfig(final MultiTableReadConfig<?, ?> config) {
+        throw new UnsupportedOperationException("Use either loadFromConfigBefore4_4 or loadFromConfigAfter4_4");
+    }
+
+    /**
+     * Load the settings from the given config. This method respects the legacy setting {@link SpecMergeMode}
+     *
+     * @param config the config to load from
+     * @since 5.11
+     */
+    @SuppressWarnings("deprecation")
+    public void loadFromConfigBefore4_4(final AbstractMultiTableReadConfig<?, ?, ?, ?> config) {
+        super.loadFromConfig(config);
+
+        if (config.failOnDifferingSpecs()) {
+            // in this case, the result of getSpecMergeMode() is irrelevant, as the specs must be identical anyway
+            m_howToCombineColumns = HowToCombineColumnsOption.FAIL;
+        } else {
+            if (config.getTableSpecConfig() != null && config.getTableSpecConfig().getTableTransformation() != null) {
+                m_howToCombineColumns =
+                    switch (config.getTableSpecConfig().getTableTransformation().getColumnFilterMode()) {
+                        case INTERSECTION -> HowToCombineColumnsOption.INTERSECTION;
+                        case UNION -> HowToCombineColumnsOption.UNION;
+                    };
+            } else {
+                // fallback to legacy setting
+                m_howToCombineColumns = switch (config.getSpecMergeMode()) {
+                    case FAIL_ON_DIFFERING_SPECS -> HowToCombineColumnsOption.FAIL;
+                    case INTERSECTION -> HowToCombineColumnsOption.INTERSECTION;
+                    case UNION -> HowToCombineColumnsOption.UNION;
+                };
+            }
+        }
+
     }
 
     /**
@@ -113,7 +155,7 @@ public final class MultiFileReaderParameters extends AppendFilePathColumnParamet
         super.loadFromConfig(config);
 
         if (config.failOnDifferingSpecs()) {
-            // in this case, the result of getSpecMergeMode() is irrelevant, as the specs must be identical anyway
+            // in this case, result of getColumnFilterMode() is irrelevant, as the specs must be identical anyway
             m_howToCombineColumns = HowToCombineColumnsOption.FAIL;
         } else {
             if (config.getTableSpecConfig() != null && config.getTableSpecConfig().getTableTransformation() != null) {

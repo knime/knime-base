@@ -145,10 +145,11 @@ public class KnimeTableReaderNodeFactory2 extends WebUITableReaderNodeFactory<Kn
         }
 
         @Override
-        protected void saveToSourceAndConfig(final KnimeTableReaderNodeParameters params, final ConfigID configId,
-            final MultiFileSelectionPath sourceSettings, final KnimeTableMultiTableReadConfig config) {
+        protected void saveToSourceAndConfig(final KnimeTableReaderNodeParameters params, final String existingSourceId,
+            final ConfigID configId, final MultiFileSelectionPath sourceSettings,
+            final KnimeTableMultiTableReadConfig config) {
             params.saveToSource(sourceSettings);
-            params.saveToConfig(config, configId);
+            params.saveToConfig(config, existingSourceId, configId);
         }
 
         @Override
