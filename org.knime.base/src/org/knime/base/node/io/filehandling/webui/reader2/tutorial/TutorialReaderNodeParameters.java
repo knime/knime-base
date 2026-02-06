@@ -98,6 +98,11 @@ class TutorialReaderNodeParameters implements NodeParameters {
             // TODO (#3): Replace DummyMultiTableReadConfig with your TableReader's MultiTableReadConfig
             return param.saveToConfig(new DummyMultiTableReadConfig());
         }
+
+        @Override
+        protected String getSourceID(final TutorialReaderParameters param) {
+            return param.getSourcePath();
+        }
     }
 
     TutorialReaderTransformationParameters m_transformationParameters = new TutorialReaderTransformationParameters();
@@ -106,20 +111,23 @@ class TutorialReaderNodeParameters implements NodeParameters {
         m_tutorialReaderParameters.saveToSource(sourceSettings);
     }
 
-    void saveToConfig(final DummyMultiTableReadConfig config, final ConfigID existingConfigId) {
+    void saveToConfig(final DummyMultiTableReadConfig config, final String existingSourceId,
+        final ConfigID existingConfigId) {
         m_tutorialReaderParameters.saveToConfig(config);
-        saveTransformationParametersToConfig(config, existingConfigId);
+        saveTransformationParametersToConfig(config, existingSourceId, existingConfigId);
     }
 
     void saveToConfig(final DummyMultiTableReadConfig config) {
         final var configId = m_tutorialReaderParameters.saveToConfig(config);
-        saveTransformationParametersToConfig(config, configId);
+        final var sourceId = m_tutorialReaderParameters.getSourcePath();
+        saveTransformationParametersToConfig(config, sourceId, configId);
     }
 
     private void saveTransformationParametersToConfig(final DummyMultiTableReadConfig config,
-        final ConfigID existingConfigId) {
+        final String existingSourceId, final ConfigID existingConfigId) {
         m_transformationParameters.saveToConfig(//
-            config, m_tutorialReaderParameters.getSourcePath(), //
+            config, //
+            existingSourceId, //
             existingConfigId, //
             m_tutorialReaderParameters.getMultiFileParameters(), //
             m_tutorialReaderParameters.getIfSchemaChangesParameters() //

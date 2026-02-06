@@ -124,6 +124,7 @@
             </config>
         </config>
     </config>
+    <entry key="sourceId_Internals" type="xstring" value="/tmp/csv_test.csv"/>
     <config key="transformationParameters">
         <config key="specs">
             <config key="0">

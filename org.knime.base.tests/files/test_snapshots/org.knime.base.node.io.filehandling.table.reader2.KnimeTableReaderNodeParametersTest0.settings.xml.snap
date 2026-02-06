@@ -56,6 +56,7 @@
     <config key="configId_Internals">
         <config key="table_reader"/>
     </config>
+    <entry key="sourceId_Internals" type="xstring" value="test.table"/>
     <config key="transformationParameters">
         <config key="specs">
             <config key="0">

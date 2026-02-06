@@ -48,6 +48,7 @@
  */
 package org.knime.base.node.io.filehandling.webui.reader2;
 
+import org.apache.commons.lang3.StringUtils;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -85,6 +86,8 @@ public abstract class NodeParametersConfigAndSourceSerializer<P extends NodePara
 
     static final String CFG_ID_KEY = "configId" + SettingsModel.CFGKEY_INTERNAL;
 
+    static final String SOURCE_ID_KEY = "sourceId" + SettingsModel.CFGKEY_INTERNAL;
+
     private final Class<P> m_paramsClass;
 
     /**
@@ -98,12 +101,12 @@ public abstract class NodeParametersConfigAndSourceSerializer<P extends NodePara
 
     private ConfigID m_configID;
 
+    private String m_sourceID;
+
     @Override
     public final void validateSettings(final S source, final M config, final NodeSettingsRO settings)
         throws InvalidSettingsException {
-        m_params = NodeParametersUtil.loadSettings(settings, m_paramsClass);
-        m_params.validate();
-        m_configID = ConfigIDSerializationUtil.loadID(CFG_ID_KEY, getConfigIDLoader(), settings);
+        NodeParametersUtil.loadSettings(settings, m_paramsClass).validate();
     }
 
     @Override
@@ -116,25 +119,32 @@ public abstract class NodeParametersConfigAndSourceSerializer<P extends NodePara
         if (m_configID != null) {
             ConfigIDSerializationUtil.saveID(CFG_ID_KEY, m_configID, settings);
         }
+        if (!StringUtils.isEmpty(m_sourceID)) {
+            settings.addString(SOURCE_ID_KEY, m_sourceID);
+        }
     }
 
     @Override
     public final void loadValidatedSettingsFrom(final S source, final M config, final NodeSettingsRO settings)
         throws InvalidSettingsException {
+        m_params = NodeParametersUtil.loadSettings(settings, m_paramsClass);
+        m_configID = ConfigIDSerializationUtil.loadID(CFG_ID_KEY, getConfigIDLoader(), settings);
+        m_sourceID = settings.getString(SOURCE_ID_KEY, "");
         // validateSettings is guaranteed to be called before this method
-        saveToSourceAndConfig(m_params, m_configID, source, config);
+        saveToSourceAndConfig(m_params, m_sourceID, m_configID, source, config);
     }
 
     /**
      * Saves the values from the given parameters to the given source and config.
      *
-     * @param params the node parameters
+     * @param params           the node parameters
+     * @param existingSourceId the previously saved source id. If settings have not been applied before, this is empty.
      * @param existingConfigId the previously saved config id. If settings have not been applied before, this is null.
-     * @param source the source
-     * @param config the reader specific config
+     * @param source           the source
+     * @param config           the reader specific config
      */
-    protected abstract void saveToSourceAndConfig(final P params, ConfigID existingConfigId, final S source,
-        final M config);
+    protected abstract void saveToSourceAndConfig(final P params, String existingSourceId, ConfigID existingConfigId,
+                                                  final S source, final M config);
 
     /**
      * Return the same config ID loader as used in the reader config.
