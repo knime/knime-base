@@ -53,13 +53,13 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import org.knime.base.data.aggregation.AggregationFunctionParametersProvider.AggregationMethodRef;
 import org.knime.base.data.aggregation.AggregationMethod;
 import org.knime.base.data.aggregation.AggregationOperatorParameters;
-import org.knime.base.data.aggregation.AggregationSpec;
-import org.knime.base.data.aggregation.DefaultAggregationMethodProvider;
-import org.knime.base.data.aggregation.HasOperatorParameters;
-import org.knime.base.data.aggregation.StateAndChoicesProviders.AggregationChoicesByTypeProvider;
+import org.knime.base.data.aggregation.parameters.AggregationSpec;
+import org.knime.base.data.aggregation.parameters.DefaultAggregationMethodProvider;
+import org.knime.base.data.aggregation.parameters.HasOperatorParameters;
+import org.knime.base.data.aggregation.parameters.AggregationFunctionParametersProvider.AggregationMethodRef;
+import org.knime.base.data.aggregation.parameters.StateAndChoicesProviders.AggregationChoicesByTypeProvider;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;

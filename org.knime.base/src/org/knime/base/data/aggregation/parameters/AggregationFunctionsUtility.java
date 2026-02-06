@@ -46,12 +46,13 @@
  * History
  *   15 Dec 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.data.aggregation;
+package org.knime.base.data.aggregation.parameters;
 
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import org.knime.base.data.aggregation.AggregationOperatorParameters;
 import org.knime.core.data.DataType;
 import org.knime.core.node.port.database.aggregation.AggregationFunction;
 
@@ -130,7 +131,7 @@ public abstract class AggregationFunctionsUtility<F extends AggregationFunction>
      * @param sorted whether to sort the functions by user-facing label
      * @return a stream of compatible aggregation functions
      */
-    protected abstract Stream<F> getCompatibleAggregationFunctions(DataType type, boolean sorted);
+    public abstract Stream<F> getCompatibleAggregationFunctions(DataType type, boolean sorted);
 
     /**
      * Returns all aggregation functions that are compatible with the given data type.
@@ -158,7 +159,7 @@ public abstract class AggregationFunctionsUtility<F extends AggregationFunction>
      * @param type the data type
      * @return the default aggregation function
      */
-    protected abstract Optional<F> getDefaultFunction(DataType type);
+    public abstract Optional<F> getDefaultFunction(DataType type);
 
     /**
      * Looks up the parameters class supporting the given aggregation function.

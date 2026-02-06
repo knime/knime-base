@@ -50,8 +50,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.knime.base.data.aggregation.AggregationMethods;
-import org.knime.base.data.aggregation.FallbackAggregationOperatorParameters;
 import org.knime.base.data.aggregation.NamedAggregationOperator;
+import org.knime.base.data.aggregation.parameters.FallbackAggregationOperatorParameters;
 import org.knime.base.node.preproc.groupby.common.MissingValueOption;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;

@@ -54,7 +54,7 @@ import java.util.Map;
 
 import org.knime.base.data.aggregation.AggregationMethods;
 import org.knime.base.data.aggregation.ColumnAggregator;
-import org.knime.base.data.aggregation.FallbackAggregationOperatorParameters;
+import org.knime.base.data.aggregation.parameters.FallbackAggregationOperatorParameters;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;

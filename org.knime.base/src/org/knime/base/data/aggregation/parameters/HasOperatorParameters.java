@@ -44,34 +44,64 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   22 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   20 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.data.aggregation;
+package org.knime.base.data.aggregation.parameters;
 
-import org.knime.node.parameters.widget.choices.Label;
-import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
+import java.util.Optional;
+import java.util.function.Supplier;
+
+import org.knime.base.data.aggregation.parameters.AggregationFunctionParametersProvider.AggregationMethodRef;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.updates.StateProvider;
 
 /**
- * Pattern type for pattern-based aggregations.
- *
- * Prefer this enum over the {@link org.knime.base.node.util.regex.PatternType} if you want a {@link ValueSwitchWidget}
- * that displays only these two options.
+ * Indicator that the selected aggregation method has optional settings.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  *
  * @since 5.11
  */
-public enum PatternType {
+@SuppressWarnings("restriction")
+public abstract class HasOperatorParameters implements StateProvider<Boolean> {
+
+    private Supplier<String> m_agg;
 
     /**
-     * Wildcard pattern type.
+     * Gets the class of the {@link AggregationMethodRef} to use.
+     *
+     * @return the class of the {@link AggregationMethodRef} to use
      */
-    @Label("Wildcard")
-    WILDCARD, //
+    protected abstract Class<? extends AggregationMethodRef> getAggregationMethodRefClass();
+
     /**
-     * Regular expression pattern type.
+     * Looks up an aggregation function by its ID to determine if it has optional parameters.
+     *
+     * @param spec the input spec to derive available functions from
+     *
+     * @param id the ID of the aggregation function
+     * @return the aggregation function, or {@link Optional#empty()} if no such function exists
      */
-    @Label("Regular Expression")
-    REGEX
+    protected abstract Optional<AggregationSpec> lookupFunctionById(PortObjectSpec spec, String id);
+
+    @Override
+    public final void init(final StateProviderInitializer init) {
+        init.computeBeforeOpenDialog();
+        m_agg = init.computeFromValueSupplier(getAggregationMethodRefClass());
+    }
+
+    @Override
+    public final Boolean computeState(final NodeParametersInput in) throws StateComputationFailureException {
+        final var id = m_agg.get();
+        if (id == null) {
+            throw new StateComputationFailureException();
+        }
+        // unknown aggregation function has no optional settings
+        return in.getInPortSpec(0) //
+            .flatMap(spec -> lookupFunctionById(spec, id).map(AggregationSpec::hasOptionalSettings)) //
+            .orElse(false);
+    }
 
 }

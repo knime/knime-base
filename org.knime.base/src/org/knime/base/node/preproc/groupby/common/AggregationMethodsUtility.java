@@ -51,11 +51,11 @@ package org.knime.base.node.preproc.groupby.common;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import org.knime.base.data.aggregation.AggregationFunctionsUtility;
 import org.knime.base.data.aggregation.AggregationMethod;
 import org.knime.base.data.aggregation.AggregationMethods;
 import org.knime.base.data.aggregation.AggregationOperatorParameters;
-import org.knime.base.data.aggregation.AggregationSpec;
+import org.knime.base.data.aggregation.parameters.AggregationFunctionsUtility;
+import org.knime.base.data.aggregation.parameters.AggregationSpec;
 import org.knime.core.data.DataType;
 
 /**
@@ -88,7 +88,7 @@ public final class AggregationMethodsUtility extends AggregationFunctionsUtility
     }
 
     @Override
-    protected Stream<AggregationMethod> getCompatibleAggregationFunctions(final DataType type, final boolean sorted) {
+    public Stream<AggregationMethod> getCompatibleAggregationFunctions(final DataType type, final boolean sorted) {
         return AggregationMethods.getCompatibleMethods(type, sorted).stream();
     }
 
@@ -98,7 +98,7 @@ public final class AggregationMethodsUtility extends AggregationFunctionsUtility
     }
 
     @Override
-    protected Optional<AggregationMethod> getDefaultFunction(final DataType type) {
+    public Optional<AggregationMethod> getDefaultFunction(final DataType type) {
         return Optional.ofNullable(AggregationMethods.getInstance().getDefaultFunction(type));
     }
 

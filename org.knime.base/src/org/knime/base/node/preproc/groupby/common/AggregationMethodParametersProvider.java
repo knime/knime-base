@@ -50,11 +50,11 @@ package org.knime.base.node.preproc.groupby.common;
 
 import java.util.Collection;
 
-import org.knime.base.data.aggregation.AggregationFunctionParametersProvider;
-import org.knime.base.data.aggregation.AggregationFunctionsUtility;
 import org.knime.base.data.aggregation.AggregationMethod;
 import org.knime.base.data.aggregation.AggregationMethods;
 import org.knime.base.data.aggregation.AggregationOperatorParameters;
+import org.knime.base.data.aggregation.parameters.AggregationFunctionParametersProvider;
+import org.knime.base.data.aggregation.parameters.AggregationFunctionsUtility;
 import org.knime.node.parameters.NodeParametersInput;
 
 /**
