@@ -54,6 +54,8 @@ import java.util.List;
 import org.knime.base.data.aggregation.AggregationMethods;
 import org.knime.base.data.aggregation.AggregationOperatorParameters;
 import org.knime.base.data.aggregation.dialogutil.pattern.PatternAggregator;
+import org.knime.base.data.aggregation.parameters.FallbackAggregationOperatorParameters;
+import org.knime.base.data.aggregation.parameters.PatternType;
 import org.knime.base.node.preproc.groupby.common.LegacyPatternAggregatorsArrayPersistor.IndexedElement;
 import org.knime.base.node.preproc.groupby.common.LegacyPatternAggregatorsArrayPersistor.PatternAggregatorElementDTO;
 import org.knime.core.node.InvalidSettingsException;
@@ -66,7 +68,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.Array
 import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.ElementFieldPersistor;
 
 /**
- * Persistor for legacy pattern aggregators array.
+ * Persistor for legacy pattern aggregators array in the GroupBy, Pivot, and Column Aggregator nodes.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
@@ -77,6 +79,8 @@ public final class LegacyPatternAggregatorsArrayPersistor
     private static final String F_ARRAY_INDEX = "f_${array_index}";
 
     private static final String CFG_PATTERN_AGGREGATORS = "patternAggregators";
+
+    private static final String CFG_FUNCTION_SETTINGS = "functionSettings";
 
     private PatternAggregator[] m_aggregators;
 
@@ -176,17 +180,17 @@ public final class LegacyPatternAggregatorsArrayPersistor
             final var cfg = nodeSettings //
                 .getNodeSettings(CFG_PATTERN_AGGREGATORS) //
                 .getNodeSettings("f_" + loadContext.m_index) //
-                .getNodeSettings("functionSettings");
+                .getNodeSettings(CFG_FUNCTION_SETTINGS);
             final var paramClass = AggregationMethods.getInstance().getParametersClassFor(aggr.getId()).orElse(null);
             if (paramClass != null) {
                 return NodeParametersUtil.loadSettings(cfg, paramClass);
             }
-            return new LegacyAggregationOperatorParameters(cfg);
+            return new FallbackAggregationOperatorParameters(CFG_FUNCTION_SETTINGS, cfg);
         }
 
         @Override
         public String[][] getConfigPaths() {
-            // TODO not possible to specify arbitrary nested keys implicitly
+            // not possible to specify arbitrary nested keys implicitly
             return new String[0][];
         }
 
@@ -268,12 +272,12 @@ public final class LegacyPatternAggregatorsArrayPersistor
         final var params = elem.m_parameters;
         if (params != null) {
             final NodeSettings functionSettings;
-            if (elem.m_parameters instanceof LegacyAggregationOperatorParameters legacyParams) {
+            if (elem.m_parameters instanceof FallbackAggregationOperatorParameters legacyParams) {
                 // the fallback just wraps
                 functionSettings = legacyParams.getNodeSettings();
             } else {
                 // must be custom parameters via extension point
-                final var settingsToSaveInto = new NodeSettings("functionSettings");
+                final var settingsToSaveInto = new NodeSettings(CFG_FUNCTION_SETTINGS);
                 NodeParametersUtil.saveSettings(elem.m_parameters.getClass(), elem.m_parameters, settingsToSaveInto);
                 functionSettings = settingsToSaveInto;
             }

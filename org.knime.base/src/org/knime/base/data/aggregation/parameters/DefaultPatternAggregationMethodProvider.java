@@ -44,53 +44,64 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 13, 2025 (Paul Bärnreuther): created
+ *   17 Dec 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.groupby;
+package org.knime.base.data.aggregation.parameters;
 
-import org.knime.node.parameters.Advanced;
-import org.knime.node.parameters.layout.After;
-import org.knime.node.parameters.layout.Section;
+import java.util.Optional;
+import java.util.function.Supplier;
+
+import org.knime.base.data.aggregation.parameters.AggregationFunctionParametersProvider.AggregationMethodRef;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.port.database.aggregation.AggregationFunction;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.updates.StateProvider;
 
 /**
- * Sections for GroupBy node dialog (+ related nodes, e.g. Pivot).
+ * Selects the default aggregation method if no method is already selected for aggregation of columns based on
+ * column name patterns.
  *
- * @author Paul Bärnreuther
- * @since 5.10
+ * @param <F> the type of the aggregation function provided as default
+ *
+ * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ *
+ * @since 5.11
  */
-public interface Sections {
+public abstract class DefaultPatternAggregationMethodProvider<F extends AggregationFunction>
+        implements StateProvider<String> {
 
-    @SuppressWarnings("javadoc")
-    @Section(title = "Aggregation")
-    interface Aggregation {
+    private Supplier<String> m_methodSelf;
+
+    /**
+     * Self-reference to aggregation method.
+     * @return the self-reference
+     */
+    protected abstract Class<? extends AggregationMethodRef> getMethodSelfProvider();
+
+    /**
+     * Gets the default method to use if no method is already selected.
+     * @param spec the input spec to derive available functions from
+     * @return default aggregation function
+     */
+    protected abstract Optional<F> getDefaultMethod(PortObjectSpec spec);
+
+    @Override
+    public void init(final StateProviderInitializer initializer) {
+        m_methodSelf = initializer.getValueSupplier(getMethodSelfProvider());
     }
 
-    @SuppressWarnings("javadoc")
-    @Section(title = "Pattern Based Aggregation")
-    @After(Sections.Aggregation.class)
-    interface PatternAggregation {
-
+    @Override
+    public String computeState(final NodeParametersInput context) throws StateComputationFailureException {
+        if (m_methodSelf.get() != null) {
+            // only set default if no method is already selected
+            throw new StateComputationFailureException();
+        }
+        return context.getInPortSpec(0) //
+                .flatMap(this::getDefaultMethod) //
+                .map(F::getId) //
+                // if there is no default available, we clear the selection
+                .orElse(null);
     }
 
-    @SuppressWarnings("javadoc")
-    @Section(title = "Type Based Aggregation")
-    @After(Sections.PatternAggregation.class)
-    interface TypeAggregation {
-    }
-
-    @SuppressWarnings("javadoc")
-    @Section(title = "Output")
-    @After(Sections.TypeAggregation.class)
-    interface Output {
-    }
-
-    @SuppressWarnings("javadoc")
-    @Section(title = "Performance", description = """
-            The performance settings allow to optimize memory consumption and configure settings that may
-            negatively affect performance and are therefore disabled by default.
-            """)
-    @After(Sections.Output.class)
-    @Advanced
-    interface Performance {
-    }
 }

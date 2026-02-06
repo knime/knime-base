@@ -44,57 +44,68 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   22 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   15 Dec 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.base.node.preproc.groupby.common;
 
-import java.util.function.Supplier;
+import java.util.Optional;
+import java.util.stream.Stream;
 
+import org.knime.base.data.aggregation.AggregationMethod;
 import org.knime.base.data.aggregation.AggregationMethods;
+import org.knime.base.data.aggregation.AggregationOperatorParameters;
+import org.knime.base.data.aggregation.parameters.AggregationFunctionsUtility;
+import org.knime.base.data.aggregation.parameters.AggregationSpec;
 import org.knime.core.data.DataType;
-import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
-import org.knime.node.parameters.NodeParametersInput;
-import org.knime.node.parameters.updates.ParameterReference;
-import org.knime.node.parameters.updates.StateProvider;
 
 /**
- * Selects the default aggregation method based on the type, if a method is not already provided.
+ * Utility for native (as in "not-DB") aggregation methods.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ *
+ * @since 5.10
  */
-abstract class DefaultAggregationMethodProvider implements StateProvider<String> {
+public final class AggregationMethodsUtility extends AggregationFunctionsUtility<AggregationMethod> {
 
-    /** The currently selected method to avoid updating it if it is already set. */
-    private Supplier<String> m_methodSelf;
-
-    private Supplier<DataType> m_typeSupplier;
+    private static final AggregationMethodsUtility INSTANCE = new AggregationMethodsUtility();
 
     /**
-     * @return type provider class to obtain method for
+     * Gets the singleton instance of this utility.
+     *
+     * @return the singleton instance
      */
-    abstract Class<? extends ParameterReference<DataType>> getTypeProvider();
-
-    /**
-     * @return self reference for the method to not override if already set
-     */
-    abstract Class<? extends ParameterReference<String>> getMethodSelfProvider();
-
-    @Override
-    public final void init(final StateProviderInitializer initializer) {
-        m_methodSelf = initializer.getValueSupplier(getMethodSelfProvider());
-        m_typeSupplier = initializer.computeFromValueSupplier(getTypeProvider());
+    public static AggregationMethodsUtility getInstance() {
+        return INSTANCE;
     }
 
-    @SuppressWarnings("restriction")
+    private AggregationMethodsUtility() {
+        // singleton
+    }
+
     @Override
-    public final String computeState(final NodeParametersInput parametersInput)
-        throws StateComputationFailureException {
-        if (m_methodSelf.get() != null) {
-            throw new StateComputationFailureException();
-        }
-        final var type = m_typeSupplier.get();
-        // there always is a default, even if it is just "First"
-        return AggregationMethods.getInstance().getDefaultFunction(type).getId();
+    protected AggregationMethod getFunction(final String id) {
+        return AggregationMethods.getMethod4Id(id);
+    }
+
+    @Override
+    public Stream<AggregationMethod> getCompatibleAggregationFunctions(final DataType type, final boolean sorted) {
+        return AggregationMethods.getCompatibleMethods(type, sorted).stream();
+    }
+
+    @Override
+    protected Stream<AggregationMethod> getFunctions(final boolean sorted) {
+        return AggregationMethods.getInstance().getFunctions(sorted).stream();
+    }
+
+    @Override
+    public Optional<AggregationMethod> getDefaultFunction(final DataType type) {
+        return Optional.ofNullable(AggregationMethods.getInstance().getDefaultFunction(type));
+    }
+
+    @Override
+    public Optional<Class<? extends AggregationOperatorParameters>>
+        lookupParametersForFunction(final AggregationSpec fun) {
+        return AggregationMethods.getInstance().getParametersClassFor(fun.id());
     }
 
 }

@@ -44,48 +44,34 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   20 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   22 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.groupby.common;
+package org.knime.base.data.aggregation.parameters;
 
-import java.util.function.Supplier;
-
-import org.knime.base.data.aggregation.AggregationMethods;
-import org.knime.base.node.preproc.groupby.common.AggregationOperatorParametersProvider.AggregationMethodRef;
-import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
-import org.knime.node.parameters.NodeParametersInput;
-import org.knime.node.parameters.updates.StateProvider;
+import org.knime.node.parameters.widget.choices.Label;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 
 /**
- * Indicator that the selected aggregation method has optional settings.
+ * Pattern type for pattern-based aggregations.
+ *
+ * Prefer this enum over the {@link org.knime.base.node.util.regex.PatternType} if you want a {@link ValueSwitchWidget}
+ * that displays only these two options.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ *
+ * @since 5.11
  */
-@SuppressWarnings("restriction")
-public abstract class HasOperatorParameters implements StateProvider<Boolean> {
-
-    private Supplier<String> m_agg;
+public enum PatternType {
 
     /**
-     * Gets the class of the {@link AggregationMethodRef} to use.
-     *
-     * @return the class of the {@link AggregationMethodRef} to use
+     * Wildcard pattern type.
      */
-    protected abstract Class<? extends AggregationMethodRef> getAggregationMethodRefClass();
-
-    @Override
-    public final void init(final StateProviderInitializer init) {
-        init.computeBeforeOpenDialog();
-        m_agg = init.computeFromValueSupplier(getAggregationMethodRefClass());
-    }
-
-    @Override
-    public final Boolean computeState(final NodeParametersInput in) throws StateComputationFailureException {
-        final var id = m_agg.get();
-        if (id == null) {
-            throw new StateComputationFailureException();
-        }
-        return AggregationMethods.getMethod4Id(id).hasOptionalSettings();
-    }
+    @Label("Wildcard")
+    WILDCARD, //
+    /**
+     * Regular expression pattern type.
+     */
+    @Label("Regular Expression")
+    REGEX
 
 }
