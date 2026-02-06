@@ -53,9 +53,9 @@ import java.util.List;
 
 import org.knime.base.data.aggregation.AggregationMethods;
 import org.knime.base.data.aggregation.AggregationOperatorParameters;
-import org.knime.base.data.aggregation.FallbackAggregationOperatorParameters;
-import org.knime.base.data.aggregation.PatternType;
 import org.knime.base.data.aggregation.dialogutil.pattern.PatternAggregator;
+import org.knime.base.data.aggregation.parameters.FallbackAggregationOperatorParameters;
+import org.knime.base.data.aggregation.parameters.PatternType;
 import org.knime.base.node.preproc.groupby.common.LegacyPatternAggregatorsArrayPersistor.IndexedElement;
 import org.knime.base.node.preproc.groupby.common.LegacyPatternAggregatorsArrayPersistor.PatternAggregatorElementDTO;
 import org.knime.core.node.InvalidSettingsException;

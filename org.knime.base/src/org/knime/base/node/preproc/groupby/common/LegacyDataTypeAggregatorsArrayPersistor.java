@@ -53,8 +53,8 @@ import java.util.List;
 
 import org.knime.base.data.aggregation.AggregationMethods;
 import org.knime.base.data.aggregation.AggregationOperatorParameters;
-import org.knime.base.data.aggregation.FallbackAggregationOperatorParameters;
 import org.knime.base.data.aggregation.dialogutil.type.DataTypeAggregator;
+import org.knime.base.data.aggregation.parameters.FallbackAggregationOperatorParameters;
 import org.knime.base.node.preproc.groupby.common.LegacyDataTypeAggregatorsArrayPersistor.DataTypeAggregatorElementDTO;
 import org.knime.base.node.preproc.groupby.common.LegacyDataTypeAggregatorsArrayPersistor.IndexedElement;
 import org.knime.core.data.DataType;

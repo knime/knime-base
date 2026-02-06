@@ -46,7 +46,7 @@
  * History
  *   15 Dec 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.data.aggregation;
+package org.knime.base.data.aggregation.parameters;
 
 import org.knime.core.node.NodeSettingsRO;
 
@@ -61,9 +61,10 @@ import org.knime.core.node.NodeSettingsRO;
  * @param hasOptionalSettings indicates whether the function has optional settings
  * @param optionalSettings the function's current optional settings, or {@code null} if the function has no settings
  *            (either not at all or currently none)
- * @since 5.11
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ *
+ * @since 5.11
  */
 // this exists because the `AggregationFunction` interface is in core and core cannot depend on core-ui
 // (for the aggregation parameters class)

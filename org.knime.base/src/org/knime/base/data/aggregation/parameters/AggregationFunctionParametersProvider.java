@@ -46,13 +46,14 @@
  * History
  *   20 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.data.aggregation;
+package org.knime.base.data.aggregation.parameters;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Supplier;
 
+import org.knime.base.data.aggregation.AggregationOperatorParameters;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettings;
@@ -75,9 +76,9 @@ import org.knime.node.parameters.updates.ParameterReference;
  *
  * @param <F> type of aggregation function returned by the parameters implementation
  *
- * @since 5.11
- *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ *
+ * @since 5.11
  */
 @SuppressWarnings({"restriction"})
 public abstract class AggregationFunctionParametersProvider<F extends AggregationFunction>

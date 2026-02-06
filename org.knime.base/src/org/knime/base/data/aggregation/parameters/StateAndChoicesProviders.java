@@ -46,7 +46,7 @@
  * History
  *   16 Dec 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.data.aggregation;
+package org.knime.base.data.aggregation.parameters;
 
 import java.util.HashSet;
 import java.util.List;
@@ -79,7 +79,8 @@ import org.knime.node.parameters.widget.choices.StringChoicesProvider;
  * Commonly used state and choices providers.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
- * @since 5.10
+ *
+ * @since 5.11
  */
 public final class StateAndChoicesProviders {
 

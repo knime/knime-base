@@ -53,12 +53,12 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import org.knime.base.data.aggregation.AggregationFunctionParametersProvider.AggregationMethodRef;
 import org.knime.base.data.aggregation.AggregationMethod;
 import org.knime.base.data.aggregation.AggregationMethods;
 import org.knime.base.data.aggregation.AggregationOperatorParameters;
-import org.knime.base.data.aggregation.AggregationSpec;
-import org.knime.base.data.aggregation.HasOperatorParameters;
+import org.knime.base.data.aggregation.parameters.AggregationSpec;
+import org.knime.base.data.aggregation.parameters.HasOperatorParameters;
+import org.knime.base.data.aggregation.parameters.AggregationFunctionParametersProvider.AggregationMethodRef;
 import org.knime.base.node.preproc.columnaggregator.ColumnAggregatorNodeParameters.AggregationColumnsRef;
 import org.knime.base.node.preproc.groupby.common.AggregationMethodParametersProvider;
 import org.knime.base.node.preproc.groupby.common.AggregationMethodsUtility;

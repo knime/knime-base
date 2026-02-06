@@ -44,63 +44,91 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   17 Dec 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   22 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.data.aggregation;
+package org.knime.base.data.aggregation.parameters;
 
 import java.util.Optional;
 import java.util.function.Supplier;
 
-import org.knime.base.data.aggregation.AggregationFunctionParametersProvider.AggregationMethodRef;
+import org.knime.core.data.DataType;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.database.aggregation.AggregationFunction;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.StateProvider;
 
 /**
- * Selects the default aggregation method if no method is already selected for aggregation of columns based on
- * column name patterns.
+ * Selects the default aggregation method based on the type -- if a method is not already provided -- by querying the
+ * function provider for the type, or ultimately falling back to a type-independent default.
  *
- * @param <F> the type of the aggregation function provided as default
+ * @param <U> type of utility
+ * @param <F> type of aggregation function provided as default
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
- * @since 5.10
+ *
+ * @since 5.11
  */
-public abstract class DefaultPatternAggregationMethodProvider<F extends AggregationFunction>
-        implements StateProvider<String> {
+public abstract class DefaultAggregationMethodProvider<F extends AggregationFunction,
+    U extends AggregationFunctionsUtility<F>> implements StateProvider<String> {
 
+    /** The currently selected method to avoid updating it if it is already set. */
     private Supplier<String> m_methodSelf;
 
-    /**
-     * Self-reference to aggregation method.
-     * @return the self-reference
-     */
-    protected abstract Class<? extends AggregationMethodRef> getMethodSelfProvider();
+    private Supplier<DataType> m_typeSupplier;
 
     /**
-     * Gets the default method to use if no method is already selected.
-     * @param spec the input spec to derive available functions from
-     * @return default aggregation function
+     * @return type provider class to obtain method for
      */
-    protected abstract Optional<F> getDefaultMethod(PortObjectSpec spec);
+    protected abstract Class<? extends ParameterReference<DataType>> getTypeProvider();
+
+    /**
+     * @return self reference for the method to not override if already set
+     */
+    protected abstract Class<? extends ParameterReference<String>> getMethodSelfProvider();
+
+    /**
+     * Gets the function provider from the given port object spec, if available.
+     * @param spec the port object spec to get the provider from
+     *
+     * @return function provider, or {@link Optional#empty()} if none is available
+     */
+    protected abstract Optional<U> getUtility(PortObjectSpec spec);
 
     @Override
-    public void init(final StateProviderInitializer initializer) {
+    public final void init(final StateProviderInitializer initializer) {
         m_methodSelf = initializer.getValueSupplier(getMethodSelfProvider());
+        m_typeSupplier = initializer.computeFromValueSupplier(getTypeProvider());
     }
 
+    @SuppressWarnings("restriction")
     @Override
-    public String computeState(final NodeParametersInput context) throws StateComputationFailureException {
+    public final String computeState(final NodeParametersInput parametersInput)
+        throws StateComputationFailureException {
         if (m_methodSelf.get() != null) {
-            // only set default if no method is already selected
             throw new StateComputationFailureException();
         }
-        return context.getInPortSpec(0) //
-                .flatMap(this::getDefaultMethod) //
-                .map(F::getId) //
+        final var type = m_typeSupplier.get();
+        return getDefault(parametersInput, type) //
+                .map(AggregationSpec::id) //
                 // if there is no default available, we clear the selection
                 .orElse(null);
+    }
+
+    /**
+     * Gets the default aggregation function for the given data type.
+     *
+     * @param parametersInput input for node parameters creation
+     * @param type the data type
+     * @return the default aggregation function
+     */
+    private Optional<AggregationSpec> getDefault(final NodeParametersInput parametersInput, final DataType type) {
+        final var inSpec = parametersInput.getInPortSpec(0).orElse(null);
+        // can always get the utility, even if the input is not attached
+        return getUtility(inSpec) //
+            .flatMap(util -> util.getDefaultFunction(type)) //
+            .map(def -> new AggregationSpec(def.getId(), def.getLabel(), def.hasOptionalSettings()));
     }
 
 }

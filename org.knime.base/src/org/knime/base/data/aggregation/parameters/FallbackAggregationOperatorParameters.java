@@ -46,10 +46,11 @@
  * History
  *   20 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.data.aggregation;
+package org.knime.base.data.aggregation.parameters;
 
 import java.util.function.Consumer;
 
+import org.knime.base.data.aggregation.AggregationOperatorParameters;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.webui.node.dialog.FallbackDialogNodeParameters;
@@ -58,9 +59,9 @@ import org.knime.core.webui.node.dialog.FallbackDialogNodeParameters;
  * Parameters to display operator settings in "fallback style".
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ *
  * @since 5.11
  */
-@SuppressWarnings("restriction")
 public final class FallbackAggregationOperatorParameters extends FallbackDialogNodeParameters
     implements AggregationOperatorParameters {
 
