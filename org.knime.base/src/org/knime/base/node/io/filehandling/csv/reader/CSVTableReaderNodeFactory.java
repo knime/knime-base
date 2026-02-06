@@ -85,8 +85,9 @@ import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
 @SuppressWarnings("restriction")
-public class CSVTableReaderNodeFactory extends BackwardsCompatibleWebUITableReaderNodeFactory<CSVTableReaderNodeParameters, //
-        MultiFileSelectionPath, CSVTableReaderConfig, Class<?>, String, CSVMultiTableReadConfig> {
+public class CSVTableReaderNodeFactory
+    extends BackwardsCompatibleWebUITableReaderNodeFactory<CSVTableReaderNodeParameters, //
+            MultiFileSelectionPath, CSVTableReaderConfig, Class<?>, String, CSVMultiTableReadConfig> {
 
     @SuppressWarnings("javadoc")
     public CSVTableReaderNodeFactory() {
@@ -160,10 +161,11 @@ public class CSVTableReaderNodeFactory extends BackwardsCompatibleWebUITableRead
         }
 
         @Override
-        protected void saveToSourceAndConfig(final CSVTableReaderNodeParameters params, final ConfigID configId,
-            final MultiFileSelectionPath sourceSettings, final CSVMultiTableReadConfig config) {
+        protected void saveToSourceAndConfig(final CSVTableReaderNodeParameters params, String existingSourceId,
+            final ConfigID configId, final MultiFileSelectionPath sourceSettings,
+            final CSVMultiTableReadConfig config) {
             params.saveToSource(sourceSettings);
-            params.saveToConfig(config, configId);
+            params.saveToConfig(config, existingSourceId, configId);
         }
 
         @Override

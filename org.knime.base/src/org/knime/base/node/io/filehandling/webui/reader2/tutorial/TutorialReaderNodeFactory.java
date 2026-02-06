@@ -143,10 +143,11 @@ public class TutorialReaderNodeFactory extends WebUITableReaderNodeFactory<Tutor
         }
 
         @Override
-        protected void saveToSourceAndConfig(final TutorialReaderNodeParameters params, final ConfigID configId,
-            final MultiFileSelectionPath sourceSettings, final DummyMultiTableReadConfig config) {
+        protected void saveToSourceAndConfig(final TutorialReaderNodeParameters params, final String existingSourceId,
+            final ConfigID configId, final MultiFileSelectionPath sourceSettings,
+            final DummyMultiTableReadConfig config) {
             params.saveToSource(sourceSettings);
-            params.saveToConfig(config, configId);
+            params.saveToConfig(config, existingSourceId, configId);
         }
 
         @Override
