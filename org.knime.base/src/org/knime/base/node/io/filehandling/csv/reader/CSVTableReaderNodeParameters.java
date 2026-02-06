@@ -102,6 +102,11 @@ class CSVTableReaderNodeParameters implements NodeParameters {
         protected ConfigID createConfigID(final CSVTableReaderParameters param) {
             return param.saveToConfig(new CSVMultiTableReadConfig());
         }
+
+        @Override
+        protected String getSourceID(CSVTableReaderParameters param) {
+            return param.getSourcePath();
+        }
     }
 
     CSVTableReaderTransformationParameters m_transformationParameters = new CSVTableReaderTransformationParameters();
@@ -110,20 +115,23 @@ class CSVTableReaderNodeParameters implements NodeParameters {
         m_csvReaderParameters.saveToSource(sourceSettings);
     }
 
-    void saveToConfig(final CSVMultiTableReadConfig config, final ConfigID existingConfigId) {
+    void saveToConfig(final CSVMultiTableReadConfig config, final String existingSourceId,
+        final ConfigID existingConfigId) {
         m_csvReaderParameters.saveToConfig(config);
-        saveTransformationParametersToConfig(config, existingConfigId);
+        saveTransformationParametersToConfig(config, existingSourceId, existingConfigId);
     }
 
     void saveToConfig(final CSVMultiTableReadConfig config) {
         final var configId = m_csvReaderParameters.saveToConfig(config);
-        saveTransformationParametersToConfig(config, configId);
+        final var sourceId = m_csvReaderParameters.getSourcePath();
+        saveTransformationParametersToConfig(config, sourceId, configId);
     }
 
     private void saveTransformationParametersToConfig(final CSVMultiTableReadConfig config,
-        final ConfigID existingConfigId) {
+        final String existingSourceId, final ConfigID existingConfigId) {
         m_transformationParameters.saveToConfig(//
-            config, m_csvReaderParameters.getSourcePath(), //
+            config, //
+            existingSourceId, //
             existingConfigId, //
             m_csvReaderParameters.getMultiFileReaderParameters(), //
             m_csvReaderParameters.getIfSchemaChangesParameters() //

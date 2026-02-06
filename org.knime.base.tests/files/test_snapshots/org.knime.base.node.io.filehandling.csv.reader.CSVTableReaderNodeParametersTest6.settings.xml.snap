@@ -124,6 +124,7 @@
             </config>
         </config>
     </config>
+    <entry key="sourceId_Internals" type="xstring" value="/tmp"/>
     <config key="transformationParameters">
         <config key="specs">
             <config key="0">

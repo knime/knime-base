@@ -7,10 +7,10 @@
             "filterMode" : "FILES_IN_FOLDERS",
             "path" : {
               "fsCategory" : "LOCAL",
-              "path" : "/Users/paulbaernreuther/knime/files/",
+              "path" : "/tmp",
               "timeout" : 10000,
               "context" : {
-                "fsToString" : "(LOCAL, /Users/paulbaernreuther/knime/files/)"
+                "fsToString" : "(LOCAL, /tmp)"
               }
             },
             "includeSubfolders" : false,
@@ -59,11 +59,11 @@
         "csvFormatParams" : {
           "commentLineCharacter" : "#",
           "rowDelimiterOption" : "LINE_BREAK",
-          "customRowDelimiter" : "\n",
+          "customRowDelimiter" : "\\n",
           "columnDelimiter" : ",",
           "quotedStringsContainNoRowDelimiters" : false,
-          "quoteCharacter" : "\"",
-          "quoteEscapeCharacter" : "\"",
+          "quoteCharacter" : "'",
+          "quoteEscapeCharacter" : "'",
           "decimalSeparator" : ".",
           "thousandsSeparator" : ""
         },
@@ -100,85 +100,81 @@
         "specs" : [ {
           "fsLocation" : {
             "fsCategory" : "LOCAL",
-            "path" : "/Users/paulbaernreuther/knime/files/test.txt",
+            "path" : "/tmp/csv_test.csv",
             "timeout" : 10000,
             "context" : {
-              "fsToString" : "(LOCAL, /Users/paulbaernreuther/knime/files/test.txt)"
+              "fsToString" : "(LOCAL, /tmp/csv_test.csv)"
             }
           },
-          "sourceIdentifier" : "/Users/paulbaernreuther/knime/files/test.txt",
+          "sourceIdentifier" : "/tmp/csv_test.csv",
           "spec" : [ {
-            "name" : "1",
+            "name" : "label",
             "type" : "java.lang.String",
             "hasType" : true
           }, {
-            "name" : "2",
+            "name" : "value",
+            "type" : "java.lang.Long",
+            "hasType" : true
+          }, {
+            "name" : "Column2",
+            "type" : "java.lang.String",
+            "hasType" : false
+          }, {
+            "name" : "another value",
             "type" : "java.lang.String",
             "hasType" : true
           }, {
-            "name" : "3",
+            "name" : "date",
             "type" : "java.lang.String",
             "hasType" : true
-          } ]
-        }, {
-          "fsLocation" : {
-            "fsCategory" : "LOCAL",
-            "path" : "/Users/paulbaernreuther/knime/files/test.csv",
-            "timeout" : 10000,
-            "context" : {
-              "fsToString" : "(LOCAL, /Users/paulbaernreuther/knime/files/test.csv)"
-            }
-          },
-          "sourceIdentifier" : "/Users/paulbaernreuther/knime/files/test.csv",
-          "spec" : [ {
-            "name" : "first",
-            "type" : "java.lang.Integer",
-            "hasType" : true
           }, {
-            "name" : "second",
-            "type" : "java.lang.Integer",
-            "hasType" : true
-          }, {
-            "name" : "third",
+            "name" : "json",
             "type" : "java.lang.String",
             "hasType" : true
           } ]
         } ],
         "enforceTypes" : true,
         "columnTransformation" : [ {
-          "columnName" : "2",
+          "columnName" : "label",
           "originalProductionPath" : "class java.lang.String->java.lang.String\u0000org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)",
           "originalTypeLabel" : "String",
           "includeInOutput" : true,
-          "columnRename" : "2",
+          "columnRename" : "label",
           "productionPath" : "class java.lang.String->java.lang.String\u0000org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)"
         }, {
-          "columnName" : "3",
+          "columnName" : "value",
+          "originalProductionPath" : "class java.lang.Long->java.lang.Long\u0000org.knime.core.data.def.LongCell$LongCellFactory.create(class java.lang.Long)",
+          "originalTypeLabel" : "Number (Long Integer)",
+          "includeInOutput" : true,
+          "columnRename" : "value",
+          "productionPath" : "class java.lang.Long->java.lang.Long\u0000org.knime.core.data.def.LongCell$LongCellFactory.create(class java.lang.Long)"
+        }, {
+          "columnName" : "Column2",
           "originalProductionPath" : "class java.lang.String->java.lang.String\u0000org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)",
           "originalTypeLabel" : "String",
           "includeInOutput" : true,
-          "columnRename" : "3",
+          "columnRename" : "Column2",
           "productionPath" : "class java.lang.String->java.lang.String\u0000org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)"
         }, {
-          "columnName" : "first",
-          "originalProductionPath" : "class java.lang.Integer->java.lang.Integer\u0000org.knime.core.data.def.IntCell$IntCellFactory.create(class java.lang.Integer)",
-          "originalTypeLabel" : "Number (Integer)",
-          "includeInOutput" : true,
-          "columnRename" : "first",
-          "productionPath" : "class java.lang.Integer->java.lang.Integer\u0000org.knime.core.data.def.IntCell$IntCellFactory.create(class java.lang.Integer)"
-        }, {
-          "columnName" : "1",
+          "columnName" : "another value",
           "originalProductionPath" : "class java.lang.String->java.lang.String\u0000org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)",
           "originalTypeLabel" : "String",
-          "includeInOutput" : false,
-          "columnRename" : "1",
+          "includeInOutput" : true,
+          "columnRename" : "another value",
           "productionPath" : "class java.lang.String->java.lang.String\u0000org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)"
         }, {
-          "columnName" : "third",
+          "columnName" : "date",
           "originalProductionPath" : "class java.lang.String->java.lang.String\u0000org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)",
           "originalTypeLabel" : "String",
           "includeInOutput" : true,
-          "columnRename" : "third",
+          "columnRename" : "date",
+          "productionPath" : "class java.lang.String->java.lang.String\u0000org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)"
+        }, {
+          "columnName" : "json",
+          "originalProductionPath" : "class java.lang.String->java.lang.String\u0000org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)",
+          "originalTypeLabel" : "String",
+          "includeInOutput" : true,
+          "columnRename" : "json",
           "productionPath" : "class java.lang.String->java.lang.String\u0000org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)"
         }, {
           "columnName" : null,
@@ -187,13 +183,6 @@
           "includeInOutput" : true,
           "columnRename" : null,
           "productionPath" : "<default-columntype>"
-        }, {
-          "columnName" : "second",
-          "originalProductionPath" : "class java.lang.Integer->java.lang.Integer\u0000org.knime.core.data.def.IntCell$IntCellFactory.create(class java.lang.Integer)",
-          "originalTypeLabel" : "Number (Integer)",
-          "includeInOutput" : true,
-          "columnRename" : "second",
-          "productionPath" : "class java.lang.Integer->java.lang.Integer\u0000org.knime.core.data.def.IntCell$IntCellFactory.create(class java.lang.Integer)"
         } ]
       }
     }

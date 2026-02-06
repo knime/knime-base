@@ -101,6 +101,11 @@ class KnimeTableReaderNodeParameters implements NodeParameters {
         protected ConfigID createConfigID(final KnimeTableReaderParameters param) {
             return param.saveToConfig(new KnimeTableMultiTableReadConfig());
         }
+
+        @Override
+        protected String getSourceID(final KnimeTableReaderParameters param) {
+            return param.getSourcePath();
+        }
     }
 
     KnimeTableReaderTransformationParameters m_transformationParameters =
@@ -110,20 +115,23 @@ class KnimeTableReaderNodeParameters implements NodeParameters {
         m_knimeTableReaderParameters.saveToSource(sourceSettings);
     }
 
-    void saveToConfig(final KnimeTableMultiTableReadConfig config, final ConfigID existingConfigId) {
+    void saveToConfig(final KnimeTableMultiTableReadConfig config, final String existingSourceId,
+        final ConfigID existingConfigId) {
         m_knimeTableReaderParameters.saveToConfig(config);
-        saveTransformationParametersToConfig(config, existingConfigId);
+        saveTransformationParametersToConfig(config, existingSourceId, existingConfigId);
     }
 
     void saveToConfig(final KnimeTableMultiTableReadConfig config) {
         final var configId = m_knimeTableReaderParameters.saveToConfig(config);
-        saveTransformationParametersToConfig(config, configId);
+        final var sourceId = m_knimeTableReaderParameters.getSourcePath();
+        saveTransformationParametersToConfig(config, sourceId, configId);
     }
 
     private void saveTransformationParametersToConfig(final KnimeTableMultiTableReadConfig config,
-        final ConfigID existingConfigId) {
+        final String existingSourceId, final ConfigID existingConfigId) {
         m_transformationParameters.saveToConfig(//
-            config, m_knimeTableReaderParameters.getSourcePath(), //
+            config, //
+            existingSourceId, //
             existingConfigId, //
             m_knimeTableReaderParameters.getMultiFileReaderParameters(), //
             m_knimeTableReaderParameters.getIfSchemaChangesParameters() //
