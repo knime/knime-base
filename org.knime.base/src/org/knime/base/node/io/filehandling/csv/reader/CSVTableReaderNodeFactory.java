@@ -63,7 +63,6 @@ import org.knime.base.node.io.filehandling.webui.reader2.NodeParametersConfigAnd
 import org.knime.core.node.NodeDescription;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.context.url.URLConfiguration;
-import org.knime.core.util.Version;
 import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.filehandling.core.connections.FSLocationUtil;
 import org.knime.filehandling.core.connections.FSPath;
@@ -119,7 +118,7 @@ public class CSVTableReaderNodeFactory
             null, //
             NodeType.Source, //
             List.of("Text", "Comma", "File", "Input", "Read"), //
-            new Version(5, 9, 0) //
+            null //
         );
     }
 
