@@ -53,6 +53,7 @@ import java.util.Optional;
 import org.knime.base.node.io.filehandling.webui.reader2.SkipFirstDataRowsParameters.SkipFirstDataRows;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.filehandling.core.node.table.reader.config.AbstractTableReadConfig;
+import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
@@ -126,7 +127,7 @@ public final class MaxNumberOfRowsParameters implements NodeParameters {
      * @param tableReadConfig the config to load from
      * @since 5.11
      */
-    public void loadFromConfig(final AbstractTableReadConfig<?> tableReadConfig) {
+    public void loadFromConfig(final TableReadConfig<?> tableReadConfig) {
         if (tableReadConfig.limitRows()) {
             m_maximumNumberOfRows = Optional.of(tableReadConfig.getMaxRows());
         } else {

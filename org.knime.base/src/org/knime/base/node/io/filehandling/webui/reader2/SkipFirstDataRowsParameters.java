@@ -51,6 +51,7 @@ package org.knime.base.node.io.filehandling.webui.reader2;
 import org.knime.base.node.io.filehandling.webui.ReferenceStateProvider;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
+import org.knime.filehandling.core.node.table.reader.config.TableReadConfig;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.layout.Inside;
@@ -121,7 +122,7 @@ public final class SkipFirstDataRowsParameters implements NodeParameters {
      * @param tableReadConfig the config to load from
      * @since 5.11
      */
-    public void loadFromConfig(final DefaultTableReadConfig<?> tableReadConfig) {
+    public void loadFromConfig(final TableReadConfig<?> tableReadConfig) {
         m_skipFirstDataRows = tableReadConfig.skipRows() ? tableReadConfig.getNumRowsToSkip() : 0;
     }
 
