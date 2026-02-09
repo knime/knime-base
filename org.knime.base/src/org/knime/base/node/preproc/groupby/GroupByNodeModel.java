@@ -55,6 +55,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -395,9 +396,20 @@ public class GroupByNodeModel extends NodeModel {
         m_typeMatch.saveSettingsTo(settings);
     }
 
+    @SuppressWarnings("serial") // not serialized
     /**
-     * {@inheritDoc}
+     * Private exception wrapper to distinguish manual aggregation validation exceptions from other
+     * InvalidSettingsExceptions or IllegalArgumentException.
      */
+    private static final class ManualAggregationValidationException extends Exception {
+
+        private final InvalidSettingsException m_wrapped;
+
+        private ManualAggregationValidationException(final InvalidSettingsException wrapped) {
+            m_wrapped = Objects.requireNonNull(wrapped);
+        }
+    }
+
     @Override
     protected void validateSettings(final NodeSettingsRO settings)
             throws InvalidSettingsException {
@@ -422,7 +434,7 @@ public class GroupByNodeModel extends NodeModel {
                 // but then it will be caught by the following clause and rethrown as InvalidSettingsException
                 // again, we do this, since we don't want to move the loading of column aggregators out of
                 // this try-catch
-                throw new IllegalArgumentException(ex.getMessage(), ex);
+                throw new ManualAggregationValidationException(ex);
             }
 
             final List<DataTypeAggregator> typeAggregators = new LinkedList<>();
@@ -449,8 +461,9 @@ public class GroupByNodeModel extends NodeModel {
         } catch (final InvalidSettingsException e) {
             // these settings are prior Knime 2.0 and can't contain
             // a column several times
-        } catch (final IllegalArgumentException e) {
-            throw new InvalidSettingsException(e.getMessage(), e.getCause());
+        } catch (final ManualAggregationValidationException e) { // NOSONAR this is just a wrapper type
+            // we wrapped the call to validateManualColumnAggregators, so we need to unwrap here again and propagate
+            throw e.m_wrapped;
         }
     }
 
@@ -461,7 +474,8 @@ public class GroupByNodeModel extends NodeModel {
      * @param settings the root settings of the node
      * @param groupByCols list of group by columns (already extracted from settings)
      * @param aggregators list of manual column aggregators (already extracted from settings)
-     * @throws IllegalArgumentException if a column is selected in the manual aggregators that should not be selected.
+     *
+     * @throws InvalidSettingsException if a column is selected in the manual aggregators that should not be seleted
      *
      * @since 5.10
      */
