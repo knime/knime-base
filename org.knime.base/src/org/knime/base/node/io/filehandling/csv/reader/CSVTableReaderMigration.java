@@ -94,10 +94,7 @@ class CSVTableReaderMigration implements NodeParametersMigration<CSVTableReaderN
         newSettings.m_csvReaderParameters.m_maxColumnsParams.loadFromConfig(config);
         newSettings.m_csvReaderParameters.m_limitMemoryParams.loadFromConfig(config);
         newSettings.m_csvReaderParameters.m_prependFileIndexParams.loadFromConfig(config);
-
-        final var legacyColumnFilterMode = CSVMultiTableReadConfigSerializer
-            .loadColumnFilterModeForOldWorkflows(settings.getNodeSettings(ADVANCED_SETTINGS_KEY));
-        newSettings.m_transformationParameters.loadFromLegacySettings(settings, legacyColumnFilterMode);
+        newSettings.m_transformationParameters.loadFromTableSpecConfig(config.getTableSpecConfig());
 
         return newSettings;
     }

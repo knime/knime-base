@@ -94,8 +94,8 @@ import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigID;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigIDLoader;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.DefaultTableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.NodeSettingsConfigID;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfigSerializer;
-import org.knime.filehandling.core.node.table.reader.selector.ColumnFilterMode;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.ImmutableUnknownColumnsTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
@@ -722,8 +722,6 @@ public abstract class TransformationParameters<T>
         }
     }
 
-    static final String ROOT_CFG_KEY = "table_spec_config_Internals";
-
     /**
      * The factory method to create the table spec config serializer.
      *
@@ -746,41 +744,15 @@ public abstract class TransformationParameters<T>
     }
 
     /**
-     * Use this method in a {@link NodeParametersMigration} to load transformation settings from legacy table spec
-     *
-     * @param settings the settings to load from
-     * @throws InvalidSettingsException if loading the settings failed
+     * Use this method in a {@link NodeParametersMigration} to load transformation settings from a legacy
+     * {@link TableSpecConfig}.
+     * 
+     * @param tableSpecConfig the table spec config to load from
      */
-    public void loadFromLegacySettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        if (settings.containsKey(ROOT_CFG_KEY)) {
-            final var tableSpecConfigSerializer = createTableSpecConfigSerializer();
-            final var tableSpecConfig = tableSpecConfigSerializer.load(settings.getNodeSettings(ROOT_CFG_KEY));
-            loadFromTableSpecConfig((DefaultTableSpecConfig<T>)tableSpecConfig);
+    public void loadFromTableSpecConfig(final TableSpecConfig<T> tableSpecConfig) {
+        if (tableSpecConfig == null) {
+            return;
         }
-    }
-
-    /**
-     * Use this method in a {@link NodeParametersMigration} to load transformation settings from legacy table spec
-     *
-     * @param settings the settings to load from
-     * @param columnFilterMode the column filter mode to use if stored outside the table spec config (which is the case
-     *            for older workflows created with 4.2 and potentially 4.3)
-     * @throws InvalidSettingsException if loading the settings failed
-     */
-    public void loadFromLegacySettings(final NodeSettingsRO settings, final ColumnFilterMode columnFilterMode)
-        throws InvalidSettingsException {
-        if (settings.containsKey(ROOT_CFG_KEY)) {
-            final var tableSpecConfigSerializer = createTableSpecConfigSerializer();
-
-            final var additionalParameters =
-                TableSpecConfigSerializer.AdditionalParameters.create().withColumnFilterMode(columnFilterMode);
-            final var tableSpecConfig =
-                tableSpecConfigSerializer.load(settings.getNodeSettings(ROOT_CFG_KEY), additionalParameters);
-            loadFromTableSpecConfig((DefaultTableSpecConfig<T>)tableSpecConfig);
-        }
-    }
-
-    private void loadFromTableSpecConfig(final DefaultTableSpecConfig<T> tableSpecConfig) {
         try {
             final var fsLocations = tableSpecConfig.getItemIdentifierColumn().map(colSpec -> {
                 // read metadata and set first fs location with empty path as placeholder
