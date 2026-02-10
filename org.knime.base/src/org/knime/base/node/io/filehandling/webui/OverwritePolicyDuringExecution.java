@@ -44,7 +44,7 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   14 Jan 2026 (Tim Crundall): created
+ *   10 Feb 2026 (Tim Crundall): created
  */
 package org.knime.base.node.io.filehandling.webui;
 
@@ -53,16 +53,16 @@ import org.knime.node.parameters.widget.choices.Label;
 /**
  * Overwrite policy commonly used by writer nodes.
  *
- * {@link OverwritePolicyDuringExecution} should be preferred for new nodes as nodes should no longer perform
- * any IO during configure. This enum is still used by existing nodes and kept for backward
- * compatibility.
+ * Nodes should no longer perform any IO during configure, hence if output file exists and OVERWRITE
+ * is not set, then error should be issued during execution.
  *
  * @author Tim Crundall, TNG Technology Consulting GmbH
- * @since 5.10
+ * @since 5.11
  */
-public enum OverwritePolicy {
-    @Label(value = "Fail", description = "Prevent node from executing.")
-    PREVENT,
-    @Label(value = "Overwrite file", description = "Replace the file if it exists.")
-    OVERWRITE,
+public enum OverwritePolicyDuringExecution {
+        @Label(value = "Fail",
+            description = "Will issue an error during the node's execution (to prevent unintentional overwrite).")
+        FAIL, //
+        @Label(value = "Overwrite", description = "Will replace any existing file.")
+        OVERWRITE, //
 }
