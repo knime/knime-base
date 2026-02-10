@@ -580,7 +580,7 @@ public abstract class TransformationParameters<T>
             return;
         }
 
-        if (ifSchemaChangesParameters.m_ifSchemaChangesOption == USE_NEW_SCHEMA) {
+        if (ifSchemaChangesParameters.isUseNewSchema()) {
             // the old readers did not save the spec at all if that option was set, and the old reader code still
             // implicitly assumes that (i.e. setting the USE_NEW_SCHEMA is not sufficient to actually use the new schema
             // if the old schema is still present)

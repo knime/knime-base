@@ -235,4 +235,8 @@ public final class IfSchemaChangesParameters implements NodeParameters {
             USE_NEW_SCHEMA, //
     }
 
+    boolean isUseNewSchema() {
+        return m_ifSchemaChangesOption == IfSchemaChangesOption.USE_NEW_SCHEMA;
+    }
+
 }
