@@ -48,21 +48,44 @@
  */
 package org.knime.base.node.io.filehandling.imagewriter.table;
 
+import static org.knime.node.impl.description.PortDescription.dynamicPort;
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
 import org.knime.core.data.image.ImageValue;
+import org.knime.core.node.NodeDescription;
+import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.context.ports.PortsConfiguration;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
 import org.knime.filehandling.core.node.table.writer.AbstractMultiTableWriterNodeFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
 
 /**
  * Node factory of the image writer table node.
  *
  * @author Laurin Siefermann, KNIME GmbH, Konstanz, Germany
+ * @author Jochen Reißinger, TNG Technology Consulting GmbH
+ * @author AI Migration Pipeline v1.2
  */
+@SuppressWarnings("restriction")
 public final class ImageWriterTableNodeFactory
     extends AbstractMultiTableWriterNodeFactory<ImageValue, ImageWriterTableNodeConfig, //
-            ImageWriterTableNodeModel, ImageWriterTableNodeDialog> {
+            ImageWriterTableNodeModel, ImageWriterTableNodeDialog>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     @Override
-    protected ImageWriterTableNodeConfig getNodeConfig(final PortsConfiguration portConfig, final String portGroupName) {
+    protected ImageWriterTableNodeConfig getNodeConfig(final PortsConfiguration portConfig,
+        final String portGroupName) {
         return new ImageWriterTableNodeConfig(portConfig, portGroupName);
     }
 
@@ -76,5 +99,72 @@ public final class ImageWriterTableNodeFactory
     protected ImageWriterTableNodeDialog getDialog(final ImageWriterTableNodeConfig nodeConfig,
         final int dataTableInputIndex) {
         return new ImageWriterTableNodeDialog(nodeConfig, dataTableInputIndex);
+    }
+
+    private static final String NODE_NAME = "Image Writer (Table)";
+
+    private static final String NODE_ICON = "./img_writer_16.png";
+
+    private static final String SHORT_DESCRIPTION = """
+            Writes all images from a specific column to a directory.
+            """;
+
+    private static final String FULL_DESCRIPTION = """
+            This node takes all images in a certain column of the input table and writes them, each as a separate \
+            file, into a directory. It will append the paths of the written files to the input table as well as the \
+            corresponding write status (created, unmodified, overwritten).
+            <p>
+            <i>This node can access a variety of different</i> \
+            <a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html#analytics-platform-file-systems">\
+            <i>file systems.</i></a> \
+            <i>More information about file handling in KNIME can be found in the official</i> \
+            <a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html">\
+            <i>File Handling Guide.</i></a>
+            </p>
+            """;
+
+    private static final List<PortDescription> INPUT_PORTS =
+        List.of(dynamicPort("File System Connection", "File system connection", """
+                The file system connection.
+                """), fixedPort("Input Table", """
+                Table that contains images.
+                """));
+
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(fixedPort("Output Table", """
+            Input table plus additional path to saved images plus the corresponding write status (created, \
+            unmodified, overwritten).
+            """));
+
+    @Override
+    public NodeDialogPane createNodeDialogPane() {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, ImageWriterTableNodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription( //
+            NODE_NAME, //
+            NODE_ICON, //
+            INPUT_PORTS, //
+            OUTPUT_PORTS, //
+            SHORT_DESCRIPTION, //
+            FULL_DESCRIPTION, //
+            List.of(), //
+            ImageWriterTableNodeParameters.class, //
+            null, //
+            NodeType.Sink, //
+            List.of(), //
+            null //
+        );
+    }
+
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, ImageWriterTableNodeParameters.class));
     }
 }
