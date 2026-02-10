@@ -75,13 +75,15 @@ public abstract class DefaultPatternAggregationMethodProvider<F extends Aggregat
 
     /**
      * Self-reference to aggregation method.
+     *
      * @return the self-reference
      */
     protected abstract Class<? extends AggregationMethodRef> getMethodSelfProvider();
 
     /**
      * Gets the default method to use if no method is already selected.
-     * @param spec the input spec to derive available functions from
+     *
+     * @param spec the {@code null}-able input spec to derive available functions from
      * @return default aggregation function
      */
     protected abstract Optional<F> getDefaultMethod(PortObjectSpec spec);
@@ -97,8 +99,8 @@ public abstract class DefaultPatternAggregationMethodProvider<F extends Aggregat
             // only set default if no method is already selected
             throw new StateComputationFailureException();
         }
-        return context.getInPortSpec(0) //
-                .flatMap(this::getDefaultMethod) //
+        final var spec = context.getInPortSpec(0).orElse(null);
+        return getDefaultMethod(spec) //
                 .map(F::getId) //
                 // if there is no default available, we clear the selection
                 .orElse(null);

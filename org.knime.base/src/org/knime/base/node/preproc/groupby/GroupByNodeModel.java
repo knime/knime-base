@@ -396,11 +396,11 @@ public class GroupByNodeModel extends NodeModel {
         m_typeMatch.saveSettingsTo(settings);
     }
 
-    @SuppressWarnings("serial") // not serialized
     /**
      * Private exception wrapper to distinguish manual aggregation validation exceptions from other
      * InvalidSettingsExceptions or IllegalArgumentException.
      */
+    @SuppressWarnings("serial") // not serialized
     private static final class ManualAggregationValidationException extends Exception {
 
         private final InvalidSettingsException m_wrapped;
@@ -475,7 +475,7 @@ public class GroupByNodeModel extends NodeModel {
      * @param groupByCols list of group by columns (already extracted from settings)
      * @param aggregators list of manual column aggregators (already extracted from settings)
      *
-     * @throws InvalidSettingsException if a column is selected in the manual aggregators that should not be seleted
+     * @throws InvalidSettingsException if a column is selected in the manual aggregators that should not be selected
      *
      * @since 5.10
      */

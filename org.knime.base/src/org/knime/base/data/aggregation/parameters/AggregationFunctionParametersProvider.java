@@ -169,9 +169,7 @@ public abstract class AggregationFunctionParametersProvider<F extends Aggregatio
 
         final var currentValue = m_optionalParametersSupplier.get();
 
-        final var paramClass = functions.lookupFunctionById(method.id()) //
-                .map(functions::mapToSpec) //
-                .flatMap(functions::lookupParametersForFunction) //
+        final var paramClass = functions.lookupParametersForFunction(method) //
                 .orElse(null);
         if (paramClass != null && currentValue != null && paramClass.isInstance(currentValue)) {
             return currentValue;

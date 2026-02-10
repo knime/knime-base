@@ -79,9 +79,9 @@ public abstract class HasOperatorParameters implements StateProvider<Boolean> {
     /**
      * Looks up an aggregation function by its ID to determine if it has optional parameters.
      *
-     * @param spec the input spec to derive available functions from
+     * @param spec the {@code null}-able input spec to derive available functions from
+     * @param id the non-{@code null} ID of the aggregation function
      *
-     * @param id the ID of the aggregation function
      * @return the aggregation function, or {@link Optional#empty()} if no such function exists
      */
     protected abstract Optional<AggregationSpec> lookupFunctionById(PortObjectSpec spec, String id);
@@ -99,8 +99,11 @@ public abstract class HasOperatorParameters implements StateProvider<Boolean> {
             throw new StateComputationFailureException();
         }
         // unknown aggregation function has no optional settings
-        return in.getInPortSpec(0) //
-            .flatMap(spec -> lookupFunctionById(spec, id).map(AggregationSpec::hasOptionalSettings)) //
+        // we pass the spec even if it is null to give the implementation a chance to
+        // provide a default even if no spec is connected
+        final var spec = in.getInPortSpec(0).orElse(null);
+        return lookupFunctionById(spec, id) //
+            .map(AggregationSpec::hasOptionalSettings) //
             .orElse(false);
     }
 
