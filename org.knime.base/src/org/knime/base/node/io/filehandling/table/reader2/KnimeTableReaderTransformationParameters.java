@@ -51,13 +51,8 @@ package org.knime.base.node.io.filehandling.table.reader2;
 import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderSpecific.ProductionPathProviderAndTypeHierarchy;
 import org.knime.base.node.io.filehandling.webui.reader2.DataTypeSerializer;
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters;
-import org.knime.base.node.preproc.manipulator.TableManipulatorConfigSerializer;
 import org.knime.core.data.DataType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
-import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigIDLoader;
-import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfigSerializer;
-
-import static org.knime.base.node.preproc.manipulator.mapping.DataTypeProducerRegistry.PATH_SERIALIZER;
 
 /**
  * Transformation parameters for the Table Reader Node.
@@ -68,12 +63,6 @@ import static org.knime.base.node.preproc.manipulator.mapping.DataTypeProducerRe
 @Modification(KnimeTableReaderTransformationParametersStateProviders.TransformationSettingsWidgetModification.class)
 final class KnimeTableReaderTransformationParameters extends TransformationParameters<DataType>
     implements ProductionPathProviderAndTypeHierarchy, DataTypeSerializer {
-
-    @Override
-    protected TableSpecConfigSerializer<DataType> createTableSpecConfigSerializer(ConfigIDLoader configIdLoader) {
-        return TableSpecConfigSerializer.createStartingV43(PATH_SERIALIZER, configIdLoader,
-            TableManipulatorConfigSerializer.DataTypeSerializer.SERIALIZER_INSTANCE);
-    }
 
     @Override
     protected String getConfigIdSettingsKey() {

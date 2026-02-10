@@ -91,11 +91,8 @@ import org.knime.filehandling.core.node.table.reader.ImmutableColumnTransformati
 import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigID;
-import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigIDLoader;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.DefaultTableSpecConfig;
-import org.knime.filehandling.core.node.table.reader.config.tablespec.NodeSettingsConfigID;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfig;
-import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfigSerializer;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.ImmutableUnknownColumnsTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
@@ -127,8 +124,6 @@ import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
-import static org.knime.base.node.io.filehandling.webui.reader2.IfSchemaChangesParameters.IfSchemaChangesOption.USE_NEW_SCHEMA;
 
 /**
  * Extend these settings to define the transformation settings for a reader node. Use the {@link ConfigIdSettings}
@@ -723,25 +718,11 @@ public abstract class TransformationParameters<T>
     }
 
     /**
-     * The factory method to create the table spec config serializer.
-     *
-     * @param configIdLoader the config ID loader
-     * @return the table spec config serializer
-     */
-    protected abstract TableSpecConfigSerializer<T> createTableSpecConfigSerializer(ConfigIDLoader configIdLoader);
-
-    /**
      * The key used in the settings to store all settigns within the config ID.
      *
      * @return the config ID settings key
      */
     protected abstract String getConfigIdSettingsKey();
-
-    private TableSpecConfigSerializer<T> createTableSpecConfigSerializer() {
-        final ConfigIDLoader configIdLoader =
-            s -> new NodeSettingsConfigID(s.getNodeSettings(getConfigIdSettingsKey()));
-        return createTableSpecConfigSerializer(configIdLoader);
-    }
 
     /**
      * Use this method in a {@link NodeParametersMigration} to load transformation settings from a legacy
