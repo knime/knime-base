@@ -48,12 +48,9 @@
  */
 package org.knime.base.node.io.filehandling.csv.reader;
 
-import org.knime.base.node.io.filehandling.csv.reader.api.StringReadAdapterFactory;
 import org.knime.base.node.io.filehandling.csv.reader.CSVTableReaderSpecific.ProductionPathProviderAndTypeHierarchy;
 import org.knime.base.node.io.filehandling.webui.reader2.ClassBasedTransformationParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
-import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigIDLoader;
-import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfigSerializer;
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
@@ -62,12 +59,6 @@ import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecC
 @Modification(CSVTableReaderTransformationParametersStateProviders.TransformationSettingsWidgetModification.class)
 final class CSVTableReaderTransformationParameters extends ClassBasedTransformationParameters
     implements ProductionPathProviderAndTypeHierarchy {
-
-    @Override
-    protected TableSpecConfigSerializer<Class<?>> createTableSpecConfigSerializer(final ConfigIDLoader configIdLoader) {
-        return TableSpecConfigSerializer.createStartingV42(StringReadAdapterFactory.INSTANCE.getProducerRegistry(),
-            configIdLoader, ClassTypeSerializer.SERIALIZER, String.class);
-    }
 
     @Override
     protected String getConfigIdSettingsKey() {

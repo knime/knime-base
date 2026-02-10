@@ -49,8 +49,6 @@ package org.knime.base.node.io.filehandling.webui.reader2.tutorial;
 import org.knime.base.node.io.filehandling.webui.reader2.ClassBasedTransformationParameters;
 import org.knime.base.node.io.filehandling.webui.reader2.tutorial.TutorialReaderSpecific.ProductionPathProviderAndTypeHierarchy;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
-import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigIDLoader;
-import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfigSerializer;
 
 /**
  * TODO (#4): If your T is not Class<?>, extend TransformationParameters<T> instead of
@@ -62,11 +60,6 @@ import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecC
 @Modification(TutorialReaderTransformationParametersStateProviders.TransformationSettingsWidgetModification.class)
 final class TutorialReaderTransformationParameters extends ClassBasedTransformationParameters
     implements ProductionPathProviderAndTypeHierarchy {
-
-    @Override
-    protected TableSpecConfigSerializer<Class<?>> createTableSpecConfigSerializer(ConfigIDLoader configIdLoader) {
-        return null; // TODO (#5): return your TableSpecConfigSerializer implementation (see your ...ReadConfigSerializer)
-    }
 
     @Override
     protected String getConfigIdSettingsKey() {
