@@ -794,7 +794,7 @@ public abstract class TransformationParameters<T>
             .toArray(TransformationElementSettings[]::new);
     }
 
-    private record ColumnTransformationComparator(Pair<Integer, TransformationElementSettings> m_unknownElement)
+    private record ColumnTransformationComparator(Pair<Integer, TransformationElementSettings> unknownElement)
         implements Comparator<Pair<Integer, TransformationElementSettings>> {
 
         @Override
@@ -811,10 +811,10 @@ public abstract class TransformationParameters<T>
              * the same index) to the right. This comparator implicitly assumes that there is only one
              * "unknown columns" element.
              */
-            if (a == m_unknownElement) {
+            if (a == unknownElement) {
                 return -1;
             }
-            if (b == m_unknownElement) {
+            if (b == unknownElement) {
                 return 1;
             }
             return 0;
