@@ -178,7 +178,7 @@ class ImageWriterTableNodeParameters implements NodeParameters {
     @Persistor(FileNamingPersistor.class)
     FileNamingSettings m_fileNaming = new FileNamingSettings();
 
-    static final class FileNamingSettings implements NodeParameters {
+    private static final class FileNamingSettings implements NodeParameters {
         @Widget(title = "Generate file names",
             description = "If enabled, file names will be generated using a pattern with an auto-incrementing "
                 + "counter. If disabled, file names will be taken from a column in the input table.")
@@ -231,7 +231,7 @@ class ImageWriterTableNodeParameters implements NodeParameters {
             .orElse(List.of());
     }
 
-    static final class FileNamingPersistor implements NodeParametersPersistor<FileNamingSettings> {
+    private static final class FileNamingPersistor implements NodeParametersPersistor<FileNamingSettings> {
         private static final String CFG_GENERATE_FILE_NAMES = "generate_file_names";
 
         private static final String CFG_FILENAME_PATTERN = "filename_pattern";
