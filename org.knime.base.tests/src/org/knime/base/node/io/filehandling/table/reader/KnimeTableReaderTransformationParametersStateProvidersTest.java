@@ -69,6 +69,7 @@ import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.util.Pair;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.ProductionPathSerializer;
 
 /**
  * @author Paul Baernreuther
@@ -118,6 +119,11 @@ final class KnimeTableReaderTransformationParametersStateProvidersTest
     @Override
     protected ProductionPathProvider<DataType> getProductionPathProvider() {
         return KnimeTableReaderSpecific.PRODUCTION_PATH_PROVIDER;
+    }
+
+    @Override
+    protected ProductionPathSerializer getProductionPathSerializer() {
+        return new KnimeTableReaderTransformationParameters().getProductionPathSerializer();
     }
 
     @Override

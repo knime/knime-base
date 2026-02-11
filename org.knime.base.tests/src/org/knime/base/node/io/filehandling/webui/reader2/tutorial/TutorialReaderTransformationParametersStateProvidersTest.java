@@ -64,6 +64,7 @@ import org.knime.core.data.def.LongCell;
 import org.knime.core.util.Pair;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.ProductionPathSerializer;
 
 /**
  *
@@ -113,6 +114,11 @@ final class TutorialReaderTransformationParametersStateProvidersTest
     // TODO (#4): Adjust Class<?> to match your TableReader's T type parameter if needed
     protected ProductionPathProvider<Class<?>> getProductionPathProvider() {
         return TutorialReaderSpecific.PRODUCTION_PATH_PROVIDER;
+    }
+
+    @Override
+    protected ProductionPathSerializer getProductionPathSerializer() {
+        return new TutorialReaderTransformationParameters().getProductionPathSerializer();
     }
 
     @Override

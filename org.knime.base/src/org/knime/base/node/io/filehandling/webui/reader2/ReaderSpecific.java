@@ -61,6 +61,8 @@ import org.knime.filehandling.core.node.table.reader.TableReader;
 import org.knime.filehandling.core.node.table.reader.config.AbstractMultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.DefaultProductionPathSerializer;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.ProductionPathSerializer;
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec.TypedReaderTableSpecBuilder;
@@ -178,6 +180,11 @@ public final class ReaderSpecific {
          * @return the producer registry used for production path creation
          */
         ProducerRegistry<T, ?> getProducerRegistry();
+
+        default ProductionPathSerializer getProductionPathSerializer() {
+            // TODO replace getProducerRegistry completely by getProductionPathSerializer and remove the getProducerRegistry method from this interface
+            return new DefaultProductionPathSerializer(getProducerRegistry());
+        }
 
         /**
          * @return the reader specific type hierarchy

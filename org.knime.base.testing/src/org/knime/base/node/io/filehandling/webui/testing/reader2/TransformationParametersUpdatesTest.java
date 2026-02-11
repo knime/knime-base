@@ -90,6 +90,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.util.updates.IndexedValue;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.ProductionPathSerializer;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.WidgetGroup;
 import org.knime.node.parameters.widget.choices.StringChoice;
@@ -404,14 +405,17 @@ public abstract class TransformationParametersUpdatesTest<R extends WidgetGroup,
 
     protected abstract T getDoubleType();
 
+    protected abstract ProductionPathSerializer getProductionPathSerializer();
+
     private String getDefaultPathIdentifier(final T typeClass) {
-        return ProductionPathUtils.getPathIdentifier(getProductionPathProvider().getDefaultProductionPath(typeClass));
+        return ProductionPathUtils.getPathIdentifier(getProductionPathProvider().getDefaultProductionPath(typeClass),
+            getProductionPathSerializer());
     }
 
     private String getPathIdentifier(final T typeClass, final DataType targetDataType) {
         final var productionPath = getProductionPathProvider().getAvailableProductionPaths(typeClass).stream()
             .filter(path -> path.getDestinationType().equals(targetDataType)).findFirst().orElseThrow();
-        return ProductionPathUtils.getPathIdentifier(productionPath);
+        return ProductionPathUtils.getPathIdentifier(productionPath, getProductionPathSerializer());
     }
 
     protected abstract ProductionPathProvider<T> getProductionPathProvider();
@@ -508,8 +512,10 @@ public abstract class TransformationParametersUpdatesTest<R extends WidgetGroup,
 
     private List<StringChoice> typeChoices(final T type) {
         final var productionPaths = getProductionPathProvider().getAvailableProductionPaths(type);
-        return productionPaths.stream().map(path -> new StringChoice(ProductionPathUtils.getPathIdentifier(path),
-            path.getDestinationType().toPrettyString())).toList();
+        return productionPaths.stream()
+            .map(path -> new StringChoice(ProductionPathUtils.getPathIdentifier(path, getProductionPathSerializer()),
+                path.getDestinationType().toPrettyString()))
+            .toList();
     }
 
     protected TableSpecSettings[] getTableSpecsValueUpdate(final UpdateSimulatorResult simulatorResult) {

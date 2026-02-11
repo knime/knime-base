@@ -50,12 +50,14 @@ package org.knime.base.node.io.filehandling.table.reader;
 
 import org.knime.base.node.io.filehandling.webui.reader2.ReaderSpecific;
 import org.knime.base.node.preproc.manipulator.TableManipulatorConfig;
+import org.knime.base.node.preproc.manipulator.mapping.DataTypeProducerRegistry;
 import org.knime.base.node.preproc.manipulator.mapping.DataTypeTypeHierarchy;
 import org.knime.base.node.preproc.manipulator.mapping.DataValueReadAdapterFactory;
 import org.knime.core.data.DataType;
 import org.knime.core.data.convert.map.ProducerRegistry;
 import org.knime.filehandling.core.node.table.reader.DefaultProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.ProductionPathSerializer;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
 import org.knime.node.parameters.NodeParametersInput;
 
@@ -80,6 +82,11 @@ final class KnimeTableReaderSpecific {
         @Override
         default ProducerRegistry<DataType, ?> getProducerRegistry() {
             return DataValueReadAdapterFactory.INSTANCE.getProducerRegistry();
+        }
+
+        @Override
+        default ProductionPathSerializer getProductionPathSerializer() {
+            return DataTypeProducerRegistry.PATH_SERIALIZER;
         }
 
         @Override

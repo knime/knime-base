@@ -125,6 +125,11 @@
         </filter>
         <filter comment="non-public API" id="1211105284">
             <message_arguments>
+                <message_argument value="getProductionPathSerializer()"/>
+            </message_arguments>
+        </filter>
+        <filter comment="non-public API" id="1211105284">
+            <message_arguments>
                 <message_argument value="toRawSpec(Collection&lt;TypedReaderTableSpec&lt;T&gt;&gt;)"/>
             </message_arguments>
         </filter>
