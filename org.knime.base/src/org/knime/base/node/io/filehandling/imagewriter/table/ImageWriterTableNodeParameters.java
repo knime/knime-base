@@ -51,6 +51,7 @@ import java.util.List;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataValue;
 import org.knime.core.data.StringValue;
 import org.knime.core.data.image.ImageValue;
 import org.knime.core.node.InvalidSettingsException;
@@ -223,7 +224,7 @@ class ImageWriterTableNodeParameters implements NodeParameters {
     }
 
     private static List<DataColumnSpec> getCompatibleColumns(final NodeParametersInput context,
-        final Class<? extends org.knime.core.data.DataValue> valueType) {
+        final Class<? extends DataValue> valueType) {
         // Port index changes based on FileSystemConnection presence
         return Arrays.stream(context.getInPortSpecs()).filter(DataTableSpec.class::isInstance).findFirst()
             .map(spec -> ((DataTableSpec)spec).stream().filter(col -> col.getType().isCompatible(valueType)).toList())
