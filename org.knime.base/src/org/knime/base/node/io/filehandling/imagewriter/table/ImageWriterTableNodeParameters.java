@@ -81,7 +81,7 @@ import org.knime.node.parameters.widget.choices.util.CompatibleColumnsProvider;
 
 /**
  * Node parameters for Image Writer (Table).
- * 
+ *
  * @author GitHub Copilot, KNIME GmbH
  * @author AI Migration Pipeline v1.2
  */
@@ -114,15 +114,15 @@ class ImageWriterTableNodeParameters implements NodeParameters {
             fileSelection.modifyAnnotation(Widget.class) //
                 .withProperty("title", "Folder") //
                 .withProperty("description",
-                    "Select a folder where the image files will be stored. You can specify the file system and path.") //
+                    "Select a folder where the image files will be stored. You can specify the file system and path.")
                 .modify();
             fileSelection.addAnnotation(FileSelectionWidget.class) //
                 .withProperty("value", SingleFileSelectionMode.FOLDER) //
                 .modify();
             fileSelection.addAnnotation(WithFileSystem.class) //
                 .withProperty("value",
-                    new FileSystemOption[]{FileSystemOption.LOCAL, FileSystemOption.SPACE,
-                        FileSystemOption.EMBEDDED, FileSystemOption.CONNECTED, FileSystemOption.CUSTOM_URL}) //
+                    new FileSystemOption[]{FileSystemOption.LOCAL, FileSystemOption.SPACE, FileSystemOption.EMBEDDED,
+                        FileSystemOption.CONNECTED, FileSystemOption.CUSTOM_URL}) //
                 .modify();
 
             final var createMissingFolders = findCreateMissingFolders(group);
@@ -165,7 +165,7 @@ class ImageWriterTableNodeParameters implements NodeParameters {
         description = "If enabled, the image column will be excluded from the output table. Only the file paths "
             + "of the written images will be included.")
     @Persist(configKey = "remove_image_column")
-    boolean m_removeImageColumn = false;
+    boolean m_removeImageColumn;
 
     @Layout(FileNames.class)
     @Persistor(FileNamingPersistor.class)
@@ -227,7 +227,7 @@ class ImageWriterTableNodeParameters implements NodeParameters {
             // Handle missing keys gracefully for backwards compatibility
             result.m_generateFileNames = settings.getBoolean("generate_file_names", true);
             result.m_fileNamePattern = settings.getString("filename_pattern", "File_?");
-            
+
             // Handle different legacy formats for filename_column
             if (settings.containsKey("filename_column")) {
                 try {
@@ -260,7 +260,7 @@ class ImageWriterTableNodeParameters implements NodeParameters {
         public void save(final FileNamingSettings obj, final NodeSettingsWO settings) {
             settings.addBoolean("generate_file_names", obj.m_generateFileNames);
             settings.addString("filename_pattern", obj.m_fileNamePattern);
-            
+
             // Save in SettingsModelColumnName format (nested config with useRowID and columnName)
             final var columnSettings = settings.addNodeSettings("filename_column");
             if (obj.m_fileNameColumn.getEnumChoice().isPresent()) {

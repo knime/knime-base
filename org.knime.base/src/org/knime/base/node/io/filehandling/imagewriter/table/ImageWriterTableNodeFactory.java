@@ -48,26 +48,27 @@
  */
 package org.knime.base.node.io.filehandling.imagewriter.table;
 
+import static org.knime.node.impl.description.PortDescription.dynamicPort;
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
 import org.knime.core.data.image.ImageValue;
-import org.knime.core.node.context.ports.PortsConfiguration;
-import org.knime.filehandling.core.node.table.writer.AbstractMultiTableWriterNodeFactory;
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.core.webui.node.dialog.NodeDialogFactory;
 import org.knime.core.webui.node.dialog.NodeDialogManager;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
-import org.knime.core.node.NodeFactory.NodeType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
 import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
 import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
-import org.knime.core.node.NodeDescription;
+import org.knime.filehandling.core.node.table.writer.AbstractMultiTableWriterNodeFactory;
 import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
-import java.util.Map;
 import org.knime.node.impl.description.PortDescription;
-import java.util.List;
-import static org.knime.node.impl.description.PortDescription.fixedPort;
-import static org.knime.node.impl.description.PortDescription.dynamicPort;
 
 /**
  * Node factory of the image writer table node.
@@ -79,10 +80,12 @@ import static org.knime.node.impl.description.PortDescription.dynamicPort;
 @SuppressWarnings("restriction")
 public final class ImageWriterTableNodeFactory
     extends AbstractMultiTableWriterNodeFactory<ImageValue, ImageWriterTableNodeConfig, //
-            ImageWriterTableNodeModel, ImageWriterTableNodeDialog> implements NodeDialogFactory, KaiNodeInterfaceFactory {
+            ImageWriterTableNodeModel, ImageWriterTableNodeDialog>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     @Override
-    protected ImageWriterTableNodeConfig getNodeConfig(final PortsConfiguration portConfig, final String portGroupName) {
+    protected ImageWriterTableNodeConfig getNodeConfig(final PortsConfiguration portConfig,
+        final String portGroupName) {
         return new ImageWriterTableNodeConfig(portConfig, portGroupName);
     }
 
@@ -97,11 +100,15 @@ public final class ImageWriterTableNodeFactory
         final int dataTableInputIndex) {
         return new ImageWriterTableNodeDialog(nodeConfig, dataTableInputIndex);
     }
+
     private static final String NODE_NAME = "Image Writer (Table)";
+
     private static final String NODE_ICON = "./img_writer_16.png";
+
     private static final String SHORT_DESCRIPTION = """
             Writes all images from a specific column to a directory.
             """;
+
     private static final String FULL_DESCRIPTION = """
             This node takes all images in a certain column of the input table and writes them, each as a separate \
             file, into a directory. It will append the paths of the written files to the input table as well as the \
@@ -115,20 +122,18 @@ public final class ImageWriterTableNodeFactory
             <i>File Handling Guide.</i></a>
             </p>
             """;
-    private static final List<PortDescription> INPUT_PORTS = List.of(
-            dynamicPort("File System Connection", "File system connection", """
+
+    private static final List<PortDescription> INPUT_PORTS =
+        List.of(dynamicPort("File System Connection", "File system connection", """
                 The file system connection.
-                """),
-            fixedPort("Input Table", """
+                """), fixedPort("Input Table", """
                 Table that contains images.
-                """)
-    );
-    private static final List<PortDescription> OUTPUT_PORTS = List.of(
-            fixedPort("Output Table", """
-                Input table plus additional path to saved images plus the corresponding write status (created,
-                unmodified, overwritten).
-                """)
-    );
+                """));
+
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(fixedPort("Output Table", """
+            Input table plus additional path to saved images plus the corresponding write status (created,
+            unmodified, overwritten).
+            """));
 
     @Override
     public NodeDialogPane createNodeDialogPane() {
