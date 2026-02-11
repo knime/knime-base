@@ -248,35 +248,26 @@ class ImageWriterTableNodeParameters implements NodeParameters {
     }
 
     static final class FileNamingPersistor implements NodeParametersPersistor<FileNamingSettings> {
-        private static final String LEGACY_ROW_ID_VALUE = "$RowID$";
+        private static final String CFG_GENERATE_FILE_NAMES = "generate_file_names";
+        private static final String CFG_FILENAME_PATTERN = "filename_pattern";
+        private static final String CFG_FILENAME_COLUMN = "filename_column";
 
         @Override
         public FileNamingSettings load(final NodeSettingsRO settings) throws InvalidSettingsException {
             var result = new FileNamingSettings();
             // Handle missing keys gracefully for backwards compatibility
-            result.m_generateFileNames = settings.getBoolean("generate_file_names", true);
-            result.m_fileNamePattern = settings.getString("filename_pattern", "File_?");
+            result.m_generateFileNames = settings.getBoolean(CFG_GENERATE_FILE_NAMES, true);
+            result.m_fileNamePattern = settings.getString(CFG_FILENAME_PATTERN, "File_?");
 
-            // Handle different legacy formats for filename_column
-            if (settings.containsKey("filename_column")) {
-                try {
-                    // Try to load as nested config (SettingsModelColumnName format)
-                    final var columnSettings = settings.getNodeSettings("filename_column");
-                    final boolean useRowID = columnSettings.getBoolean("useRowID", false);
-                    if (useRowID) {
-                        result.m_fileNameColumn = new StringOrEnum<>(RowIDChoice.ROW_ID);
-                    } else {
-                        final String columnName = columnSettings.getString("columnName", "");
-                        result.m_fileNameColumn = new StringOrEnum<>(columnName);
-                    }
-                } catch (InvalidSettingsException e) {
-                    // Fall back to reading as simple string (e.g., "$RowID$" from very old workflows)
-                    final String loadedColumn = settings.getString("filename_column");
-                    if (LEGACY_ROW_ID_VALUE.equals(loadedColumn)) {
-                        result.m_fileNameColumn = new StringOrEnum<>(RowIDChoice.ROW_ID);
-                    } else {
-                        result.m_fileNameColumn = new StringOrEnum<>(loadedColumn);
-                    }
+            // Load filename_column from legacy SettingsModelColumnName format
+            if (settings.containsKey(CFG_FILENAME_COLUMN)) {
+                final var columnSettings = settings.getNodeSettings(CFG_FILENAME_COLUMN);
+                final boolean useRowID = columnSettings.getBoolean("useRowID", false);
+                if (useRowID) {
+                    result.m_fileNameColumn = new StringOrEnum<>(RowIDChoice.ROW_ID);
+                } else {
+                    final String columnName = columnSettings.getString("columnName", "");
+                    result.m_fileNameColumn = new StringOrEnum<>(columnName);
                 }
             } else {
                 // Default value for missing key
@@ -287,11 +278,11 @@ class ImageWriterTableNodeParameters implements NodeParameters {
 
         @Override
         public void save(final FileNamingSettings obj, final NodeSettingsWO settings) {
-            settings.addBoolean("generate_file_names", obj.m_generateFileNames);
-            settings.addString("filename_pattern", obj.m_fileNamePattern);
+            settings.addBoolean(CFG_GENERATE_FILE_NAMES, obj.m_generateFileNames);
+            settings.addString(CFG_FILENAME_PATTERN, obj.m_fileNamePattern);
 
             // Save in SettingsModelColumnName format (nested config with useRowID and columnName)
-            final var columnSettings = settings.addNodeSettings("filename_column");
+            final var columnSettings = settings.addNodeSettings(CFG_FILENAME_COLUMN);
             if (obj.m_fileNameColumn.getEnumChoice().isPresent()) {
                 columnSettings.addBoolean("useRowID", true);
                 columnSettings.addString("columnName", "");
@@ -303,7 +294,7 @@ class ImageWriterTableNodeParameters implements NodeParameters {
 
         @Override
         public String[][] getConfigPaths() {
-            return new String[][]{{"generate_file_names"}, {"filename_pattern"}, {"filename_column"}};
+            return new String[][]{{CFG_GENERATE_FILE_NAMES}, {CFG_FILENAME_PATTERN}, {CFG_FILENAME_COLUMN}};
         }
     }
 }
