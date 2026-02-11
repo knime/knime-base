@@ -60,7 +60,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.file.SingleFileSe
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.WithFileSystem;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification.WidgetGroupModifier;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification.WidgetModifier;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.layout.After;
