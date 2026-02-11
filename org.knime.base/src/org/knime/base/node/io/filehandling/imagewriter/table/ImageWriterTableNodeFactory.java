@@ -103,14 +103,17 @@ public final class ImageWriterTableNodeFactory
             Writes all images from a specific column to a directory.
             """;
     private static final String FULL_DESCRIPTION = """
-            This node takes all images in a certain column of the input table and writes them, each as a separate
-                file, into a directory. It will append the paths of the written files to the input table as well as the
-                corresponding write status (created, unmodified, overwritten). <p> <i>This node can access a variety of
-                different</i> <a
-                href="https://docs.knime.com/2021-06/analytics_platform_file_handling_guide/index.html#analytics-platform-file-systems"><i>file
-                systems.</i></a> <i>More information about file handling in KNIME can be found in the official</i> <a
-                href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html"><i>File Handling
-                Guide.</i></a> </p>
+            This node takes all images in a certain column of the input table and writes them, each as a separate \
+            file, into a directory. It will append the paths of the written files to the input table as well as the \
+            corresponding write status (created, unmodified, overwritten).
+            <p>
+            <i>This node can access a variety of different</i> \
+            <a href="https://docs.knime.com/2021-06/analytics_platform_file_handling_guide/index.html#analytics-platform-file-systems">\
+            <i>file systems.</i></a> \
+            <i>More information about file handling in KNIME can be found in the official</i> \
+            <a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html">\
+            <i>File Handling Guide.</i></a>
+            </p>
             """;
     private static final List<PortDescription> INPUT_PORTS = List.of(
             dynamicPort("File System Connection", "File system connection", """
