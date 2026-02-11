@@ -116,25 +116,24 @@ class ImageWriterTableNodeParameters implements NodeParameters {
         @Override
         public void modify(final WidgetGroupModifier group) {
             final var fileSelection = findFileSelection(group);
-            fileSelection.modifyAnnotation(Widget.class) //
-                .withProperty("title", "Folder") //
+            fileSelection.modifyAnnotation(Widget.class).withProperty("title", "Folder")
                 .withProperty("description",
                     "Select a folder where the image files will be stored. You can specify the file system and path.")
                 .modify();
-            fileSelection.addAnnotation(FileSelectionWidget.class) //
-                .withProperty("value", SingleFileSelectionMode.FOLDER) //
+            fileSelection.addAnnotation(FileSelectionWidget.class).withProperty("value", SingleFileSelectionMode.FOLDER)
                 .modify();
-            fileSelection.addAnnotation(WithFileSystem.class) //
-                .withProperty("value",
-                    new FileSystemOption[]{FileSystemOption.LOCAL, FileSystemOption.SPACE, FileSystemOption.EMBEDDED,
-                        FileSystemOption.CONNECTED, FileSystemOption.CUSTOM_URL}) //
+            fileSelection
+                .addAnnotation(
+                    WithFileSystem.class)
+                .withProperty("value", new FileSystemOption[]{FileSystemOption.LOCAL, FileSystemOption.SPACE,
+                    FileSystemOption.EMBEDDED, FileSystemOption.CONNECTED, FileSystemOption.CUSTOM_URL})
                 .modify();
 
             final var createMissingFolders = findCreateMissingFolders(group);
-            createMissingFolders.modifyAnnotation(Widget.class) //
+            createMissingFolders.modifyAnnotation(Widget.class)
                 .withProperty("description",
                     "If enabled, missing folders in the output path will be created automatically. "
-                        + "If disabled, the node will fail if any folder in the path does not exist.") //
+                        + "If disabled, the node will fail if any folder in the path does not exist.")
                 .modify();
 
             restrictOverwritePolicyOptions(group, ImageWriterOverwritePolicyChoicesProvider.class);
@@ -145,11 +144,7 @@ class ImageWriterTableNodeParameters implements NodeParameters {
         extends LegacyFileWriterWithOverwritePolicyOptions.OverwritePolicyChoicesProvider {
         @Override
         protected List<OverwritePolicy> getChoices() {
-            return List.of(//
-                OverwritePolicy.fail, //
-                OverwritePolicy.overwrite, //
-                OverwritePolicy.ignore //
-            );
+            return List.of(OverwritePolicy.fail, OverwritePolicy.overwrite, OverwritePolicy.ignore);
         }
     }
 
@@ -166,14 +161,7 @@ class ImageWriterTableNodeParameters implements NodeParameters {
 
         @Override
         public List<DataColumnSpec> columnChoices(final NodeParametersInput context) {
-            // Find the data table port dynamically (port index changes based on FileSystemConnection presence)
-            return Arrays.stream(context.getInPortSpecs())
-                .filter(DataTableSpec.class::isInstance)
-                .findFirst()
-                .map(spec -> ((DataTableSpec)spec).stream()
-                    .filter(col -> col.getType().isCompatible(ImageValue.class))
-                    .toList())
-                .orElse(List.of());
+            return getCompatibleColumns(context, ImageValue.class);
         }
     }
 
@@ -207,7 +195,7 @@ class ImageWriterTableNodeParameters implements NodeParameters {
                 + "row IDs as file names. The file extension will be determined automatically and should not be "
                 + "included in the column values.")
         @ChoicesProvider(FileNameColumnChoicesProvider.class)
-        @Effect(predicate = IsFromColumnFileNames.class, type = Effect.EffectType.SHOW)
+        @Effect(predicate = IsGenerateFileNames.class, type = Effect.EffectType.HIDE)
         StringOrEnum<RowIDChoice> m_fileNameColumn = new StringOrEnum<>("");
 
         interface GenerateFileNamesRef extends ParameterReference<Boolean> {
@@ -219,13 +207,6 @@ class ImageWriterTableNodeParameters implements NodeParameters {
                 return i.getBoolean(GenerateFileNamesRef.class).isTrue();
             }
         }
-
-        static final class IsFromColumnFileNames implements EffectPredicateProvider {
-            @Override
-            public EffectPredicate init(final EffectPredicateProvider.PredicateInitializer i) {
-                return i.getBoolean(GenerateFileNamesRef.class).isFalse();
-            }
-        }
     }
 
     private static final class FileNameColumnChoicesProvider extends CompatibleColumnsProvider.StringColumnsProvider {
@@ -235,30 +216,31 @@ class ImageWriterTableNodeParameters implements NodeParameters {
 
         @Override
         public List<DataColumnSpec> columnChoices(final NodeParametersInput context) {
-            // Find the data table port dynamically (port index changes based on FileSystemConnection presence)
-            return Arrays.stream(context.getInPortSpecs())
-                .filter(DataTableSpec.class::isInstance)
-                .findFirst()
-                .map(spec -> ((DataTableSpec)spec).stream()
-                    .filter(col -> col.getType().isCompatible(StringValue.class))
-                    .toList())
-                .orElse(List.of());
+            return getCompatibleColumns(context, StringValue.class);
         }
+    }
+
+    private static List<DataColumnSpec> getCompatibleColumns(final NodeParametersInput context,
+        final Class<? extends org.knime.core.data.DataValue> valueType) {
+        // Port index changes based on FileSystemConnection presence
+        return Arrays.stream(context.getInPortSpecs()).filter(DataTableSpec.class::isInstance).findFirst()
+            .map(spec -> ((DataTableSpec)spec).stream().filter(col -> col.getType().isCompatible(valueType)).toList())
+            .orElse(List.of());
     }
 
     static final class FileNamingPersistor implements NodeParametersPersistor<FileNamingSettings> {
         private static final String CFG_GENERATE_FILE_NAMES = "generate_file_names";
+
         private static final String CFG_FILENAME_PATTERN = "filename_pattern";
+
         private static final String CFG_FILENAME_COLUMN = "filename_column";
 
         @Override
         public FileNamingSettings load(final NodeSettingsRO settings) throws InvalidSettingsException {
             var result = new FileNamingSettings();
-            // Handle missing keys gracefully for backwards compatibility
             result.m_generateFileNames = settings.getBoolean(CFG_GENERATE_FILE_NAMES, true);
             result.m_fileNamePattern = settings.getString(CFG_FILENAME_PATTERN, "File_?");
 
-            // Load filename_column from legacy SettingsModelColumnName format
             if (settings.containsKey(CFG_FILENAME_COLUMN)) {
                 final var columnSettings = settings.getNodeSettings(CFG_FILENAME_COLUMN);
                 final boolean useRowID = columnSettings.getBoolean("useRowID", false);
@@ -269,7 +251,6 @@ class ImageWriterTableNodeParameters implements NodeParameters {
                     result.m_fileNameColumn = new StringOrEnum<>(columnName);
                 }
             } else {
-                // Default value for missing key
                 result.m_fileNameColumn = new StringOrEnum<>("");
             }
             return result;
@@ -280,7 +261,6 @@ class ImageWriterTableNodeParameters implements NodeParameters {
             settings.addBoolean(CFG_GENERATE_FILE_NAMES, obj.m_generateFileNames);
             settings.addString(CFG_FILENAME_PATTERN, obj.m_fileNamePattern);
 
-            // Save in SettingsModelColumnName format (nested config with useRowID and columnName)
             final var columnSettings = settings.addNodeSettings(CFG_FILENAME_COLUMN);
             if (obj.m_fileNameColumn.getEnumChoice().isPresent()) {
                 columnSettings.addBoolean("useRowID", true);
