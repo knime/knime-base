@@ -43,7 +43,7 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ------------------------------------------------------------------------
  */
-    
+
 package org.knime.base.node.io.filehandling.imagewriter.table;
 
 import java.util.List;
