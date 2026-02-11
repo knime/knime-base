@@ -179,8 +179,7 @@ class ImageWriterTableNodeParameters implements NodeParameters {
 
     @Layout(ImageColumn.class)
     @Widget(title = "Remove image column",
-        description = "If enabled, the image column will be excluded from the output table. Only the file paths "
-            + "of the written images will be included.")
+        description = "If enabled, the image column will be excluded from the output table.")
     @Persist(configKey = "remove_image_column")
     boolean m_removeImageColumn;
 
@@ -196,10 +195,10 @@ class ImageWriterTableNodeParameters implements NodeParameters {
         boolean m_generateFileNames = true;
 
         @Widget(title = "File name pattern",
-            description = "A pattern for generated file names. Must contain exactly one '?' which will be replaced "
-                + "by an auto-incrementing counter to ensure unique file names. The file extension will be "
-                + "determined automatically based on the image format and should not be included in the pattern. "
-                + "Example: 'Image_?' will create files like 'Image_0.png', 'Image_1.png', etc.")
+            description = "The file names will be generated using the provided pattern. The pattern must contain a "
+                + "single \"?\" symbol. This symbol will, during execution, be replaced by an incrementing counter to "
+                + "make the filenames unique. The file extension will be detected automatically and must not be "
+                + "specified.")
         @Effect(predicate = IsGenerateFileNames.class, type = Effect.EffectType.SHOW)
         String m_fileNamePattern = "File_?";
 

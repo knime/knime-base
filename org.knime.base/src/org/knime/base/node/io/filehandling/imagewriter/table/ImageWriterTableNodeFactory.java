@@ -131,7 +131,7 @@ public final class ImageWriterTableNodeFactory
                 """));
 
     private static final List<PortDescription> OUTPUT_PORTS = List.of(fixedPort("Output Table", """
-            Input table plus additional path to saved images plus the corresponding write status (created,
+            Input table plus additional path to saved images plus the corresponding write status (created, \
             unmodified, overwritten).
             """));
 
