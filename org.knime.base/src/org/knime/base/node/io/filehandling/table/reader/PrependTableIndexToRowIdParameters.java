@@ -90,4 +90,13 @@ final class PrependTableIndexToRowIdParameters implements NodeParameters {
     void saveToConfig(final DefaultTableReadConfig<?> tableReadConfig) {
         tableReadConfig.setPrependSourceIdxToRowId(m_prependTableIndexToRowId);
     }
+
+    /**
+     * Load the settings from the given config.
+     *
+     * @param tableReadConfig the config to load from
+     */
+    void loadFromConfig(final DefaultTableReadConfig<?> tableReadConfig) {
+        m_prependTableIndexToRowId = tableReadConfig.prependSourceIdxToRowID();
+    }
 }

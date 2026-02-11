@@ -90,4 +90,13 @@ final class UseExistingRowIdParameters implements NodeParameters {
         tableReadConfig.setRowIDIdx(0);
         tableReadConfig.setUseRowIDIdx(m_useExistingRowId);
     }
+
+    /**
+     * Load the settings from the given config.
+     *
+     * @param tableReadConfig the config to load from
+     */
+    void loadFromConfig(final DefaultTableReadConfig<?> tableReadConfig) {
+        m_useExistingRowId = tableReadConfig.useRowIDIdx();
+    }
 }

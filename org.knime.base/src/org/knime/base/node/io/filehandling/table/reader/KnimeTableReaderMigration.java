@@ -44,63 +44,58 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 21, 2025: created
+ *   Feb 11, 2026 (Thomas Reifenberger, TNG Technology Consulting GmbH): created
  */
 package org.knime.base.node.io.filehandling.table.reader;
 
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.util.List;
 
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettings;
-import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
-import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
-import org.knime.testing.node.dialog.SnapshotTestConfiguration;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.node.parameters.migration.ConfigMigration;
+import org.knime.node.parameters.migration.NodeParametersMigration;
 
 /**
- * Tests the {@link KnimeTableReaderNodeParameters} persistence.
+ * Migrate from legacy settings to the new {@link KnimeTableReaderNodeParameters}.
  *
- * @author Paul Baernreuther
+ * @author Thomas Reifenberger, TNG Technology Consulting GmbH, Germany
  */
-@SuppressWarnings("restriction")
-class KnimeTableReaderNodeParametersTest extends DefaultNodeSettingsSnapshotTest {
-    protected KnimeTableReaderNodeParametersTest() {
-        super(getConfig());
+class KnimeTableReaderMigration implements NodeParametersMigration<KnimeTableReaderNodeParameters> {
+
+    private static final String SETTINGS_KEY = "settings";
+
+    private static final String ADVANCED_SETTINGS_KEY = "advanced_settings";
+
+    private static final String TABLE_SPEC_CONFIG_KEY = "table_spec_config_Internals";
+
+    private static KnimeTableReaderNodeParameters load(final NodeSettingsRO settings)
+        throws InvalidSettingsException {
+        final var newSettings = new KnimeTableReaderNodeParameters();
+        final var config = new KnimeTableMultiTableReadConfig();
+        KnimeTableMultiTableReadConfigSerializer.INSTANCE.loadInModel(config, settings);
+        final var tableReadConfig = config.getTableReadConfig();
+
+        newSettings.m_knimeTableReaderParameters.m_multiFileSelectionParams.loadFromLegacySettings(settings);
+        newSettings.m_knimeTableReaderParameters.m_skipFirstDataRowsParams.loadFromConfig(tableReadConfig);
+        newSettings.m_knimeTableReaderParameters.m_maxNumberOfRowsParams.loadFromConfig(tableReadConfig);
+        newSettings.m_knimeTableReaderParameters.m_ifSchemaChangesParams.loadFromConfig(config);
+        newSettings.m_knimeTableReaderParameters.m_multiFileReaderParams.loadFromConfigAfter4_4(config);
+        newSettings.m_knimeTableReaderParameters.m_useExistingRowIdParams.loadFromConfig(tableReadConfig);
+        newSettings.m_knimeTableReaderParameters.m_prependTableIndexParams.loadFromConfig(tableReadConfig);
+        newSettings.m_transformationParameters.loadFromTableSpecConfig(config.getTableSpecConfig());
+
+        return newSettings;
     }
 
-    private static SnapshotTestConfiguration getConfig() {
-        return SnapshotTestConfiguration.builder() //
-            .testJsonFormsForModel(KnimeTableReaderNodeParameters.class) //
-            .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings()) //
-            .testNodeSettingsStructure(() -> readSettings()) //
-            // Tests for migration from old settings model
-            .testNodeSettingsStructure(() -> readSettings("_4.4.4_empty")) //
-            .testNodeSettingsStructure(() -> readSettings("_4.4.4_configured")) //
-            .testNodeSettingsStructure(() -> readSettings("_4.4.4_transformation")) //
-            .testNodeSettingsStructure(() -> readSettings("_5.8.0_empty")) //
-            .testNodeSettingsStructure(() -> readSettings("_5.8.0_configured")) //
-            .testNodeSettingsStructure(() -> readSettings("_5.8.0_transformation")) //
-            // End of migration tests
-            .build();
+    @Override
+    public List<ConfigMigration<KnimeTableReaderNodeParameters>> getConfigMigrations() {
+        return List.of(//
+            ConfigMigration.builder(KnimeTableReaderMigration::load) //
+                .withMatcher(s -> s.containsKey(SETTINGS_KEY))
+                .withDeprecatedConfigPath(SETTINGS_KEY)//
+                .withDeprecatedConfigPath(ADVANCED_SETTINGS_KEY)//
+                .withDeprecatedConfigPath(TABLE_SPEC_CONFIG_KEY) //
+                .build());
     }
-
-    private static KnimeTableReaderNodeParameters readSettings() {
-        return readSettings("");
-    }
-
-    private static KnimeTableReaderNodeParameters readSettings(final String suffix) {
-        try {
-            var path = getSnapshotPath(KnimeTableReaderNodeParametersTest.class).getParent().resolve("node_settings")
-                .resolve("KnimeTableReaderNodeParameters" + suffix + ".xml");
-            try (var fis = new FileInputStream(path.toFile())) {
-                var nodeSettings = NodeSettings.loadFromXML(fis);
-                return NodeParametersUtil.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
-                    KnimeTableReaderNodeParameters.class);
-            }
-        } catch (IOException | InvalidSettingsException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
 }
+

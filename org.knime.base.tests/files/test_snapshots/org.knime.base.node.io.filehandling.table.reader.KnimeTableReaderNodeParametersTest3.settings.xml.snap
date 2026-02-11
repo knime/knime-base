@@ -18,14 +18,14 @@
                     <entry key="filesNameExpression" type="xstring" value="*"/>
                     <entry key="filesNameFilterType" type="xstring" value="WILDCARD"/>
                     <entry key="filesNameCaseSensitive" type="xboolean" value="false"/>
-                    <entry key="includeHiddenFiles" type="xboolean" value="true"/>
+                    <entry key="includeHiddenFiles" type="xboolean" value="false"/>
                     <entry key="includeSpecialFiles" type="xboolean" value="true"/>
                     <entry key="filterFoldersName" type="xboolean" value="false"/>
                     <entry key="foldersNameExpression" type="xstring" value="*"/>
                     <entry key="foldersNameFilterType" type="xstring" value="WILDCARD"/>
                     <entry key="foldersNameCaseSensitive" type="xboolean" value="false"/>
-                    <entry key="includeHiddenFolders" type="xboolean" value="true"/>
-                    <entry key="followSymlinks" type="xboolean" value="false"/>
+                    <entry key="includeHiddenFolders" type="xboolean" value="false"/>
+                    <entry key="followSymlinks" type="xboolean" value="true"/>
                 </config>
             </config>
         </config>
@@ -33,11 +33,11 @@
             <entry key="skipFirstDataRows" type="xlong" value="1"/>
         </config>
         <config key="maxNumberOfRowsParams">
-            <entry key="maximumNumberOfRows" type="xlong" value="0"/>
-            <entry key="maximumNumberOfRows_is_present" type="xboolean" value="false"/>
+            <entry key="maximumNumberOfRows" type="xlong" value="50"/>
+            <entry key="maximumNumberOfRows_is_present" type="xboolean" value="true"/>
         </config>
         <config key="ifSchemaChangesParams">
-            <entry key="ignoreSchemaChange" type="xboolean" value="false"/>
+            <entry key="ignoreSchemaChange" type="xboolean" value="true"/>
             <entry key="ifSchemaChangesOption" type="xstring" value="FAIL"/>
         </config>
         <config key="multiFileReaderParams">
@@ -62,7 +62,7 @@
                 <config key="fsLocation">
                     <entry key="location_present" type="xboolean" value="true"/>
                     <entry key="file_system_type" type="xstring" value="LOCAL"/>
-                    <entry key="path" type="xstring" value="/tmp/test.table"/>
+                    <entry key="path" type="xstring" value=""/>
                 </config>
                 <entry key="sourceIdentifier" type="xstring" value="/tmp/test.table"/>
                 <config key="spec">

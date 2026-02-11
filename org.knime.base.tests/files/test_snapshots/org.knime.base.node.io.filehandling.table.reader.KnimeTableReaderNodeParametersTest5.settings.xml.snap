@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
+    <config key="knimeTableReaderParameters">
+        <config key="multiFileSelectionParams">
+            <config key="source">
+                <entry key="filterMode" type="xstring" value="FILES_IN_FOLDERS"/>
+                <config key="path">
+                    <entry key="location_present" type="xboolean" value="true"/>
+                    <entry key="file_system_type" type="xstring" value="LOCAL"/>
+                    <entry key="path" type="xstring" value="/tmp"/>
+                </config>
+                <entry key="includeSubfolders" type="xboolean" value="false"/>
+                <config key="filters">
+                    <entry key="filterFilesExtension" type="xboolean" value="true"/>
+                    <entry key="filesExtensionExpression" type="xstring" value="table"/>
+                    <entry key="filesExtensionCaseSensitive" type="xboolean" value="false"/>
+                    <entry key="filterFilesName" type="xboolean" value="false"/>
+                    <entry key="filesNameExpression" type="xstring" value="*"/>
+                    <entry key="filesNameFilterType" type="xstring" value="WILDCARD"/>
+                    <entry key="filesNameCaseSensitive" type="xboolean" value="false"/>
+                    <entry key="includeHiddenFiles" type="xboolean" value="false"/>
+                    <entry key="includeSpecialFiles" type="xboolean" value="true"/>
+                    <entry key="filterFoldersName" type="xboolean" value="false"/>
+                    <entry key="foldersNameExpression" type="xstring" value="*"/>
+                    <entry key="foldersNameFilterType" type="xstring" value="WILDCARD"/>
+                    <entry key="foldersNameCaseSensitive" type="xboolean" value="false"/>
+                    <entry key="includeHiddenFolders" type="xboolean" value="false"/>
+                    <entry key="followSymlinks" type="xboolean" value="true"/>
+                </config>
+            </config>
+        </config>
+        <config key="skipFirstDataRowsParams">
+            <entry key="skipFirstDataRows" type="xlong" value="1"/>
+        </config>
+        <config key="maxNumberOfRowsParams">
+            <entry key="maximumNumberOfRows" type="xlong" value="50"/>
+            <entry key="maximumNumberOfRows_is_present" type="xboolean" value="true"/>
+        </config>
+        <config key="ifSchemaChangesParams">
+            <entry key="ignoreSchemaChange" type="xboolean" value="false"/>
+            <entry key="ifSchemaChangesOption" type="xstring" value="USE_NEW_SCHEMA"/>
+        </config>
+        <config key="multiFileReaderParams">
+            <entry key="appendPathColumn" type="xstring" value="File Path"/>
+            <entry key="appendPathColumn_is_present" type="xboolean" value="true"/>
+            <entry key="howToCombineColumns" type="xstring" value="FAIL"/>
+        </config>
+        <config key="useExistingRowIdParams">
+            <entry key="useExistingRowId" type="xboolean" value="true"/>
+        </config>
+        <config key="prependTableIndexParams">
+            <entry key="prependTableIndexToRowId" type="xboolean" value="true"/>
+        </config>
+    </config>
+    <config key="configId_Internals">
+        <config key="table_reader"/>
+    </config>
+    <entry key="sourceId_Internals" type="xstring" value="/tmp"/>
+    <config key="transformationParameters">
+        <config key="specs">
+            <entry key="is_null" type="xboolean" value="true"/>
+        </config>
+        <entry key="enforceTypes" type="xboolean" value="true"/>
+        <config key="columnTransformation">
+            <config key="0">
+                <entry key="columnName" type="xstring" isnull="true" value=""/>
+                <entry key="originalTypeLabel" type="xstring" value="Default columntype"/>
+                <entry key="includeInOutput" type="xboolean" value="true"/>
+                <entry key="columnRename" type="xstring" isnull="true" value=""/>
+                <entry key="unknownsColumnDataType" type="xstring" value="&lt;default-columntype&gt;"/>
+            </config>
+        </config>
+    </config>
+</config>

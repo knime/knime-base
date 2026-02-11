@@ -4,20 +4,20 @@
       "knimeTableReaderParameters" : {
         "multiFileSelectionParams" : {
           "source" : {
-            "filterMode" : "FILE",
+            "filterMode" : "FILES_IN_FOLDERS",
             "path" : {
-              "fsCategory" : "relative-to-embedded-data",
-              "path" : "test.table",
+              "fsCategory" : "LOCAL",
+              "path" : "/tmp",
               "timeout" : 10000,
               "context" : {
-                "fsToString" : "(RELATIVE, knime.workflow.data, test.table)"
+                "fsToString" : "(LOCAL, /tmp)"
               }
             },
             "includeSubfolders" : false,
             "filters" : {
               "filterMode" : "FILE",
-              "filterFilesExtension" : false,
-              "filesExtensionExpression" : "",
+              "filterFilesExtension" : true,
+              "filesExtensionExpression" : "table",
               "filesExtensionCaseSensitive" : false,
               "filterFilesName" : false,
               "filesNameExpression" : "*",
@@ -35,7 +35,7 @@
           }
         },
         "skipFirstDataRowsParams" : {
-          "skipFirstDataRows" : 0
+          "skipFirstDataRows" : 1
         },
         "maxNumberOfRowsParams" : {
           "maximumNumberOfRows" : null
@@ -46,7 +46,7 @@
           "ignoreSchemaChangeWasSetInitially" : false
         },
         "multiFileReaderParams" : {
-          "appendPathColumn" : "File Path",
+          "appendPathColumn" : "Path",
           "howToCombineColumns" : "UNION"
         },
         "useExistingRowIdParams" : {
@@ -59,14 +59,14 @@
       "transformationParameters" : {
         "specs" : [ {
           "fsLocation" : {
-            "fsCategory" : "relative-to-embedded-data",
-            "path" : "test.table",
+            "fsCategory" : "LOCAL",
+            "path" : "/tmp/test.table",
             "timeout" : 10000,
             "context" : {
-              "fsToString" : "(RELATIVE, knime.workflow.data, test.table)"
+              "fsToString" : "(LOCAL, /tmp/test.table)"
             }
           },
-          "sourceIdentifier" : "test.table",
+          "sourceIdentifier" : "/tmp/test.table",
           "spec" : [ {
             "name" : "Universe_0_0",
             "type" : "{\"name\":\"type\",\"value\":{\"type\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.DoubleCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
@@ -95,22 +95,15 @@
           "originalProductionPath" : "CELL_VALUE_PRODUCER_IDENTITY_FACTORY\u0000CELL_CONVERTER_IDENTITY_FACTORY",
           "originalTypeLabel" : "Number (Float)",
           "includeInOutput" : true,
-          "columnRename" : "Universe_0_0",
-          "productionPath" : "CELL_VALUE_PRODUCER_IDENTITY_FACTORY\u0000CELL_CONVERTER_IDENTITY_FACTORY"
-        }, {
-          "columnName" : "Cluster Membership",
-          "originalProductionPath" : "CELL_VALUE_PRODUCER_IDENTITY_FACTORY\u0000CELL_CONVERTER_IDENTITY_FACTORY",
-          "originalTypeLabel" : "String",
-          "includeInOutput" : true,
-          "columnRename" : "Cluster Membership",
-          "productionPath" : "CELL_VALUE_PRODUCER_IDENTITY_FACTORY\u0000CELL_CONVERTER_IDENTITY_FACTORY"
+          "columnRename" : "renamed",
+          "productionPath" : "org.knime.core.data.def.DoubleCell->java.lang.String\u0000org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)"
         }, {
           "columnName" : "Universe_0_1",
           "originalProductionPath" : "CELL_VALUE_PRODUCER_IDENTITY_FACTORY\u0000CELL_CONVERTER_IDENTITY_FACTORY",
           "originalTypeLabel" : "Number (Float)",
           "includeInOutput" : true,
           "columnRename" : "Universe_0_1",
-          "productionPath" : "org.knime.core.data.def.DoubleCell->java.lang.String\u0000org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)"
+          "productionPath" : "CELL_VALUE_PRODUCER_IDENTITY_FACTORY\u0000CELL_CONVERTER_IDENTITY_FACTORY"
         }, {
           "columnName" : "Universe_1_0",
           "originalProductionPath" : "CELL_VALUE_PRODUCER_IDENTITY_FACTORY\u0000CELL_CONVERTER_IDENTITY_FACTORY",
@@ -126,12 +119,19 @@
           "columnRename" : "Universe_1_1",
           "productionPath" : "CELL_VALUE_PRODUCER_IDENTITY_FACTORY\u0000CELL_CONVERTER_IDENTITY_FACTORY"
         }, {
+          "columnName" : "Cluster Membership",
+          "originalProductionPath" : "CELL_VALUE_PRODUCER_IDENTITY_FACTORY\u0000CELL_CONVERTER_IDENTITY_FACTORY",
+          "originalTypeLabel" : "String",
+          "includeInOutput" : true,
+          "columnRename" : "Cluster Membership",
+          "productionPath" : "CELL_VALUE_PRODUCER_IDENTITY_FACTORY\u0000CELL_CONVERTER_IDENTITY_FACTORY"
+        }, {
           "columnName" : null,
           "originalProductionPath" : "<default-columntype>",
           "originalTypeLabel" : "Default columntype",
           "includeInOutput" : true,
           "columnRename" : null,
-          "productionPath" : "{\"name\":\"type\",\"value\":{\"type\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.vector.bitvector.DenseBitVectorCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}"
+          "productionPath" : "<default-columntype>"
         } ]
       }
     }
@@ -1255,7 +1255,10 @@
               }
             }
           }
-        }
+        },
+        "propertiesDeprecatedConfigKeys" : [ {
+          "deprecated" : [ [ "settings" ], [ "advanced_settings" ], [ "table_spec_config_Internals" ] ]
+        } ]
       }
     }
   },
