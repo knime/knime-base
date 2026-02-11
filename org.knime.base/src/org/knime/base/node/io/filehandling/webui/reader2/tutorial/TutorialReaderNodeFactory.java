@@ -152,12 +152,13 @@ public class TutorialReaderNodeFactory extends WebUITableReaderNodeFactory<Tutor
 
         @Override
         protected ConfigIDLoader getConfigIDLoader() {
-            /**
+            /*
              * TODO (#8): In case we stay backwards-compatible, return configIDLoader from before (usually an enum
-             * instance used in the constructor of the mutli table read config).
+             * instance used in the constructor of the multi table read config).
              */
-            return settings -> new NodeSettingsConfigID(
-                settings.getNodeSettings(new TutorialReaderTransformationParameters().getConfigIdSettingsKey()));
+            // TODO (#5): set the key used to generate the config ID (see your implementation of * ConfigIDLoader.createFromSettings)
+            final var configIdSettingsKey = "";
+            return settings -> new NodeSettingsConfigID(settings.getNodeSettings(configIdSettingsKey));
         }
 
     }

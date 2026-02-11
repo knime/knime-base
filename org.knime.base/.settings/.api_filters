@@ -109,7 +109,7 @@
         <filter comment="non-public API" id="403804204">
             <message_arguments>
                 <message_argument value="org.knime.base.node.io.filehandling.webui.reader2.ReaderSpecific.ProductionPathProviderAndTypeHierarchy"/>
-                <message_argument value="getProducerRegistry()"/>
+                <message_argument value="getProductionPathSerializer()"/>
             </message_arguments>
         </filter>
         <filter comment="non-public API" id="405901410">
@@ -120,7 +120,7 @@
         </filter>
         <filter comment="non-public API" id="1211105284">
             <message_arguments>
-                <message_argument value="getProducerRegistry()"/>
+                <message_argument value="getProductionPathSerializer()"/>
             </message_arguments>
         </filter>
         <filter comment="non-public API" id="1211105284">

@@ -46,9 +46,9 @@
  * History
  *   Nov 24, 2025 (Paul Bärnreuther): created
  */
-package org.knime.base.node.io.filehandling.table.reader2;
+package org.knime.base.node.io.filehandling.table.reader;
 
-import org.knime.base.node.io.filehandling.table.reader2.UseExistingRowIdParameters.UseExistingRowIdLayout;
+import org.knime.base.node.io.filehandling.table.reader.UseExistingRowIdParameters.UseExistingRowIdLayout;
 import org.knime.base.node.io.filehandling.webui.reader2.MaxNumberOfRowsParameters;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.node.parameters.NodeParameters;
@@ -89,5 +89,14 @@ final class UseExistingRowIdParameters implements NodeParameters {
     void saveToConfig(final DefaultTableReadConfig<?> tableReadConfig) {
         tableReadConfig.setRowIDIdx(0);
         tableReadConfig.setUseRowIDIdx(m_useExistingRowId);
+    }
+
+    /**
+     * Load the settings from the given config.
+     *
+     * @param tableReadConfig the config to load from
+     */
+    void loadFromConfig(final DefaultTableReadConfig<?> tableReadConfig) {
+        m_useExistingRowId = tableReadConfig.useRowIDIdx();
     }
 }

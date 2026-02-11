@@ -92,6 +92,7 @@ import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigID;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.DefaultTableSpecConfig;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.ProductionPathSerializer;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.ImmutableUnknownColumnsTransformation;
@@ -481,12 +482,14 @@ public abstract class TransformationParameters<T>
          * @param columnRename
          * @param productionPath
          * @param defaultProductionPath
+         * @param productionPathSerializer
          */
         TransformationElementSettings(final String columnName, final boolean includeInOutput, final String columnRename,
-            final ProductionPath productionPath, final ProductionPath defaultProductionPath) {
+            final ProductionPath productionPath, final ProductionPath defaultProductionPath,
+            final ProductionPathSerializer productionPathSerializer) {
             this(columnName, includeInOutput, columnRename, //
-                ProductionPathUtils.getPathIdentifier(productionPath), //
-                ProductionPathUtils.getPathIdentifier(defaultProductionPath), //
+                ProductionPathUtils.getPathIdentifier(productionPath, productionPathSerializer), //
+                ProductionPathUtils.getPathIdentifier(defaultProductionPath, productionPathSerializer), //
                 defaultProductionPath.getDestinationType().toPrettyString() //
             );
         }
@@ -622,8 +625,8 @@ public abstract class TransformationParameters<T>
             final var transformation = m_columnTransformation[position];
             ProductionPath productionPath;
             try {
-                productionPath =
-                    ProductionPathUtils.fromPathIdentifier(transformation.m_productionPath, getProducerRegistry()); // validate path id
+                productionPath = ProductionPathUtils.fromPathIdentifier(transformation.m_productionPath,
+                    getProductionPathSerializer()); // validate path id
             } catch (InvalidSettingsException e) {
                 LOGGER.error(String.format(
                     "The column '%s' can't be converted to the configured data type. Unknown production path: %s",
@@ -716,13 +719,6 @@ public abstract class TransformationParameters<T>
             }
         }
     }
-
-    /**
-     * The key used in the settings to store all settigns within the config ID.
-     *
-     * @return the config ID settings key
-     */
-    protected abstract String getConfigIdSettingsKey();
 
     /**
      * Use this method in a {@link NodeParametersMigration} to load transformation settings from a legacy
@@ -821,7 +817,8 @@ public abstract class TransformationParameters<T>
             t.keep(), //
             t.getName(), //
             t.getProductionPath(), //
-            defaultProductionPath);
+            defaultProductionPath, //
+            getProductionPathSerializer());
     }
 
     private static TransformationElementSettings toTransformationElementSettings(final UnknownColumnsTransformation t) {

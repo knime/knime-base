@@ -6,11 +6,11 @@
           "source" : {
             "filterMode" : "FILE",
             "path" : {
-              "fsCategory" : "relative-to-embedded-data",
-              "path" : "test.table",
+              "fsCategory" : "LOCAL",
+              "path" : "",
               "timeout" : 10000,
               "context" : {
-                "fsToString" : "(RELATIVE, knime.workflow.data, test.table)"
+                "fsToString" : "(LOCAL, )"
               }
             },
             "includeSubfolders" : false,
@@ -46,92 +46,25 @@
           "ignoreSchemaChangeWasSetInitially" : false
         },
         "multiFileReaderParams" : {
-          "appendPathColumn" : "File Path",
-          "howToCombineColumns" : "UNION"
+          "appendPathColumn" : null,
+          "howToCombineColumns" : "FAIL"
         },
         "useExistingRowIdParams" : {
-          "useExistingRowId" : true
+          "useExistingRowId" : false
         },
         "prependTableIndexParams" : {
-          "prependTableIndexToRowId" : true
+          "prependTableIndexToRowId" : false
         }
       },
       "transformationParameters" : {
-        "specs" : [ {
-          "fsLocation" : {
-            "fsCategory" : "relative-to-embedded-data",
-            "path" : "test.table",
-            "timeout" : 10000,
-            "context" : {
-              "fsToString" : "(RELATIVE, knime.workflow.data, test.table)"
-            }
-          },
-          "sourceIdentifier" : "test.table",
-          "spec" : [ {
-            "name" : "Universe_0_0",
-            "type" : "{\"name\":\"type\",\"value\":{\"type\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.DoubleCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-            "hasType" : true
-          }, {
-            "name" : "Universe_0_1",
-            "type" : "{\"name\":\"type\",\"value\":{\"type\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.DoubleCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-            "hasType" : true
-          }, {
-            "name" : "Universe_1_0",
-            "type" : "{\"name\":\"type\",\"value\":{\"type\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.DoubleCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-            "hasType" : true
-          }, {
-            "name" : "Universe_1_1",
-            "type" : "{\"name\":\"type\",\"value\":{\"type\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.DoubleCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-            "hasType" : true
-          }, {
-            "name" : "Cluster Membership",
-            "type" : "{\"name\":\"type\",\"value\":{\"type\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.StringCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
-            "hasType" : true
-          } ]
-        } ],
         "enforceTypes" : true,
         "columnTransformation" : [ {
-          "columnName" : "Universe_0_0",
-          "originalProductionPath" : "CELL_VALUE_PRODUCER_IDENTITY_FACTORY\u0000CELL_CONVERTER_IDENTITY_FACTORY",
-          "originalTypeLabel" : "Number (Float)",
-          "includeInOutput" : true,
-          "columnRename" : "Universe_0_0",
-          "productionPath" : "CELL_VALUE_PRODUCER_IDENTITY_FACTORY\u0000CELL_CONVERTER_IDENTITY_FACTORY"
-        }, {
-          "columnName" : "Cluster Membership",
-          "originalProductionPath" : "CELL_VALUE_PRODUCER_IDENTITY_FACTORY\u0000CELL_CONVERTER_IDENTITY_FACTORY",
-          "originalTypeLabel" : "String",
-          "includeInOutput" : true,
-          "columnRename" : "Cluster Membership",
-          "productionPath" : "CELL_VALUE_PRODUCER_IDENTITY_FACTORY\u0000CELL_CONVERTER_IDENTITY_FACTORY"
-        }, {
-          "columnName" : "Universe_0_1",
-          "originalProductionPath" : "CELL_VALUE_PRODUCER_IDENTITY_FACTORY\u0000CELL_CONVERTER_IDENTITY_FACTORY",
-          "originalTypeLabel" : "Number (Float)",
-          "includeInOutput" : true,
-          "columnRename" : "Universe_0_1",
-          "productionPath" : "org.knime.core.data.def.DoubleCell->java.lang.String\u0000org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)"
-        }, {
-          "columnName" : "Universe_1_0",
-          "originalProductionPath" : "CELL_VALUE_PRODUCER_IDENTITY_FACTORY\u0000CELL_CONVERTER_IDENTITY_FACTORY",
-          "originalTypeLabel" : "Number (Float)",
-          "includeInOutput" : true,
-          "columnRename" : "Universe_1_0",
-          "productionPath" : "CELL_VALUE_PRODUCER_IDENTITY_FACTORY\u0000CELL_CONVERTER_IDENTITY_FACTORY"
-        }, {
-          "columnName" : "Universe_1_1",
-          "originalProductionPath" : "CELL_VALUE_PRODUCER_IDENTITY_FACTORY\u0000CELL_CONVERTER_IDENTITY_FACTORY",
-          "originalTypeLabel" : "Number (Float)",
-          "includeInOutput" : true,
-          "columnRename" : "Universe_1_1",
-          "productionPath" : "CELL_VALUE_PRODUCER_IDENTITY_FACTORY\u0000CELL_CONVERTER_IDENTITY_FACTORY"
-        }, {
           "columnName" : null,
           "originalProductionPath" : "<default-columntype>",
           "originalTypeLabel" : "Default columntype",
           "includeInOutput" : true,
           "columnRename" : null,
-          "productionPath" : "{\"name\":\"type\",\"value\":{\"type\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.vector.bitvector.DenseBitVectorCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}"
+          "productionPath" : "<default-columntype>"
         } ]
       }
     }
@@ -1255,7 +1188,10 @@
               }
             }
           }
-        }
+        },
+        "propertiesDeprecatedConfigKeys" : [ {
+          "deprecated" : [ [ "settings" ], [ "advanced_settings" ], [ "table_spec_config_Internals" ] ]
+        } ]
       }
     }
   },

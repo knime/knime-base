@@ -46,49 +46,22 @@
  * History
  *   Nov 21, 2025: created
  */
-package org.knime.base.node.io.filehandling.table.reader2;
+package org.knime.base.node.io.filehandling.table.reader;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettings;
-import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
-import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
-import org.knime.testing.node.dialog.SnapshotTestConfiguration;
+import org.knime.base.node.io.filehandling.table.reader.KnimeTableReaderSpecific.ProductionPathProviderAndTypeHierarchy;
+import org.knime.base.node.io.filehandling.webui.reader2.DataTypeSerializer;
+import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters;
+import org.knime.core.data.DataType;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 
 /**
- * Tests the {@link KnimeTableReaderNodeParameters} persistence.
+ * Transformation parameters for the Table Reader Node.
  *
- * @author Paul Baernreuther
+ * @author Paul Bärnreuther
  */
 @SuppressWarnings("restriction")
-class KnimeTableReaderNodeParametersTest extends DefaultNodeSettingsSnapshotTest {
-    protected KnimeTableReaderNodeParametersTest() {
-        super(getConfig());
-    }
-
-    private static SnapshotTestConfiguration getConfig() {
-        return SnapshotTestConfiguration.builder() //
-            .testJsonFormsForModel(KnimeTableReaderNodeParameters.class) //
-            .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings()) //
-            .testNodeSettingsStructure(() -> readSettings()) //
-            .build();
-    }
-
-    private static KnimeTableReaderNodeParameters readSettings() {
-        try {
-            var path = getSnapshotPath(KnimeTableReaderNodeParametersTest.class).getParent().resolve("node_settings")
-                .resolve("KnimeTableReaderNodeParameters.xml");
-            try (var fis = new FileInputStream(path.toFile())) {
-                var nodeSettings = NodeSettings.loadFromXML(fis);
-                return NodeParametersUtil.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
-                    KnimeTableReaderNodeParameters.class);
-            }
-        } catch (IOException | InvalidSettingsException e) {
-            throw new RuntimeException(e);
-        }
-    }
+@Modification(KnimeTableReaderTransformationParametersStateProviders.TransformationSettingsWidgetModification.class)
+final class KnimeTableReaderTransformationParameters extends TransformationParameters<DataType>
+    implements ProductionPathProviderAndTypeHierarchy, DataTypeSerializer {
 
 }

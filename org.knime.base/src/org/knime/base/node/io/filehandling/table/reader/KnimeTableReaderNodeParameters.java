@@ -46,11 +46,10 @@
  * History
  *   Nov 5, 2025 (Marc Bux, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.base.node.io.filehandling.table.reader2;
+package org.knime.base.node.io.filehandling.table.reader;
 
 import java.util.Optional;
 
-import org.knime.base.node.io.filehandling.table.reader.KnimeTableMultiTableReadConfig;
 import org.knime.base.node.io.filehandling.webui.reader2.AbstractConfigIDSaver;
 import org.knime.base.node.io.filehandling.webui.reader2.MultiFileSelectionPath;
 import org.knime.core.node.InvalidSettingsException;
@@ -60,6 +59,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.additionalsave.Sa
 import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigID;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.migration.Migration;
 import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.ValueReference;
 
@@ -68,6 +68,7 @@ import org.knime.node.parameters.updates.ValueReference;
  *
  * @author Paul Bärnreuther
  */
+@Migration(KnimeTableReaderMigration.class)
 class KnimeTableReaderNodeParameters implements NodeParameters {
 
     KnimeTableReaderNodeParameters(final NodeParametersInput input) {
