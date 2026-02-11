@@ -64,8 +64,4 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 final class KnimeTableReaderTransformationParameters extends TransformationParameters<DataType>
     implements ProductionPathProviderAndTypeHierarchy, DataTypeSerializer {
 
-    @Override
-    protected String getConfigIdSettingsKey() {
-        return "table_reader";
-    }
 }

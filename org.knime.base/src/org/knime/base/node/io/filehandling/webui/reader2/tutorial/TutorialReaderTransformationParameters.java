@@ -61,8 +61,4 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 final class TutorialReaderTransformationParameters extends ClassBasedTransformationParameters
     implements ProductionPathProviderAndTypeHierarchy {
 
-    @Override
-    protected String getConfigIdSettingsKey() {
-        return ""; // TODO (#5): return the key used to generate the config ID (see your implementation of ConfigIDLoader.createFromSettings)
-    }
 }

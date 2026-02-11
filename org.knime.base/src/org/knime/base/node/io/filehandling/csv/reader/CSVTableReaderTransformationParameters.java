@@ -60,10 +60,4 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 final class CSVTableReaderTransformationParameters extends ClassBasedTransformationParameters
     implements ProductionPathProviderAndTypeHierarchy {
 
-    @Override
-    protected String getConfigIdSettingsKey() {
-        return "multi_table_read";
-    }
-
-
 }

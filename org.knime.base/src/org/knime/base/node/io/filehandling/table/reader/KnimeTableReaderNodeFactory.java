@@ -151,9 +151,7 @@ public class KnimeTableReaderNodeFactory extends WebUITableReaderNodeFactory<Kni
 
         @Override
         protected ConfigIDLoader getConfigIDLoader() {
-            // TODO: Return the KnimeTableMultiTableReadConfigSerializer once we moved this factory back into the same package
-            return settings -> new NodeSettingsConfigID(
-                settings.getNodeSettings(new KnimeTableReaderTransformationParameters().getConfigIdSettingsKey()));
+            return KnimeTableMultiTableReadConfigSerializer.INSTANCE;
         }
 
     }

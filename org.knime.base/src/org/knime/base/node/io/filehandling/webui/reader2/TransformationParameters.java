@@ -718,13 +718,6 @@ public abstract class TransformationParameters<T>
     }
 
     /**
-     * The key used in the settings to store all settigns within the config ID.
-     *
-     * @return the config ID settings key
-     */
-    protected abstract String getConfigIdSettingsKey();
-
-    /**
      * Use this method in a {@link NodeParametersMigration} to load transformation settings from a legacy
      * {@link TableSpecConfig}.
      * 
