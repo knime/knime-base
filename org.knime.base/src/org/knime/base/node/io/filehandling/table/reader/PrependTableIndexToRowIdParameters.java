@@ -44,28 +44,50 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 21, 2025: created
+ *   Nov 24, 2025 (Paul Bärnreuther): created
  */
-package org.knime.base.node.io.filehandling.table.reader2;
+package org.knime.base.node.io.filehandling.table.reader;
 
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderSpecific.ProductionPathProviderAndTypeHierarchy;
-import org.knime.base.node.io.filehandling.webui.reader2.DataTypeSerializer;
-import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters;
-import org.knime.core.data.DataType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
+import org.knime.base.node.io.filehandling.table.reader.PrependTableIndexToRowIdParameters.PrependTableIndexToRowIdLayout;
+import org.knime.base.node.io.filehandling.webui.reader2.AppendFilePathColumnParameters.AppendFilePathColumn;
+import org.knime.base.node.io.filehandling.webui.reader2.MultiFileReaderParameters.HowToCombineColumns;
+import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.layout.After;
+import org.knime.node.parameters.layout.Before;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
 
 /**
- * Transformation parameters for the Table Reader Node.
+ * Parameters for prepending table index to RowID (KnimeTable-specific).
  *
  * @author Paul Bärnreuther
  */
-@SuppressWarnings("restriction")
-@Modification(KnimeTableReaderTransformationParametersStateProviders.TransformationSettingsWidgetModification.class)
-final class KnimeTableReaderTransformationParameters extends TransformationParameters<DataType>
-    implements ProductionPathProviderAndTypeHierarchy, DataTypeSerializer {
+@Layout(PrependTableIndexToRowIdLayout.class)
+final class PrependTableIndexToRowIdParameters implements NodeParameters {
 
-    @Override
-    protected String getConfigIdSettingsKey() {
-        return "table_reader";
+    @After(HowToCombineColumns.class)
+    @Before(AppendFilePathColumn.class)
+    interface PrependTableIndexToRowIdLayout {
+    }
+
+    @Widget(title = "Prepend table index to RowID", description = """
+            Only enabled if the existing RowIDs are used. If checked, a prefix is
+            prepended to the RowIDs that indicates which table the row came
+            from.
+            The format of the prefix is "File_0_", "File_1_" and so on.
+                """)
+    @Effect(predicate = UseExistingRowIdParameters.UseExistingRowIdRef.class, type = EffectType.ENABLE)
+    boolean m_prependTableIndexToRowId;
+
+    /**
+     * Save the settings to the given config.
+     *
+     * @param tableReadConfig the config to save to
+     */
+    void saveToConfig(final DefaultTableReadConfig<?> tableReadConfig) {
+        tableReadConfig.setPrependSourceIdxToRowId(m_prependTableIndexToRowId);
     }
 }

@@ -44,69 +44,50 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 21, 2025: created
+ *   Nov 24, 2025 (Paul Bärnreuther): created
  */
-package org.knime.base.node.io.filehandling.table.reader2;
+package org.knime.base.node.io.filehandling.table.reader;
 
-import org.knime.base.node.io.filehandling.table.reader.KnimeTableMultiTableReadConfig;
-import org.knime.base.node.io.filehandling.table.reader.KnimeTableReader;
-import org.knime.base.node.io.filehandling.webui.reader2.ReaderSpecific;
-import org.knime.base.node.preproc.manipulator.TableManipulatorConfig;
-import org.knime.base.node.preproc.manipulator.mapping.DataTypeTypeHierarchy;
-import org.knime.base.node.preproc.manipulator.mapping.DataValueReadAdapterFactory;
-import org.knime.core.data.DataType;
-import org.knime.core.data.convert.map.ProducerRegistry;
-import org.knime.filehandling.core.node.table.reader.DefaultProductionPathProvider;
-import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
-import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
-import org.knime.node.parameters.NodeParametersInput;
+import org.knime.base.node.io.filehandling.table.reader.UseExistingRowIdParameters.UseExistingRowIdLayout;
+import org.knime.base.node.io.filehandling.webui.reader2.MaxNumberOfRowsParameters;
+import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.layout.After;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.updates.util.BooleanReference;
 
 /**
- * Reader-specific interfaces for the Table Reader Node.
+ * Parameters for specifying whether to use existing RowIDs (KnimeTable-specific).
  *
  * @author Paul Bärnreuther
  */
-final class KnimeTableReaderSpecific {
+@Layout(UseExistingRowIdLayout.class)
+final class UseExistingRowIdParameters implements NodeParameters {
 
-    static final ProductionPathProvider<DataType> PRODUCTION_PATH_PROVIDER =
-        new DefaultProductionPathProvider<>(DataValueReadAdapterFactory.INSTANCE.getProducerRegistry(),
-            DataValueReadAdapterFactory.INSTANCE::getDefaultType);
-
-    interface ProductionPathProviderAndTypeHierarchy
-        extends ReaderSpecific.ProductionPathProviderAndTypeHierarchy<DataType> {
-        @Override
-        default ProductionPathProvider<DataType> getProductionPathProvider() {
-            return PRODUCTION_PATH_PROVIDER;
-        }
-
-        @Override
-        default ProducerRegistry<DataType, ?> getProducerRegistry() {
-            return DataValueReadAdapterFactory.INSTANCE.getProducerRegistry();
-        }
-
-        @Override
-        default TypeHierarchy<DataType, DataType> getTypeHierarchy() {
-            return DataTypeTypeHierarchy.INSTANCE;
-        }
+    @After(MaxNumberOfRowsParameters.LimitNumberOfRows.class)
+    interface UseExistingRowIdLayout {
     }
 
-    interface ConfigAndReader
-        extends ReaderSpecific.ConfigAndReader<TableManipulatorConfig, DataType, KnimeTableMultiTableReadConfig> {
-
-        @Override
-        default KnimeTableMultiTableReadConfig createMultiTableReadConfig(final NodeParametersInput input) {
-            return new KnimeTableMultiTableReadConfig();
-        }
-
-        @SuppressWarnings("unchecked")
-        @Override
-        default KnimeTableReader createTableReader() {
-            return new KnimeTableReader();
-        }
-
+    static class UseExistingRowIdRef implements BooleanReference {
     }
 
-    private KnimeTableReaderSpecific() {
-        // Utility class
+    @Widget(title = "Use existing RowID", description = """
+            Check this box if the RowIDs from the input tables should be used for
+            the output tables. If unchecked, a new RowID is generated.
+            The generated RowID follows the schema "Row0", "Row1" and so on.
+            """)
+    @ValueReference(UseExistingRowIdRef.class)
+    boolean m_useExistingRowId;
+
+    /**
+     * Save the settings to the given config.
+     *
+     * @param tableReadConfig the config to save to
+     */
+    void saveToConfig(final DefaultTableReadConfig<?> tableReadConfig) {
+        tableReadConfig.setRowIDIdx(0);
+        tableReadConfig.setUseRowIDIdx(m_useExistingRowId);
     }
 }

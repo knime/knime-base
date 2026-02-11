@@ -44,50 +44,51 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 24, 2025 (Paul Bärnreuther): created
+ *   Nov 21, 2025: created
  */
-package org.knime.base.node.io.filehandling.table.reader2;
+package org.knime.base.node.io.filehandling.table.reader;
 
-import org.knime.base.node.io.filehandling.table.reader2.UseExistingRowIdParameters.UseExistingRowIdLayout;
-import org.knime.base.node.io.filehandling.webui.reader2.MaxNumberOfRowsParameters;
-import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
-import org.knime.node.parameters.NodeParameters;
-import org.knime.node.parameters.Widget;
-import org.knime.node.parameters.layout.After;
-import org.knime.node.parameters.layout.Layout;
-import org.knime.node.parameters.updates.ValueReference;
-import org.knime.node.parameters.updates.util.BooleanReference;
+import java.io.FileInputStream;
+import java.io.IOException;
+
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettings;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
+import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
+import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 
 /**
- * Parameters for specifying whether to use existing RowIDs (KnimeTable-specific).
+ * Tests the {@link KnimeTableReaderNodeParameters} persistence.
  *
- * @author Paul Bärnreuther
+ * @author Paul Baernreuther
  */
-@Layout(UseExistingRowIdLayout.class)
-final class UseExistingRowIdParameters implements NodeParameters {
-
-    @After(MaxNumberOfRowsParameters.LimitNumberOfRows.class)
-    interface UseExistingRowIdLayout {
+@SuppressWarnings("restriction")
+class KnimeTableReaderNodeParametersTest extends DefaultNodeSettingsSnapshotTest {
+    protected KnimeTableReaderNodeParametersTest() {
+        super(getConfig());
     }
 
-    static class UseExistingRowIdRef implements BooleanReference {
+    private static SnapshotTestConfiguration getConfig() {
+        return SnapshotTestConfiguration.builder() //
+            .testJsonFormsForModel(KnimeTableReaderNodeParameters.class) //
+            .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings()) //
+            .testNodeSettingsStructure(() -> readSettings()) //
+            .build();
     }
 
-    @Widget(title = "Use existing RowID", description = """
-            Check this box if the RowIDs from the input tables should be used for
-            the output tables. If unchecked, a new RowID is generated.
-            The generated RowID follows the schema "Row0", "Row1" and so on.
-            """)
-    @ValueReference(UseExistingRowIdRef.class)
-    boolean m_useExistingRowId;
-
-    /**
-     * Save the settings to the given config.
-     *
-     * @param tableReadConfig the config to save to
-     */
-    void saveToConfig(final DefaultTableReadConfig<?> tableReadConfig) {
-        tableReadConfig.setRowIDIdx(0);
-        tableReadConfig.setUseRowIDIdx(m_useExistingRowId);
+    private static KnimeTableReaderNodeParameters readSettings() {
+        try {
+            var path = getSnapshotPath(KnimeTableReaderNodeParametersTest.class).getParent().resolve("node_settings")
+                .resolve("KnimeTableReaderNodeParameters.xml");
+            try (var fis = new FileInputStream(path.toFile())) {
+                var nodeSettings = NodeSettings.loadFromXML(fis);
+                return NodeParametersUtil.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
+                    KnimeTableReaderNodeParameters.class);
+            }
+        } catch (IOException | InvalidSettingsException e) {
+            throw new RuntimeException(e);
+        }
     }
+
 }

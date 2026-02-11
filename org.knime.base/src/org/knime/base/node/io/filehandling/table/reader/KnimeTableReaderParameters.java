@@ -46,11 +46,10 @@
  * History
  *   Nov 21, 2025: created
  */
-package org.knime.base.node.io.filehandling.table.reader2;
+package org.knime.base.node.io.filehandling.table.reader;
 
 import java.net.URL;
 
-import org.knime.base.node.io.filehandling.table.reader.KnimeTableMultiTableReadConfig;
 import org.knime.base.node.io.filehandling.webui.reader2.IfSchemaChangesParameters;
 import org.knime.base.node.io.filehandling.webui.reader2.MaxNumberOfRowsParameters;
 import org.knime.base.node.io.filehandling.webui.reader2.MultiFileReaderParameters;

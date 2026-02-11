@@ -46,15 +46,13 @@
  * History
  *   Nov 21, 2025: created
  */
-package org.knime.base.node.io.filehandling.table.reader2;
+package org.knime.base.node.io.filehandling.table.reader;
 
 import static org.knime.node.impl.description.PortDescription.dynamicPort;
 import static org.knime.node.impl.description.PortDescription.fixedPort;
 
 import java.util.List;
 
-import org.knime.base.node.io.filehandling.table.reader.KnimeTableMultiTableReadConfig;
-import org.knime.base.node.io.filehandling.table.reader.KnimeTableReader;
 import org.knime.base.node.io.filehandling.webui.reader2.MultiFileSelectionPath;
 import org.knime.base.node.io.filehandling.webui.reader2.NodeParametersConfigAndSourceSerializer;
 import org.knime.base.node.io.filehandling.webui.reader2.WebUITableReaderNodeFactory;

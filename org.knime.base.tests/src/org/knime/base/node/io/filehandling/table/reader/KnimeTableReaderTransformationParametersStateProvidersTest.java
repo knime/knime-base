@@ -46,7 +46,7 @@
  * History
  *   Nov 21, 2025: created
  */
-package org.knime.base.node.io.filehandling.table.reader2;
+package org.knime.base.node.io.filehandling.table.reader;
 
 import java.io.File;
 import java.io.IOException;
