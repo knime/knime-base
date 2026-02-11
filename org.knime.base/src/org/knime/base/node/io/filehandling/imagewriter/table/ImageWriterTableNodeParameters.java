@@ -158,6 +158,11 @@ class ImageWriterTableNodeParameters implements NodeParameters {
         protected ImageColumnChoicesProvider() {
             super(ImageValue.class);
         }
+
+        @Override
+        public int getInputTableIndex() {
+            return 1; // Data table is at port 1, FileSystemConnection is at port 0
+        }
     }
 
     @Layout(ImageColumn.class)
@@ -215,6 +220,11 @@ class ImageWriterTableNodeParameters implements NodeParameters {
     private static final class FileNameColumnChoicesProvider extends CompatibleColumnsProvider.StringColumnsProvider {
         protected FileNameColumnChoicesProvider() {
             super();
+        }
+
+        @Override
+        public int getInputTableIndex() {
+            return 1; // Data table is at port 1, FileSystemConnection is at port 0
         }
     }
 
