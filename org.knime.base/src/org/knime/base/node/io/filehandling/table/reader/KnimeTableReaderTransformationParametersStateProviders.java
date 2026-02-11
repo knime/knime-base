@@ -46,14 +46,13 @@
  * History
  *   Nov 21, 2025: created
  */
-package org.knime.base.node.io.filehandling.table.reader2;
+package org.knime.base.node.io.filehandling.table.reader;
 
 import java.util.function.Supplier;
 
-import org.knime.base.node.io.filehandling.table.reader.KnimeTableMultiTableReadConfig;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderNodeParameters.KnimeTableReaderParametersRef;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderSpecific.ConfigAndReader;
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderSpecific.ProductionPathProviderAndTypeHierarchy;
+import org.knime.base.node.io.filehandling.table.reader.KnimeTableReaderNodeParameters.KnimeTableReaderParametersRef;
+import org.knime.base.node.io.filehandling.table.reader.KnimeTableReaderSpecific.ConfigAndReader;
+import org.knime.base.node.io.filehandling.table.reader.KnimeTableReaderSpecific.ProductionPathProviderAndTypeHierarchy;
 import org.knime.base.node.io.filehandling.webui.reader2.DataTypeSerializer;
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParametersStateProviders;
 import org.knime.base.node.preproc.manipulator.TableManipulatorConfig;

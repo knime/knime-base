@@ -44,53 +44,77 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   27 May 2021 (moditha.hewasinghge): created
+ *   Nov 21, 2025: created
  */
 package org.knime.base.node.io.filehandling.table.reader;
 
+import static org.knime.node.impl.description.PortDescription.dynamicPort;
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
 import java.util.Optional;
 
+import org.knime.base.node.io.filehandling.webui.reader2.BackwardsCompatibleWebUITableReaderNodeFactory;
+import org.knime.base.node.io.filehandling.webui.reader2.MultiFileSelectionPath;
+import org.knime.base.node.io.filehandling.webui.reader2.NodeParametersConfigAndSourceSerializer;
 import org.knime.base.node.preproc.manipulator.TableManipulatorConfig;
 import org.knime.base.node.preproc.manipulator.mapping.DataTypeTypeHierarchy;
 import org.knime.base.node.preproc.manipulator.mapping.DataValueReadAdapterFactory;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.context.url.URLConfiguration;
+import org.knime.core.util.Version;
+import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.filehandling.core.connections.FSLocationUtil;
 import org.knime.filehandling.core.connections.FSPath;
 import org.knime.filehandling.core.defaultnodesettings.EnumConfig;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
 import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
-import org.knime.filehandling.core.node.table.reader.AbstractTableReaderNodeFactory;
-import org.knime.filehandling.core.node.table.reader.MultiTableReadFactory;
-import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
+import org.knime.filehandling.core.node.table.reader.GenericTableReader;
 import org.knime.filehandling.core.node.table.reader.ReadAdapterFactory;
-import org.knime.filehandling.core.node.table.reader.TableReader;
-import org.knime.filehandling.core.node.table.reader.preview.dialog.AbstractPathTableReaderNodeDialog;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigID;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigIDLoader;
+import org.knime.filehandling.core.node.table.reader.paths.SourceSettings;
 import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
 
 /**
- * Node factory for the table reader node.
+ * Node factory for the Table Reader node featuring a WebUI {@link NodeDialog}.
  *
- * @author Moditha Hewasinghage, KNIME GmbH, Berlin, Germany
+ * @author Paul Bärnreuther
  */
+@SuppressWarnings("restriction")
 public class KnimeTableReaderNodeFactory
-    extends AbstractTableReaderNodeFactory<TableManipulatorConfig, DataType, DataValue> {
+    extends BackwardsCompatibleWebUITableReaderNodeFactory<KnimeTableReaderNodeParameters, //
+            MultiFileSelectionPath, TableManipulatorConfig, DataType, DataValue, KnimeTableMultiTableReadConfig> {
 
-    private static final String[] FILE_SUFFIXES = new String[]{".table"};
+    @SuppressWarnings("javadoc")
+    public KnimeTableReaderNodeFactory() {
+        super(KnimeTableReaderNodeParameters.class);
+    }
 
     @Override
-    protected SettingsModelReaderFileChooser createPathSettings(final NodeCreationConfiguration nodeCreationConfig) {
-        final SettingsModelReaderFileChooser settingsModel = new SettingsModelReaderFileChooser("file_selection",
-            nodeCreationConfig.getPortConfig().orElseThrow(IllegalStateException::new), FS_CONNECT_GRP_ID,
-            EnumConfig.create(FilterMode.FILE, FilterMode.FILES_IN_FOLDERS), FILE_SUFFIXES);
-        final Optional<? extends URLConfiguration> urlConfig = nodeCreationConfig.getURLConfig();
-        if (urlConfig.isPresent()) {
-            settingsModel
-                .setLocation(FSLocationUtil.createFromURL(urlConfig.get().getUrl().toString()));
-        }
-        return settingsModel;
+    protected NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription( //
+            "Table Reader", //
+            "../reader/tableread.png", //
+            List.of(dynamicPort(FS_CONNECT_GRP_ID, "File System Connection", "The file system connection.")), //
+            List.of(fixedPort("Read table", "The table contained in the selected file.")), //
+            "Reads table written by the Table Writer node.", //
+            """
+                    This node reads files that have been written using the Table Writer node
+                    (which uses an internal format). It retains all meta information
+                    such as domain, properties, colors, size.
+                    """, //
+            List.of(), //
+            KnimeTableReaderNodeParameters.class, //
+            null, //
+            NodeType.Source, //
+            List.of("Table", "Read", "Input"), //
+            new Version(5, 5, 0) //
+        );
     }
 
     @Override
@@ -99,7 +123,7 @@ public class KnimeTableReaderNodeFactory
     }
 
     @Override
-    protected TableReader<TableManipulatorConfig, DataType, DataValue> createReader() {
+    protected GenericTableReader<FSPath, TableManipulatorConfig, DataType, DataValue> createReader() {
         return new KnimeTableReader();
     }
 
@@ -114,17 +138,58 @@ public class KnimeTableReaderNodeFactory
     }
 
     @Override
-    protected AbstractPathTableReaderNodeDialog<TableManipulatorConfig, DataType> createNodeDialogPane(
-        final NodeCreationConfiguration creationConfig,
-        final MultiTableReadFactory<FSPath, TableManipulatorConfig, DataType> readFactory,
-        final ProductionPathProvider<DataType> defaultProductionPathFn) {
+    protected KnimeTableConfigAndSourceSerializer createSerializer() {
+        return new KnimeTableConfigAndSourceSerializer();
+    }
 
-        return new KnimeTableReaderNodeDialog(createPathSettings(creationConfig), createConfig(creationConfig),
-            readFactory, defaultProductionPathFn);
+    private final class KnimeTableConfigAndSourceSerializer
+        extends NodeParametersConfigAndSourceSerializer<KnimeTableReaderNodeParameters, //
+                MultiFileSelectionPath, TableManipulatorConfig, DataType, KnimeTableMultiTableReadConfig> {
+        protected KnimeTableConfigAndSourceSerializer() {
+            super(KnimeTableReaderNodeParameters.class);
+        }
+
+        @Override
+        protected void saveToSourceAndConfig(final KnimeTableReaderNodeParameters params, final String existingSourceId,
+            final ConfigID configId, final MultiFileSelectionPath sourceSettings,
+            final KnimeTableMultiTableReadConfig config) {
+            params.saveToSource(sourceSettings);
+            params.saveToConfig(config, existingSourceId, configId);
+        }
+
+        @Override
+        protected ConfigIDLoader getConfigIDLoader() {
+            return KnimeTableMultiTableReadConfigSerializer.INSTANCE;
+        }
+
+    }
+
+    @Override
+    protected MultiFileSelectionPath createPathSettings(final NodeCreationConfiguration nodeCreationConfig) {
+        final var source = new MultiFileSelectionPath();
+        final var defaultParams = new KnimeTableReaderNodeParameters(nodeCreationConfig);
+        defaultParams.saveToSource(source);
+        return source;
     }
 
     @Override
     protected KnimeTableMultiTableReadConfig createConfig(final NodeCreationConfiguration nodeCreationConfig) {
-        return new KnimeTableMultiTableReadConfig();
+        final var cfg = new KnimeTableMultiTableReadConfig();
+        final var defaultParams = new KnimeTableReaderNodeParameters(nodeCreationConfig);
+        defaultParams.saveToConfig(cfg);
+        return cfg;
+    }
+
+    private static final String[] FILE_SUFFIXES = {".table"};
+
+    @Override
+    protected SourceSettings<FSPath> createLegacySourceSettings(final NodeCreationConfiguration nodeCreationConfig) {
+        final SettingsModelReaderFileChooser settingsModel = new SettingsModelReaderFileChooser("file_selection",
+            nodeCreationConfig.getPortConfig().orElseThrow(IllegalStateException::new), FS_CONNECT_GRP_ID,
+            EnumConfig.create(FilterMode.FILE, FilterMode.FILES_IN_FOLDERS), FILE_SUFFIXES);
+        final Optional<? extends URLConfiguration> urlConfig = nodeCreationConfig.getURLConfig();
+        urlConfig.ifPresent(urlConfiguration -> settingsModel
+            .setLocation(FSLocationUtil.createFromURL(urlConfiguration.getUrl().toString())));
+        return settingsModel;
     }
 }

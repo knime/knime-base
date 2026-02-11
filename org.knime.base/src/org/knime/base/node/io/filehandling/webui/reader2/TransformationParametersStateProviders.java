@@ -529,7 +529,8 @@ public final class TransformationParametersStateProviders {
 
             final var path = Optional.ofNullable(unknownElementsType)
                 .flatMap(type -> findProductionPath(colSpec.getType(), type)).orElse(defPath);
-            return new TransformationElementSettings(name, includeInOutput, name, path, defPath);
+            return new TransformationElementSettings(name, includeInOutput, name, path, defPath,
+                getProductionPathSerializer());
 
         }
 
@@ -587,8 +588,10 @@ public final class TransformationParametersStateProviders {
             }
             final var columnSpec = columnSpecOpt.get();
             final var productionPaths = getProductionPathProvider().getAvailableProductionPaths(columnSpec.getType());
-            return productionPaths.stream().map(p -> new StringChoice(ProductionPathUtils.getPathIdentifier(p),
-                p.getDestinationType().toPrettyString())).toList();
+            return productionPaths.stream()
+                .map(p -> new StringChoice(ProductionPathUtils.getPathIdentifier(p, getProductionPathSerializer()),
+                    p.getDestinationType().toPrettyString()))
+                .toList();
         }
 
     }

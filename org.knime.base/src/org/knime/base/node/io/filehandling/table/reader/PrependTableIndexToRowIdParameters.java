@@ -44,69 +44,59 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 21, 2025: created
+ *   Nov 24, 2025 (Paul Bärnreuther): created
  */
-package org.knime.base.node.io.filehandling.table.reader2;
+package org.knime.base.node.io.filehandling.table.reader;
 
-import org.knime.base.node.io.filehandling.table.reader.KnimeTableMultiTableReadConfig;
-import org.knime.base.node.io.filehandling.table.reader.KnimeTableReader;
-import org.knime.base.node.io.filehandling.webui.reader2.ReaderSpecific;
-import org.knime.base.node.preproc.manipulator.TableManipulatorConfig;
-import org.knime.base.node.preproc.manipulator.mapping.DataTypeTypeHierarchy;
-import org.knime.base.node.preproc.manipulator.mapping.DataValueReadAdapterFactory;
-import org.knime.core.data.DataType;
-import org.knime.core.data.convert.map.ProducerRegistry;
-import org.knime.filehandling.core.node.table.reader.DefaultProductionPathProvider;
-import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
-import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
-import org.knime.node.parameters.NodeParametersInput;
+import org.knime.base.node.io.filehandling.table.reader.PrependTableIndexToRowIdParameters.PrependTableIndexToRowIdLayout;
+import org.knime.base.node.io.filehandling.webui.reader2.AppendFilePathColumnParameters.AppendFilePathColumn;
+import org.knime.base.node.io.filehandling.webui.reader2.MultiFileReaderParameters.HowToCombineColumns;
+import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.layout.After;
+import org.knime.node.parameters.layout.Before;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
 
 /**
- * Reader-specific interfaces for the Table Reader Node.
+ * Parameters for prepending table index to RowID (KnimeTable-specific).
  *
  * @author Paul Bärnreuther
  */
-final class KnimeTableReaderSpecific {
+@Layout(PrependTableIndexToRowIdLayout.class)
+final class PrependTableIndexToRowIdParameters implements NodeParameters {
 
-    static final ProductionPathProvider<DataType> PRODUCTION_PATH_PROVIDER =
-        new DefaultProductionPathProvider<>(DataValueReadAdapterFactory.INSTANCE.getProducerRegistry(),
-            DataValueReadAdapterFactory.INSTANCE::getDefaultType);
-
-    interface ProductionPathProviderAndTypeHierarchy
-        extends ReaderSpecific.ProductionPathProviderAndTypeHierarchy<DataType> {
-        @Override
-        default ProductionPathProvider<DataType> getProductionPathProvider() {
-            return PRODUCTION_PATH_PROVIDER;
-        }
-
-        @Override
-        default ProducerRegistry<DataType, ?> getProducerRegistry() {
-            return DataValueReadAdapterFactory.INSTANCE.getProducerRegistry();
-        }
-
-        @Override
-        default TypeHierarchy<DataType, DataType> getTypeHierarchy() {
-            return DataTypeTypeHierarchy.INSTANCE;
-        }
+    @After(HowToCombineColumns.class)
+    @Before(AppendFilePathColumn.class)
+    interface PrependTableIndexToRowIdLayout {
     }
 
-    interface ConfigAndReader
-        extends ReaderSpecific.ConfigAndReader<TableManipulatorConfig, DataType, KnimeTableMultiTableReadConfig> {
+    @Widget(title = "Prepend table index to RowID", description = """
+            Only enabled if the existing RowIDs are used. If checked, a prefix is
+            prepended to the RowIDs that indicates which table the row came
+            from.
+            The format of the prefix is "File_0_", "File_1_" and so on.
+                """)
+    @Effect(predicate = UseExistingRowIdParameters.UseExistingRowIdRef.class, type = EffectType.ENABLE)
+    boolean m_prependTableIndexToRowId;
 
-        @Override
-        default KnimeTableMultiTableReadConfig createMultiTableReadConfig(final NodeParametersInput input) {
-            return new KnimeTableMultiTableReadConfig();
-        }
-
-        @SuppressWarnings("unchecked")
-        @Override
-        default KnimeTableReader createTableReader() {
-            return new KnimeTableReader();
-        }
-
+    /**
+     * Save the settings to the given config.
+     *
+     * @param tableReadConfig the config to save to
+     */
+    void saveToConfig(final DefaultTableReadConfig<?> tableReadConfig) {
+        tableReadConfig.setPrependSourceIdxToRowId(m_prependTableIndexToRowId);
     }
 
-    private KnimeTableReaderSpecific() {
-        // Utility class
+    /**
+     * Load the settings from the given config.
+     *
+     * @param tableReadConfig the config to load from
+     */
+    void loadFromConfig(final DefaultTableReadConfig<?> tableReadConfig) {
+        m_prependTableIndexToRowId = tableReadConfig.prependSourceIdxToRowID();
     }
 }

@@ -46,26 +46,66 @@
  * History
  *   Nov 21, 2025: created
  */
-package org.knime.base.node.io.filehandling.table.reader2;
+package org.knime.base.node.io.filehandling.table.reader;
 
-import org.knime.base.node.io.filehandling.table.reader2.KnimeTableReaderSpecific.ProductionPathProviderAndTypeHierarchy;
-import org.knime.base.node.io.filehandling.webui.reader2.DataTypeSerializer;
-import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters;
+import org.knime.base.node.io.filehandling.webui.reader2.ReaderSpecific;
+import org.knime.base.node.preproc.manipulator.TableManipulatorConfig;
+import org.knime.base.node.preproc.manipulator.mapping.DataTypeProducerRegistry;
+import org.knime.base.node.preproc.manipulator.mapping.DataTypeTypeHierarchy;
+import org.knime.base.node.preproc.manipulator.mapping.DataValueReadAdapterFactory;
 import org.knime.core.data.DataType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
+import org.knime.filehandling.core.node.table.reader.DefaultProductionPathProvider;
+import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.ProductionPathSerializer;
+import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
+import org.knime.node.parameters.NodeParametersInput;
 
 /**
- * Transformation parameters for the Table Reader Node.
+ * Reader-specific interfaces for the Table Reader Node.
  *
  * @author Paul Bärnreuther
  */
-@SuppressWarnings("restriction")
-@Modification(KnimeTableReaderTransformationParametersStateProviders.TransformationSettingsWidgetModification.class)
-final class KnimeTableReaderTransformationParameters extends TransformationParameters<DataType>
-    implements ProductionPathProviderAndTypeHierarchy, DataTypeSerializer {
+final class KnimeTableReaderSpecific {
 
-    @Override
-    protected String getConfigIdSettingsKey() {
-        return "table_reader";
+    static final ProductionPathProvider<DataType> PRODUCTION_PATH_PROVIDER =
+        new DefaultProductionPathProvider<>(DataValueReadAdapterFactory.INSTANCE.getProducerRegistry(),
+            DataValueReadAdapterFactory.INSTANCE::getDefaultType);
+
+    interface ProductionPathProviderAndTypeHierarchy
+        extends ReaderSpecific.ProductionPathProviderAndTypeHierarchy<DataType> {
+        @Override
+        default ProductionPathProvider<DataType> getProductionPathProvider() {
+            return PRODUCTION_PATH_PROVIDER;
+        }
+
+        @Override
+        default ProductionPathSerializer getProductionPathSerializer() {
+            return DataTypeProducerRegistry.PATH_SERIALIZER;
+        }
+
+        @Override
+        default TypeHierarchy<DataType, DataType> getTypeHierarchy() {
+            return DataTypeTypeHierarchy.INSTANCE;
+        }
+    }
+
+    interface ConfigAndReader
+        extends ReaderSpecific.ConfigAndReader<TableManipulatorConfig, DataType, KnimeTableMultiTableReadConfig> {
+
+        @Override
+        default KnimeTableMultiTableReadConfig createMultiTableReadConfig(final NodeParametersInput input) {
+            return new KnimeTableMultiTableReadConfig();
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        default KnimeTableReader createTableReader() {
+            return new KnimeTableReader();
+        }
+
+    }
+
+    private KnimeTableReaderSpecific() {
+        // Utility class
     }
 }

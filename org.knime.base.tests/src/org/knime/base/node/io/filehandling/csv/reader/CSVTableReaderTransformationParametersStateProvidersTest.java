@@ -67,6 +67,7 @@ import org.knime.core.data.def.LongCell;
 import org.knime.core.util.Pair;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.ProductionPathSerializer;
 
 /**
  *
@@ -122,6 +123,11 @@ final class CSVTableReaderTransformationParametersStateProvidersTest
     @Override
     protected ProductionPathProvider<Class<?>> getProductionPathProvider() {
         return CSVTableReaderSpecific.PRODUCTION_PATH_PROVIDER;
+    }
+
+    @Override
+    protected ProductionPathSerializer getProductionPathSerializer() {
+        return new CSVTableReaderTransformationParameters().getProductionPathSerializer();
     }
 
     @Override
