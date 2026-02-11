@@ -71,6 +71,7 @@ import org.knime.node.parameters.layout.After;
 import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.layout.Section;
 import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
+import org.knime.node.parameters.migration.Migrate;
 import org.knime.node.parameters.persistence.NodeParametersPersistor;
 import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistor;
@@ -172,6 +173,7 @@ class ImageWriterTableNodeParameters implements NodeParameters {
     boolean m_removeImageColumn;
 
     @Layout(FileNames.class)
+    @Migrate
     @Persistor(FileNamingPersistor.class)
     FileNamingSettings m_fileNaming = new FileNamingSettings();
 
