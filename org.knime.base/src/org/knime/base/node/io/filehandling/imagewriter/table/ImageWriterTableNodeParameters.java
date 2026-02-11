@@ -46,8 +46,12 @@
 
 package org.knime.base.node.io.filehandling.imagewriter.table;
 
+import java.util.Arrays;
 import java.util.List;
 
+import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.StringValue;
 import org.knime.core.data.image.ImageValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
@@ -61,6 +65,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.St
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification.WidgetGroupModifier;
 import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.layout.After;
 import org.knime.node.parameters.layout.Layout;
@@ -158,6 +163,18 @@ class ImageWriterTableNodeParameters implements NodeParameters {
         protected ImageColumnChoicesProvider() {
             super(ImageValue.class);
         }
+
+        @Override
+        public List<DataColumnSpec> columnChoices(final NodeParametersInput context) {
+            // Find the data table port dynamically (port index changes based on FileSystemConnection presence)
+            return Arrays.stream(context.getInPortSpecs())
+                .filter(DataTableSpec.class::isInstance)
+                .findFirst()
+                .map(spec -> ((DataTableSpec)spec).stream()
+                    .filter(col -> col.getType().isCompatible(ImageValue.class))
+                    .toList())
+                .orElse(List.of());
+        }
     }
 
     @Layout(ImageColumn.class)
@@ -215,6 +232,18 @@ class ImageWriterTableNodeParameters implements NodeParameters {
     private static final class FileNameColumnChoicesProvider extends CompatibleColumnsProvider.StringColumnsProvider {
         protected FileNameColumnChoicesProvider() {
             super();
+        }
+
+        @Override
+        public List<DataColumnSpec> columnChoices(final NodeParametersInput context) {
+            // Find the data table port dynamically (port index changes based on FileSystemConnection presence)
+            return Arrays.stream(context.getInPortSpecs())
+                .filter(DataTableSpec.class::isInstance)
+                .findFirst()
+                .map(spec -> ((DataTableSpec)spec).stream()
+                    .filter(col -> col.getType().isCompatible(StringValue.class))
+                    .toList())
+                .orElse(List.of());
         }
     }
 
