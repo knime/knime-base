@@ -242,8 +242,8 @@ class ImageWriterTableNodeParameters implements NodeParameters {
                         result.m_fileNameColumn = new StringOrEnum<>(columnName);
                     }
                 } catch (InvalidSettingsException e) {
-                    // Fall back to reading as simple string (e.g., "$RowID$")
-                    final String loadedColumn = settings.getString("filename_column", "");
+                    // Fall back to reading as simple string (e.g., "$RowID$" from very old workflows)
+                    final String loadedColumn = settings.getString("filename_column");
                     if (LEGACY_ROW_ID_VALUE.equals(loadedColumn)) {
                         result.m_fileNameColumn = new StringOrEnum<>(RowIDChoice.ROW_ID);
                     } else {
@@ -251,6 +251,7 @@ class ImageWriterTableNodeParameters implements NodeParameters {
                     }
                 }
             } else {
+                // Default value for missing key
                 result.m_fileNameColumn = new StringOrEnum<>("");
             }
             return result;
@@ -261,14 +262,15 @@ class ImageWriterTableNodeParameters implements NodeParameters {
             settings.addBoolean("generate_file_names", obj.m_generateFileNames);
             settings.addString("filename_pattern", obj.m_fileNamePattern);
             
-            // Convert enum to legacy RowID value for backwards compatibility
-            final String columnToSave;
+            // Save in SettingsModelColumnName format (nested config with useRowID and columnName)
+            final var columnSettings = settings.addNodeSettings("filename_column");
             if (obj.m_fileNameColumn.getEnumChoice().isPresent()) {
-                columnToSave = LEGACY_ROW_ID_VALUE;
+                columnSettings.addBoolean("useRowID", true);
+                columnSettings.addString("columnName", "");
             } else {
-                columnToSave = obj.m_fileNameColumn.getStringChoice();
+                columnSettings.addBoolean("useRowID", false);
+                columnSettings.addString("columnName", obj.m_fileNameColumn.getStringChoice());
             }
-            settings.addString("filename_column", columnToSave);
         }
 
         @Override
