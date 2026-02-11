@@ -49,31 +49,36 @@ package org.knime.base.node.io.filehandling.imagewriter.table;
 import java.util.List;
 
 import org.knime.core.data.image.ImageValue;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelectionWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelectionWidget.SingleFileSelectionMode;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSystemOption;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.SingleFileSelectionMode;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.WithFileSystem;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification.WidgetGroupModifier;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification.WidgetModifier;
-import org.knime.filehandling.core.connections.FSCategory;
-import org.knime.filehandling.core.connections.meta.FSConnectionConfig.FileSystemOption;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.layout.After;
 import org.knime.node.parameters.layout.Section;
 import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
 import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.persistence.legacy.LegacyFileWriterWithOverwritePolicyOptions;
 import org.knime.node.parameters.persistence.legacy.LegacyFileWriterWithOverwritePolicyOptions.OverwritePolicy;
 import org.knime.node.parameters.updates.Effect;
 import org.knime.node.parameters.updates.EffectPredicateProvider;
-import org.knime.node.parameters.updates.EffectType;
 import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.EffectPredicate;
-import org.knime.node.parameters.updates.PredicateInitializer;
+import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
-import org.knime.node.parameters.widget.choices.Label;
-import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 import org.knime.node.parameters.widget.choices.util.CompatibleColumnsProvider;
+import org.knime.node.parameters.layout.Layout;
 
 /**
  * Node parameters for Image Writer (Table).
@@ -85,21 +90,23 @@ import org.knime.node.parameters.widget.choices.util.CompatibleColumnsProvider;
 @SuppressWarnings("restriction")
 class ImageWriterTableNodeParameters implements NodeParameters {
 
+    @Section(title = "Output location")
     interface OutputLocation {
     }
 
+    @Section(title = "Image")
     @After(OutputLocation.class)
     interface ImageColumn {
     }
 
+    @Section(title = "File names")
     @After(ImageColumn.class)
     interface FileNames {
     }
 
-    @Section(title = "Output location")
-    @Persist(configKey = "filechooser")
+    @Persist(configKey = "output_location")
     @Modification(FileChooserModifier.class)
-    LegacyFileWriterWithOverwritePolicyOptions m_outputLocation = new LegacyFileWriterWithOverwritePolicyOptions();
+    LegacyFileWriterWithOverwritePolicyOptions m_fileChooser = new LegacyFileWriterWithOverwritePolicyOptions();
 
     private static final class FileChooserModifier implements LegacyFileWriterWithOverwritePolicyOptions.Modifier {
         @Override
@@ -113,11 +120,10 @@ class ImageWriterTableNodeParameters implements NodeParameters {
             fileSelection.addAnnotation(FileSelectionWidget.class) //
                 .withProperty("value", SingleFileSelectionMode.FOLDER) //
                 .modify();
-            fileSelection.modifyAnnotation(FileSelectionWidget.class) //
-                .withProperty("fileSystemConnection", FSCategory.CONNECTED) //
-                .withProperty("defaultFSLocation",
+            fileSelection.addAnnotation(WithFileSystem.class) //
+                .withProperty("value",
                     new FileSystemOption[]{FileSystemOption.LOCAL, FileSystemOption.SPACE,
-                        FileSystemOption.EMBEDDED, FileSystemOption.CONNECTED}) //
+                        FileSystemOption.EMBEDDED, FileSystemOption.CONNECTED, FileSystemOption.CUSTOM_URL}) //
                 .modify();
 
             final var createMissingFolders = findCreateMissingFolders(group);
@@ -143,11 +149,10 @@ class ImageWriterTableNodeParameters implements NodeParameters {
         }
     }
 
-    @Section(title = "Image")
-    @Widget(title = "Image column",
-        description = "Select the column containing the images to write to files.")
+    @Layout(ImageColumn.class)
+    @Widget(title = "Image column", description = "Select the column containing the images to write to files.")
     @ChoicesProvider(ImageColumnChoicesProvider.class)
-    @Persist(configKey = "image_col")
+    @Persist(configKey = "image_column")
     String m_imageColumn = "";
 
     private static final class ImageColumnChoicesProvider extends CompatibleColumnsProvider {
@@ -156,68 +161,119 @@ class ImageWriterTableNodeParameters implements NodeParameters {
         }
     }
 
+    @Layout(ImageColumn.class)
     @Widget(title = "Remove image column",
-        description = "If enabled, the image column will be excluded from the output table. "
-            + "Only the file paths of the written images will be included.")
-    @Persist(configKey = "remove_image_col")
+        description = "If enabled, the image column will be excluded from the output table. Only the file paths "
+            + "of the written images will be included.")
+    @Persist(configKey = "remove_image_column")
     boolean m_removeImageColumn = false;
 
-    @Section(title = "File names")
-    @Widget(title = "File name source",
-        description = "Specify how to name the output image files. You can either generate names using a pattern "
-            + "with an auto-incrementing counter, or use file names from a column in the input table.")
-    @ValueSwitchWidget
-    @Persist(configKey = "use_filename_col")
-    @Modification.WidgetReference(FileNameSourceRef.class)
-    FileNameSource m_fileNameSource = FileNameSource.GENERATE;
+    @Layout(FileNames.class)
+    @Persistor(FileNamingPersistor.class)
+    FileNamingSettings m_fileNaming = new FileNamingSettings();
 
-    interface FileNameSourceRef extends ParameterReference<FileNameSource> {
-    }
+    static final class FileNamingSettings implements NodeParameters {
+        @Widget(title = "Generate file names",
+            description = "If enabled, file names will be generated using a pattern with an auto-incrementing "
+                + "counter. If disabled, file names will be taken from a column in the input table.")
+        @ValueReference(GenerateFileNamesRef.class)
+        boolean m_generateFileNames = true;
 
-    /**
-     * Enum for selecting the file name source.
-     */
-    enum FileNameSource {
-            @Label("Generate")
-            GENERATE, //
-            @Label("From column")
-            FROM_COLUMN;
-    }
+        @Widget(title = "File name pattern",
+            description = "A pattern for generated file names. Must contain exactly one '?' which will be replaced "
+                + "by an auto-incrementing counter to ensure unique file names. The file extension will be "
+                + "determined automatically based on the image format and should not be included in the pattern. "
+                + "Example: 'Image_?' will create files like 'Image_0.png', 'Image_1.png', etc.")
+        @Effect(predicate = IsGenerateFileNames.class, type = Effect.EffectType.SHOW)
+        String m_fileNamePattern = "File_?";
 
-    @Widget(title = "File name pattern",
-        description = "A pattern for generated file names. Must contain exactly one '?' which will be replaced by "
-            + "an auto-incrementing counter to ensure unique file names. The file extension will be determined "
-            + "automatically based on the image format and should not be included in the pattern. "
-            + "Example: 'Image_?' will create files like 'Image_0.png', 'Image_1.png', etc.")
-    @Persist(configKey = "filename_pattern")
-    @Effect(predicate = IsGenerateFileNames.class, type = EffectType.SHOW)
-    String m_fileNamePattern = "File_?";
+        @Widget(title = "File name column",
+            description = "Select the column containing the file names for the output images, or select RowID to use "
+                + "row IDs as file names. The file extension will be determined automatically and should not be "
+                + "included in the column values.")
+        @ChoicesProvider(FileNameColumnChoicesProvider.class)
+        @Effect(predicate = IsFromColumnFileNames.class, type = Effect.EffectType.SHOW)
+        StringOrEnum<RowIDChoice> m_fileNameColumn = new StringOrEnum<>("");
 
-    static final class IsGenerateFileNames implements EffectPredicateProvider {
-        @Override
-        public EffectPredicate init(final PredicateInitializer i) {
-            return i.getEnum(FileNameSourceRef.class).isOneOf(FileNameSource.GENERATE);
+        interface GenerateFileNamesRef extends ParameterReference<Boolean> {
+        }
+
+        static final class IsGenerateFileNames implements EffectPredicateProvider {
+            @Override
+            public EffectPredicate init(final EffectPredicateProvider.PredicateInitializer i) {
+                return i.getBoolean(GenerateFileNamesRef.class).isTrue();
+            }
+        }
+
+        static final class IsFromColumnFileNames implements EffectPredicateProvider {
+            @Override
+            public EffectPredicate init(final EffectPredicateProvider.PredicateInitializer i) {
+                return i.getBoolean(GenerateFileNamesRef.class).isFalse();
+            }
         }
     }
 
-    @Widget(title = "File name column",
-        description = "Select the column containing the file names for the output images. "
-            + "The file extension will be determined automatically and should not be included in the column values.")
-    @ChoicesProvider(FileNameColumnChoicesProvider.class)
-    @Persist(configKey = "filename_col")
-    @Effect(predicate = IsFromColumnFileNames.class, type = EffectType.SHOW)
-    String m_fileNameColumn = "";
-
-    private static final class FileNameColumnChoicesProvider extends CompatibleColumnsProvider {
+    private static final class FileNameColumnChoicesProvider extends CompatibleColumnsProvider.StringColumnsProvider {
         protected FileNameColumnChoicesProvider() {
             super();
         }
     }
 
-    static final class IsFromColumnFileNames implements EffectPredicateProvider {
+    static final class FileNamingPersistor implements NodeParametersPersistor<FileNamingSettings> {
+        private static final String LEGACY_ROW_ID_VALUE = "$RowID$";
+
         @Override
-        public EffectPredicate init(final PredicateInitializer i) {
-            return i.getEnum(FileNameSourceRef.class).isOneOf(FileNameSource.FROM_COLUMN);
+        public FileNamingSettings load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            var result = new FileNamingSettings();
+            // Handle missing keys gracefully for backwards compatibility
+            result.m_generateFileNames = settings.getBoolean("generate_file_names", true);
+            result.m_fileNamePattern = settings.getString("filename_pattern", "File_?");
+            
+            // Handle different legacy formats for filename_column
+            if (settings.containsKey("filename_column")) {
+                try {
+                    // Try to load as nested config (SettingsModelColumnName format)
+                    final var columnSettings = settings.getNodeSettings("filename_column");
+                    final boolean useRowID = columnSettings.getBoolean("useRowID", false);
+                    if (useRowID) {
+                        result.m_fileNameColumn = new StringOrEnum<>(RowIDChoice.ROW_ID);
+                    } else {
+                        final String columnName = columnSettings.getString("columnName", "");
+                        result.m_fileNameColumn = new StringOrEnum<>(columnName);
+                    }
+                } catch (InvalidSettingsException e) {
+                    // Fall back to reading as simple string (e.g., "$RowID$")
+                    final String loadedColumn = settings.getString("filename_column", "");
+                    if (LEGACY_ROW_ID_VALUE.equals(loadedColumn)) {
+                        result.m_fileNameColumn = new StringOrEnum<>(RowIDChoice.ROW_ID);
+                    } else {
+                        result.m_fileNameColumn = new StringOrEnum<>(loadedColumn);
+                    }
+                }
+            } else {
+                result.m_fileNameColumn = new StringOrEnum<>("");
+            }
+            return result;
+        }
+
+        @Override
+        public void save(final FileNamingSettings obj, final NodeSettingsWO settings) {
+            settings.addBoolean("generate_file_names", obj.m_generateFileNames);
+            settings.addString("filename_pattern", obj.m_fileNamePattern);
+            
+            // Convert enum to legacy RowID value for backwards compatibility
+            final String columnToSave;
+            if (obj.m_fileNameColumn.getEnumChoice().isPresent()) {
+                columnToSave = LEGACY_ROW_ID_VALUE;
+            } else {
+                columnToSave = obj.m_fileNameColumn.getStringChoice();
+            }
+            settings.addString("filename_column", columnToSave);
+        }
+
+        @Override
+        public String[][] getConfigPaths() {
+            return new String[][]{{"generate_file_names"}, {"filename_pattern"}, {"filename_column"}};
         }
     }
 }
