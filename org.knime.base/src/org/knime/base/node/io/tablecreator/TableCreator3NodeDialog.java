@@ -44,58 +44,30 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   1 Dec 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   Feb 5, 2026 (Paul Bärnreuther): created
  */
-package org.knime.base.node.preproc.filter.row3.operators.defaults;
+package org.knime.base.node.io.tablecreator;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import java.util.Optional;
 
-import org.junit.jupiter.api.Test;
-import org.knime.base.node.preproc.filter.row3.operators.defaults.TypeMappingUtils.ConverterException;
-import org.knime.core.data.DataType;
-import org.knime.core.data.collection.ListCell;
-import org.knime.core.data.def.IntCell;
-import org.knime.core.data.def.StringCell;
+import org.knime.core.webui.data.RpcDataService;
+import org.knime.core.webui.node.dialog.tablecreator.TableCreatorNodeDialog;
 
 /**
- * Tests for the utility methods in {@link TypeMappingUtils}.
+ * Dialog for the Table Creator node with RPC service support.
  *
- * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ * @author Paul Bärnreuther
+ * @since 5.11
  */
-final class TypeMappingUtilsTest {
+@SuppressWarnings("restriction")
+public class TableCreator3NodeDialog extends TableCreatorNodeDialog {
 
-    @Test
-    void testFromString() throws ConverterException {
-        assertEquals("42",
-            ((StringCell)TypeMappingUtils.readDataCellFromString(StringCell.TYPE, "42")).getStringValue(),
-            "Expected string cell with value '42'");
-
-        assertEquals(DataType.getMissingCell(), TypeMappingUtils.readDataCellFromString(StringCell.TYPE, null),
-            "Expected missing cell for null input");
+    TableCreator3NodeDialog() {
+        super(TableCreator3NodeParameters.class);
     }
 
-    @Test
-    void testFromStringExceptional() {
-        final var type = ListCell.getCollectionType(StringCell.TYPE);
-        assertFalse(TypeMappingUtils.supportsDataType(type), "Collection types are not yet supported");
-
-        assertThatThrownBy(() -> TypeMappingUtils.readDataCellFromString(type, "not-a-list"))
-            .isInstanceOf(IllegalArgumentException.class) //
-            .hasMessageMatching("Collection types are not supported.+");
-
-        assertThatThrownBy(() -> TypeMappingUtils.readDataCellFromString(IntCell.TYPE, "not-int"))
-            .isInstanceOf(ConverterException.class) //
-            .hasMessageMatching("For input string.+");
-    }
-
-    @Test
-    void testRoundtrip() throws ConverterException {
-        final var inputString = "42";
-        final var cell = TypeMappingUtils.readDataCellFromString(IntCell.TYPE, inputString);
-        assertEquals(new IntCell(42), cell, "Expected integer cell with value 42");
-        final var string = TypeMappingUtils.getStringFromDataCell(cell);
-        assertEquals(inputString, string, "Expected roundtrip conversion to preserve string value");
+    @Override
+    public Optional<RpcDataService> createRpcDataService() {
+        return Optional.of(RpcDataService.builder(new TableCreatorRpcDataService()).build());
     }
 }

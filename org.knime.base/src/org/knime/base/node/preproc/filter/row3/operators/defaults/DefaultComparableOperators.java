@@ -52,6 +52,7 @@ import java.util.List;
 import java.util.function.IntPredicate;
 import java.util.function.Predicate;
 
+import org.knime.base.util.typemapping.TypeMappingUtils;
 import org.knime.core.data.BoundedValue;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataType;
