@@ -69,17 +69,17 @@
           },
           "dataTypeHandling" : {
             "oneOf" : [ {
-              "const" : "NONE",
-              "title" : "Ignore"
-            }, {
               "const" : "FAIL",
               "title" : "Fail validation"
+            }, {
+              "const" : "NONE",
+              "title" : "Ignore"
             }, {
               "const" : "CONVERT_FAIL",
               "title" : "Try to convert"
             } ],
             "title" : "If data type does not match",
-            "description" : "Ensures a correct data type.\n<ul>\n<li><b>Ignore</b>: Ignores data type mismatches and do nothing</li>\n<li><b>Fail validation</b>: Fails the validation if reference data type is not a super type of the data type to validate\n</li>\n<li><b>Try to convert</b>: Attempts conversion and fails the validation if not possible</li>\n</ul>",
+            "description" : "Ensures a correct data type.\n<ul>\n<li><b>Fail validation</b>: Fails the validation if reference data type is not a super type of the data type to validate\n</li>\n<li><b>Ignore</b>: Ignores data type mismatches and do nothing</li>\n<li><b>Try to convert</b>: Attempts conversion and fails the validation if not possible</li>\n</ul>",
             "default" : "FAIL"
           },
           "missingColumnHandling" : {

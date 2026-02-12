@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
+    <config key="referenceStructureColumns">
+        <config key="0">
+            <entry key="columnName" type="xstring" value="Universe_0_0"/>
+            <config key="columnType">
+                <entry key="cell_class" type="xstring" value="org.knime.core.data.def.DoubleCell"/>
+                <entry key="is_null" type="xboolean" value="false"/>
+            </config>
+        </config>
+        <config key="1">
+            <entry key="columnName" type="xstring" value="Universe_0_1"/>
+            <config key="columnType">
+                <entry key="cell_class" type="xstring" value="org.knime.core.data.def.DoubleCell"/>
+                <entry key="is_null" type="xboolean" value="false"/>
+            </config>
+        </config>
+        <config key="2">
+            <entry key="columnName" type="xstring" value="Universe_1_0"/>
+            <config key="columnType">
+                <entry key="cell_class" type="xstring" value="org.knime.core.data.def.DoubleCell"/>
+                <entry key="is_null" type="xboolean" value="false"/>
+            </config>
+        </config>
+        <config key="3">
+            <entry key="columnName" type="xstring" value="Universe_1_1"/>
+            <config key="columnType">
+                <entry key="cell_class" type="xstring" value="org.knime.core.data.def.DoubleCell"/>
+                <entry key="is_null" type="xboolean" value="false"/>
+            </config>
+        </config>
+        <config key="4">
+            <entry key="columnName" type="xstring" value="Cluster Membership"/>
+            <config key="columnType">
+                <entry key="cell_class" type="xstring" value="org.knime.core.data.def.StringCell"/>
+                <entry key="is_null" type="xboolean" value="false"/>
+            </config>
+        </config>
+    </config>
+    <entry key="columnNameMatchingBehavior" type="xstring" value="CASE_INSENSITIVE"/>
+    <entry key="missingColumnHandling" type="xstring" value="FILL_WITH_MISSINGS"/>
+    <entry key="additionalColumnsHandling" type="xstring" value="REMOVE"/>
+    <entry key="dataTypeHandling" type="xstring" value="CONVERT_FAIL"/>
+    <entry key="validationFailureBehavior" type="xstring" value="OUTPUT_TO_PORT_CHECK_DATA"/>
+</config>

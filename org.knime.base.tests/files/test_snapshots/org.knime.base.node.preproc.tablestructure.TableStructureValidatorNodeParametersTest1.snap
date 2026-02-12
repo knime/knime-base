@@ -1,0 +1,322 @@
+{
+  "data" : {
+    "model" : {
+      "referenceStructureColumns" : [ {
+        "columnName" : "Universe_0_0",
+        "columnType" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.DoubleCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}"
+      }, {
+        "columnName" : "Universe_0_1",
+        "columnType" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.DoubleCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}"
+      }, {
+        "columnName" : "Universe_1_0",
+        "columnType" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.DoubleCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}"
+      }, {
+        "columnName" : "Universe_1_1",
+        "columnType" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.DoubleCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}"
+      }, {
+        "columnName" : "Cluster Membership",
+        "columnType" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.StringCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}"
+      } ],
+      "inputTableIsTemplate" : false,
+      "columnNameMatchingBehavior" : "CASE_INSENSITIVE",
+      "missingColumnHandling" : "FILL_WITH_MISSINGS",
+      "additionalColumnsHandling" : "REMOVE",
+      "dataTypeHandling" : "CONVERT_FAIL",
+      "validationFailureBehavior" : "OUTPUT_TO_PORT_CHECK_DATA"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "additionalColumnsHandling" : {
+            "oneOf" : [ {
+              "const" : "REJECT",
+              "title" : "Fail validation"
+            }, {
+              "const" : "REMOVE",
+              "title" : "Remove"
+            }, {
+              "const" : "IGNORE",
+              "title" : "Move to end"
+            } ],
+            "title" : "If there is an additional column in the table",
+            "description" : "Specifies how to handle columns which are not included in the reference table but present in the table\nto validate.\n\n<ul>\n<li><b>Fail validation</b>: Additional columns will cause the validation to fail</li>\n<li><b>Remove</b>: Additional columns will be removed</li>\n<li><b>Move to end</b>: Additional columns will be moved to the end of the table</li>\n</ul>",
+            "default" : "REJECT"
+          },
+          "columnNameMatchingBehavior" : {
+            "oneOf" : [ {
+              "const" : "CASE_SENSITIVE",
+              "title" : "Case sensitive"
+            }, {
+              "const" : "CASE_INSENSITIVE",
+              "title" : "Case insensitive"
+            } ],
+            "title" : "Column name matching",
+            "description" : "Controls what counts as a column name match between the input table and the reference table. If\n'case insensitive' is chosen, it still tries to find an exactly (case sensitively) matching column name\nfirst, and then falls back to case insensitive matching.\n\n<ul>\n<li><b>Case sensitive</b>: Column names must match exactly</li>\n<li><b>Case insensitive</b>: Also columns with a similar name will be considered to be validated according to this configuration.\n</li>\n</ul>",
+            "default" : "CASE_SENSITIVE"
+          },
+          "dataTypeHandling" : {
+            "oneOf" : [ {
+              "const" : "FAIL",
+              "title" : "Fail validation"
+            }, {
+              "const" : "NONE",
+              "title" : "Ignore"
+            }, {
+              "const" : "CONVERT_FAIL",
+              "title" : "Try to convert"
+            } ],
+            "title" : "If data type does not match",
+            "description" : "Ensures correct data type for the columns.\n\n<ul>\n<li><b>Fail validation</b>: Fails the validation if reference data type is not a super type of the data type to validate\n</li>\n<li><b>Ignore</b>: Ignores data type mismatches and do nothing</li>\n<li><b>Try to convert</b>: Attempts conversion and fails the validation if not possible</li>\n</ul>",
+            "default" : "FAIL"
+          },
+          "inputTableIsTemplate" : {
+            "type" : "boolean",
+            "default" : false
+          },
+          "missingColumnHandling" : {
+            "oneOf" : [ {
+              "const" : "NONE",
+              "title" : "Ignore"
+            }, {
+              "const" : "FAIL",
+              "title" : "Fail validation"
+            }, {
+              "const" : "FILL_WITH_MISSINGS",
+              "title" : "Insert column with missing values"
+            } ],
+            "title" : "If a column is not in the table",
+            "description" : "Ensures that the configured columns exist in the input table. If case insensitive name matching\nis selected, the first matching column will satisfy this condition.\n\n<ul>\n<li><b>Ignore</b>: Ignore missing columns and do nothing</li>\n<li><b>Fail validation</b>: Fails the validation if columns don't exist</li>\n<li><b>Insert column with missing values</b>: Inserts missing columns and fills them with missing values</li>\n</ul>",
+            "default" : "NONE"
+          },
+          "referenceStructureColumns" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "columnName" : {
+                  "type" : "string",
+                  "title" : "Column name",
+                  "description" : "The name of the reference column to validate against."
+                },
+                "columnType" : {
+                  "type" : "string",
+                  "title" : "Column type",
+                  "description" : "The type of the reference column to validate against.",
+                  "default" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.StringCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}"
+                }
+              }
+            },
+            "title" : "Reference structure",
+            "description" : "Define the reference structure to validate against by specifying the expected columns and their types.\n",
+            "default" : [ ]
+          },
+          "setInputTableAsTemplate" : {
+            "type" : "object",
+            "title" : "Set input table as template",
+            "description" : "Sets the input table specification as reference structure template.\n"
+          },
+          "validationFailureBehavior" : {
+            "oneOf" : [ {
+              "const" : "FAIL_NODE",
+              "title" : "Fail node"
+            }, {
+              "const" : "OUTPUT_TO_PORT_CHECK_DATA",
+              "title" : "Deactivate first output port"
+            } ],
+            "title" : "If validation fails",
+            "description" : "Controls how validation faults should influence the workflow execution.\n\n<ul>\n<li><b>Fail node</b>: Forces the node to fail if the validation fails, with detailed validation fault descriptions.\nThere data validation will be skipped if the structure validation already fails.\n</li>\n<li><b>Deactivate first output port</b>: Never fails but deactivates first output port if the validation fails and outputs\nresults at the second port. It will always do both, structure and data validation.\n</li>\n</ul>",
+            "default" : "FAIL_NODE"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "label" : "Reference Structure",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/referenceStructureColumns",
+        "options" : {
+          "detail" : [ {
+            "type" : "HorizontalLayout",
+            "elements" : [ {
+              "type" : "Control",
+              "scope" : "#/properties/columnName",
+              "options" : {
+                "validation" : {
+                  "pattern" : {
+                    "errorMessage" : "The string must start and end with a non-whitespace character.",
+                    "parameters" : {
+                      "pattern" : "\\S(.*\\S)?"
+                    }
+                  }
+                }
+              }
+            }, {
+              "type" : "Control",
+              "scope" : "#/properties/columnType",
+              "options" : {
+                "format" : "dropDown"
+              },
+              "providedOptions" : [ "possibleValues", "possibleValues" ]
+            } ]
+          } ],
+          "addButtonText" : "Add column",
+          "arrayElementTitle" : "Reference Structure Column"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/setInputTableAsTemplate",
+        "options" : {
+          "format" : "simpleButton",
+          "triggerId" : "org.knime.base.node.preproc.tablestructure.TableStructureValidatorNodeParameters$SetInputTableAsTemplateRef"
+        },
+        "rule" : {
+          "effect" : "DISABLE",
+          "condition" : {
+            "scope" : "#/properties/model/properties/inputTableIsTemplate",
+            "schema" : {
+              "const" : true
+            }
+          }
+        }
+      } ]
+    }, {
+      "label" : "Structure Validation",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/columnNameMatchingBehavior",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/missingColumnHandling",
+        "options" : {
+          "format" : "radio",
+          "radioLayout" : "vertical"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/additionalColumnsHandling",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/dataTypeHandling",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      } ]
+    }, {
+      "label" : "Output",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/validationFailureBehavior",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      } ]
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "referenceStructureColumns" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "columnName" : { },
+                "columnType" : {
+                  "configPaths" : [ [ "columnType", "cell_class" ] ]
+                }
+              }
+            }
+          },
+          "setInputTableAsTemplate" : { },
+          "inputTableIsTemplate" : {
+            "configPaths" : [ ]
+          },
+          "columnNameMatchingBehavior" : { },
+          "missingColumnHandling" : { },
+          "additionalColumnsHandling" : { },
+          "dataTypeHandling" : { },
+          "validationFailureBehavior" : { }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/referenceStructureColumns/items/properties/columnType",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.BooleanCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "Boolean",
+        "type" : {
+          "id" : "org.knime.core.data.BooleanValue",
+          "text" : "Boolean"
+        }
+      }, {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.DoubleCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "Number (Float)",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.IntCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "Number (Integer)",
+        "type" : {
+          "id" : "org.knime.core.data.IntValue",
+          "text" : "Number (Integer)"
+        }
+      }, {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.LongCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "Number (Long Integer)",
+        "type" : {
+          "id" : "org.knime.core.data.LongValue",
+          "text" : "Number (Long Integer)"
+        }
+      }, {
+        "id" : "{\"name\":\"serialized_data_type_settings\",\"value\":{\"dataType\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.StringCell\"},\"is_null\":{\"type\":\"boolean\",\"value\":false}}}}}",
+        "text" : "String",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "id" : "after-open-dialog"
+    },
+    "triggerInitially" : true,
+    "dependencies" : [ "#/properties/model/properties/referenceStructureColumns" ]
+  }, {
+    "trigger" : {
+      "id" : "org.knime.base.node.preproc.tablestructure.TableStructureValidatorNodeParameters$SetInputTableAsTemplateRef"
+    },
+    "dependencies" : [ ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/referenceStructureColumns"
+    },
+    "dependencies" : [ "#/properties/model/properties/referenceStructureColumns" ]
+  } ]
+}

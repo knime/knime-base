@@ -74,7 +74,7 @@ import org.knime.node.parameters.widget.choices.Label;
  *
  * @author Marcel Hanser, University of Konstanz
  */
-final class DataValidatorColConfiguration {
+public final class DataValidatorColConfiguration {
 
     /** NodeSettings key: write column name (only for individual columns). */
     static final String CFG_COL_NAMES = "column_names";
@@ -425,19 +425,19 @@ final class DataValidatorColConfiguration {
      *
      * @author Marcel Hanser
      */
-    enum DataTypeHandling {
-        /**
-         * No handling.
-         */
-        @Label(value = "Ignore", description = "Ignores data type mismatches and do nothing")
-        NONE(""),
+    public enum DataTypeHandling {
         /**
          * Fails on different types.
          */
         @Label(value = "Fail validation", description = """
                 Fails the validation if reference data type is not a super type of the data type to validate
                 """)
-        FAIL("Reject if different"),
+        FAIL("Reject if different"), //
+        /**
+         * No handling.
+         */
+        @Label(value = "Ignore", description = "Ignores data type mismatches and do nothing")
+        NONE(""), //
         /**
          * Trys to convert and fails if not possible.
          */
@@ -496,7 +496,7 @@ final class DataValidatorColConfiguration {
      *
      * @author Marcel Hanser
      */
-    enum ColumnExistenceHandling {
+    public enum ColumnExistenceHandling {
         /**
          * No handling.
          */

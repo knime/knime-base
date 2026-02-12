@@ -1855,6 +1855,11 @@
             >
       </node>
       <node
+            category-path="/manipulation/column/"
+            factory-class="org.knime.base.node.preproc.tablestructure.TableStructureValidatorNodeFactory"
+            >
+      </node>
+      <node
             category-path="/flowcontrol/variables"
             deprecated="true"
             factory-class="org.knime.base.node.util.mergevariables.MergeVariablesNodeFactory"

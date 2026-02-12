@@ -83,7 +83,7 @@ import org.knime.node.parameters.widget.choices.util.ColumnSelectionUtil;
  */
 @LoadDefaultsForAbsentFields
 @SuppressWarnings("restriction")
-class DataValidatorSpecNodeParameters implements NodeParameters {
+public final class DataValidatorSpecNodeParameters implements NodeParameters {
 
     // static keys for some nested settings
     private static final String KEY_1 = "individual_settings";
@@ -203,10 +203,17 @@ class DataValidatorSpecNodeParameters implements NodeParameters {
 
     // ===== ENUMS =====
 
-    enum ColumnNameMatchingEnum {
+    /**
+     * Defines how column names are matched between the input table and the reference table.
+     *
+     * @author Martin Horn, KNIME GmbH, Konstanz, Germany
+     */
+    public enum ColumnNameMatchingEnum {
+            /** case sensitive column name matching */
             @Label(value = "Case sensitive", description = "Column names must match exactly")
             CASE_SENSITIVE,
 
+            /** case insensitive column name matching */
             @Label(value = "Case insensitive", description = """
                     Also columns with a similar name will be considered to be validated according to this configuration.
                     """)
