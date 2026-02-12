@@ -77,7 +77,7 @@ import org.knime.node.parameters.widget.choices.Label;
  *
  * @author Marcel Hanser
  */
-final class DataValidatorConfiguration {
+public final class DataValidatorConfiguration {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(DataValidatorConfiguration.class);
 
@@ -444,7 +444,7 @@ final class DataValidatorConfiguration {
      *
      * @author Marcel Hanser
      */
-    enum RejectBehavior {
+    public enum RejectBehavior {
         /**
          * Fail node.
          */
@@ -478,7 +478,7 @@ final class DataValidatorConfiguration {
      *
      * @author Marcel Hanser
      */
-    enum UnknownColumnHandling {
+    public enum UnknownColumnHandling {
         /**
          * Unknown columns cause the node to fail.
          */

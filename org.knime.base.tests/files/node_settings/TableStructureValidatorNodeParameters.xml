@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="settings.xml">
+    <entry key="node_file" type="xstring" value="settings.xml"/>
+    <config key="flow_stack"/>
+    <config key="internal_node_subsettings">
+        <entry key="memory_policy" type="xstring" value="CacheSmallInMemory"/>
+    </config>
+    <config key="model">
+        <config key="referenceStructureColumns">
+            <config key="0">
+                <entry key="columnName" type="xstring" value="Universe_0_0"/>
+                <config key="columnType">
+                    <entry key="cell_class" type="xstring" value="org.knime.core.data.def.DoubleCell"/>
+                    <entry key="is_null" type="xboolean" value="false"/>
+                </config>
+            </config>
+            <config key="1">
+                <entry key="columnName" type="xstring" value="Universe_0_1"/>
+                <config key="columnType">
+                    <entry key="cell_class" type="xstring" value="org.knime.core.data.def.DoubleCell"/>
+                    <entry key="is_null" type="xboolean" value="false"/>
+                </config>
+            </config>
+            <config key="2">
+                <entry key="columnName" type="xstring" value="Universe_1_0"/>
+                <config key="columnType">
+                    <entry key="cell_class" type="xstring" value="org.knime.core.data.def.DoubleCell"/>
+                    <entry key="is_null" type="xboolean" value="false"/>
+                </config>
+            </config>
+            <config key="3">
+                <entry key="columnName" type="xstring" value="Universe_1_1"/>
+                <config key="columnType">
+                    <entry key="cell_class" type="xstring" value="org.knime.core.data.def.DoubleCell"/>
+                    <entry key="is_null" type="xboolean" value="false"/>
+                </config>
+            </config>
+            <config key="4">
+                <entry key="columnName" type="xstring" value="Cluster Membership"/>
+                <config key="columnType">
+                    <entry key="cell_class" type="xstring" value="org.knime.core.data.def.StringCell"/>
+                    <entry key="is_null" type="xboolean" value="false"/>
+                </config>
+            </config>
+        </config>
+        <entry key="columnNameMatchingBehavior" type="xstring" value="CASE_INSENSITIVE"/>
+        <entry key="missingColumnHandling" type="xstring" value="FILL_WITH_MISSINGS"/>
+        <entry key="additionalColumnsHandling" type="xstring" value="REMOVE"/>
+        <entry key="dataTypeHandling" type="xstring" value="CONVERT_FAIL"/>
+        <entry key="validationFailureBehavior" type="xstring" value="OUTPUT_TO_PORT_CHECK_DATA"/>
+    </config>
+    <config key="variables"/>
+    <entry key="customDescription" type="xstring" isnull="true" value=""/>
+    <entry key="state" type="xstring" value="EXECUTED"/>
+    <entry key="factory" type="xstring" value="org.knime.base.node.preproc.tablestructure.TableStructureValidatorNodeFactory"/>
+    <entry key="node-name" type="xstring" value="Table Structure Validator"/>
+    <entry key="node-bundle-name" type="xstring" value="KNIME Base Nodes"/>
+    <entry key="node-bundle-symbolic-name" type="xstring" value="org.knime.base"/>
+    <entry key="node-bundle-vendor" type="xstring" value="KNIME AG, Zurich, Switzerland"/>
+    <entry key="node-bundle-version" type="xstring" value="5.11.0.qualifier"/>
+    <entry key="node-feature-name" type="xstring" isnull="true" value=""/>
+    <entry key="node-feature-symbolic-name" type="xstring" isnull="true" value=""/>
+    <entry key="node-feature-vendor" type="xstring" isnull="true" value=""/>
+    <entry key="node-feature-version" type="xstring" value="0.0.0"/>
+    <config key="factory_settings"/>
+    <entry key="name" type="xstring" value="Table Structure Validator"/>
+    <entry key="hasContent" type="xboolean" value="true"/>
+    <entry key="isInactive" type="xboolean" value="false"/>
+    <config key="ports">
+        <config key="port_1">
+            <entry key="index" type="xint" value="1"/>
+            <entry key="port_spec_class" type="xstring" value="org.knime.core.data.DataTableSpec"/>
+            <entry key="port_object_class" type="xstring" value="org.knime.core.node.BufferedDataTable"/>
+            <entry key="port_object_summary" type="xstring" value="Rows: 5400, Cols: 5"/>
+            <entry key="port_dir_location" type="xstring" value="port_1"/>
+        </config>
+        <config key="port_2">
+            <entry key="index" type="xint" value="2"/>
+            <entry key="port_spec_class" type="xstring" value="org.knime.core.node.port.inactive.InactiveBranchPortObjectSpec"/>
+            <entry key="port_object_class" type="xstring" value="org.knime.core.node.port.inactive.InactiveBranchPortObject"/>
+            <entry key="port_object_summary" type="xstring" value="Inactive Port Object"/>
+            <entry key="port_spec_location" type="xstring" value="spec/spec.zip"/>
+            <entry key="port_object_location" type="xstring" value="object/portobject.zip"/>
+            <entry key="port_dir_location" type="xstring" value="port_2"/>
+        </config>
+    </config>
+    <config key="filestores">
+        <entry key="file_store_location" type="xstring" isnull="true" value=""/>
+        <entry key="file_store_id" type="xstring" value="6caa841b-9015-4539-b90a-453a6d669909"/>
+    </config>
+</config>
