@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="settings.xml">
+    <entry key="node_file" type="xstring" value="settings.xml"/>
+    <config key="flow_stack">
+        <config key="Variable_0">
+            <entry key="type" type="xstring" value="variable"/>
+            <entry key="name" type="xstring" value="ric"/>
+            <entry key="class" type="xstring" value="BOOLEAN"/>
+            <entry key="value" type="xboolean" value="true"/>
+        </config>
+    </config>
+    <config key="internal_node_subsettings">
+        <entry key="memory_policy" type="xstring" value="CacheSmallInMemory"/>
+    </config>
+    <config key="model">
+        <config key="output_location">
+            <config key="path">
+                <entry key="location_present" type="xboolean" value="true"/>
+                <entry key="file_system_type" type="xstring" value="LOCAL"/>
+                <entry key="path" type="xstring" value="/home/jochen/Downloads"/>
+            </config>
+            <config key="file_system_chooser__Internals">
+                <entry key="has_fs_port" type="xboolean" value="false"/>
+                <entry key="overwritten_by_variable" type="xboolean" value="false"/>
+                <entry key="convenience_fs_category" type="xstring" value="LOCAL"/>
+                <entry key="relative_to" type="xstring" value="knime.workflow"/>
+                <entry key="mountpoint" type="xstring" value="LOCAL"/>
+                <entry key="spaceId" type="xstring" value=""/>
+                <entry key="spaceName" type="xstring" value=""/>
+                <entry key="custom_url_timeout" type="xint" value="1000"/>
+                <entry key="connected_fs" type="xboolean" value="true"/>
+            </config>
+            <entry key="create_missing_folders" type="xboolean" value="false"/>
+            <entry key="if_path_exists" type="xstring" value="overwrite"/>
+        </config>
+        <entry key="image_column" type="xstring" value="Image"/>
+        <entry key="remove_image_column" type="xboolean" value="true"/>
+        <entry key="generate_file_names" type="xboolean" value="true"/>
+        <entry key="filename_pattern" type="xstring" value="myfilenamepattern_?"/>
+        <config key="filename_column">
+            <entry key="useRowID" type="xboolean" value="false"/>
+            <entry key="columnName" type="xstring" value="Image"/>
+        </config>
+    </config>
+    <config key="variables">
+        <entry key="version" type="xstring" value="V_2019_09_13"/>
+        <config key="tree">
+            <config key="remove_image_column">
+                <entry key="used_variable" type="xstring" isnull="true" value=""/>
+                <entry key="used_variable_flawed" type="xboolean" value="false"/>
+                <entry key="exposed_variable" type="xstring" value="ric"/>
+            </config>
+        </config>
+    </config>
+    <entry key="customDescription" type="xstring" isnull="true" value=""/>
+    <entry key="state" type="xstring" value="EXECUTED"/>
+    <entry key="factory" type="xstring" value="org.knime.base.node.io.filehandling.imagewriter.table.ImageWriterTableNodeFactory"/>
+    <entry key="node-name" type="xstring" value="Image Writer (Table)"/>
+    <entry key="node-bundle-name" type="xstring" value="KNIME Base Nodes"/>
+    <entry key="node-bundle-symbolic-name" type="xstring" value="org.knime.base"/>
+    <entry key="node-bundle-vendor" type="xstring" value="KNIME AG, Zurich, Switzerland"/>
+    <entry key="node-bundle-version" type="xstring" value="5.11.0.qualifier"/>
+    <entry key="node-feature-name" type="xstring" isnull="true" value=""/>
+    <entry key="node-feature-symbolic-name" type="xstring" isnull="true" value=""/>
+    <entry key="node-feature-vendor" type="xstring" isnull="true" value=""/>
+    <entry key="node-feature-version" type="xstring" value="0.0.0"/>
+    <config key="factory_settings"/>
+    <config key="node_creation_config">
+        <config key="File System Connection"/>
+        <config key="Input Data Table"/>
+        <config key="Output Table"/>
+    </config>
+    <entry key="name" type="xstring" value="Image Writer (Table)"/>
+    <entry key="hasContent" type="xboolean" value="true"/>
+    <entry key="isInactive" type="xboolean" value="false"/>
+    <config key="ports">
+        <config key="port_1">
+            <entry key="index" type="xint" value="1"/>
+            <entry key="port_spec_class" type="xstring" value="org.knime.core.data.DataTableSpec"/>
+            <entry key="port_object_class" type="xstring" value="org.knime.core.node.BufferedDataTable"/>
+            <entry key="port_object_summary" type="xstring" value="Rows: 1, Cols: 2"/>
+            <entry key="port_dir_location" type="xstring" value="port_1"/>
+        </config>
+    </config>
+    <config key="filestores">
+        <entry key="file_store_location" type="xstring" isnull="true" value=""/>
+        <entry key="file_store_id" type="xstring" value="a33aebf2-9dcc-4ffd-a1fb-ca24b6417ad1"/>
+    </config>
+</config>
