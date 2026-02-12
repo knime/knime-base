@@ -54,7 +54,6 @@ import java.util.Map;
 
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.TableSpecSettings;
 import org.knime.core.data.DataType;
-import org.knime.core.data.convert.map.ProducerRegistry;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.RawSpecFactory;
 import org.knime.filehandling.core.node.table.reader.TableReader;
@@ -175,16 +174,12 @@ public final class ReaderSpecific {
         ProductionPathProvider<T> getProductionPathProvider();
 
         /**
-         * We also need to producer registry to create production paths from identifiers when loading from settings.
+         * Return the production path serializer to use for this reader. In most cases, this is the
+         * {@link DefaultProductionPathSerializer}, but there are exceptions.
          *
-         * @return the producer registry used for production path creation
+         * @return the production path serializer compatible with this reader
          */
-        ProducerRegistry<T, ?> getProducerRegistry();
-
-        default ProductionPathSerializer getProductionPathSerializer() {
-            // TODO replace getProducerRegistry completely by getProductionPathSerializer and remove the getProducerRegistry method from this interface
-            return new DefaultProductionPathSerializer(getProducerRegistry());
-        }
+        ProductionPathSerializer getProductionPathSerializer();
 
         /**
          * @return the reader specific type hierarchy

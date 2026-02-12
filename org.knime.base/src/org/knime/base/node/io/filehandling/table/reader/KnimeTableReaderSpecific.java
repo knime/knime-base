@@ -54,7 +54,6 @@ import org.knime.base.node.preproc.manipulator.mapping.DataTypeProducerRegistry;
 import org.knime.base.node.preproc.manipulator.mapping.DataTypeTypeHierarchy;
 import org.knime.base.node.preproc.manipulator.mapping.DataValueReadAdapterFactory;
 import org.knime.core.data.DataType;
-import org.knime.core.data.convert.map.ProducerRegistry;
 import org.knime.filehandling.core.node.table.reader.DefaultProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.ProductionPathSerializer;
@@ -77,11 +76,6 @@ final class KnimeTableReaderSpecific {
         @Override
         default ProductionPathProvider<DataType> getProductionPathProvider() {
             return PRODUCTION_PATH_PROVIDER;
-        }
-
-        @Override
-        default ProducerRegistry<DataType, ?> getProducerRegistry() {
-            return DataValueReadAdapterFactory.INSTANCE.getProducerRegistry();
         }
 
         @Override
