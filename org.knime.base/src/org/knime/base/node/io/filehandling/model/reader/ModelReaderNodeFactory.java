@@ -45,18 +45,40 @@
  */
 package org.knime.base.node.io.filehandling.model.reader;
 
+import static org.knime.node.impl.description.PortDescription.dynamicPort;
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
+import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortType;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
 import org.knime.filehandling.core.node.portobject.reader.SimplePortObjectReaderNodeFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
 
 /**
  * Node factory of the model reader node.
  *
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
+ * @author Jochen Reißinger, TNG Technology Consulting GmbH
+ * @author AI Migration Pipeline v1.2
  */
-public final class ModelReaderNodeFactory extends SimplePortObjectReaderNodeFactory {
+@SuppressWarnings("restriction")
+public final class ModelReaderNodeFactory extends SimplePortObjectReaderNodeFactory
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
-    /** The mode file extensions/suffixes. */
+    /** The model file extensions/suffixes. */
     private static final String[] MODEL_SUFFIXES = new String[]{".model", ".zip"};
 
     /** File chooser history Id. */
@@ -72,6 +94,50 @@ public final class ModelReaderNodeFactory extends SimplePortObjectReaderNodeFact
     @Override
     protected PortType getOutputPortType() {
         return PortObject.TYPE;
+    }
+
+    private static final String NODE_NAME = "Model Reader";
+
+    private static final String NODE_ICON = "model_reader.png";
+
+    private static final String SHORT_DESCRIPTION = "Reads KNIME model port objects from a file.";
+
+    private static final String FULL_DESCRIPTION =
+        """
+                <p> This node reads a KNIME model from a file that was written with the Model Writer node. </p> <p>
+                    <i>This node can access a variety of different</i>
+                    <a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html#analytics-platform-file-systems">
+                    <i>file systems.</i></a>
+                    <i>More information about file handling in KNIME can be found in the official</i>
+                    <a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html">
+                    <i>File Handling Guide.</i></a></p>
+                """;
+
+    private static final List<PortDescription> INPUT_PORTS =
+        List.of(dynamicPort("File System Connection", "File system connection", "The file system connection."));
+
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(fixedPort("Model", "The KNIME model just read."));
+
+    @Override
+    public NodeDialogPane createNodeDialogPane() {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, ModelReaderNodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription(NODE_NAME, NODE_ICON, INPUT_PORTS, OUTPUT_PORTS,
+            SHORT_DESCRIPTION, FULL_DESCRIPTION, List.of(), ModelReaderNodeParameters.class, null, NodeType.Source,
+            List.of(), null);
+    }
+
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, ModelReaderNodeParameters.class));
     }
 
 }

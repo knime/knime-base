@@ -1,0 +1,82 @@
+{
+  "data" : {
+    "model" : {
+      "source" : {
+        "path" : {
+          "fsCategory" : "CONNECTED",
+          "path" : "Documents/mymodel.model",
+          "timeout" : 10000,
+          "context" : {
+            "fsSpecifier" : "local",
+            "fsToString" : "(CONNECTED, local, Documents/mymodel.model)"
+          }
+        }
+      }
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "source" : {
+            "type" : "object",
+            "properties" : {
+              "path" : {
+                "type" : "object",
+                "default" : {
+                  "fsCategory" : "LOCAL",
+                  "path" : "",
+                  "timeout" : 10000,
+                  "context" : {
+                    "fsToString" : "(LOCAL, )"
+                  }
+                }
+              }
+            },
+            "title" : "Source",
+            "description" : "The path to the file to select.",
+            "default" : {
+              "path" : {
+                "fsCategory" : "LOCAL",
+                "path" : "",
+                "timeout" : 10000,
+                "context" : {
+                  "fsToString" : "(LOCAL, )"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/source",
+      "options" : {
+        "fileExtensions" : [ "model", "zip" ],
+        "isLocal" : true,
+        "spaceFSOptions" : {
+          "mountId" : "Local space"
+        },
+        "format" : "fileChooser"
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "source" : {
+            "configPaths" : [ [ "filechooser", "path" ] ]
+          }
+        }
+      }
+    }
+  }
+}
