@@ -148,7 +148,7 @@ final class GroupByNodeParameters implements NodeParameters {
             """)
     @Modification(ColumnAggregatorElementModifier.class)
     @ArrayWidget(addButtonText = "Add manual",
-        // TODO disable "add" button based on input (e.g. no table connected)
+        // TODO (blocked) disable "add" button based on input (e.g. no table connected)
         elementDefaultValueProvider = DefaultColumnAggregatorElementProvider.class)
     @Persistor(LegacyColumnAggregatorsPersistor.class) // No array persistor...
     @Migration(LegacyColumnAggregatorsMigration.class) // ...because then we could not deprecate keys here

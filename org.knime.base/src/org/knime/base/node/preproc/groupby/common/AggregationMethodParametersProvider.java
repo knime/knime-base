@@ -44,30 +44,35 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   20 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   16 Dec 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.base.node.preproc.groupby.common;
 
+import java.util.Collection;
+
+import org.knime.base.data.aggregation.AggregationMethod;
+import org.knime.base.data.aggregation.AggregationMethods;
 import org.knime.base.data.aggregation.AggregationOperatorParameters;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.webui.node.dialog.FallbackDialogNodeParameters;
+import org.knime.base.data.aggregation.parameters.AggregationFunctionParametersProvider;
+import org.knime.base.data.aggregation.parameters.AggregationFunctionsUtility;
+import org.knime.node.parameters.NodeParametersInput;
 
 /**
- * Parameters to display legacy operator settings in "fallback style".
+ * Provider for function parameters of native (i.e. non-DB) aggregation methods.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-@SuppressWarnings("restriction")
-public final class LegacyAggregationOperatorParameters extends FallbackDialogNodeParameters
-    implements AggregationOperatorParameters {
+public abstract class AggregationMethodParametersProvider
+    extends AggregationFunctionParametersProvider<AggregationMethod> {
 
-    /**
-     * Creates parameters from the given node settings.
-     *
-     * @param nodeSettings the node settings to read from
-     */
-    public LegacyAggregationOperatorParameters(final NodeSettingsRO nodeSettings) {
-        super(nodeSettings);
+    @Override
+    protected final AggregationFunctionsUtility<AggregationMethod>
+        getFunctionUtility(final NodeParametersInput parametersInput) {
+        return AggregationMethodsUtility.getInstance();
     }
 
+    @Override
+    protected final Collection<Class<? extends AggregationOperatorParameters>> getAllParameterClasses() {
+        return AggregationMethods.getAllParameterClasses();
+    }
 }

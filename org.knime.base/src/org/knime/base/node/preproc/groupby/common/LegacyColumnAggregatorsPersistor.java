@@ -54,6 +54,7 @@ import java.util.Map;
 
 import org.knime.base.data.aggregation.AggregationMethods;
 import org.knime.base.data.aggregation.ColumnAggregator;
+import org.knime.base.data.aggregation.parameters.FallbackAggregationOperatorParameters;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
@@ -108,7 +109,8 @@ public final class LegacyColumnAggregatorsPersistor implements NodeParametersPer
                     element.m_parameters = NodeParametersUtil.loadSettings(operatorSettings, optionalParamsClass);
                 } else {
                     // nothing custom, so fallback
-                    element.m_parameters = new LegacyAggregationOperatorParameters(operatorSettings);
+                    element.m_parameters =
+                        new FallbackAggregationOperatorParameters(CNFG_AGGREGATION_OPERATOR_SETTINGS, operatorSettings);
                 }
             }
             elements.add(element);
@@ -120,7 +122,7 @@ public final class LegacyColumnAggregatorsPersistor implements NodeParametersPer
     @Override
     public void save(final ColumnAggregatorElement[] elems, final NodeSettingsWO settings) {
         final var aggregators = Arrays.stream(elems) //
-            // TODO remove this workaround (next line) if we can disable the "Add method" button
+            // TODO (blocked) remove this workaround (next line) if we can disable the "Add method" button
             .filter(agg -> agg.m_column != null && agg.m_dataType != null)
             .map(LegacyColumnAggregatorsPersistor::mapToAggregator).toList();
         ColumnAggregator.saveColumnAggregators(settings, aggregators);
@@ -134,7 +136,7 @@ public final class LegacyColumnAggregatorsPersistor implements NodeParametersPer
             }
             final var settingsToSaveInto =
                 new NodeSettings(createSettingsKey(idMap, elem.m_aggregationMethod, elem.m_column));
-            if (elem.m_parameters instanceof LegacyAggregationOperatorParameters legacyParams) {
+            if (elem.m_parameters instanceof FallbackAggregationOperatorParameters legacyParams) {
                 final var extractedSettings = legacyParams.getNodeSettings();
                 extractedSettings.copyTo(settingsToSaveInto);
             } else {

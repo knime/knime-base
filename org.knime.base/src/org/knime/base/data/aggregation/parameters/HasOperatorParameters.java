@@ -46,88 +46,65 @@
  * History
  *   20 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.base.node.preproc.groupby.common;
+package org.knime.base.data.aggregation.parameters;
 
 import java.util.Optional;
 import java.util.function.Supplier;
 
-import org.knime.base.data.aggregation.AggregationMethod;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.ArrayPersistor;
+import org.knime.base.data.aggregation.parameters.AggregationFunctionParametersProvider.AggregationMethodRef;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.node.parameters.NodeParametersInput;
-import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.StateProvider;
-import org.knime.node.parameters.updates.util.BooleanReference;
-import org.knime.node.parameters.widget.choices.Label;
 
 /**
- * Options for missing value handling in aggregation operators.
+ * Indicator that the selected aggregation method has optional settings.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ *
+ * @since 5.11
  */
-public enum MissingValueOption {
-        @Label("Exclude")
-        EXCLUDE, //
-        @Label("Include")
-        INCLUDE;
+@SuppressWarnings("restriction")
+public abstract class HasOperatorParameters implements StateProvider<Boolean> {
+
+    private Supplier<String> m_agg;
 
     /**
-     * Abstract class for effect provider to show the missing value option only if the selected aggregation method
-     * supports it. Annotate the {@link MissingValueOption} parameter with your derivation:
+     * Gets the class of the {@link AggregationMethodRef} to use.
      *
-     * <pre>
-     * <code>
-     *   &#64;Effect(type = EffectType.SHOW, predicate = MySupportsMissingValueOptions.class)
-     * </code>
-     * </pre>
-     *
-     * Then introduce a transient boolean parameter, annotated with your derivation as well:
-     *
-     * <pre>
-     * <code>
-     * &#64;ValueProvider(MySupportsMissingValueOptions.class)
-     * &#64;ValueReference(MySupportsMissingValueOptions.class)
-     * &#64;PersistArrayElement(MyNoPersistenceElementFieldPersistor.class) // if inside ArrayPersistor
-     * // helper flag to show/hide missing value option
-     * boolean m_supportsMissingValueOption;
-     * </code>
-     * </pre>
-     *
-     * If inside an {@link ArrayPersistor}, you need to derive a {@link NoPersistenceElementFieldPersistor} to make the
-     * boolean field "transient".
+     * @return the class of the {@link AggregationMethodRef} to use
      */
-    @SuppressWarnings({"restriction", "javadoc"})
-    public abstract static class SupportsMissingValueOptions implements StateProvider<Boolean>, BooleanReference {
+    protected abstract Class<? extends AggregationMethodRef> getAggregationMethodRefClass();
 
-        private Supplier<String> m_methodSupplier;
+    /**
+     * Looks up an aggregation function by its ID to determine if it has optional parameters.
+     *
+     * @param spec the {@code null}-able input spec to derive available functions from
+     * @param id the non-{@code null} ID of the aggregation function
+     *
+     * @return the aggregation function, or {@link Optional#empty()} if no such function exists
+     */
+    protected abstract Optional<AggregationSpec> lookupFunctionById(PortObjectSpec spec, String id);
 
-        protected abstract Class<? extends ParameterReference<String>> getMethodReference();
+    @Override
+    public final void init(final StateProviderInitializer init) {
+        init.computeBeforeOpenDialog();
+        m_agg = init.computeFromValueSupplier(getAggregationMethodRefClass());
+    }
 
-        /**
-         * Looks up the aggregation method by its ID.
-         *
-         * @param id the ID of the aggregation method
-         * @return the aggregation method, or an {@link Optional#empty()} if not found under the given id
-         */
-        protected abstract Optional<AggregationMethod> lookupMethodById(String id);
-
-        @Override
-        public final void init(final StateProviderInitializer initializer) {
-            initializer.computeAfterOpenDialog();
-            m_methodSupplier = initializer.computeFromValueSupplier(getMethodReference());
+    @Override
+    public final Boolean computeState(final NodeParametersInput in) throws StateComputationFailureException {
+        final var id = m_agg.get();
+        if (id == null) {
+            throw new StateComputationFailureException();
         }
-
-        @Override
-        public final Boolean computeState(final NodeParametersInput ignored) throws StateComputationFailureException {
-            final var id = m_methodSupplier.get();
-            if (id == null) {
-                throw new StateComputationFailureException();
-            }
-            return lookupMethodById(id) //
-                .map(AggregationMethod::supportsMissingValueOption) //
-                .orElseThrow(StateComputationFailureException::new);
-        }
-
+        // unknown aggregation function has no optional settings
+        // we pass the spec even if it is null to give the implementation a chance to
+        // provide a default even if no spec is connected
+        final var spec = in.getInPortSpec(0).orElse(null);
+        return lookupFunctionById(spec, id) //
+            .map(AggregationSpec::hasOptionalSettings) //
+            .orElse(false);
     }
 
 }

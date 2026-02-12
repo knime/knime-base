@@ -26,7 +26,7 @@
  *  you the additional permission to use and propagate KNIME together with
  *  ECLIPSE with only the license terms in place for ECLIPSE applying to
  *  ECLIPSE and the GNU GPL Version 3 applying for KNIME, provided the
- *  license terms of KNIME themselves allow for the respective use and
+ *  license terms of ECLIPSE themselves allow for the respective use and
  *  propagation of ECLIPSE together with KNIME.
  *
  *  Additional permission relating to nodes for KNIME that extend the Node
@@ -41,7 +41,57 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * ------------------------------------------------------------------------
+ * ---------------------------------------------------------------------
+ *
+ * History
+ *   20 Oct 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
+package org.knime.base.data.aggregation.parameters;
 
-package org.knime.base.node.preproc.groupby;
+import java.util.function.Consumer;
+
+import org.knime.base.data.aggregation.AggregationOperatorParameters;
+import org.knime.core.node.NodeSettings;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.webui.node.dialog.FallbackDialogNodeParameters;
+
+/**
+ * Parameters to display operator settings in "fallback style".
+ *
+ * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ *
+ * @since 5.11
+ */
+public final class FallbackAggregationOperatorParameters extends FallbackDialogNodeParameters
+    implements AggregationOperatorParameters {
+
+    /**
+     * Creates parameters from the given node settings.
+     *
+     * @param key settings key under which the contained settings are stored
+     * @param nodeSettings the node settings to read from
+     */
+    public FallbackAggregationOperatorParameters(final String key, final NodeSettingsRO nodeSettings) {
+        super(createNodeSettings(key, nodeSettings));
+    }
+
+    private static NodeSettings createNodeSettings(final String key, final NodeSettingsRO nodeSettings) {
+        final var settings = new NodeSettings(key);
+        nodeSettings.copyTo(settings);
+        return settings;
+    }
+
+    /**
+     * Creates new fallback parameters with settings initialized via the given initializer.
+     *
+     * @param key settings key under which the contained settings are stored
+     * @param settingsInitializer the initializer for the contained settings
+     * @return the created parameters
+     */
+    public static FallbackAggregationOperatorParameters withInitial(final String key,
+        final Consumer<NodeSettings> settingsInitializer) {
+        final var settings = new NodeSettings(key);
+        settingsInitializer.accept(settings);
+        return new FallbackAggregationOperatorParameters(key, settings);
+    }
+}
