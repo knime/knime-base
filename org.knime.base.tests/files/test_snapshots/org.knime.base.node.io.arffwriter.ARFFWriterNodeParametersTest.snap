@@ -1,0 +1,68 @@
+{
+  "data" : {
+    "model" : {
+      "overwritePolicy" : "OVERWRITE"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "file" : {
+            "type" : "string",
+            "title" : "Output location",
+            "description" : "Enter a valid file name or URL. You can also choose a previously selected location from the drop-down list, or select a local file from the \"Browse...\" dialog."
+          },
+          "overwritePolicy" : {
+            "oneOf" : [ {
+              "const" : "PREVENT",
+              "title" : "Fail"
+            }, {
+              "const" : "OVERWRITE",
+              "title" : "Overwrite file"
+            } ],
+            "title" : "If exists",
+            "description" : "How to handle an existing file at the selected location.\n<ul>\n<li><b>Fail</b>: Prevent node from executing.</li>\n<li><b>Overwrite file</b>: Replace the file if it exists.</li>\n</ul>",
+            "default" : "OVERWRITE"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/file",
+      "options" : {
+        "fileSystem" : "LOCAL",
+        "isLocal" : true,
+        "selectionMode" : "FILE",
+        "format" : "stringFileChooser"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/overwritePolicy",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "file" : {
+            "configKey" : "ARFFoutput"
+          },
+          "overwritePolicy" : {
+            "configPaths" : [ [ "overwriteOK" ] ]
+          }
+        }
+      }
+    }
+  }
+}
