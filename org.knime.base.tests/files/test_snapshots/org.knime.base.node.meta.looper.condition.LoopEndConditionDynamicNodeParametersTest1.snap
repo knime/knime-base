@@ -3,7 +3,6 @@
     "model" : {
       "flowVariableName" : "knime.workspace",
       "flowVariableType" : "STRING",
-      "makeDialogDirty" : false,
       "operator" : "EQ",
       "flowVariableValue" : "null",
       "propagateLoopVariables" : false,
@@ -11,9 +10,7 @@
         "addLastRows" : true,
         "addLastRowsOnly" : false,
         "addIterationColumn" : true
-      } ],
-      "makeDialogDirtyInitialValue" : false,
-      "initializationDone" : false
+      } ]
     }
   },
   "schema" : {
@@ -35,19 +32,8 @@
             "title" : "Condition value",
             "description" : "Select the value to compare the chosen flow variable value against using the defined comparison operator.\nThe loop will end when the comparison evaluates to true.\n"
           },
-          "initializationDone" : {
-            "type" : "boolean",
-            "default" : false
-          },
           "makeDialogDirty" : {
-            "type" : "boolean",
-            "title" : "Confirm variable type change",
-            "description" : "This option is automatically set when the flow variable type changes initially requiring the node to be\nreconfigured. Manual changes to this setting are ignored.\n",
-            "default" : false
-          },
-          "makeDialogDirtyInitialValue" : {
-            "type" : "boolean",
-            "default" : false
+            "type" : "object"
           },
           "operator" : {
             "oneOf" : [ {
@@ -122,19 +108,11 @@
       "providedOptions" : [ "possibleValues" ]
     }, {
       "type" : "Control",
-      "scope" : "#/properties/model/properties/makeDialogDirty",
+      "id" : "#/properties/model/properties/makeDialogDirty",
       "options" : {
-        "format" : "checkbox"
+        "format" : "dirtyTracker"
       },
-      "rule" : {
-        "effect" : "SHOW",
-        "condition" : {
-          "scope" : "#/properties/model/properties/makeDialogDirtyInitialValue",
-          "schema" : {
-            "const" : true
-          }
-        }
-      }
+      "providedOptions" : [ "makeDirty" ]
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/operator",
@@ -200,9 +178,7 @@
           "flowVariableType" : {
             "configKey" : "variableType"
           },
-          "makeDialogDirty" : {
-            "configPaths" : [ ]
-          },
+          "makeDialogDirty" : { },
           "operator" : {
             "configKey" : "operator",
             "deprecatedConfigKeys" : [ {
@@ -237,12 +213,6 @@
                 }
               }
             }
-          },
-          "makeDialogDirtyInitialValue" : {
-            "configPaths" : [ ]
-          },
-          "initializationDone" : {
-            "configPaths" : [ ]
           }
         }
       }
@@ -269,24 +239,6 @@
       "value" : "STRING"
     } ]
   }, {
-    "scope" : "#/properties/model/properties/initializationDone",
-    "values" : [ {
-      "indices" : [ ],
-      "value" : true
-    } ]
-  }, {
-    "scope" : "#/properties/model/properties/makeDialogDirty",
-    "values" : [ {
-      "indices" : [ ],
-      "value" : false
-    } ]
-  }, {
-    "scope" : "#/properties/model/properties/makeDialogDirtyInitialValue",
-    "values" : [ {
-      "indices" : [ ],
-      "value" : false
-    } ]
-  }, {
     "scope" : "#/properties/model/properties/operator",
     "providedOptionName" : "possibleValues",
     "values" : [ {
@@ -309,6 +261,13 @@
         "addIterationColumn" : true
       } ]
     } ]
+  }, {
+    "id" : "#/properties/model/properties/makeDialogDirty",
+    "providedOptionName" : "makeDirty",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : false
+    } ]
   } ],
   "globalUpdates" : [ {
     "trigger" : {
@@ -320,17 +279,12 @@
     "trigger" : {
       "scope" : "#/properties/model/properties/flowVariableName"
     },
-    "dependencies" : [ "#/properties/model/properties/flowVariableName", "#/properties/model/properties/flowVariableType", "#/properties/model/properties/initializationDone", "#/properties/model/properties/makeDialogDirty", "#/properties/model/properties/makeDialogDirtyInitialValue" ]
+    "dependencies" : [ "#/properties/model/properties/flowVariableName", "#/properties/model/properties/flowVariableType" ]
   }, {
     "trigger" : {
       "scope" : "#/properties/model/properties/flowVariableType"
     },
     "dependencies" : [ "#/properties/model/properties/flowVariableType" ]
-  }, {
-    "trigger" : {
-      "scope" : "#/properties/model/properties/makeDialogDirty"
-    },
-    "dependencies" : [ "#/properties/model/properties/flowVariableName", "#/properties/model/properties/flowVariableType", "#/properties/model/properties/initializationDone", "#/properties/model/properties/makeDialogDirty", "#/properties/model/properties/makeDialogDirtyInitialValue" ]
   }, {
     "trigger" : {
       "scope" : "#/properties/model/properties/portSettings/items/properties/addLastRowsOnly"
