@@ -58,12 +58,11 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.VariableType;
 import org.knime.core.node.workflow.VariableTypeRegistry;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dirty.DirtyTracker;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.ArrayPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.ElementFieldPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.PersistArray;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.PersistArrayElement;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.WidgetInternal;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.booleanhelpers.DoNotPersistBoolean;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
@@ -74,7 +73,6 @@ import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
 import org.knime.node.parameters.migration.Migration;
 import org.knime.node.parameters.migration.NodeParametersMigration;
 import org.knime.node.parameters.persistence.Persist;
-import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.updates.Effect;
 import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.updates.EffectPredicate;
@@ -84,7 +82,6 @@ import org.knime.node.parameters.updates.StateProvider;
 import org.knime.node.parameters.updates.ValueProvider;
 import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.updates.legacy.AutoGuessValueProvider;
-import org.knime.node.parameters.updates.util.BooleanReference;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.EnumChoicesProvider;
 import org.knime.node.parameters.widget.choices.FlowVariableChoicesProvider;
@@ -99,9 +96,9 @@ import org.knime.node.parameters.widget.choices.FlowVariableChoicesProvider;
 @SuppressWarnings("restriction")
 class LoopEndConditionDynamicNodeParameters implements NodeParameters {
 
-    static final VariableType<?>[] COMPATIBLE_VARIABLE_TYPES = new VariableType<?>[]{VariableType.StringType.INSTANCE,
-        VariableType.IntType.INSTANCE, VariableType.LongType.INSTANCE, VariableType.DoubleType.INSTANCE,
-        VariableType.BooleanType.INSTANCE};
+    static final VariableType<?>[] COMPATIBLE_VARIABLE_TYPES =
+        new VariableType<?>[]{VariableType.StringType.INSTANCE, VariableType.IntType.INSTANCE,
+            VariableType.LongType.INSTANCE, VariableType.DoubleType.INSTANCE, VariableType.BooleanType.INSTANCE};
 
     @Widget(title = "Flow variables", description = """
             Select one of the available flow variables to check the condition against.
@@ -124,19 +121,8 @@ class LoopEndConditionDynamicNodeParameters implements NodeParameters {
     static final class FlowVariableTypeRef implements ParameterReference<String> {
     }
 
-    @Widget(title = "Confirm variable type change", description = """
-            This option is automatically set when the flow variable type changes initially requiring the node to be
-            reconfigured. Manual changes to this setting are ignored.
-            """)
-    @WidgetInternal(hideControlInNodeDescription = "This is a helper setting to make the dialog dirty.")
-    @Persistor(DoNotPersistBoolean.class)
-    @Effect(predicate = MakeDialogDirtyInitialValue.class, type = EffectType.SHOW)
-    @ValueReference(MakeDialogDirty.class)
-    @ValueProvider(MakeDialogDirtyProvider.class)
-    boolean m_makeDialogDirty;
-
-    static final class MakeDialogDirty implements BooleanReference {
-    }
+    @DirtyTracker(MakeDialogDirtyProvider.class)
+    Void m_makeDialogDirty;
 
     @Widget(title = "Comparison operator", description = """
             Choose the comparison operator for the condition which finishes the loop's execution. For string and
@@ -203,33 +189,6 @@ class LoopEndConditionDynamicNodeParameters implements NodeParameters {
     static final class PortSettingsArrayRef implements ParameterReference<PortSettings[]> {
     }
 
-    /**
-     * The initial computed value for the change internal dialog state. The effect of m_changeInternalDialogState is
-     * based on this setting to reduce the flickering when the user clicks the checkbox. Otherwise, the checkbox would
-     * disappear and reappear on each click. Also, it is needed to detect whether the user clicked the checkbox or not
-     * to check the checkbox again.
-     */
-    @Persistor(DoNotPersistBoolean.class)
-    @ValueReference(MakeDialogDirtyInitialValue.class)
-    @ValueProvider(MakeDialogDirtyInitialValueProvider.class)
-    boolean m_makeDialogDirtyInitialValue;
-
-    static final class MakeDialogDirtyInitialValue implements BooleanReference {
-    }
-
-    /**
-     * Indicates whether the initialization of the "change internal dialog state" has been done. Needed to detect
-     * whether the used clicked the "change internal dialog state" checkbox (as the value provider listens to
-     * beforeOpenDialog and to a user change, but we cannot detect that in the provider).
-     */
-    @Persistor(DoNotPersistBoolean.class)
-    @ValueProvider(InitializationDoneProvider.class)
-    @ValueReference(InitializationDoneReference.class)
-    boolean m_initializationDone;
-
-    static final class InitializationDoneReference implements BooleanReference {
-    }
-
     static final class CompatibleFlowVariablesProvider implements FlowVariableChoicesProvider {
 
         @Override
@@ -254,7 +213,7 @@ class LoopEndConditionDynamicNodeParameters implements NodeParameters {
         protected String autoGuessValue(final NodeParametersInput parametersInput)
             throws StateComputationFailureException {
             return parametersInput.getAvailableInputFlowVariables(COMPATIBLE_VARIABLE_TYPES).values().stream()
-                    .findFirst().map(v -> v.getName()).orElse(null);
+                .findFirst().map(v -> v.getName()).orElse(null);
         }
 
     }
@@ -272,8 +231,7 @@ class LoopEndConditionDynamicNodeParameters implements NodeParameters {
         @Override
         public String computeState(final NodeParametersInput parametersInput) throws StateComputationFailureException {
             final var flowVarOpt = parametersInput.getAvailableInputFlowVariables(COMPATIBLE_VARIABLE_TYPES).values()
-                    .stream().filter(v -> v.getName().equals(m_flowVariableNameSupplier.get()))
-                    .findFirst();
+                .stream().filter(v -> v.getName().equals(m_flowVariableNameSupplier.get())).findFirst();
             if (flowVarOpt.isEmpty()) {
                 return null;
             } else {
@@ -306,7 +264,7 @@ class LoopEndConditionDynamicNodeParameters implements NodeParameters {
             }
 
             final var varType = Arrays.stream(VariableTypeRegistry.getInstance().getAllTypes())
-                    .filter(t -> flowVarType.equals(t.getIdentifier())).findAny().orElse(null);
+                .filter(t -> flowVarType.equals(t.getIdentifier())).findAny().orElse(null);
 
             if (varType == null) {
                 return Arrays.asList(Operator.values());
@@ -351,35 +309,18 @@ class LoopEndConditionDynamicNodeParameters implements NodeParameters {
 
     static final class MakeDialogDirtyProvider implements StateProvider<Boolean> {
 
-        private Supplier<Boolean> m_makeDialogDirty;
-
-        private Supplier<Boolean> m_makeDialogDirtyInitialValue;
-
-        private Supplier<Boolean> m_initializationDone;
-
         private Supplier<String> m_oldFlowVariableTypeSupplier;
 
         private Supplier<String> m_newFlowVariableTypeSupplier;
 
         @Override
         public void init(final StateProviderInitializer initializer) {
-            m_initializationDone = initializer.getValueSupplier(InitializationDoneReference.class);
-            m_makeDialogDirty = initializer.computeFromValueSupplier(MakeDialogDirty.class);
-            m_makeDialogDirtyInitialValue = initializer.getValueSupplier(MakeDialogDirtyInitialValue.class);
             m_oldFlowVariableTypeSupplier = initializer.getValueSupplier(FlowVariableTypeRef.class);
             m_newFlowVariableTypeSupplier = initializer.computeFromProvidedState(FlowVariableTypeProvider.class);
         }
 
         @Override
         public Boolean computeState(final NodeParametersInput parametersInput) throws StateComputationFailureException {
-            if (m_initializationDone.get()) {
-                final var changeInternalDialogStateInitialValue = m_makeDialogDirtyInitialValue.get();
-                if (m_makeDialogDirty.get() != changeInternalDialogStateInitialValue) {
-                    return changeInternalDialogStateInitialValue;
-                }
-                throw new StateComputationFailureException();
-            }
-
             final var oldType = m_oldFlowVariableTypeSupplier.get();
             final var newType = m_newFlowVariableTypeSupplier.get();
 
@@ -392,42 +333,12 @@ class LoopEndConditionDynamicNodeParameters implements NodeParameters {
 
     }
 
-    static final class MakeDialogDirtyInitialValueProvider implements StateProvider<Boolean> {
-
-        private Supplier<Boolean> m_changeInternalDialogState;
-
-        @Override
-        public void init(final StateProviderInitializer initializer) {
-            m_changeInternalDialogState = initializer.computeFromProvidedState(MakeDialogDirtyProvider.class);
-        }
-
-        @Override
-        public Boolean computeState(final NodeParametersInput parametersInput) throws StateComputationFailureException {
-            return m_changeInternalDialogState.get();
-        }
-
-    }
-
-    static final class InitializationDoneProvider implements StateProvider<Boolean> {
-
-        @Override
-        public void init(final StateProviderInitializer initializer) {
-            initializer.computeFromProvidedState(MakeDialogDirtyProvider.class);
-        }
-
-        @Override
-        public Boolean computeState(final NodeParametersInput parametersInput) throws StateComputationFailureException {
-            return true;
-        }
-
-    }
-
     static final class PortSettingsArrayPersistor implements ArrayPersistor<Integer, PortSettings> {
 
         @Override
         public int getArrayLength(final NodeSettingsRO nodeSettings) throws InvalidSettingsException {
-            final var addLastRows = nodeSettings.getBooleanArray(
-                LoopEndConditionDynamicSettings.CFG_ADD_LAST_ROWS, new boolean[0]);
+            final var addLastRows =
+                nodeSettings.getBooleanArray(LoopEndConditionDynamicSettings.CFG_ADD_LAST_ROWS, new boolean[0]);
             return addLastRows.length;
         }
 
@@ -526,8 +437,8 @@ class LoopEndConditionDynamicNodeParameters implements NodeParameters {
             @Override
             public Boolean load(final NodeSettingsRO nodeSettings, final Integer loadContext)
                 throws InvalidSettingsException {
-                boolean[] array = nodeSettings.getBooleanArray(
-                    LoopEndConditionDynamicSettings.CFG_ADD_LAST_ROWS, new boolean[]{true});
+                boolean[] array = nodeSettings.getBooleanArray(LoopEndConditionDynamicSettings.CFG_ADD_LAST_ROWS,
+                    new boolean[]{true});
                 return loadContext < array.length ? array[loadContext] : true;
             }
 
@@ -548,8 +459,8 @@ class LoopEndConditionDynamicNodeParameters implements NodeParameters {
             @Override
             public Boolean load(final NodeSettingsRO nodeSettings, final Integer loadContext)
                 throws InvalidSettingsException {
-                boolean[] array = nodeSettings.getBooleanArray(
-                    LoopEndConditionDynamicSettings.CFG_ADD_LAST_ROWS_ONLY, new boolean[]{false});
+                boolean[] array = nodeSettings.getBooleanArray(LoopEndConditionDynamicSettings.CFG_ADD_LAST_ROWS_ONLY,
+                    new boolean[]{false});
                 return loadContext < array.length ? array[loadContext] : false;
             }
 
