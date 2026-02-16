@@ -1,0 +1,514 @@
+{
+  "data" : {
+    "model" : {
+      "fileSystemSelection" : {
+        "selection" : {
+          "fileSystemType" : "SPACE",
+          "spaceOrWorkflow" : "SPACE",
+          "timeout" : 0
+        },
+        "legacyParameters" : {
+          "legacyFileSystemConfiguration" : {
+            "isPresent" : false
+          }
+        }
+      },
+      "column" : "Cluster Membership",
+      "failIfNotExisting" : false,
+      "failOnMissingValues" : true,
+      "appendOrReplace" : "APPEND_NEW",
+      "newColumnName" : "Path"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "appendOrReplace" : {
+            "oneOf" : [ {
+              "const" : "APPEND_NEW",
+              "title" : "Append"
+            }, {
+              "const" : "REPLACE_SELECTED",
+              "title" : "Replace"
+            } ],
+            "title" : "Output column",
+            "description" : "Whether to replace an existing column or append a new one.\n<ul>\n<li><b>Append</b>: Append a new column</li>\n<li><b>Replace</b>: Replace the input column</li>\n</ul>",
+            "default" : "APPEND_NEW"
+          },
+          "column" : {
+            "type" : "string",
+            "title" : "Input column",
+            "description" : "Column that will be converted. It has to contain a string with correct Path <tt>/foo/bar.txt</tt> syntax."
+          },
+          "failIfNotExisting" : {
+            "type" : "boolean",
+            "title" : "Fail if file/folder does not exist",
+            "description" : "Checks if the files or folders referenced by the created Paths are existing and will abort if one is not.",
+            "default" : false
+          },
+          "failOnMissingValues" : {
+            "type" : "boolean",
+            "title" : "Fail on missing values",
+            "description" : "If selected the node will fail if the selected column contains missing values.",
+            "default" : true
+          },
+          "fileSystemSelection" : {
+            "type" : "object",
+            "properties" : {
+              "legacyParameters" : {
+                "type" : "object",
+                "properties" : {
+                  "clearToReconfigure" : {
+                    "type" : "object",
+                    "title" : "Clear to reconfigure"
+                  },
+                  "dirtyAfterClear" : {
+                    "type" : "object"
+                  },
+                  "legacyFileSystemConfiguration" : {
+                    "type" : "object",
+                    "properties" : {
+                      "isPresent" : {
+                        "type" : "boolean",
+                        "default" : false
+                      },
+                      "noLongerSupportedFSConfigOrNull" : {
+                        "type" : "object"
+                      }
+                    },
+                    "default" : {
+                      "isPresent" : false
+                    }
+                  },
+                  "legacySettingsReadOnlyMessage" : {
+                    "type" : "object"
+                  },
+                  "noLongerSupportedMessage" : {
+                    "type" : "object"
+                  }
+                },
+                "default" : {
+                  "legacyFileSystemConfiguration" : {
+                    "isPresent" : false
+                  }
+                }
+              },
+              "selection" : {
+                "type" : "object",
+                "properties" : {
+                  "connectedFileSystemNoLongerAvailableMessage" : {
+                    "type" : "object"
+                  },
+                  "connectedFileSystemSpecifier" : {
+                    "type" : "string"
+                  },
+                  "fileSystemType" : {
+                    "oneOf" : [ {
+                      "const" : "CONNECTED",
+                      "title" : "Connected file system"
+                    }, {
+                      "const" : "LOCAL",
+                      "title" : "Local file system"
+                    }, {
+                      "const" : "SPACE",
+                      "title" : "Current space"
+                    }, {
+                      "const" : "EMBEDDED",
+                      "title" : "Embedded data"
+                    }, {
+                      "const" : "URL",
+                      "title" : "URL"
+                    } ],
+                    "title" : "File system",
+                    "description" : "Select one of the following options for the file system to use:\n<ul>\n<li><b>Connected file system</b>: Connect a file system port to this node to use it.</li>\n<li><b>Local file system</b>: The local file system of the machine running KNIME. Note that this option is not available when working remotely.</li>\n<li><b>Current space</b>: The space that contains the current workflow.</li>\n<li><b>Embedded data</b>: The embedded data of the current workflow.</li>\n<li><b>URL</b>: A custom URL.</li>\n</ul>",
+                    "default" : "LOCAL"
+                  },
+                  "localFileSystemNotAvailableMessage" : {
+                    "type" : "object"
+                  },
+                  "spaceOrWorkflow" : {
+                    "oneOf" : [ {
+                      "const" : "SPACE",
+                      "title" : "Space"
+                    }, {
+                      "const" : "WORKFLOW",
+                      "title" : "Workflow"
+                    } ],
+                    "title" : "Relative to",
+                    "description" : "Choose the base location to which the file path is relative to.\n<ul>\n<li><b>Space</b>: The root of the space that contains the current workflow.</li>\n<li><b>Workflow</b>: The current workflow itself.</li>\n</ul>",
+                    "default" : "SPACE"
+                  },
+                  "timeout" : {
+                    "type" : "integer",
+                    "format" : "int32",
+                    "title" : "Timeout",
+                    "description" : "The timeout in milliseconds used when reading from or writing to a URL.",
+                    "default" : 0
+                  }
+                },
+                "default" : {
+                  "fileSystemType" : "LOCAL",
+                  "spaceOrWorkflow" : "SPACE",
+                  "timeout" : 0
+                }
+              }
+            },
+            "default" : {
+              "selection" : {
+                "fileSystemType" : "LOCAL",
+                "spaceOrWorkflow" : "SPACE",
+                "timeout" : 0
+              },
+              "legacyParameters" : {
+                "legacyFileSystemConfiguration" : {
+                  "isPresent" : false
+                }
+              }
+            }
+          },
+          "newColumnName" : {
+            "type" : "string",
+            "title" : "New column name",
+            "description" : "Name of the appended column.",
+            "default" : "Path"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/fileSystemSelection/properties/selection/properties/fileSystemType",
+      "options" : {
+        "format" : "dropDown"
+      },
+      "providedOptions" : [ "possibleValues" ],
+      "rule" : {
+        "effect" : "HIDE",
+        "condition" : {
+          "scope" : "#/properties/model/properties/fileSystemSelection/properties/legacyParameters/properties/legacyFileSystemConfiguration/properties/isPresent",
+          "schema" : {
+            "const" : true
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/fileSystemSelection/properties/selection/properties/spaceOrWorkflow",
+      "options" : {
+        "format" : "valueSwitch"
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "type" : "AND",
+          "conditions" : [ {
+            "scope" : "#/properties/model/properties/fileSystemSelection/properties/selection/properties/fileSystemType",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "SPACE"
+              } ]
+            }
+          }, {
+            "scope" : "#/properties/model/properties/fileSystemSelection/properties/legacyParameters/properties/legacyFileSystemConfiguration/properties/isPresent",
+            "schema" : {
+              "not" : {
+                "const" : true
+              }
+            }
+          } ]
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/fileSystemSelection/properties/selection/properties/timeout",
+      "options" : {
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 2147483647.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 2.147483647E9
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least -2147483648.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : -2.147483648E9
+            }
+          }
+        }
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "type" : "AND",
+          "conditions" : [ {
+            "scope" : "#/properties/model/properties/fileSystemSelection/properties/selection/properties/fileSystemType",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "URL"
+              } ]
+            }
+          }, {
+            "scope" : "#/properties/model/properties/fileSystemSelection/properties/legacyParameters/properties/legacyFileSystemConfiguration/properties/isPresent",
+            "schema" : {
+              "not" : {
+                "const" : true
+              }
+            }
+          } ]
+        }
+      }
+    }, {
+      "type" : "Control",
+      "id" : "#/properties/model/properties/fileSystemSelection/properties/selection/properties/localFileSystemNotAvailableMessage",
+      "options" : {
+        "format" : "textMessage"
+      },
+      "providedOptions" : [ "message" ],
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "type" : "AND",
+          "conditions" : [ {
+            "scope" : "#/properties/model/properties/fileSystemSelection/properties/selection/properties/fileSystemType",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "LOCAL"
+              } ]
+            }
+          }, {
+            "schema" : {
+              "not" : { }
+            }
+          } ]
+        }
+      }
+    }, {
+      "type" : "Control",
+      "id" : "#/properties/model/properties/fileSystemSelection/properties/selection/properties/connectedFileSystemNoLongerAvailableMessage",
+      "options" : {
+        "format" : "textMessage"
+      },
+      "providedOptions" : [ "message" ],
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "type" : "AND",
+          "conditions" : [ {
+            "scope" : "#/properties/model/properties/fileSystemSelection/properties/selection/properties/fileSystemType",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "CONNECTED"
+              } ]
+            }
+          }, {
+            "schema" : {
+              "not" : {
+                "not" : { }
+              }
+            }
+          } ]
+        }
+      }
+    }, {
+      "type" : "Control",
+      "id" : "#/properties/model/properties/fileSystemSelection/properties/legacyParameters/properties/legacySettingsReadOnlyMessage",
+      "options" : {
+        "format" : "textMessage"
+      },
+      "providedOptions" : [ "message" ]
+    }, {
+      "type" : "Control",
+      "id" : "#/properties/model/properties/fileSystemSelection/properties/legacyParameters/properties/noLongerSupportedMessage",
+      "options" : {
+        "format" : "textMessage"
+      },
+      "providedOptions" : [ "message" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/fileSystemSelection/properties/legacyParameters/properties/clearToReconfigure",
+      "options" : {
+        "format" : "simpleButton",
+        "triggerId" : "org.knime.core.webui.node.dialog.defaultdialog.internal.filesystem.NoLongerSupportedFileSystemParameters$ClearToReconfigureButtonRef"
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/fileSystemSelection/properties/legacyParameters/properties/legacyFileSystemConfiguration/properties/isPresent",
+          "schema" : {
+            "const" : true
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "id" : "#/properties/model/properties/fileSystemSelection/properties/legacyParameters/properties/dirtyAfterClear",
+      "options" : {
+        "format" : "dirtyTracker"
+      },
+      "providedOptions" : [ "makeDirty" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/column",
+      "options" : {
+        "format" : "dropDown"
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "label" : "Error Handling",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/failIfNotExisting",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/failOnMissingValues",
+        "options" : {
+          "format" : "checkbox"
+        }
+      } ]
+    }, {
+      "label" : "Output",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/appendOrReplace",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/newColumnName",
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/appendOrReplace",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "APPEND_NEW"
+              } ]
+            }
+          }
+        }
+      } ]
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "fileSystemSelection" : {
+            "configPaths" : [ [ "file_system", "location_spec" ] ]
+          },
+          "column" : {
+            "configKey" : "selected_column_name"
+          },
+          "failIfNotExisting" : {
+            "configKey" : "fail_on_missing_file_folder"
+          },
+          "failOnMissingValues" : {
+            "configKey" : "fail_on_missing_values"
+          },
+          "appendOrReplace" : {
+            "configKey" : "generated_column_mode"
+          },
+          "newColumnName" : {
+            "configKey" : "appended_column_name"
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/column",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "String column",
+        "text" : "String column",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/fileSystemSelection/properties/selection/properties/fileSystemType",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "LOCAL",
+        "text" : "Local file system"
+      }, {
+        "id" : "SPACE",
+        "text" : "Current space (Local space)"
+      }, {
+        "id" : "EMBEDDED",
+        "text" : "Embedded data"
+      }, {
+        "id" : "URL",
+        "text" : "URL"
+      } ]
+    } ]
+  }, {
+    "id" : "#/properties/model/properties/fileSystemSelection/properties/legacyParameters/properties/noLongerSupportedMessage",
+    "providedOptionName" : "message",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : null
+    } ]
+  }, {
+    "id" : "#/properties/model/properties/fileSystemSelection/properties/selection/properties/connectedFileSystemNoLongerAvailableMessage",
+    "providedOptionName" : "message",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : {
+        "title" : "Connected file system no longer available",
+        "description" : "The node has been configured with a file system port before.",
+        "type" : "WARNING"
+      }
+    } ]
+  }, {
+    "id" : "#/properties/model/properties/fileSystemSelection/properties/selection/properties/localFileSystemNotAvailableMessage",
+    "providedOptionName" : "message",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : {
+        "title" : "Local file system no longer available",
+        "description" : "The node has been configured in a local environment before. Local file system access is not possible when working remotely.",
+        "type" : "WARNING"
+      }
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "id" : "after-open-dialog"
+    },
+    "triggerInitially" : true,
+    "dependencies" : [ "#/properties/model/properties/column", "#/properties/model/properties/fileSystemSelection/properties/legacyParameters/properties/legacyFileSystemConfiguration" ]
+  }, {
+    "trigger" : {
+      "id" : "org.knime.core.webui.node.dialog.defaultdialog.internal.filesystem.NoLongerSupportedFileSystemParameters$ClearToReconfigureButtonRef"
+    },
+    "dependencies" : [ ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/fileSystemSelection/properties/legacyParameters/properties/legacyFileSystemConfiguration"
+    },
+    "dependencies" : [ "#/properties/model/properties/fileSystemSelection/properties/legacyParameters/properties/legacyFileSystemConfiguration" ]
+  } ]
+}

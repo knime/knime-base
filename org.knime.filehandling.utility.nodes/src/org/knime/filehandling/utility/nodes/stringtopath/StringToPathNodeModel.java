@@ -120,17 +120,17 @@ final class StringToPathNodeModel extends NodeModel {
 
     private static final int DATA_TABLE_OUTPUT_IDX = 0;
 
-    private static final String CFG_FILE_SYSTEM = "file_system";
+    static final String CFG_FILE_SYSTEM = "file_system";
 
-    private static final String CFG_SELECTED_COLUMN_NAME = "selected_column_name";
+    static final String CFG_SELECTED_COLUMN_NAME = "selected_column_name";
 
-    private static final String CFG_GENERATED_COLUMN_MODE = "generated_column_mode";
+    static final String CFG_GENERATED_COLUMN_MODE = "generated_column_mode";
 
-    private static final String CFG_APPENDED_COLUMN_NAME = "appended_column_name";
+    static final String CFG_APPENDED_COLUMN_NAME = "appended_column_name";
 
-    private static final String CFG_ABORT_ON_MISSING_FILE = "fail_on_missing_file_folder";
+    static final String CFG_ABORT_ON_MISSING_FILE = "fail_on_missing_file_folder";
 
-    private static final String CFG_FAIL_ON_MISSING_VALS = "fail_on_missing_values";
+    static final String CFG_FAIL_ON_MISSING_VALS = "fail_on_missing_values";
 
     private final SettingsModelFileSystem m_fileSystemModel;
 
