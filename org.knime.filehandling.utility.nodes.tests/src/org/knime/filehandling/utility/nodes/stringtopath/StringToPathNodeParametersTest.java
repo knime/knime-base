@@ -51,8 +51,8 @@ package org.knime.filehandling.utility.nodes.stringtopath;
 import java.io.FileInputStream;
 import java.io.IOException;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.def.StringCell;
@@ -62,6 +62,7 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
+import org.knime.filehandling.utility.nodes.utils.MountPointFileSystemAccessMock;
 import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
 import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 import org.knime.testing.util.WorkflowManagerUtil;
@@ -77,17 +78,19 @@ class StringToPathNodeParametersTest extends DefaultNodeSettingsSnapshotTest {
      *
      * @throws IOException
      */
-    @BeforeAll
-    static void mockNodeContext() throws IOException {
+    @BeforeEach
+    void mockNodeContext() throws IOException {
         final var wfm = WorkflowManagerUtil.createEmptyWorkflow();
-        final var nodeContainer = WorkflowManagerUtil.createAndAddNode(wfm, new StringToPathNodeFactory());
+        MountPointFileSystemAccessMock.enabled = true;
 
+        final var nodeContainer = WorkflowManagerUtil.createAndAddNode(wfm, new StringToPathNodeFactory());
         NodeContext.pushContext(nodeContainer);
     }
 
-    @AfterAll
-    static void popNodeContext() {
+    @AfterEach
+    void popNodeContext() {
         NodeContext.removeLastContext();
+        MountPointFileSystemAccessMock.enabled = false;
     }
 
     private static SnapshotTestConfiguration getConfig() {
