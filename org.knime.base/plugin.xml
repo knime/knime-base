@@ -2362,12 +2362,6 @@
             factory-class="org.knime.base.node.io.filehandling.csv.reader.simple.SimpleFileReaderNodeFactory"
             hidden="false">
       </node>
-	  <node
-             category-path="/io/read"
-             deprecated="false"
-             factory-class="org.knime.base.node.io.filehandling.csv.reader.FileReaderNodeFactory"
-             hidden="false">
-      </node>
       <node
 			 category-path="/manipulation/table"
 			 deprecated="false"
@@ -2744,6 +2738,9 @@
         <NodeFactoryClassMapper
               classMapper="org.knime.base.node.preproc.valcount.ValueCounterNodeFactoryClassMapper">
         </NodeFactoryClassMapper>
+         <NodeFactoryClassMapper
+                 classMapper="org.knime.base.node.io.filehandling.csv.reader.FileReaderNodeFactoryClassMapper">
+         </NodeFactoryClassMapper>
      </extension>
      <extension
            point="org.knime.core.DataValueFormatter">

@@ -44,51 +44,31 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 6, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Feb 19, 2026 (Thomas Reifenberger): created
  */
 package org.knime.base.node.io.filehandling.csv.reader;
 
-import java.util.Optional;
+import java.util.HashMap;
+import java.util.Map;
 
-import org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReaderConfig;
-import org.knime.core.node.context.NodeCreationConfiguration;
-import org.knime.core.node.context.url.URLConfiguration;
-import org.knime.filehandling.core.connections.FSLocationUtil;
-import org.knime.filehandling.core.connections.FSPath;
-import org.knime.filehandling.core.defaultnodesettings.EnumConfig;
-import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
-import org.knime.filehandling.core.defaultnodesettings.filtermode.SettingsModelFilterMode.FilterMode;
-import org.knime.filehandling.core.node.table.reader.MultiTableReadFactory;
-import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
-import org.knime.filehandling.core.node.table.reader.preview.dialog.AbstractPathTableReaderNodeDialog;
+import org.knime.core.node.MapNodeFactoryClassMapper;
+import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeModel;
 
 /**
- * Node factory for the File Reader.
+ * Maps the FileReader to the {@link org.knime.base.node.io.filehandling.csv.reader.api.CSVTableReader}, as the nodes
+ * have been identical (except for their description).
  *
- * @author Lars Schweikardt, KNIME GmbH, Konstanz, Germany
+ * @since 5.12
+ * @author Thomas Reifenberger, TNG Technology Consulting GmbH, Germany
  */
-public final class FileReaderNodeFactory extends AbstractCSVTableReaderNodeFactory { //NOSONAR
+public final class FileReaderNodeFactoryClassMapper extends MapNodeFactoryClassMapper {
 
     @Override
-    protected SettingsModelReaderFileChooser createPathSettings(final NodeCreationConfiguration nodeCreationConfig) {
-        final SettingsModelReaderFileChooser settingsModel = new SettingsModelReaderFileChooser("file_selection",
-            nodeCreationConfig.getPortConfig().orElseThrow(IllegalStateException::new), FS_CONNECT_GRP_ID,
-            EnumConfig.create(FilterMode.FILE, FilterMode.FILES_IN_FOLDERS));
-        final Optional<? extends URLConfiguration> urlConfig = nodeCreationConfig.getURLConfig();
-        if (urlConfig.isPresent()) {
-            settingsModel
-                .setLocation(FSLocationUtil.createFromURL(urlConfig.get().getUrl().toString()));
-        }
-        return settingsModel;
+    protected Map<String, Class<? extends NodeFactory<? extends NodeModel>>> getMapInternal() {
+        final Map<String, Class<? extends NodeFactory<? extends NodeModel>>> map = new HashMap<>();
+        map.put("org.knime.base.node.io.filehandling.csv.reader.FileReaderNodeFactory",
+            CSVTableReaderNodeFactory.class);
+        return map;
     }
-
-    @Override
-    protected AbstractPathTableReaderNodeDialog<CSVTableReaderConfig, Class<?>> createNodeDialogPane(
-        final NodeCreationConfiguration creationConfig,
-        final MultiTableReadFactory<FSPath, CSVTableReaderConfig, Class<?>> readFactory,
-        final ProductionPathProvider<Class<?>> productionPathProvider) {
-        return new CSVTableReaderNodeDialog(createPathSettings(creationConfig), createConfig(creationConfig),
-            readFactory, productionPathProvider, false);
-    }
-
 }

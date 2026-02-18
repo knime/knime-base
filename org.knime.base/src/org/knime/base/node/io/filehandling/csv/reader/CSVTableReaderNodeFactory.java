@@ -195,9 +195,8 @@ public class CSVTableReaderNodeFactory
             nodeCreationConfig.getPortConfig().orElseThrow(IllegalStateException::new), FS_CONNECT_GRP_ID,
             EnumConfig.create(FilterMode.FILE, FilterMode.FILES_IN_FOLDERS));
         final Optional<? extends URLConfiguration> urlConfig = nodeCreationConfig.getURLConfig();
-        if (urlConfig.isPresent()) {
-            settingsModel.setLocation(FSLocationUtil.createFromURL(urlConfig.get().getUrl().toString()));
-        }
+        urlConfig.ifPresent(urlConfiguration -> settingsModel
+            .setLocation(FSLocationUtil.createFromURL(urlConfiguration.getUrl().toString())));
         return settingsModel;
     }
 }
