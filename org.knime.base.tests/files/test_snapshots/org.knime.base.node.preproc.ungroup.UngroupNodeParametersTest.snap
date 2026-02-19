@@ -219,7 +219,10 @@
         "type" : "object",
         "properties" : {
           "collectionColumns" : {
-            "configPaths" : [ [ "columnNames", "filter-type" ], [ "columnNames", "included_names" ], [ "columnNames", "excluded_names" ], [ "columnNames", "enforce_option" ], [ "columnNames", "name_pattern", "pattern" ], [ "columnNames", "name_pattern", "type" ], [ "columnNames", "name_pattern", "caseSensitive" ], [ "columnNames", "name_pattern", "excludeMatching" ] ]
+            "configPaths" : [ [ "columnNames", "filter-type" ], [ "columnNames", "included_names" ], [ "columnNames", "excluded_names" ], [ "columnNames", "enforce_option" ], [ "columnNames", "name_pattern", "pattern" ], [ "columnNames", "name_pattern", "type" ], [ "columnNames", "name_pattern", "caseSensitive" ], [ "columnNames", "name_pattern", "excludeMatching" ] ],
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "columnName" ] ]
+            } ]
           },
           "removeCollectionColumn" : {
             "configKey" : "removeCollectionCol"

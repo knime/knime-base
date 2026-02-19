@@ -48,18 +48,26 @@
 
 package org.knime.base.node.preproc.ungroup;
 
+import java.util.List;
+
 import org.knime.core.data.collection.CollectionDataValue;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.layout.Section;
+import org.knime.node.parameters.migration.ConfigMigration;
 import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
+import org.knime.node.parameters.migration.Migration;
+import org.knime.node.parameters.migration.NodeParametersMigration;
 import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.persistence.legacy.LegacyColumnFilterPersistor;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
+import org.knime.node.parameters.widget.choices.filter.LegacyFilterUtil.ColumnFilterBuilder;
 import org.knime.node.parameters.widget.choices.filter.TwinlistWidget;
 import org.knime.node.parameters.widget.choices.util.ColumnSelectionUtil;
 import org.knime.node.parameters.widget.choices.util.CompatibleColumnsProvider;
@@ -100,7 +108,22 @@ final class UngroupNodeParameters implements NodeParameters {
     @ChoicesProvider(CollectionColumnsProvider.class)
     @TwinlistWidget(includedLabel = "Input columns to ungroup", excludedLabel = "Excludes")
     @Persistor(CollectionColumnsPersistor.class)
+    @Migration(SingleColumnNameMigration.class)
     ColumnFilter m_collectionColumns = new ColumnFilter();
+
+    static final class SingleColumnNameMigration implements NodeParametersMigration<ColumnFilter> {
+        static ColumnFilter loadColumnFilter(final NodeSettingsRO settings) throws InvalidSettingsException {
+            final var columnName = new String[]{settings.getString("columnName")};
+            return new ColumnFilterBuilder().withMode(ColumnFilterBuilder.Mode.MANUAL).withManuallySelected(columnName)
+                .withIncludeUnknownColumns(true).build();
+        }
+
+        @Override
+        public List<ConfigMigration<ColumnFilter>> getConfigMigrations() {
+            return List.of(ConfigMigration.builder(SingleColumnNameMigration::loadColumnFilter)
+                .withDeprecatedConfigPath("columnName").build());
+        }
+    }
 
     @Widget(title = "Remove selected collection column",
         description = "If enabled, the selected collection column will be removed from the result table. "
