@@ -1,0 +1,390 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="settings.xml">
+    <entry key="node_file" type="xstring" value="settings.xml"/>
+    <config key="flow_stack"/>
+    <config key="internal_node_subsettings">
+        <entry key="memory_policy" type="xstring" value="CacheSmallInMemory"/>
+    </config>
+    <config key="model">
+        <config key="csvReaderParameters">
+            <config key="multiFileSelectionParams">
+                <config key="source">
+                    <entry key="filterMode" type="xstring" value="FILE"/>
+                    <config key="path">
+                        <entry key="location_present" type="xboolean" value="true"/>
+                        <entry key="file_system_type" type="xstring" value="RELATIVE"/>
+                        <entry key="file_system_specifier" type="xstring" value="knime.space"/>
+                        <entry key="path" type="xstring" value="tmp/test.csv"/>
+                    </config>
+                    <entry key="includeSubfolders" type="xboolean" value="false"/>
+                    <config key="filters">
+                        <entry key="filterFilesExtension" type="xboolean" value="false"/>
+                        <entry key="filesExtensionExpression" type="xstring" value=""/>
+                        <entry key="filesExtensionCaseSensitive" type="xboolean" value="false"/>
+                        <entry key="filterFilesName" type="xboolean" value="false"/>
+                        <entry key="filesNameExpression" type="xstring" value="*"/>
+                        <entry key="filesNameFilterType" type="xstring" value="WILDCARD"/>
+                        <entry key="filesNameCaseSensitive" type="xboolean" value="false"/>
+                        <entry key="includeHiddenFiles" type="xboolean" value="true"/>
+                        <entry key="includeSpecialFiles" type="xboolean" value="true"/>
+                        <entry key="filterFoldersName" type="xboolean" value="false"/>
+                        <entry key="foldersNameExpression" type="xstring" value="*"/>
+                        <entry key="foldersNameFilterType" type="xstring" value="WILDCARD"/>
+                        <entry key="foldersNameCaseSensitive" type="xboolean" value="false"/>
+                        <entry key="includeHiddenFolders" type="xboolean" value="true"/>
+                        <entry key="followSymlinks" type="xboolean" value="false"/>
+                    </config>
+                </config>
+            </config>
+            <config key="skipFirstDataRowsParams">
+                <entry key="skipFirstDataRows" type="xlong" value="0"/>
+            </config>
+            <config key="maxNumberOfRowsParams">
+                <entry key="maximumNumberOfRows" type="xlong" value="0"/>
+                <entry key="maximumNumberOfRows_is_present" type="xboolean" value="false"/>
+            </config>
+            <config key="ifSchemaChangesParams">
+                <entry key="ignoreSchemaChange" type="xboolean" value="false"/>
+                <entry key="ifSchemaChangesOption" type="xstring" value="FAIL"/>
+            </config>
+            <config key="multiFileReaderParams">
+                <entry key="appendPathColumn" type="xstring" isnull="true" value=""/>
+                <entry key="appendPathColumn_is_present" type="xboolean" value="false"/>
+                <entry key="howToCombineColumns" type="xstring" value="FAIL"/>
+            </config>
+            <config key="fileEncodingParams">
+                <entry key="fileEncoding" type="xstring" value="UTF_8"/>
+                <entry key="customEncoding" type="xstring" value=""/>
+            </config>
+            <config key="skipFirstLinesParams">
+                <entry key="skipFirstLines" type="xlong" value="0"/>
+            </config>
+            <config key="csvFormatParams">
+                <entry key="commentLineCharacter" type="xstring" value="#"/>
+                <entry key="rowDelimiterOption" type="xstring" value="LINE_BREAK"/>
+                <entry key="customRowDelimiter" type="xstring" value="\n"/>
+                <entry key="columnDelimiter" type="xstring" value=","/>
+                <entry key="quotedStringsContainNoRowDelimiters" type="xboolean" value="false"/>
+                <entry key="quoteCharacter" type="xstring" value="'"/>
+                <entry key="quoteEscapeCharacter" type="xstring" value="'"/>
+                <entry key="decimalSeparator" type="xstring" value="."/>
+                <entry key="thousandsSeparator" type="xstring" value=""/>
+            </config>
+            <config key="autoDetectParams">
+                <entry key="numberOfCharactersForAutodetection" type="xint" value="1048576"/>
+            </config>
+            <config key="firstRowContainsColumnNamesParams">
+                <entry key="firstRowContainsColumnNames" type="xboolean" value="true"/>
+            </config>
+            <config key="firstColumnContainsRowIdsParams">
+                <entry key="firstColumnContainsRowIds" type="xboolean" value="false"/>
+            </config>
+            <config key="ifRowHasFewerColumnsParams">
+                <entry key="ifRowHasLessColumnsOption" type="xstring" value="FAIL"/>
+            </config>
+            <config key="quotedStringsParams">
+                <entry key="replaceEmptyQuotedStringsByMissingValues" type="xboolean" value="true"/>
+                <entry key="quotedStringsOption" type="xstring" value="REMOVE_QUOTES_AND_TRIM"/>
+            </config>
+            <config key="limitScannedRowsParams">
+                <entry key="maxDataRowsScanned" type="xlong" value="10000"/>
+                <entry key="maxDataRowsScanned_is_present" type="xboolean" value="true"/>
+            </config>
+            <config key="maxColumnsParams">
+                <entry key="maximumNumberOfColumns" type="xint" value="8192"/>
+            </config>
+            <config key="limitMemoryParams">
+                <entry key="limitMemoryPerColumn" type="xboolean" value="true"/>
+            </config>
+            <config key="prependFileIndexParams">
+                <entry key="prependFileIndexToRowId" type="xboolean" value="false"/>
+            </config>
+        </config>
+        <config key="configId_Internals">
+            <config key="multi_table_read">
+                <config key="settings">
+                    <entry key="has_column_header" type="xboolean" value="true"/>
+                    <entry key="has_row_id" type="xboolean" value="false"/>
+                    <entry key="comment_char" type="xstring" value="#"/>
+                    <entry key="column_delimiter" type="xstring" value=","/>
+                    <entry key="quote_char" type="xstring" value="'"/>
+                    <entry key="quote_escape_char" type="xstring" value="'"/>
+                    <entry key="row_delimiter" type="xstring" value="%%00010"/>
+                    <entry key="use_line_break_row_delimiter" type="xboolean" value="true"/>
+                </config>
+                <config key="advanced_settings">
+                    <entry key="quote_option" type="xstring" value="REMOVE_QUOTES_AND_TRIM"/>
+                    <entry key="replace_empty_quotes_with_missing" type="xboolean" value="true"/>
+                    <entry key="limit_data_rows_scanned" type="xboolean" value="true"/>
+                    <entry key="max_data_rows_scanned" type="xlong" value="10000"/>
+                    <entry key="thousands_separator" type="xstring" value="%%00000"/>
+                    <entry key="decimal_separator" type="xstring" value="."/>
+                </config>
+                <config key="encoding">
+                    <entry key="charset" type="xstring" value="UTF-8"/>
+                </config>
+                <config key="limit_rows">
+                    <entry key="skip_lines" type="xboolean" value="false"/>
+                    <entry key="number_of_lines_to_skip" type="xlong" value="0"/>
+                    <entry key="skip_data_rows" type="xboolean" value="false"/>
+                    <entry key="number_of_rows_to_skip" type="xlong" value="0"/>
+                </config>
+            </config>
+        </config>
+        <entry key="sourceId_Internals" type="xstring" value="tmp/test.csv"/>
+        <config key="transformationParameters">
+            <config key="specs">
+                <config key="0">
+                    <config key="fsLocation">
+                        <entry key="location_present" type="xboolean" value="true"/>
+                        <entry key="file_system_type" type="xstring" value="RELATIVE"/>
+                        <entry key="file_system_specifier" type="xstring" value="knime.space"/>
+                        <entry key="path" type="xstring" value="tmp/test.csv"/>
+                    </config>
+                    <entry key="sourceIdentifier" type="xstring" value="tmp/test.csv"/>
+                    <config key="spec">
+                        <config key="0">
+                            <entry key="name" type="xstring" value="&quot;Universe_0_0&quot;"/>
+                            <entry key="type" type="xstring" value="java.lang.Double"/>
+                            <entry key="hasType" type="xboolean" value="true"/>
+                        </config>
+                        <config key="1">
+                            <entry key="name" type="xstring" value="&quot;Universe_0_1&quot;"/>
+                            <entry key="type" type="xstring" value="java.lang.Double"/>
+                            <entry key="hasType" type="xboolean" value="true"/>
+                        </config>
+                        <config key="2">
+                            <entry key="name" type="xstring" value="&quot;Universe_1_0&quot;"/>
+                            <entry key="type" type="xstring" value="java.lang.Double"/>
+                            <entry key="hasType" type="xboolean" value="true"/>
+                        </config>
+                        <config key="3">
+                            <entry key="name" type="xstring" value="&quot;Universe_1_1&quot;"/>
+                            <entry key="type" type="xstring" value="java.lang.Double"/>
+                            <entry key="hasType" type="xboolean" value="true"/>
+                        </config>
+                        <config key="4">
+                            <entry key="name" type="xstring" value="&quot;Cluster Membership&quot;"/>
+                            <entry key="type" type="xstring" value="java.lang.String"/>
+                            <entry key="hasType" type="xboolean" value="true"/>
+                        </config>
+                    </config>
+                </config>
+            </config>
+            <entry key="enforceTypes" type="xboolean" value="true"/>
+            <config key="columnTransformation">
+                <config key="0">
+                    <entry key="columnName" type="xstring" value="&quot;Universe_0_0&quot;"/>
+                    <config key="originalProductionPath">
+                        <entry key="_producer" type="xstring" value="class java.lang.Double-&gt;java.lang.Double"/>
+                        <entry key="_converter_name" type="xstring" value="Double"/>
+                        <config key="_converter_config"/>
+                        <entry key="_converter_src" type="xstring" value="java.lang.Double"/>
+                        <entry key="_converter_dst" type="xstring" value="Number (Float)"/>
+                        <entry key="_producer_src" type="xstring" value="java.lang.Double"/>
+                        <entry key="_producer_name" type="xstring" value="java.lang.Double"/>
+                        <entry key="_producer_dst" type="xstring" value="java.lang.Double"/>
+                        <entry key="_converter" type="xstring" value="org.knime.core.data.def.DoubleCell$DoubleCellFactory.create(class java.lang.Double)"/>
+                        <config key="_producer_config"/>
+                    </config>
+                    <entry key="originalTypeLabel" type="xstring" value="Number (Float)"/>
+                    <entry key="includeInOutput" type="xboolean" value="true"/>
+                    <entry key="columnRename" type="xstring" value="&quot;Universe_0_0&quot;"/>
+                    <config key="productionPath">
+                        <entry key="_producer" type="xstring" value="class java.lang.Double-&gt;java.lang.Double"/>
+                        <entry key="_converter_name" type="xstring" value="Double"/>
+                        <config key="_converter_config"/>
+                        <entry key="_converter_src" type="xstring" value="java.lang.Double"/>
+                        <entry key="_converter_dst" type="xstring" value="Number (Float)"/>
+                        <entry key="_producer_src" type="xstring" value="java.lang.Double"/>
+                        <entry key="_producer_name" type="xstring" value="java.lang.Double"/>
+                        <entry key="_producer_dst" type="xstring" value="java.lang.Double"/>
+                        <entry key="_converter" type="xstring" value="org.knime.core.data.def.DoubleCell$DoubleCellFactory.create(class java.lang.Double)"/>
+                        <config key="_producer_config"/>
+                    </config>
+                </config>
+                <config key="1">
+                    <entry key="columnName" type="xstring" value="&quot;Universe_0_1&quot;"/>
+                    <config key="originalProductionPath">
+                        <entry key="_producer" type="xstring" value="class java.lang.Double-&gt;java.lang.Double"/>
+                        <entry key="_converter_name" type="xstring" value="Double"/>
+                        <config key="_converter_config"/>
+                        <entry key="_converter_src" type="xstring" value="java.lang.Double"/>
+                        <entry key="_converter_dst" type="xstring" value="Number (Float)"/>
+                        <entry key="_producer_src" type="xstring" value="java.lang.Double"/>
+                        <entry key="_producer_name" type="xstring" value="java.lang.Double"/>
+                        <entry key="_producer_dst" type="xstring" value="java.lang.Double"/>
+                        <entry key="_converter" type="xstring" value="org.knime.core.data.def.DoubleCell$DoubleCellFactory.create(class java.lang.Double)"/>
+                        <config key="_producer_config"/>
+                    </config>
+                    <entry key="originalTypeLabel" type="xstring" value="Number (Float)"/>
+                    <entry key="includeInOutput" type="xboolean" value="true"/>
+                    <entry key="columnRename" type="xstring" value="&quot;Universe_0_1&quot;"/>
+                    <config key="productionPath">
+                        <entry key="_producer" type="xstring" value="class java.lang.Double-&gt;java.lang.Double"/>
+                        <entry key="_converter_name" type="xstring" value="Double"/>
+                        <config key="_converter_config"/>
+                        <entry key="_converter_src" type="xstring" value="java.lang.Double"/>
+                        <entry key="_converter_dst" type="xstring" value="Number (Float)"/>
+                        <entry key="_producer_src" type="xstring" value="java.lang.Double"/>
+                        <entry key="_producer_name" type="xstring" value="java.lang.Double"/>
+                        <entry key="_producer_dst" type="xstring" value="java.lang.Double"/>
+                        <entry key="_converter" type="xstring" value="org.knime.core.data.def.DoubleCell$DoubleCellFactory.create(class java.lang.Double)"/>
+                        <config key="_producer_config"/>
+                    </config>
+                </config>
+                <config key="2">
+                    <entry key="columnName" type="xstring" value="&quot;Universe_1_0&quot;"/>
+                    <config key="originalProductionPath">
+                        <entry key="_producer" type="xstring" value="class java.lang.Double-&gt;java.lang.Double"/>
+                        <entry key="_converter_name" type="xstring" value="Double"/>
+                        <config key="_converter_config"/>
+                        <entry key="_converter_src" type="xstring" value="java.lang.Double"/>
+                        <entry key="_converter_dst" type="xstring" value="Number (Float)"/>
+                        <entry key="_producer_src" type="xstring" value="java.lang.Double"/>
+                        <entry key="_producer_name" type="xstring" value="java.lang.Double"/>
+                        <entry key="_producer_dst" type="xstring" value="java.lang.Double"/>
+                        <entry key="_converter" type="xstring" value="org.knime.core.data.def.DoubleCell$DoubleCellFactory.create(class java.lang.Double)"/>
+                        <config key="_producer_config"/>
+                    </config>
+                    <entry key="originalTypeLabel" type="xstring" value="Number (Float)"/>
+                    <entry key="includeInOutput" type="xboolean" value="true"/>
+                    <entry key="columnRename" type="xstring" value="&quot;Universe_1_0&quot;"/>
+                    <config key="productionPath">
+                        <entry key="_producer" type="xstring" value="class java.lang.Double-&gt;java.lang.Double"/>
+                        <entry key="_converter_name" type="xstring" value="Double"/>
+                        <config key="_converter_config"/>
+                        <entry key="_converter_src" type="xstring" value="java.lang.Double"/>
+                        <entry key="_converter_dst" type="xstring" value="Number (Float)"/>
+                        <entry key="_producer_src" type="xstring" value="java.lang.Double"/>
+                        <entry key="_producer_name" type="xstring" value="java.lang.Double"/>
+                        <entry key="_producer_dst" type="xstring" value="java.lang.Double"/>
+                        <entry key="_converter" type="xstring" value="org.knime.core.data.def.DoubleCell$DoubleCellFactory.create(class java.lang.Double)"/>
+                        <config key="_producer_config"/>
+                    </config>
+                </config>
+                <config key="3">
+                    <entry key="columnName" type="xstring" value="&quot;Universe_1_1&quot;"/>
+                    <config key="originalProductionPath">
+                        <entry key="_producer" type="xstring" value="class java.lang.Double-&gt;java.lang.Double"/>
+                        <entry key="_converter_name" type="xstring" value="Double"/>
+                        <config key="_converter_config"/>
+                        <entry key="_converter_src" type="xstring" value="java.lang.Double"/>
+                        <entry key="_converter_dst" type="xstring" value="Number (Float)"/>
+                        <entry key="_producer_src" type="xstring" value="java.lang.Double"/>
+                        <entry key="_producer_name" type="xstring" value="java.lang.Double"/>
+                        <entry key="_producer_dst" type="xstring" value="java.lang.Double"/>
+                        <entry key="_converter" type="xstring" value="org.knime.core.data.def.DoubleCell$DoubleCellFactory.create(class java.lang.Double)"/>
+                        <config key="_producer_config"/>
+                    </config>
+                    <entry key="originalTypeLabel" type="xstring" value="Number (Float)"/>
+                    <entry key="includeInOutput" type="xboolean" value="true"/>
+                    <entry key="columnRename" type="xstring" value="&quot;Universe_1_1&quot;"/>
+                    <config key="productionPath">
+                        <entry key="_producer" type="xstring" value="class java.lang.Double-&gt;java.lang.Double"/>
+                        <entry key="_converter_name" type="xstring" value="Double"/>
+                        <config key="_converter_config"/>
+                        <entry key="_converter_src" type="xstring" value="java.lang.Double"/>
+                        <entry key="_converter_dst" type="xstring" value="Number (Float)"/>
+                        <entry key="_producer_src" type="xstring" value="java.lang.Double"/>
+                        <entry key="_producer_name" type="xstring" value="java.lang.Double"/>
+                        <entry key="_producer_dst" type="xstring" value="java.lang.Double"/>
+                        <entry key="_converter" type="xstring" value="org.knime.core.data.def.DoubleCell$DoubleCellFactory.create(class java.lang.Double)"/>
+                        <config key="_producer_config"/>
+                    </config>
+                </config>
+                <config key="4">
+                    <entry key="columnName" type="xstring" value="&quot;Cluster Membership&quot;"/>
+                    <config key="originalProductionPath">
+                        <entry key="_producer" type="xstring" value="class java.lang.String-&gt;java.lang.String"/>
+                        <entry key="_converter_name" type="xstring" value="String"/>
+                        <config key="_converter_config"/>
+                        <entry key="_converter_src" type="xstring" value="java.lang.String"/>
+                        <entry key="_converter_dst" type="xstring" value="String"/>
+                        <entry key="_producer_src" type="xstring" value="java.lang.String"/>
+                        <entry key="_producer_name" type="xstring" value="java.lang.String"/>
+                        <entry key="_producer_dst" type="xstring" value="java.lang.String"/>
+                        <entry key="_converter" type="xstring" value="org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)"/>
+                        <config key="_producer_config"/>
+                    </config>
+                    <entry key="originalTypeLabel" type="xstring" value="String"/>
+                    <entry key="includeInOutput" type="xboolean" value="true"/>
+                    <entry key="columnRename" type="xstring" value="&quot;Cluster Membership&quot;"/>
+                    <config key="productionPath">
+                        <entry key="_producer" type="xstring" value="class java.lang.String-&gt;java.lang.String"/>
+                        <entry key="_converter_name" type="xstring" value="String"/>
+                        <config key="_converter_config"/>
+                        <entry key="_converter_src" type="xstring" value="java.lang.String"/>
+                        <entry key="_converter_dst" type="xstring" value="String"/>
+                        <entry key="_producer_src" type="xstring" value="java.lang.String"/>
+                        <entry key="_producer_name" type="xstring" value="java.lang.String"/>
+                        <entry key="_producer_dst" type="xstring" value="java.lang.String"/>
+                        <entry key="_converter" type="xstring" value="org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)"/>
+                        <config key="_producer_config"/>
+                    </config>
+                </config>
+                <config key="5">
+                    <entry key="columnName" type="xstring" isnull="true" value=""/>
+                    <entry key="originalTypeLabel" type="xstring" value="Default columntype"/>
+                    <entry key="includeInOutput" type="xboolean" value="true"/>
+                    <entry key="columnRename" type="xstring" isnull="true" value=""/>
+                    <config key="productionPath">
+                        <config key="type">
+                            <entry key="cell_class" type="xstring" value="org.knime.core.data.vector.bitvector.SparseBitVectorCell"/>
+                            <entry key="is_null" type="xboolean" value="false"/>
+                        </config>
+                    </config>
+                </config>
+            </config>
+        </config>
+    </config>
+    <config key="variables"/>
+    <config key="nodeAnnotation">
+        <entry key="text" type="xstring" value="unknown_column_override"/>
+        <entry key="contentType" type="xstring" value="text/plain"/>
+        <entry key="bgcolor" type="xint" value="16777215"/>
+        <entry key="x-coordinate" type="xint" value="0"/>
+        <entry key="y-coordinate" type="xint" value="0"/>
+        <entry key="width" type="xint" value="0"/>
+        <entry key="height" type="xint" value="0"/>
+        <entry key="alignment" type="xstring" value="CENTER"/>
+        <entry key="borderSize" type="xint" value="0"/>
+        <entry key="borderColor" type="xint" value="0"/>
+        <entry key="defFontSize" type="xint" value="-1"/>
+        <entry key="annotation-version" type="xint" value="20230412"/>
+        <config key="styles"/>
+    </config>
+    <entry key="customDescription" type="xstring" isnull="true" value=""/>
+    <entry key="state" type="xstring" value="EXECUTED"/>
+    <entry key="factory" type="xstring" value="org.knime.base.node.io.filehandling.csv.reader.CSVTableReaderNodeFactory"/>
+    <entry key="node-name" type="xstring" value="CSV Reader"/>
+    <entry key="node-bundle-name" type="xstring" value="KNIME Base Nodes"/>
+    <entry key="node-bundle-symbolic-name" type="xstring" value="org.knime.base"/>
+    <entry key="node-bundle-vendor" type="xstring" value="KNIME AG, Zurich, Switzerland"/>
+    <entry key="node-bundle-version" type="xstring" value="5.11.0.qualifier"/>
+    <entry key="node-feature-name" type="xstring" isnull="true" value=""/>
+    <entry key="node-feature-symbolic-name" type="xstring" isnull="true" value=""/>
+    <entry key="node-feature-vendor" type="xstring" isnull="true" value=""/>
+    <entry key="node-feature-version" type="xstring" value="0.0.0"/>
+    <config key="factory_settings"/>
+    <config key="node_creation_config">
+        <config key="File System Connection"/>
+        <config key="Data Table"/>
+    </config>
+    <entry key="name" type="xstring" value="CSV Reader"/>
+    <entry key="hasContent" type="xboolean" value="true"/>
+    <entry key="isInactive" type="xboolean" value="false"/>
+    <config key="ports">
+        <config key="port_1">
+            <entry key="index" type="xint" value="1"/>
+            <entry key="port_spec_class" type="xstring" value="org.knime.core.data.DataTableSpec"/>
+            <entry key="port_object_class" type="xstring" value="org.knime.core.node.BufferedDataTable"/>
+            <entry key="port_object_summary" type="xstring" value="Rows: 5400, Cols: 5"/>
+            <entry key="port_dir_location" type="xstring" value="port_1"/>
+        </config>
+    </config>
+    <config key="filestores">
+        <entry key="file_store_location" type="xstring" isnull="true" value=""/>
+        <entry key="file_store_id" type="xstring" value="70b403b9-ebc9-4807-93ba-5afc6034b113"/>
+    </config>
+</config>
