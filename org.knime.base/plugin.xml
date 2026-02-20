@@ -1857,6 +1857,7 @@
       <node
             category-path="/manipulation/column/"
             factory-class="org.knime.base.node.preproc.tablestructure.TableStructureValidatorNodeFactory"
+            hidden="true"
             >
       </node>
       <node
