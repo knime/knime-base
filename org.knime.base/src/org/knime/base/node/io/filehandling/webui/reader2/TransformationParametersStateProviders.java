@@ -50,6 +50,7 @@ package org.knime.base.node.io.filehandling.webui.reader2;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -72,6 +73,7 @@ import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameter
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.TableSpecSettingsRef;
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.TransformationElementSettings;
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.TransformationElementSettings.ColumnNameRef;
+import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.TransformationElementSettingsData;
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.TransformationElementSettingsRef;
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParametersStateProviders.DependsOnTypedReaderTableSpecProvider.TypedReaderTableSpecWithLocation;
 import org.knime.core.data.DataType;
@@ -100,6 +102,7 @@ import org.knime.filehandling.core.util.WorkflowContextUtil;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.updates.StateProvider;
 import org.knime.node.parameters.updates.ValueProvider;
+import org.knime.node.parameters.updates.internal.StateProviderInitializerInternal;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.StringChoice;
 import org.knime.node.parameters.widget.choices.StringChoicesProvider;
@@ -131,7 +134,7 @@ public final class TransformationParametersStateProviders {
 
     /**
      * This state provider uses the extracted fs paths and the reader specific dependencies to configure a reader and
-     * read the them to table specs.
+     * read them to table specs.
      *
      * @param <C> The reader specific [C]onfiguration
      * @param <T> the type used to represent external data [T]ypes
@@ -540,6 +543,59 @@ public final class TransformationParametersStateProviders {
         }
     }
 
+    static class InitialTransformationElementSettingsStateProvider
+        implements StateProvider<TransformationElementSettingsData[]> {
+
+        Supplier<TransformationElementSettings[]> m_initialTransformationElementSettingsSupplier;
+
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            initializer.computeBeforeOpenDialog();
+            ((StateProviderInitializerInternal)initializer).computeAfterApplyDialog();
+            m_initialTransformationElementSettingsSupplier =
+                initializer.getValueSupplier(TransformationElementSettingsRef.class);
+        }
+
+        @Override
+        public TransformationElementSettingsData[] computeState(final NodeParametersInput parametersInput)
+            throws StateComputationFailureException {
+            return Arrays.stream(m_initialTransformationElementSettingsSupplier.get())
+                .map(TransformationElementSettingsData::new) //
+                .toList() //
+                .toArray(TransformationElementSettingsData[]::new);
+        }
+    }
+
+    /**
+     * Dirty tracker to make the dialog dirty in cases not covered by the framework, e.g. file schema has changed or
+     * column reordering
+     */
+    static class TransformationElementsDirtyTrackerStateProvider implements StateProvider<Boolean> {
+
+        Supplier<TransformationElementSettingsData[]> m_initialSpecSupplier;
+
+        Supplier<TransformationElementSettings[]> m_currentSpecSupplier;
+
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            m_initialSpecSupplier =
+                initializer.getValueSupplier(TransformationParameters.InitialTransformationElementSettingsRef.class);
+            m_currentSpecSupplier = initializer.computeFromValueSupplier(TransformationElementSettingsRef.class);
+        }
+
+        @Override
+        public Boolean computeState(final NodeParametersInput parametersInput) throws StateComputationFailureException {
+            var initialSpecs = m_initialSpecSupplier.get();
+            var currentSpecs = m_currentSpecSupplier.get();
+
+            if (initialSpecs == null || currentSpecs == null) {
+                return false;
+            }
+
+            return !TransformationElementSettingsData.areSettingsMatching(initialSpecs, currentSpecs);
+        }
+    }
+
     /**
      * This state provider determines the possible values in the individual type choices of elements within the
      * transformation settings array layout.
@@ -655,7 +711,6 @@ public final class TransformationParametersStateProviders {
          * @return the choices provider for the types of array layout elements.
          */
         protected abstract Class<? extends TypeChoicesProvider<T>> getTypeChoicesProvider();
-
     }
 
     private TransformationParametersStateProviders() {
