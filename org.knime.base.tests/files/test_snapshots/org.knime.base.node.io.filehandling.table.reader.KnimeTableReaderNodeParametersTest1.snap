@@ -132,7 +132,8 @@
           "includeInOutput" : true,
           "columnRename" : null,
           "productionPath" : "<default-columntype>"
-        } ]
+        } ],
+        "initialColumnTransformation" : [ ]
       }
     }
   },
@@ -604,11 +605,42 @@
                   "productionPath" : "<default-columntype>"
                 } ]
               },
+              "dirtyTracker" : {
+                "type" : "object"
+              },
               "enforceTypes" : {
                 "type" : "boolean",
                 "title" : "Enforce types",
                 "description" : "Controls how columns whose type changes are dealt with.\nIf selected, the mapping to the KNIME type you configured is attempted.\nThe node will fail if that is not possible.\nIf unselected, the KNIME type corresponding to the new type is used.\n",
                 "default" : true
+              },
+              "initialColumnTransformation" : {
+                "type" : "array",
+                "items" : {
+                  "type" : "object",
+                  "properties" : {
+                    "columnName" : {
+                      "type" : "string"
+                    },
+                    "columnRename" : {
+                      "type" : "string"
+                    },
+                    "includeInOutput" : {
+                      "type" : "boolean",
+                      "default" : false
+                    },
+                    "originalProductionPath" : {
+                      "type" : "string"
+                    },
+                    "originalTypeLabel" : {
+                      "type" : "string"
+                    },
+                    "productionPath" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : [ ]
               },
               "specs" : {
                 "type" : "array",
@@ -652,7 +684,8 @@
                 "includeInOutput" : true,
                 "columnRename" : null,
                 "productionPath" : "<default-columntype>"
-              } ]
+              } ],
+              "initialColumnTransformation" : [ ]
             }
           }
         }
@@ -661,6 +694,13 @@
   },
   "ui_schema" : {
     "elements" : [ {
+      "type" : "Control",
+      "id" : "#/properties/model/properties/transformationParameters/properties/dirtyTracker",
+      "options" : {
+        "format" : "dirtyTracker"
+      },
+      "providedOptions" : [ "makeDirty" ]
+    }, {
       "label" : "File",
       "type" : "Section",
       "elements" : [ {
@@ -1235,6 +1275,7 @@
                 }
               },
               "enforceTypes" : { },
+              "dirtyTracker" : { },
               "columnTransformation" : {
                 "type" : "array",
                 "items" : {
@@ -1252,6 +1293,9 @@
                     }
                   }
                 }
+              },
+              "initialColumnTransformation" : {
+                "configPaths" : [ ]
               }
             }
           }
@@ -1283,6 +1327,52 @@
       "value" : "File Path"
     } ]
   }, {
+    "scope" : "#/properties/model/properties/transformationParameters/properties/initialColumnTransformation",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "columnName" : "Universe_0_0",
+        "originalProductionPath" : "{\"name\":\"\",\"value\":{\"_producer\":{\"type\":\"string\",\"value\":\"CELL_VALUE_PRODUCER_IDENTITY_FACTORY\"},\"_converter_name\":{\"type\":\"string\",\"value\":\"\"},\"_converter_config\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.DoubleCell\"}}},\"_converter_src\":{\"type\":\"string\",\"value\":\"org.knime.core.data.DataCell\"},\"_converter_dst\":{\"type\":\"string\",\"value\":\"Number (Float)\"},\"_producer_src\":{\"type\":\"string\",\"value\":\"Number (Float)\"},\"_producer_name\":{\"type\":\"string\",\"value\":\"org.knime.core.data.DataCell\"},\"_producer_dst\":{\"type\":\"string\",\"value\":\"org.knime.core.data.DataCell\"},\"_converter\":{\"type\":\"string\",\"value\":\"CELL_CONVERTER_IDENTITY_FACTORY\"},\"_producer_config\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.DoubleCell\"}}}}}",
+        "originalTypeLabel" : "Number (Float)",
+        "includeInOutput" : true,
+        "columnRename" : "renamed",
+        "productionPath" : "{\"name\":\"\",\"value\":{\"_producer\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.DoubleCell->java.lang.String\"},\"_converter_name\":{\"type\":\"string\",\"value\":\"String\"},\"_converter_config\":{\"type\":\"tree\",\"value\":{}},\"_converter_src\":{\"type\":\"string\",\"value\":\"java.lang.String\"},\"_converter_dst\":{\"type\":\"string\",\"value\":\"String\"},\"_producer_src\":{\"type\":\"string\",\"value\":\"Number (Float)\"},\"_producer_name\":{\"type\":\"string\",\"value\":\"java.lang.String\"},\"_producer_dst\":{\"type\":\"string\",\"value\":\"java.lang.String\"},\"_converter\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.StringCell$StringCellFactory.createCell(class java.lang.String)\"},\"_producer_config\":{\"type\":\"tree\",\"value\":{}}}}"
+      }, {
+        "columnName" : "Universe_0_1",
+        "originalProductionPath" : "{\"name\":\"\",\"value\":{\"_producer\":{\"type\":\"string\",\"value\":\"CELL_VALUE_PRODUCER_IDENTITY_FACTORY\"},\"_converter_name\":{\"type\":\"string\",\"value\":\"\"},\"_converter_config\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.DoubleCell\"}}},\"_converter_src\":{\"type\":\"string\",\"value\":\"org.knime.core.data.DataCell\"},\"_converter_dst\":{\"type\":\"string\",\"value\":\"Number (Float)\"},\"_producer_src\":{\"type\":\"string\",\"value\":\"Number (Float)\"},\"_producer_name\":{\"type\":\"string\",\"value\":\"org.knime.core.data.DataCell\"},\"_producer_dst\":{\"type\":\"string\",\"value\":\"org.knime.core.data.DataCell\"},\"_converter\":{\"type\":\"string\",\"value\":\"CELL_CONVERTER_IDENTITY_FACTORY\"},\"_producer_config\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.DoubleCell\"}}}}}",
+        "originalTypeLabel" : "Number (Float)",
+        "includeInOutput" : true,
+        "columnRename" : "Universe_0_1",
+        "productionPath" : "{\"name\":\"\",\"value\":{\"_producer\":{\"type\":\"string\",\"value\":\"CELL_VALUE_PRODUCER_IDENTITY_FACTORY\"},\"_converter_name\":{\"type\":\"string\",\"value\":\"\"},\"_converter_config\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.DoubleCell\"}}},\"_converter_src\":{\"type\":\"string\",\"value\":\"org.knime.core.data.DataCell\"},\"_converter_dst\":{\"type\":\"string\",\"value\":\"Number (Float)\"},\"_producer_src\":{\"type\":\"string\",\"value\":\"Number (Float)\"},\"_producer_name\":{\"type\":\"string\",\"value\":\"org.knime.core.data.DataCell\"},\"_producer_dst\":{\"type\":\"string\",\"value\":\"org.knime.core.data.DataCell\"},\"_converter\":{\"type\":\"string\",\"value\":\"CELL_CONVERTER_IDENTITY_FACTORY\"},\"_producer_config\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.DoubleCell\"}}}}}"
+      }, {
+        "columnName" : "Universe_1_0",
+        "originalProductionPath" : "{\"name\":\"\",\"value\":{\"_producer\":{\"type\":\"string\",\"value\":\"CELL_VALUE_PRODUCER_IDENTITY_FACTORY\"},\"_converter_name\":{\"type\":\"string\",\"value\":\"\"},\"_converter_config\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.DoubleCell\"}}},\"_converter_src\":{\"type\":\"string\",\"value\":\"org.knime.core.data.DataCell\"},\"_converter_dst\":{\"type\":\"string\",\"value\":\"Number (Float)\"},\"_producer_src\":{\"type\":\"string\",\"value\":\"Number (Float)\"},\"_producer_name\":{\"type\":\"string\",\"value\":\"org.knime.core.data.DataCell\"},\"_producer_dst\":{\"type\":\"string\",\"value\":\"org.knime.core.data.DataCell\"},\"_converter\":{\"type\":\"string\",\"value\":\"CELL_CONVERTER_IDENTITY_FACTORY\"},\"_producer_config\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.DoubleCell\"}}}}}",
+        "originalTypeLabel" : "Number (Float)",
+        "includeInOutput" : true,
+        "columnRename" : "Universe_1_0",
+        "productionPath" : "{\"name\":\"\",\"value\":{\"_producer\":{\"type\":\"string\",\"value\":\"CELL_VALUE_PRODUCER_IDENTITY_FACTORY\"},\"_converter_name\":{\"type\":\"string\",\"value\":\"\"},\"_converter_config\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.DoubleCell\"}}},\"_converter_src\":{\"type\":\"string\",\"value\":\"org.knime.core.data.DataCell\"},\"_converter_dst\":{\"type\":\"string\",\"value\":\"Number (Float)\"},\"_producer_src\":{\"type\":\"string\",\"value\":\"Number (Float)\"},\"_producer_name\":{\"type\":\"string\",\"value\":\"org.knime.core.data.DataCell\"},\"_producer_dst\":{\"type\":\"string\",\"value\":\"org.knime.core.data.DataCell\"},\"_converter\":{\"type\":\"string\",\"value\":\"CELL_CONVERTER_IDENTITY_FACTORY\"},\"_producer_config\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.DoubleCell\"}}}}}"
+      }, {
+        "columnName" : "Universe_1_1",
+        "originalProductionPath" : "{\"name\":\"\",\"value\":{\"_producer\":{\"type\":\"string\",\"value\":\"CELL_VALUE_PRODUCER_IDENTITY_FACTORY\"},\"_converter_name\":{\"type\":\"string\",\"value\":\"\"},\"_converter_config\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.DoubleCell\"}}},\"_converter_src\":{\"type\":\"string\",\"value\":\"org.knime.core.data.DataCell\"},\"_converter_dst\":{\"type\":\"string\",\"value\":\"Number (Float)\"},\"_producer_src\":{\"type\":\"string\",\"value\":\"Number (Float)\"},\"_producer_name\":{\"type\":\"string\",\"value\":\"org.knime.core.data.DataCell\"},\"_producer_dst\":{\"type\":\"string\",\"value\":\"org.knime.core.data.DataCell\"},\"_converter\":{\"type\":\"string\",\"value\":\"CELL_CONVERTER_IDENTITY_FACTORY\"},\"_producer_config\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.DoubleCell\"}}}}}",
+        "originalTypeLabel" : "Number (Float)",
+        "includeInOutput" : true,
+        "columnRename" : "Universe_1_1",
+        "productionPath" : "{\"name\":\"\",\"value\":{\"_producer\":{\"type\":\"string\",\"value\":\"CELL_VALUE_PRODUCER_IDENTITY_FACTORY\"},\"_converter_name\":{\"type\":\"string\",\"value\":\"\"},\"_converter_config\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.DoubleCell\"}}},\"_converter_src\":{\"type\":\"string\",\"value\":\"org.knime.core.data.DataCell\"},\"_converter_dst\":{\"type\":\"string\",\"value\":\"Number (Float)\"},\"_producer_src\":{\"type\":\"string\",\"value\":\"Number (Float)\"},\"_producer_name\":{\"type\":\"string\",\"value\":\"org.knime.core.data.DataCell\"},\"_producer_dst\":{\"type\":\"string\",\"value\":\"org.knime.core.data.DataCell\"},\"_converter\":{\"type\":\"string\",\"value\":\"CELL_CONVERTER_IDENTITY_FACTORY\"},\"_producer_config\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.DoubleCell\"}}}}}"
+      }, {
+        "columnName" : "Cluster Membership",
+        "originalProductionPath" : "{\"name\":\"\",\"value\":{\"_producer\":{\"type\":\"string\",\"value\":\"CELL_VALUE_PRODUCER_IDENTITY_FACTORY\"},\"_converter_name\":{\"type\":\"string\",\"value\":\"\"},\"_converter_config\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.StringCell\"}}},\"_converter_src\":{\"type\":\"string\",\"value\":\"org.knime.core.data.DataCell\"},\"_converter_dst\":{\"type\":\"string\",\"value\":\"String\"},\"_producer_src\":{\"type\":\"string\",\"value\":\"String\"},\"_producer_name\":{\"type\":\"string\",\"value\":\"org.knime.core.data.DataCell\"},\"_producer_dst\":{\"type\":\"string\",\"value\":\"org.knime.core.data.DataCell\"},\"_converter\":{\"type\":\"string\",\"value\":\"CELL_CONVERTER_IDENTITY_FACTORY\"},\"_producer_config\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.StringCell\"}}}}}",
+        "originalTypeLabel" : "String",
+        "includeInOutput" : true,
+        "columnRename" : "Cluster Membership",
+        "productionPath" : "{\"name\":\"\",\"value\":{\"_producer\":{\"type\":\"string\",\"value\":\"CELL_VALUE_PRODUCER_IDENTITY_FACTORY\"},\"_converter_name\":{\"type\":\"string\",\"value\":\"\"},\"_converter_config\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.StringCell\"}}},\"_converter_src\":{\"type\":\"string\",\"value\":\"org.knime.core.data.DataCell\"},\"_converter_dst\":{\"type\":\"string\",\"value\":\"String\"},\"_producer_src\":{\"type\":\"string\",\"value\":\"String\"},\"_producer_name\":{\"type\":\"string\",\"value\":\"org.knime.core.data.DataCell\"},\"_producer_dst\":{\"type\":\"string\",\"value\":\"org.knime.core.data.DataCell\"},\"_converter\":{\"type\":\"string\",\"value\":\"CELL_CONVERTER_IDENTITY_FACTORY\"},\"_producer_config\":{\"type\":\"tree\",\"value\":{\"cell_class\":{\"type\":\"string\",\"value\":\"org.knime.core.data.def.StringCell\"}}}}}"
+      }, {
+        "originalProductionPath" : "<default-columntype>",
+        "originalTypeLabel" : "Default columntype",
+        "includeInOutput" : true,
+        "productionPath" : "<default-columntype>"
+      } ]
+    } ]
+  }, {
     "id" : "#/properties/model/properties/knimeTableReaderParameters/properties/multiFileSelectionParams/properties/fileSystemFromPortNotAvailableMessage",
     "providedOptionName" : "message",
     "values" : [ {
@@ -1295,6 +1385,11 @@
       "id" : "ElementResetButton"
     },
     "dependencies" : [ "#/properties/model/properties/transformationParameters/properties/columnTransformation/items/properties/columnName", "#/properties/model/properties/transformationParameters/properties/columnTransformation/items/properties/originalProductionPath" ]
+  }, {
+    "trigger" : {
+      "id" : "after-apply-dialog"
+    },
+    "dependencies" : [ "#/properties/model/properties/transformationParameters/properties/columnTransformation" ]
   }, {
     "trigger" : {
       "id" : "after-open-dialog"
@@ -1311,6 +1406,11 @@
       "scope" : "#/properties/model/properties/knimeTableReaderParameters/properties/multiFileSelectionParams/properties/source"
     },
     "dependencies" : [ "#/properties/model/properties/knimeTableReaderParameters", "#/properties/model/properties/knimeTableReaderParameters/properties/multiFileReaderParams/properties/howToCombineColumns", "#/properties/model/properties/knimeTableReaderParameters/properties/multiFileSelectionParams/properties/source", "#/properties/model/properties/transformationParameters/properties/columnTransformation", "#/properties/model/properties/transformationParameters/properties/specs" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/transformationParameters/properties/columnTransformation"
+    },
+    "dependencies" : [ "#/properties/model/properties/transformationParameters/properties/columnTransformation", "#/properties/model/properties/transformationParameters/properties/initialColumnTransformation" ]
   }, {
     "trigger" : {
       "scope" : "#/properties/model/properties/transformationParameters/properties/specs"

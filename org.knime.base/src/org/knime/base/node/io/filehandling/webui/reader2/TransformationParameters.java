@@ -76,11 +76,11 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.util.Pair;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dirty.DirtyTracker;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.WidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.datatype.convert.ProductionPathUtils;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.datatype.convert.ProductionPathUtils.ProductionPathPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
@@ -110,6 +110,7 @@ import org.knime.node.parameters.layout.After;
 import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.layout.Section;
 import org.knime.node.parameters.migration.NodeParametersMigration;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
 import org.knime.node.parameters.persistence.Persistable;
 import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.updates.Effect;
@@ -262,6 +263,81 @@ public abstract class TransformationParameters<T>
     @Layout(Transformation.EnforceTypes.class)
     boolean m_enforceTypes = true;
 
+    @DirtyTracker(TransformationParametersStateProviders.TransformationElementsDirtyTrackerStateProvider.class)
+    Void m_dirtyTracker;
+
+    /**
+     * A "data copy" of the {@link TransformationElementSettings}, but without all the UI specific annotations. Just
+     * reusing the {@link TransformationElementSettings} directly does not work, as then some references show up twice
+     * and therefore widget modifications don't work.
+     */
+    static class TransformationElementSettingsData {
+        String m_columnName;
+
+        String m_originalProductionPath;
+
+        String m_originalTypeLabel;
+
+        boolean m_includeInOutput;
+
+        String m_columnRename;
+
+        String m_productionPath;
+
+        private TransformationElementSettingsData() {
+            // needed by framework
+        }
+
+        TransformationElementSettingsData(final TransformationElementSettings settings) {
+            m_columnName = settings.m_columnName;
+            m_originalProductionPath = settings.m_originalProductionPath;
+            m_originalTypeLabel = settings.m_originalTypeLabel;
+            m_includeInOutput = settings.m_includeInOutput;
+            m_columnRename = settings.m_columnRename;
+            m_productionPath = settings.m_productionPath;
+        }
+
+        @SuppressWarnings("java:S1067") // number of conditional operators
+        private boolean matches(TransformationElementSettings other) {
+            return Objects.equals(m_columnName, other.m_columnName)
+                && Objects.equals(m_originalProductionPath, other.m_originalProductionPath)
+                && Objects.equals(m_originalTypeLabel, other.m_originalTypeLabel)
+                && m_includeInOutput == other.m_includeInOutput && Objects.equals(m_columnRename, other.m_columnRename)
+                && Objects.equals(m_productionPath, other.m_productionPath);
+        }
+
+        static boolean areSettingsMatching(TransformationElementSettingsData[] data,
+            TransformationElementSettings[] settings) {
+            if (data.length != settings.length) {
+                return false;
+            }
+            for (int i = 0; i < data.length; i++) {
+                if (!data[i].matches(settings[i])) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        static class DoNotPersist implements NodeParametersPersistor<TransformationElementSettingsData[]> {
+
+            @Override
+            public TransformationElementSettingsData[] load(NodeSettingsRO settings) throws InvalidSettingsException {
+                return new TransformationElementSettingsData[0];
+            }
+
+            @Override
+            public void save(TransformationElementSettingsData[] param, NodeSettingsWO settings) {
+                // do nothing
+            }
+
+            @Override
+            public String[][] getConfigPaths() {
+                return new String[0][];
+            }
+        }
+    }
+
     /**
      * Visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
      */
@@ -376,7 +452,7 @@ public abstract class TransformationParameters<T>
             }
 
             @Override
-            public String computeState(final NodeParametersInput context) throws StateComputationFailureException {
+            public String computeState(final NodeParametersInput context) {
                 final var originalName = m_originalColumnNameSupplier.get();
                 return originalName == null ? "Any unknown column" : originalName;
             }
@@ -533,6 +609,15 @@ public abstract class TransformationParameters<T>
     // visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
     public TransformationElementSettings[] m_columnTransformation =
         new TransformationElementSettings[]{TransformationElementSettings.createUnknownElement()};
+
+    static final class InitialTransformationElementSettingsRef
+        implements ParameterReference<TransformationElementSettingsData[]> {
+    }
+
+    @ValueReference(InitialTransformationElementSettingsRef.class)
+    @ValueProvider(TransformationParametersStateProviders.InitialTransformationElementSettingsStateProvider.class)
+    @Persistor(TransformationElementSettingsData.DoNotPersist.class)
+    TransformationElementSettingsData[] m_initialColumnTransformation = new TransformationElementSettingsData[0];
 
     /**
      * Call this method in a reader node's ConfigAndSourceSerializer to save the transformation settings to the config
