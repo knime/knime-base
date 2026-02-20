@@ -46,11 +46,14 @@
 
 package org.knime.base.node.io.arffwriter;
 
+import static org.knime.base.node.io.filehandling.webui.OutputFileMessageProvider.LOCAL_URL_PATTERN;
+import static org.knime.base.node.io.filehandling.webui.OutputFileMessageProvider.URL_PATTERN;
+
+import org.knime.base.node.io.filehandling.webui.OutputFileMessageProvider;
 import org.knime.base.node.io.filehandling.webui.OutputFileMessageProvider.OutputFileRef;
 import org.knime.base.node.io.filehandling.webui.OverwritePolicy;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelectionWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSystemOption;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.SingleFileSelectionMode;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.WithFileSystem;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.Widget;
@@ -59,8 +62,13 @@ import org.knime.node.parameters.migration.Migrate;
 import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.persistence.legacy.EnumBooleanPersistor;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
+import org.knime.node.parameters.updates.EffectPredicate;
+import org.knime.node.parameters.updates.EffectPredicateProvider;
 import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
+import org.knime.node.parameters.widget.message.TextMessage;
 
 /**
  * Node parameters for ARFF Writer.
@@ -72,20 +80,30 @@ import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 @SuppressWarnings("restriction")
 final class ARFFWriterNodeParameters implements NodeParameters {
 
-    @Widget(title = "Output location",
-        description = "Enter a valid file name or URL. You can also choose a previously selected location from the "
-            + "drop-down list, or select a local file from the \"Browse...\" dialog.")
+    @Widget(title = "Output file location", description = "The destination location. Can also be a URL.")
     @Persist(configKey = ARFFWriterNodeModel.CFGKEY_FILENAME)
-    @FileSelectionWidget(SingleFileSelectionMode.FILE)
+    @FileWriterWidget(fileExtension = "arff")
     @WithFileSystem(FileSystemOption.LOCAL)
     @ValueReference(OutputFileRef.class)
-    @Migrate
-    String m_file;
+    @Migrate(loadDefaultIfAbsent = true)
+    String m_outputFile = "";
 
-    @Widget(title = "If exists", description = "How to handle an existing file at the selected location.")
-    @ValueSwitchWidget
+    @TextMessage(value = OutputFileMessageProvider.class)
+    Void m_invalidSchemeMessage;
+
+    @Widget(title = "If output file already exists", description = "How to handle local output file already existing.")
     @Persistor(OverwritePolicyPersistor.class)
-    OverwritePolicy m_overwritePolicy = OverwritePolicy.PREVENT;
+    @Effect(predicate = HideIfIsRemoteURL.class, type = EffectType.HIDE)
+    @ValueSwitchWidget
+    OverwritePolicy m_overwrite = OverwritePolicy.PREVENT;
+
+    private static class HideIfIsRemoteURL implements EffectPredicateProvider {
+        @Override
+        public EffectPredicate init(final PredicateInitializer i) {
+            return i.getString(OutputFileRef.class).matchesPattern(URL_PATTERN)
+                .and(i.getString(OutputFileRef.class).matchesPattern(LOCAL_URL_PATTERN).negate());
+        }
+    }
 
     private static final class OverwritePolicyPersistor extends EnumBooleanPersistor<OverwritePolicy> {
         public OverwritePolicyPersistor() {

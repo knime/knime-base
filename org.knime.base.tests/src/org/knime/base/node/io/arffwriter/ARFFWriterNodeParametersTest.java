@@ -62,7 +62,7 @@ import org.knime.testing.node.dialog.SnapshotTestConfiguration;
  * @author Tim Crundall, TNG Technology Consulting GmbH
  * @author AI Migration Pipeline v1.2
  */
-@SuppressWarnings("restriction")
+@SuppressWarnings({"restriction", "javadoc"})
 final class ARFFWriterNodeParametersTest extends DefaultNodeSettingsSnapshotTest {
 
     ARFFWriterNodeParametersTest() {

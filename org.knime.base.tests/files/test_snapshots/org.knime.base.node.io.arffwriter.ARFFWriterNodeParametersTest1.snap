@@ -1,8 +1,8 @@
 {
   "data" : {
     "model" : {
-      "file" : "/home/user/tmp/out-out.arff",
-      "overwritePolicy" : "PREVENT"
+      "outputFile" : "/home/user/tmp/out-out.arff",
+      "overwrite" : "PREVENT"
     }
   },
   "schema" : {
@@ -11,12 +11,16 @@
       "model" : {
         "type" : "object",
         "properties" : {
-          "file" : {
-            "type" : "string",
-            "title" : "Output location",
-            "description" : "Enter a valid file name or URL. You can also choose a previously selected location from the drop-down list, or select a local file from the \"Browse...\" dialog."
+          "invalidSchemeMessage" : {
+            "type" : "object"
           },
-          "overwritePolicy" : {
+          "outputFile" : {
+            "type" : "string",
+            "title" : "Output file location",
+            "description" : "The destination location. Can also be a URL.",
+            "default" : ""
+          },
+          "overwrite" : {
             "oneOf" : [ {
               "const" : "PREVENT",
               "title" : "Fail"
@@ -24,9 +28,9 @@
               "const" : "OVERWRITE",
               "title" : "Overwrite file"
             } ],
-            "title" : "If exists",
-            "description" : "How to handle an existing file at the selected location.\n<ul>\n<li><b>Fail</b>: Prevent node from executing.</li>\n<li><b>Overwrite file</b>: Replace the file if it exists.</li>\n</ul>",
-            "default" : "OVERWRITE"
+            "title" : "If output file already exists",
+            "description" : "How to handle local output file already existing.\n<ul>\n<li><b>Fail</b>: Prevent node from executing.</li>\n<li><b>Overwrite file</b>: Replace the file if it exists.</li>\n</ul>",
+            "default" : "PREVENT"
           }
         }
       }
@@ -35,18 +39,45 @@
   "ui_schema" : {
     "elements" : [ {
       "type" : "Control",
-      "scope" : "#/properties/model/properties/file",
+      "scope" : "#/properties/model/properties/outputFile",
       "options" : {
+        "fileExtension" : "arff",
         "fileSystem" : "LOCAL",
         "isLocal" : true,
-        "selectionMode" : "FILE",
+        "isWriter" : true,
         "format" : "stringFileChooser"
       }
     }, {
       "type" : "Control",
-      "scope" : "#/properties/model/properties/overwritePolicy",
+      "id" : "#/properties/model/properties/invalidSchemeMessage",
+      "options" : {
+        "format" : "textMessage"
+      },
+      "providedOptions" : [ "message" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/overwrite",
       "options" : {
         "format" : "valueSwitch"
+      },
+      "rule" : {
+        "effect" : "HIDE",
+        "condition" : {
+          "type" : "AND",
+          "conditions" : [ {
+            "scope" : "#/properties/model/properties/outputFile",
+            "schema" : {
+              "pattern" : "^[a-zA-Z][a-zA-Z0-9+.-]*://\\S+$"
+            }
+          }, {
+            "scope" : "#/properties/model/properties/outputFile",
+            "schema" : {
+              "not" : {
+                "pattern" : "^(knime|file)://\\S+$"
+              }
+            }
+          } ]
+        }
       }
     } ]
   },
@@ -56,14 +87,29 @@
       "model" : {
         "type" : "object",
         "properties" : {
-          "file" : {
+          "outputFile" : {
             "configKey" : "ARFFoutput"
           },
-          "overwritePolicy" : {
+          "invalidSchemeMessage" : { },
+          "overwrite" : {
             "configPaths" : [ [ "overwriteOK" ] ]
           }
         }
       }
     }
-  }
+  },
+  "initialUpdates" : [ {
+    "id" : "#/properties/model/properties/invalidSchemeMessage",
+    "providedOptionName" : "message",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : null
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/outputFile"
+    },
+    "dependencies" : [ "#/properties/model/properties/outputFile" ]
+  } ]
 }
