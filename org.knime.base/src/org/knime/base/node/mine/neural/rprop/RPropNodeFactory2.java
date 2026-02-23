@@ -47,55 +47,133 @@
  */
 package org.knime.base.node.mine.neural.rprop;
 
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
+import org.knime.node.impl.description.ViewDescription;
 
 /**
  * Factory for the RProp Node, a MultiLayerPerceptron with resilient
  * backpropagation.
  *
  * @author Nicolas Cebron, University of Konstanz
+ * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.2
  * @since 3.0
  */
-public class RPropNodeFactory2 extends NodeFactory<RPropNodeModel> {
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeDialogPane createNodeDialogPane() {
-        return new RPropNodeDialog();
-    }
+@SuppressWarnings("restriction")
+public class RPropNodeFactory2 extends NodeFactory<RPropNodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public RPropNodeModel createNodeModel() {
         return new RPropNodeModel(false);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public RPropNodeView createNodeView(final int viewIndex,
             final RPropNodeModel nodeModel) {
         return new RPropNodeView(nodeModel);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int getNrNodeViews() {
         return 1;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean hasDialog() {
         return true;
     }
+
+    private static final String NODE_NAME = "RProp MLP Learner";
+
+    private static final String NODE_ICON = "./mlp.png";
+
+    private static final String SHORT_DESCRIPTION = """
+            Builds and learns an MLP with resilient backpropagation.
+            """;
+
+    private static final String FULL_DESCRIPTION = """
+            Implementation of the RProp algorithm for multilayer feedforward networks. RPROP performs a local
+            adaptation of the weight-updates according to the behavior of the error function. For further details
+            see: Riedmiller, M. Braun, H. : "A direct adaptive method for faster backpropagation learning: the RPROP
+            algorithm", Proceedings of the IEEE International Conference on Neural Networks (ICNN)
+            (Vol. 16, pp. 586-591). Piscataway, NJ: IEEE. This node provides a view of the error plot.
+            """;
+
+    private static final List<PortDescription> INPUT_PORTS = List.of(
+            fixedPort("Training Data", """
+                Datatable with training data.
+                """)
+    );
+
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(
+            fixedPort("Neural Network", """
+                RProp trained Neural Network.
+                """)
+    );
+
+    private static final List<ViewDescription> VIEWS = List.of(
+            new ViewDescription("Error Plot", """
+                Displays the error for each iteration.
+                """)
+    );
+
+    @Override
+    public NodeDialogPane createNodeDialogPane() {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    /**
+     * {@inheritDoc}
+     * @since 5.11
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, RPropNodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription( //
+            NODE_NAME, //
+            NODE_ICON, //
+            INPUT_PORTS, //
+            OUTPUT_PORTS, //
+            SHORT_DESCRIPTION, //
+            FULL_DESCRIPTION, //
+            List.of(), //
+            RPropNodeParameters.class, //
+            VIEWS, //
+            NodeType.Learner, //
+            List.of(), //
+            null //
+        );
+    }
+
+    /**
+     * {@inheritDoc}
+     * @since 5.11
+     */
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, RPropNodeParameters.class));
+    }
+
 }

@@ -1,0 +1,292 @@
+{
+  "data" : {
+    "model" : {
+      "maxIterations" : 14,
+      "hiddenLayers" : 6,
+      "hiddenNeuronsPerLayer" : 4,
+      "classColumn" : "Cluster Membership",
+      "ignoreMissingValues" : true,
+      "useRandomSeed" : true,
+      "randomSeed" : -1400106664
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "classColumn" : {
+            "type" : "string",
+            "title" : "Class column",
+            "description" : "Choose the column that contains the target variable: it can either be nominal or numerical. All\nnominal class values are extracted and assigned to output neurons. If you use a numerical target\nvariable (regression), please make sure it is normalized!\n",
+            "default" : ""
+          },
+          "hiddenLayers" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Number of hidden layers",
+            "description" : "Specifies the number of hidden layers in the architecture of the neural network.\n",
+            "default" : 1
+          },
+          "hiddenNeuronsPerLayer" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Number of hidden neurons per layer",
+            "description" : "Specifies the number of neurons contained in each hidden layer.\n",
+            "default" : 10
+          },
+          "ignoreMissingValues" : {
+            "type" : "boolean",
+            "title" : "Ignore missing values",
+            "description" : "If this checkbox is set, rows with missing values will not be used for training.\n",
+            "default" : false
+          },
+          "maxIterations" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Maximum number of iterations",
+            "description" : "The number of learning iterations.\n",
+            "default" : 100
+          },
+          "newSeed" : {
+            "type" : "object",
+            "title" : "New",
+            "description" : "Generate a random seed and set it in the Random seed input above for reproducible runs.\n"
+          },
+          "randomSeed" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Random seed",
+            "description" : "Seed for the random number generator.\n",
+            "default" : 0
+          },
+          "useRandomSeed" : {
+            "type" : "boolean",
+            "title" : "Use seed for random initialization",
+            "description" : "If this checkbox is set, a seed (see next field) can be set for initializing the weights and\nthresholds.\n",
+            "default" : false
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/maxIterations",
+      "options" : {
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 1000000.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 1000000.0
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 1.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 1.0
+            }
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/hiddenLayers",
+      "options" : {
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 100.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 100.0
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 1.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 1.0
+            }
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/hiddenNeuronsPerLayer",
+      "options" : {
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 100.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 100.0
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 1.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 1.0
+            }
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/classColumn",
+      "options" : {
+        "format" : "dropDown"
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/ignoreMissingValues",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/useRandomSeed",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/randomSeed",
+      "options" : {
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 2147483647.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 2.147483647E9
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least -2147483648.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : -2.147483648E9
+            }
+          }
+        }
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/useRandomSeed",
+          "schema" : {
+            "const" : true
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/newSeed",
+      "options" : {
+        "format" : "simpleButton",
+        "triggerId" : "org.knime.base.node.mine.neural.rprop.RPropNodeParameters$NewSeedButtonRef"
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/useRandomSeed",
+          "schema" : {
+            "const" : true
+          }
+        }
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "maxIterations" : {
+            "configKey" : "maxiter"
+          },
+          "hiddenLayers" : {
+            "configKey" : "hiddenlayer"
+          },
+          "hiddenNeuronsPerLayer" : {
+            "configKey" : "nrhiddenneurons"
+          },
+          "classColumn" : {
+            "configKey" : "classcol"
+          },
+          "ignoreMissingValues" : {
+            "configKey" : "ignoremv"
+          },
+          "useRandomSeed" : {
+            "configKey" : "useRandomSeed"
+          },
+          "randomSeed" : {
+            "configKey" : "randomSeed"
+          },
+          "newSeed" : { }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/classColumn",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Universe_0_0",
+        "text" : "Universe_0_0",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Universe_0_1",
+        "text" : "Universe_0_1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Universe_1_0",
+        "text" : "Universe_1_0",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Universe_1_1",
+        "text" : "Universe_1_1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Cluster Membership",
+        "text" : "Cluster Membership",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "id" : "after-open-dialog"
+    },
+    "triggerInitially" : true,
+    "dependencies" : [ "#/properties/model/properties/classColumn" ]
+  }, {
+    "trigger" : {
+      "id" : "org.knime.base.node.mine.neural.rprop.RPropNodeParameters$NewSeedButtonRef"
+    },
+    "dependencies" : [ ]
+  } ]
+}

@@ -1,0 +1,172 @@
+{
+  "data" : {
+    "model" : {
+      "changePredictionColumn" : false,
+      "predictionColumnName" : "Prediction (Cluster Membership)",
+      "predictionColumnNameEnabled" : false,
+      "predictionColumnModelID" : "SMID_string",
+      "addProbabilitySuffix" : true,
+      "probabilitySuffix" : "",
+      "probabilitySuffixEnabled" : true,
+      "probabilitySuffixModelID" : "SMID_string"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "addProbabilitySuffix" : {
+            "type" : "boolean",
+            "title" : "Append class columns",
+            "description" : "Append class probability columns.\n",
+            "default" : false
+          },
+          "changePredictionColumn" : {
+            "type" : "boolean",
+            "title" : "Change prediction column name",
+            "description" : "When set, you can change the name of the prediction column.\n",
+            "default" : false
+          },
+          "makeDialogDirty" : {
+            "type" : "object"
+          },
+          "predictionColumnModelID" : {
+            "type" : "string"
+          },
+          "predictionColumnName" : {
+            "type" : "string",
+            "title" : "Prediction column",
+            "description" : "The possibly overridden column name for the predicted column.\n(The default is <tt>Prediction(trainingColumn)</tt>)\n"
+          },
+          "predictionColumnNameEnabled" : {
+            "type" : "boolean",
+            "default" : false
+          },
+          "probabilitySuffix" : {
+            "type" : "string",
+            "title" : "Suffix for probability columns",
+            "description" : "Suffix for the normalized distribution columns. Their names are like: <tt>P(trainingColumn=value)</tt>.\n"
+          },
+          "probabilitySuffixEnabled" : {
+            "type" : "boolean",
+            "default" : false
+          },
+          "probabilitySuffixModelID" : {
+            "type" : "string"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "id" : "#/properties/model/properties/makeDialogDirty",
+      "options" : {
+        "format" : "dirtyTracker"
+      },
+      "providedOptions" : [ "makeDirty" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/changePredictionColumn",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/predictionColumnName",
+      "options" : {
+        "validation" : {
+          "pattern" : {
+            "errorMessage" : "The string must start and end with a non-whitespace character.",
+            "parameters" : {
+              "pattern" : "\\S(.*\\S)?"
+            }
+          }
+        }
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/changePredictionColumn",
+          "schema" : {
+            "const" : true
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/addProbabilitySuffix",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/probabilitySuffix",
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/addProbabilitySuffix",
+          "schema" : {
+            "const" : true
+          }
+        }
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "makeDialogDirty" : { },
+          "changePredictionColumn" : {
+            "configKey" : "change prediction"
+          },
+          "predictionColumnName" : {
+            "configKey" : "prediction column name"
+          },
+          "predictionColumnNameEnabled" : {
+            "configKey" : "EnabledStatus",
+            "route" : [ "prediction column name_Internals" ]
+          },
+          "predictionColumnModelID" : {
+            "configKey" : "SettingsModelID",
+            "route" : [ "prediction column name_Internals" ]
+          },
+          "addProbabilitySuffix" : {
+            "configKey" : "append probabilities"
+          },
+          "probabilitySuffix" : {
+            "configKey" : "class probability suffix"
+          },
+          "probabilitySuffixEnabled" : {
+            "configKey" : "EnabledStatus",
+            "route" : [ "class probability suffix_Internals" ]
+          },
+          "probabilitySuffixModelID" : {
+            "configKey" : "SettingsModelID",
+            "route" : [ "class probability suffix_Internals" ]
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/predictionColumnName",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : "Prediction (Cluster Membership)"
+    } ]
+  }, {
+    "id" : "#/properties/model/properties/makeDialogDirty",
+    "providedOptionName" : "makeDirty",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : true
+    } ]
+  } ]
+}
