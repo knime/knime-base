@@ -107,13 +107,13 @@ final class StringToPathVariableNodeModel extends NodeModel {
 
     static final String CFG_VARIABLE_FILTER = "variable_filter";
 
-    private static final String CFG_ON_FV_CONFLICT_MAKE_UNIQUE = "on_fv_conflict_make_unique";
+    static final String CFG_ON_FV_CONFLICT_MAKE_UNIQUE = "on_fv_conflict_make_unique";
 
-    private static final String CFG_SUFFIX = "suffix";
+    static final String CFG_SUFFIX = "suffix";
 
-    private static final String CFG_FILE_SYSTEM = "file_system";
+    static final String CFG_FILE_SYSTEM = "file_system";
 
-    private static final String CFG_ABORT_ON_MISSING_FILE = "fail_on_missing_file_folder";
+    static final String CFG_ABORT_ON_MISSING_FILE = "fail_on_missing_file_folder";
 
     private final SettingsModelFileSystem m_fileSystemModel;
 

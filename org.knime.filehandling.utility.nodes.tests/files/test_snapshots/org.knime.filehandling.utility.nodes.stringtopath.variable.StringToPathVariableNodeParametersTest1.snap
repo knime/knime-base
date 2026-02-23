@@ -1,0 +1,557 @@
+{
+  "data" : {
+    "model" : {
+      "variableFilter" : {
+        "mode" : "MANUAL",
+        "patternFilter" : {
+          "pattern" : "",
+          "isCaseSensitive" : true,
+          "isInverted" : false
+        },
+        "manualFilter" : {
+          "manuallySelected" : [ "stringPath" ],
+          "manuallyDeselected" : [ ],
+          "includeUnknownColumns" : false
+        }
+      },
+      "fileSystemSelection" : {
+        "selection" : {
+          "fileSystemType" : "LOCAL",
+          "spaceOrWorkflow" : "SPACE",
+          "timeout" : 0
+        },
+        "legacyParameters" : {
+          "legacyFileSystemConfiguration" : {
+            "isPresent" : false
+          }
+        }
+      },
+      "variableSuffix" : "_location",
+      "abortOnMissingFile" : true,
+      "onFVConflictMakeUnique" : false
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "abortOnMissingFile" : {
+            "type" : "boolean",
+            "title" : "Fail if file/folder does not exist",
+            "description" : "Checks if the files or folders referenced by the created Paths are existing and will abort if one is not.\n",
+            "default" : false
+          },
+          "fileSystemSelection" : {
+            "type" : "object",
+            "properties" : {
+              "legacyParameters" : {
+                "type" : "object",
+                "properties" : {
+                  "clearToReconfigure" : {
+                    "type" : "object",
+                    "title" : "Clear to reconfigure"
+                  },
+                  "dirtyAfterClear" : {
+                    "type" : "object"
+                  },
+                  "legacyFileSystemConfiguration" : {
+                    "type" : "object",
+                    "properties" : {
+                      "isPresent" : {
+                        "type" : "boolean",
+                        "default" : false
+                      },
+                      "noLongerSupportedFSConfigOrNull" : {
+                        "type" : "object"
+                      }
+                    },
+                    "default" : {
+                      "isPresent" : false
+                    }
+                  },
+                  "legacySettingsReadOnlyMessage" : {
+                    "type" : "object"
+                  },
+                  "noLongerSupportedMessage" : {
+                    "type" : "object"
+                  }
+                },
+                "default" : {
+                  "legacyFileSystemConfiguration" : {
+                    "isPresent" : false
+                  }
+                }
+              },
+              "selection" : {
+                "type" : "object",
+                "properties" : {
+                  "connectedFileSystemNoLongerAvailableMessage" : {
+                    "type" : "object"
+                  },
+                  "connectedFileSystemSpecifier" : {
+                    "type" : "string"
+                  },
+                  "fileSystemType" : {
+                    "oneOf" : [ {
+                      "const" : "CONNECTED",
+                      "title" : "Connected file system"
+                    }, {
+                      "const" : "LOCAL",
+                      "title" : "Local file system"
+                    }, {
+                      "const" : "SPACE",
+                      "title" : "Current space"
+                    }, {
+                      "const" : "EMBEDDED",
+                      "title" : "Embedded data"
+                    }, {
+                      "const" : "URL",
+                      "title" : "URL"
+                    } ],
+                    "title" : "File system",
+                    "description" : "Select one of the following options for the file system to use:\n<ul>\n<li><b>Connected file system</b>: Connect a file system port to this node to use it.</li>\n<li><b>Local file system</b>: The local file system of the machine running KNIME. Note that this option is not available when working remotely.</li>\n<li><b>Current space</b>: The space that contains the current workflow.</li>\n<li><b>Embedded data</b>: The embedded data of the current workflow.</li>\n<li><b>URL</b>: A custom URL.</li>\n</ul>",
+                    "default" : "LOCAL"
+                  },
+                  "localFileSystemNotAvailableMessage" : {
+                    "type" : "object"
+                  },
+                  "spaceOrWorkflow" : {
+                    "oneOf" : [ {
+                      "const" : "SPACE",
+                      "title" : "Space"
+                    }, {
+                      "const" : "WORKFLOW",
+                      "title" : "Workflow"
+                    } ],
+                    "title" : "Relative to",
+                    "description" : "Choose the base location to which the file path is relative to.\n<ul>\n<li><b>Space</b>: The root of the space that contains the current workflow.</li>\n<li><b>Workflow</b>: The current workflow itself.</li>\n</ul>",
+                    "default" : "SPACE"
+                  },
+                  "timeout" : {
+                    "type" : "integer",
+                    "format" : "int32",
+                    "title" : "Timeout",
+                    "description" : "The timeout in milliseconds used when reading from or writing to a URL.",
+                    "default" : 0
+                  }
+                },
+                "default" : {
+                  "fileSystemType" : "LOCAL",
+                  "spaceOrWorkflow" : "SPACE",
+                  "timeout" : 0
+                }
+              }
+            },
+            "default" : {
+              "selection" : {
+                "fileSystemType" : "LOCAL",
+                "spaceOrWorkflow" : "SPACE",
+                "timeout" : 0
+              },
+              "legacyParameters" : {
+                "legacyFileSystemConfiguration" : {
+                  "isPresent" : false
+                }
+              }
+            }
+          },
+          "onFVConflictMakeUnique" : {
+            "type" : "boolean",
+            "title" : "Append suffix if variable already exists",
+            "description" : "If selected, and if an output flow variable has the same name as an existing one, a unique suffix is appended to make the name unique. If not selected, the output flow variable will overwrite the existing flow variable.\n",
+            "default" : false
+          },
+          "variableFilter" : {
+            "type" : "object",
+            "properties" : {
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "includeUnknownColumns" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "manuallyDeselected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "manuallySelected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "manuallySelected" : [ ],
+                  "manuallyDeselected" : [ ],
+                  "includeUnknownColumns" : false
+                }
+              },
+              "mode" : {
+                "oneOf" : [ {
+                  "const" : "MANUAL",
+                  "title" : "Manual"
+                }, {
+                  "const" : "REGEX",
+                  "title" : "Regex"
+                }, {
+                  "const" : "WILDCARD",
+                  "title" : "Wildcard"
+                } ],
+                "default" : "MANUAL"
+              },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "isCaseSensitive" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "isInverted" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "pattern" : {
+                    "type" : "string",
+                    "default" : ""
+                  }
+                },
+                "default" : {
+                  "pattern" : "",
+                  "isCaseSensitive" : false,
+                  "isInverted" : false
+                }
+              }
+            },
+            "title" : "Variable selection",
+            "description" : "The String variables that will be converted to Path variables. The variables have to contain Strings with correct Path <tt>/foo/bar.txt</tt> syntax.\n",
+            "default" : {
+              "mode" : "MANUAL",
+              "patternFilter" : {
+                "pattern" : "",
+                "isCaseSensitive" : false,
+                "isInverted" : false
+              },
+              "manualFilter" : {
+                "manuallySelected" : [ ],
+                "manuallyDeselected" : [ ],
+                "includeUnknownColumns" : false
+              }
+            }
+          },
+          "variableSuffix" : {
+            "type" : "string",
+            "title" : "Suffix added to the new variables",
+            "description" : "The suffix that will be added to the name of the String variables that are converted to create the names of the new Path variables.\n",
+            "default" : "_location"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/variableFilter",
+      "options" : {
+        "format" : "nameFilter"
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/fileSystemSelection/properties/selection/properties/fileSystemType",
+      "options" : {
+        "format" : "dropDown"
+      },
+      "providedOptions" : [ "possibleValues" ],
+      "rule" : {
+        "effect" : "HIDE",
+        "condition" : {
+          "scope" : "#/properties/model/properties/fileSystemSelection/properties/legacyParameters/properties/legacyFileSystemConfiguration/properties/isPresent",
+          "schema" : {
+            "const" : true
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/fileSystemSelection/properties/selection/properties/spaceOrWorkflow",
+      "options" : {
+        "format" : "valueSwitch"
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "type" : "AND",
+          "conditions" : [ {
+            "scope" : "#/properties/model/properties/fileSystemSelection/properties/selection/properties/fileSystemType",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "SPACE"
+              } ]
+            }
+          }, {
+            "scope" : "#/properties/model/properties/fileSystemSelection/properties/legacyParameters/properties/legacyFileSystemConfiguration/properties/isPresent",
+            "schema" : {
+              "not" : {
+                "const" : true
+              }
+            }
+          } ]
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/fileSystemSelection/properties/selection/properties/timeout",
+      "options" : {
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 2147483647.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 2.147483647E9
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least -2147483648.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : -2.147483648E9
+            }
+          }
+        }
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "type" : "AND",
+          "conditions" : [ {
+            "scope" : "#/properties/model/properties/fileSystemSelection/properties/selection/properties/fileSystemType",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "URL"
+              } ]
+            }
+          }, {
+            "scope" : "#/properties/model/properties/fileSystemSelection/properties/legacyParameters/properties/legacyFileSystemConfiguration/properties/isPresent",
+            "schema" : {
+              "not" : {
+                "const" : true
+              }
+            }
+          } ]
+        }
+      }
+    }, {
+      "type" : "Control",
+      "id" : "#/properties/model/properties/fileSystemSelection/properties/selection/properties/localFileSystemNotAvailableMessage",
+      "options" : {
+        "format" : "textMessage"
+      },
+      "providedOptions" : [ "message" ],
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "type" : "AND",
+          "conditions" : [ {
+            "scope" : "#/properties/model/properties/fileSystemSelection/properties/selection/properties/fileSystemType",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "LOCAL"
+              } ]
+            }
+          }, {
+            "schema" : {
+              "not" : { }
+            }
+          } ]
+        }
+      }
+    }, {
+      "type" : "Control",
+      "id" : "#/properties/model/properties/fileSystemSelection/properties/selection/properties/connectedFileSystemNoLongerAvailableMessage",
+      "options" : {
+        "format" : "textMessage"
+      },
+      "providedOptions" : [ "message" ],
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "type" : "AND",
+          "conditions" : [ {
+            "scope" : "#/properties/model/properties/fileSystemSelection/properties/selection/properties/fileSystemType",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "CONNECTED"
+              } ]
+            }
+          }, {
+            "schema" : {
+              "not" : {
+                "not" : { }
+              }
+            }
+          } ]
+        }
+      }
+    }, {
+      "type" : "Control",
+      "id" : "#/properties/model/properties/fileSystemSelection/properties/legacyParameters/properties/legacySettingsReadOnlyMessage",
+      "options" : {
+        "format" : "textMessage"
+      },
+      "providedOptions" : [ "message" ]
+    }, {
+      "type" : "Control",
+      "id" : "#/properties/model/properties/fileSystemSelection/properties/legacyParameters/properties/noLongerSupportedMessage",
+      "options" : {
+        "format" : "textMessage"
+      },
+      "providedOptions" : [ "message" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/fileSystemSelection/properties/legacyParameters/properties/clearToReconfigure",
+      "options" : {
+        "format" : "simpleButton",
+        "triggerId" : "org.knime.core.webui.node.dialog.defaultdialog.internal.filesystem.NoLongerSupportedFileSystemParameters$ClearToReconfigureButtonRef"
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/fileSystemSelection/properties/legacyParameters/properties/legacyFileSystemConfiguration/properties/isPresent",
+          "schema" : {
+            "const" : true
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "id" : "#/properties/model/properties/fileSystemSelection/properties/legacyParameters/properties/dirtyAfterClear",
+      "options" : {
+        "format" : "dirtyTracker"
+      },
+      "providedOptions" : [ "makeDirty" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/variableSuffix"
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/abortOnMissingFile",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/onFVConflictMakeUnique",
+      "options" : {
+        "format" : "checkbox"
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "variableFilter" : {
+            "configPaths" : [ [ "variable_filter", "filter-type" ], [ "variable_filter", "included_names" ], [ "variable_filter", "excluded_names" ], [ "variable_filter", "enforce_option" ], [ "variable_filter", "name_pattern", "pattern" ], [ "variable_filter", "name_pattern", "type" ], [ "variable_filter", "name_pattern", "caseSensitive" ], [ "variable_filter", "name_pattern", "excludeMatching" ] ]
+          },
+          "fileSystemSelection" : {
+            "configPaths" : [ [ "file_system", "location_spec" ] ]
+          },
+          "variableSuffix" : {
+            "configKey" : "suffix"
+          },
+          "abortOnMissingFile" : {
+            "configKey" : "fail_on_missing_file_folder"
+          },
+          "onFVConflictMakeUnique" : {
+            "configKey" : "on_fv_conflict_make_unique",
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ ]
+            } ]
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/fileSystemSelection/properties/selection/properties/fileSystemType",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "LOCAL",
+        "text" : "Local file system"
+      }, {
+        "id" : "SPACE",
+        "text" : "Current space (Local space)"
+      }, {
+        "id" : "EMBEDDED",
+        "text" : "Embedded data"
+      }, {
+        "id" : "URL",
+        "text" : "URL"
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/variableFilter",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ ]
+    } ]
+  }, {
+    "id" : "#/properties/model/properties/fileSystemSelection/properties/legacyParameters/properties/noLongerSupportedMessage",
+    "providedOptionName" : "message",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : null
+    } ]
+  }, {
+    "id" : "#/properties/model/properties/fileSystemSelection/properties/selection/properties/connectedFileSystemNoLongerAvailableMessage",
+    "providedOptionName" : "message",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : {
+        "title" : "Connected file system no longer available",
+        "description" : "The node has been configured with a file system port before.",
+        "type" : "WARNING"
+      }
+    } ]
+  }, {
+    "id" : "#/properties/model/properties/fileSystemSelection/properties/selection/properties/localFileSystemNotAvailableMessage",
+    "providedOptionName" : "message",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : {
+        "title" : "Local file system no longer available",
+        "description" : "The node has been configured in a local environment before. Local file system access is not possible when working remotely.",
+        "type" : "WARNING"
+      }
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "id" : "after-open-dialog"
+    },
+    "triggerInitially" : true,
+    "dependencies" : [ "#/properties/model/properties/fileSystemSelection/properties/legacyParameters/properties/legacyFileSystemConfiguration" ]
+  }, {
+    "trigger" : {
+      "id" : "org.knime.core.webui.node.dialog.defaultdialog.internal.filesystem.NoLongerSupportedFileSystemParameters$ClearToReconfigureButtonRef"
+    },
+    "dependencies" : [ ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/fileSystemSelection/properties/legacyParameters/properties/legacyFileSystemConfiguration"
+    },
+    "dependencies" : [ "#/properties/model/properties/fileSystemSelection/properties/legacyParameters/properties/legacyFileSystemConfiguration" ]
+  } ]
+}
