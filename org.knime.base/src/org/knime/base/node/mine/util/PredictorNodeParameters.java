@@ -48,6 +48,7 @@
  */
 package org.knime.base.node.mine.util;
 
+import java.util.Optional;
 import java.util.function.Supplier;
 
 import org.knime.core.data.DataColumnSpec;
@@ -133,16 +134,32 @@ public abstract class PredictorNodeParameters implements NodeParameters {
         }
 
         private String getDefaultPredictionColumnNameFromContext(final NodeParametersInput context) {
+            final var predictionColumnOpt = extractTargetColumn(context);
+            if (predictionColumnOpt.isPresent()) {
+                return predictionColumnOpt.get();
+            }
+            return m_predictionColumnDefault;
+        }
+
+        /**
+         * Tries to extract the target column name from the model spec port. By default, it looks for a PMML spec in
+         * the first input port and if found, uses the name of the target column.
+         *
+         * @param context {@link NodeParametersInput}
+         * @return an {@link Optional} containing the target column name if it could be extracted,
+         *         or an empty optional otherwise
+         */
+        protected Optional<String> extractTargetColumn(final NodeParametersInput context) {
             final var pmmlSpec = context.getInPortSpec(0);
             if (pmmlSpec.isPresent()) {
                 final var targetCols = ((PMMLPortObjectSpec)pmmlSpec.get()).getTargetCols();
                 if (!targetCols.isEmpty()) {
                     final DataColumnSpec classColumn = targetCols.get(0);
                     final PredictorHelper predictorHelper = PredictorHelper.getInstance();
-                    return predictorHelper.computePredictionDefault(classColumn.getName());
+                    return Optional.of(predictorHelper.computePredictionDefault(classColumn.getName()));
                 }
             }
-            return m_predictionColumnDefault;
+            return Optional.empty();
         }
 
     }

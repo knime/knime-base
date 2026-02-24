@@ -44,56 +44,144 @@
  */
 package org.knime.base.node.mine.bfn.radial;
 
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
+import org.knime.node.impl.description.ViewDescription;
 
 /**
- * 
+ * {@link NodeFactory} for the PNN Learner (DDA) node.
+ *
  * @author Thomas Gabriel, University of Konstanz
+ * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.2
  */
-public class RadialBasisFunctionLearnerNodeFactory 
-        extends NodeFactory<RadialBasisFunctionLearnerNodeModel> {
-    
-    /**
-     * {@inheritDoc}
-     */
+@SuppressWarnings("restriction")
+public class RadialBasisFunctionLearnerNodeFactory extends NodeFactory<RadialBasisFunctionLearnerNodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
+
     @Override
     public RadialBasisFunctionLearnerNodeModel createNodeModel() {
         return new RadialBasisFunctionLearnerNodeModel();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int getNrNodeViews() {
         return 1;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public NodeView<RadialBasisFunctionLearnerNodeModel> createNodeView(
-            final int i, 
+            final int i,
             final RadialBasisFunctionLearnerNodeModel nodeModel) {
         return new RadialBasisFunctionLearnerNodeView(nodeModel);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean hasDialog() {
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    private static final String NODE_NAME = "PNN Learner (DDA)";
+
+    private static final String NODE_ICON = "./rbf.png";
+
+    private static final String SHORT_DESCRIPTION = """
+            Trains a Probabilistic Neural Network (PNN) on labeled data.
+            """;
+
+    private static final String FULL_DESCRIPTION = """
+            Trains a Probabilistic Neural Network (PNN) based on the DDA (Dynamic Decay Adjustment) method on
+            labeled data using
+            <a href="http://www.inf.uni-konstanz.de/bioml2/publications/Papers1998/BeDi98_dda_neurocomp.pdf">
+            Constructive Training of Probabilistic Neural Networks</a> as the underlying algorithm.<br /> This
+            algorithm generates rules based on numeric data. Each rule is defined as high-dimensional Gaussian
+            function that is adjusted by two thresholds, theta minus and theta plus, to avoid conflicts with rules
+            of different classes. Each Gaussian function is defined by a center vector (from the first covered
+            instance) and a standard deviation which is adjusted during training to cover only non-conflicting
+            instances. The selected numeric columns of the input data are used as input data for training and
+            additional columns are used as classification target, either one column holding the class information or
+            a number of numeric columns with class degrees between 0 and 1 can be selected. The data output contains
+            the rules after execution along with a number of of rule measurements. The model output port contains
+            the PNN model, which can be used for prediction in the PNN Predictor node.
+            """;
+
+    private static final List<PortDescription> INPUT_PORTS = List.of(
+            fixedPort("Training Data", """
+                Numeric data as well as class information used for training.
+                """)
+    );
+
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(
+            fixedPort("PNN Rules", """
+                Rules as Gaussian functions, classification columns, and additional rule measures.
+                """),
+            fixedPort("PNN Model", """
+                PNN model can be used for prediction.
+                """)
+    );
+
+    private static final List<ViewDescription> VIEWS = List.of(
+            new ViewDescription("Learner Statistics", """
+                Displays a summary of the learning process.
+                """)
+    );
+
     @Override
     public NodeDialogPane createNodeDialogPane() {
-        return new RadialBasisFunctionLearnerNodeDialog();
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
     }
+
+    /**
+     * {@inheritDoc}
+     * @since 5.11
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, RadialBasisFunctionLearnerNodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription( //
+            NODE_NAME, //
+            NODE_ICON, //
+            INPUT_PORTS, //
+            OUTPUT_PORTS, //
+            SHORT_DESCRIPTION, //
+            FULL_DESCRIPTION, //
+            List.of(), //
+            RadialBasisFunctionLearnerNodeParameters.class, //
+            VIEWS, //
+            NodeType.Learner, //
+            List.of(), //
+            null //
+        );
+    }
+
+    /**
+     * {@inheritDoc}
+     * @since 5.11
+     */
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, RadialBasisFunctionLearnerNodeParameters.class));
+    }
+
 }

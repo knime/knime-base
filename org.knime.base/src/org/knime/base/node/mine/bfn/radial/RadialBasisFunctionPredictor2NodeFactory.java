@@ -44,38 +44,47 @@
  */
 package org.knime.base.node.mine.bfn.radial;
 
-import org.knime.base.node.mine.bfn.BasisFunctionPredictor2NodeDialog;
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
 
 /**
  *
  * @author Thomas Gabriel, University of Konstanz
+ * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.2
  * @since 2.9
  */
-public class RadialBasisFunctionPredictor2NodeFactory
-        extends NodeFactory<RadialBasisFunctionPredictor2NodeModel> {
+@SuppressWarnings("restriction")
+public class RadialBasisFunctionPredictor2NodeFactory extends NodeFactory<RadialBasisFunctionPredictor2NodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public RadialBasisFunctionPredictor2NodeModel createNodeModel() {
         return new RadialBasisFunctionPredictor2NodeModel();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int getNrNodeViews() {
         return 0;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public NodeView<RadialBasisFunctionPredictor2NodeModel>
             createNodeView(final int i,
@@ -83,19 +92,80 @@ public class RadialBasisFunctionPredictor2NodeFactory
         return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean hasDialog() {
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    private static final String NODE_NAME = "PNN Predictor";
+
+    private static final String NODE_ICON = "./rbf_predictor.png";
+
+    private static final String SHORT_DESCRIPTION = """
+            Applies a PNN Model to numeric data and outputs a classification.
+            """;
+
+    private static final String FULL_DESCRIPTION = """
+            The first port contains the PNN Model that is applied to the test data contained in the second input port.
+            The output data has then one additional column containing the predicted class attribute which is the best
+            match for all rules.
+            """;
+
+    private static final List<PortDescription> INPUT_PORTS = List.of(
+            fixedPort("PNN Model", """
+                PNN Model to which test data is applied.
+                """),
+            fixedPort("Test Data", """
+                Test data matching the PNN Model structure.
+                """)
+    );
+
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(
+            fixedPort("Predicted Data", """
+                Predicted data with one additional classification column.
+                """)
+    );
+
     @Override
     public NodeDialogPane createNodeDialogPane() {
-        return new BasisFunctionPredictor2NodeDialog();
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
     }
+
+    /**
+     * {@inheritDoc}
+     * @since 5.11
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, RadialBasisFunctionPredictor2NodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription( //
+            NODE_NAME, //
+            NODE_ICON, //
+            INPUT_PORTS, //
+            OUTPUT_PORTS, //
+            SHORT_DESCRIPTION, //
+            FULL_DESCRIPTION, //
+            List.of(), //
+            RadialBasisFunctionPredictor2NodeParameters.class, //
+            null, //
+            NodeType.Predictor, //
+            List.of(), //
+            null //
+        );
+    }
+
+    /**
+     * {@inheritDoc}
+     * @since 5.11
+     */
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(
+            Map.of(SettingsType.MODEL, RadialBasisFunctionPredictor2NodeParameters.class));
+    }
+
 }
