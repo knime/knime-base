@@ -47,57 +47,145 @@
  */
 package org.knime.base.node.mine.svm.learner;
 
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
+import org.knime.node.impl.description.ViewDescription;
 
 /**
  * NodeFactory for the SVM Learner Node.
  *
  * @author cebron, University of Konstanz
+ * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.2
  * @since 3.0
  */
-public class SVMLearnerNodeFactory2 extends
-        NodeFactory<SVMLearnerNodeModel> {
+@SuppressWarnings("restriction")
+public class SVMLearnerNodeFactory2 extends NodeFactory<SVMLearnerNodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new SVMLearnerNodeDialog();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public SVMLearnerNodeModel createNodeModel() {
         return new SVMLearnerNodeModel(false);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public SVMLearnerNodeView createNodeView(final int viewIndex,
             final SVMLearnerNodeModel nodeModel) {
         return new SVMLearnerNodeView(nodeModel);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected int getNrNodeViews() {
         return 1;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected boolean hasDialog() {
         return true;
+    }
+
+    private static final String NODE_NAME = "SVM Learner";
+
+    private static final String NODE_ICON = "./SVM_learn.png";
+
+    private static final String SHORT_DESCRIPTION = """
+            Trains a support vector machine.
+            """;
+
+    private static final String FULL_DESCRIPTION = """
+            <p> This node trains a support vector machine on the input data. It supports a number of different
+            kernels (HyperTangent, Polynomial and RBF). The SVM learner supports multiple class problems as well (by
+            computing the hyperplane between each class and the rest), but note that this will increase the runtime.
+            </p>
+            <p> The SVM learning algorithm used is described in the following papers:
+            <a href="https://www.microsoft.com/en-us/research/publication/
+            fast-training-of-support-vector-machines-using-sequential-minimal-optimization/">Fast Training of Support
+            Vector Machines using Sequential Minimal Optimization</a>, by John C. Platt and
+            <a href="https://digilander.libero.it/sedekfx/papers_/smo_mod.pdf"> Improvements to Platt's SMO Algorithm
+            for SVM Classifier Design</a>, by S. S. Keerthi et. al. </p>
+            """;
+
+    private static final List<PortDescription> INPUT_PORTS = List.of(
+            fixedPort("Training Data", """
+                Datatable with training data.
+                """)
+    );
+
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(
+            fixedPort("Trained SVM", """
+                Trained Support Vector Machine.
+                """)
+    );
+
+    private static final List<ViewDescription> VIEWS = List.of(
+            new ViewDescription("SVM View", """
+                Shows the trained Support Vector Machines for each class with their corresponding support vectors.
+                """)
+    );
+
+    private static final List<String> KEYWORDS = List.of( //
+        "support vector machine" //
+    );
+
+    /**
+     * {@inheritDoc}
+     * @since 5.11
+     */
+    @Override
+    public NodeDialogPane createNodeDialogPane() {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    /**
+     * {@inheritDoc}
+     * @since 5.11
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, SVMLearnerNodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription( //
+            NODE_NAME, //
+            NODE_ICON, //
+            INPUT_PORTS, //
+            OUTPUT_PORTS, //
+            SHORT_DESCRIPTION, //
+            FULL_DESCRIPTION, //
+            List.of(), //
+            SVMLearnerNodeParameters.class, //
+            VIEWS, //
+            NodeType.Learner, //
+            KEYWORDS, //
+            null //
+        );
+    }
+
+    /**
+     * {@inheritDoc}
+     * @since 5.11
+     */
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, SVMLearnerNodeParameters.class));
     }
 
 }

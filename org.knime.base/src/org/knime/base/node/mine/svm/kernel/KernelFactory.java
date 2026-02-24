@@ -49,6 +49,8 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.knime.node.parameters.widget.choices.Label;
+
 /**
  * This class is responsible for managing all the kernels that are known
  * to the SVM.
@@ -65,9 +67,18 @@ public final class KernelFactory {
      */
     public enum KernelType {
         /** Polynomial Kernel. */
+        @Label(value = "Polynomial", description = """
+        Polynomial kernel of the form (gamma * x * y + bias)^power.
+        """)
         Polynomial,
         /** Hypertangent Kernel. */
+        @Label(value = "HyperTangent", description = """
+                Hyperbolic tangent kernel of the form tanh(kappa * x * y + delta).
+                """)
         HyperTangent,
+        @Label(value = "RBF", description = """
+        Radial Basis Function kernel of the form exp(-||x - y||^2 / (2 * sigma^2)).
+        """)
         /** Radial Basis Function Kernel. */
         RBF
     }
