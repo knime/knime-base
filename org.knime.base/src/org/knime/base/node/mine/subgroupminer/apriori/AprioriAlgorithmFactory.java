@@ -1,4 +1,4 @@
-/* 
+/*
  * ------------------------------------------------------------------------
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
@@ -41,7 +41,7 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * -------------------------------------------------------------------
- * 
+ *
  * History
  *   13.12.2005 (dill): created
  */
@@ -50,31 +50,41 @@ package org.knime.base.node.mine.subgroupminer.apriori;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.knime.node.parameters.widget.choices.Label;
+
 /**
  * To hide the different implementations of the apriori algorithm to the
  * NodeModel, the NodeDialog simply displays the registered
  * AlgorithmDataStructure's and the NodeModel passes it to this factory.
- * 
+ *
  * @author Fabian Dill, University of Konstanz
  */
 public final class AprioriAlgorithmFactory {
-    
+
     /**
      * Register here possible implementations of the apriori algorithm to be
      * provided by the subgroup miner node (SubgroupMinerModel2).
-     * 
+     *
      * @author Fabian Dill, University of Konstanz
      */
     public enum AlgorithmDataStructure {
         /** A prefix tree where the nodes are realized as arrays. * */
+        @Label(value = "Array", description = """
+                Array is recommended when the number of transactions (rows) is larger than the number of items.
+                Array needs more memory but is faster compared to TIDList.
+                """)
         ARRAY,
         /* LIST */
         /** The TIDList stores the ids of the transactions. * */
+        @Label(value = "TID list", description = """
+                TIDList is recommended if the number of rows is small and the number of items large.
+                TIDList needs less memory but is slower compared to Array.
+                """)
         TIDList;
 
         /**
          * Returns the values of this enum as a list of strings.
-         * 
+         *
          * @return the values of this enum as a list of strings
          */
         public static List<String> asStringList() {
@@ -94,7 +104,7 @@ public final class AprioriAlgorithmFactory {
     /**
      * Returns an instance of the AprioriAlgorithm interface according to the
      * passed type.
-     * 
+     *
      * @param type the desired algorithm implementation
      * @param bitSetLength the bitset length of the transactions, i.e. the
      *            number of items
@@ -102,7 +112,7 @@ public final class AprioriAlgorithmFactory {
      * @return an instance of the AprioriAlgorithm
      */
     public static AprioriAlgorithm getAprioriAlgorithm(
-            final AlgorithmDataStructure type, final int bitSetLength, 
+            final AlgorithmDataStructure type, final int bitSetLength,
             final int dbsize) {
         if (type.equals(AlgorithmDataStructure.ARRAY)) {
             return new ArrayApriori(bitSetLength, dbsize);

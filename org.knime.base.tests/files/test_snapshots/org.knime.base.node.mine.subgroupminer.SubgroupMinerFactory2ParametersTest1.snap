@@ -1,0 +1,247 @@
+{
+  "data" : {
+    "model" : {
+      "transactionColumn" : "List(Cluster Membership)",
+      "minSupport" : 0.8,
+      "underlyingStruct" : "TIDList",
+      "itemSetType" : "FREE",
+      "maxItemsetLength" : 9,
+      "associationRules" : true,
+      "confidence" : 0.7
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "associationRules" : {
+            "type" : "boolean",
+            "title" : "Output association rules",
+            "description" : "Check if association rules should be generated out of the frequent itemsets. Note: association rules are\nalways generated from free frequent itemsets and are constrained to have only one item in the consequence.\n",
+            "default" : false
+          },
+          "confidence" : {
+            "type" : "number",
+            "format" : "double",
+            "title" : "Minimum confidence",
+            "description" : "The confidence is a measure for \"how often the rule is right\". Thus, how often, if the items in the\nantecedence appeared also the consequence occurred in the transactions.\n",
+            "default" : 0.8
+          },
+          "itemSetType" : {
+            "oneOf" : [ {
+              "const" : "CLOSED",
+              "title" : "Closed"
+            }, {
+              "const" : "FREE",
+              "title" : "Free"
+            }, {
+              "const" : "MAXIMAL",
+              "title" : "Maximal"
+            } ],
+            "title" : "Itemset type",
+            "description" : "Choose the type of frequent itemsets to output.\n<ul>\n<li><b>Closed</b>: Closed itemsets have no superset with the same support and provide the most information in a\ncompressed form.\n</li>\n<li><b>Free</b>: Free itemsets have no other constraint than the minimum support and are mostly redundant.\n</li>\n<li><b>Maximal</b>: Maximal itemsets have no frequent superset at all and may hide some information.\n</li>\n</ul>",
+            "default" : "CLOSED"
+          },
+          "maxItemsetLength" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Maximal itemset length",
+            "description" : "The maximal length of the resulting itemsets. A lower value may reduce the runtime if there are very long\nfrequent itemsets.\n",
+            "default" : 10
+          },
+          "minSupport" : {
+            "type" : "number",
+            "format" : "double",
+            "title" : "Minimum support",
+            "description" : "An itemset is considered to be frequent if there are at least \"minimum support\" transactions, where the\nitemset occurs. Make sure to have here a meaningful number in proportion of the number of rows of the input.\n",
+            "default" : 0.9
+          },
+          "transactionColumn" : {
+            "type" : "string",
+            "title" : "Column containing transactions",
+            "description" : "Select the column containing the transactions (BitVector or Collection) to mine for frequent itemsets or\nassociation rules. There must be at least one, since this is the only valid input for the subgroup miner.\n",
+            "default" : ""
+          },
+          "underlyingStruct" : {
+            "oneOf" : [ {
+              "const" : "ARRAY",
+              "title" : "Array"
+            }, {
+              "const" : "TIDList",
+              "title" : "TID list"
+            } ],
+            "title" : "Underlying data structure",
+            "description" : "Choose the underlying data structure\n\n<ul>\n<li><b>Array</b>: Array is recommended when the number of transactions (rows) is larger than the number of items.\nArray needs more memory but is faster compared to TIDList.\n</li>\n<li><b>TID list</b>: TIDList is recommended if the number of rows is small and the number of items large.\nTIDList needs less memory but is slower compared to Array.\n</li>\n</ul>",
+            "default" : "ARRAY"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/transactionColumn",
+      "options" : {
+        "format" : "dropDown"
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/minSupport",
+      "options" : {
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 1.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 1.0
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 0.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 0.0
+            }
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/underlyingStruct",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    }, {
+      "label" : "Output",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/itemSetType",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/maxItemsetLength",
+        "options" : {
+          "validation" : {
+            "max" : {
+              "errorMessage" : "The value must not exceed 2147483647.",
+              "parameters" : {
+                "isExclusive" : false,
+                "max" : 2.147483647E9
+              }
+            },
+            "min" : {
+              "errorMessage" : "The value must be at least 1.",
+              "parameters" : {
+                "isExclusive" : false,
+                "min" : 1.0
+              }
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/associationRules",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/confidence",
+        "options" : {
+          "validation" : {
+            "max" : {
+              "errorMessage" : "The value must not exceed 1.",
+              "parameters" : {
+                "isExclusive" : false,
+                "max" : 1.0
+              }
+            },
+            "min" : {
+              "errorMessage" : "The value must be at least 0.",
+              "parameters" : {
+                "isExclusive" : false,
+                "min" : 0.0
+              }
+            }
+          }
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/associationRules",
+            "schema" : {
+              "const" : true
+            }
+          }
+        }
+      } ]
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "transactionColumn" : {
+            "configKey" : "TRANSACTION_COLUMN"
+          },
+          "minSupport" : {
+            "configKey" : "MIN_SUPPORT"
+          },
+          "underlyingStruct" : {
+            "configKey" : "UNDERLYING_STRUCT"
+          },
+          "itemSetType" : {
+            "configKey" : "ITEMSET_TYPE"
+          },
+          "maxItemsetLength" : {
+            "configKey" : "MAX_ITEMSET_LENGTH"
+          },
+          "associationRules" : {
+            "configKey" : "ASSOCIATION_RULES"
+          },
+          "confidence" : {
+            "configKey" : "CONFIDENCE"
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/transactionColumn",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "List(Cluster Membership)",
+        "text" : "List(Cluster Membership)",
+        "type" : {
+          "id" : "org.knime.core.data.collection.ListDataValue",
+          "text" : "Collection (List)"
+        }
+      }, {
+        "id" : "BitVector Column",
+        "text" : "BitVector Column",
+        "type" : {
+          "id" : "org.knime.core.data.vector.bitvector.BitVectorValue",
+          "text" : "Bit Vector"
+        }
+      } ]
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "id" : "after-open-dialog"
+    },
+    "triggerInitially" : true,
+    "dependencies" : [ "#/properties/model/properties/transactionColumn" ]
+  } ]
+}
