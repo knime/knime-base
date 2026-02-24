@@ -52,6 +52,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.knime.node.parameters.widget.choices.Label;
+
 /**
  * A FrequentItemSet represents items that occur together in a number of
  * transactions. The items are represented with integers as their id. This
@@ -72,11 +74,21 @@ public class FrequentItemSet implements Iterable<Integer> {
      * @author Fabian Dill, University of Konstanz
      */
     public static enum Type {
-        /** free. */
-        FREE,
         /** closed. */
-        CLOSED,
+        @Label(value = "Closed", description = """
+                Closed itemsets have no superset with the same support and provide the most information in a
+                compressed form.
+                """)
+        CLOSED, //
+        /** free. */
+        @Label(value = "Free", description = """
+                Free itemsets have no other constraint than the minimum support and are mostly redundant.
+                """)
+        FREE, //
         /** maximal. */
+        @Label(value = "Maximal", description = """
+                Maximal itemsets have no frequent superset at all and may hide some information.
+                """)
         MAXIMAL;
 
         /**
