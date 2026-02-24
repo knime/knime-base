@@ -1,7 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
     <entry key="has_custom_predicition_name" type="xboolean" value="false"/>
-    <entry key="custom_prediction_name" type="xstring" isnull="true" value=""/>
+    <entry key="custom_prediction_name" type="xstring" value="Prediction (Cluster Membership)"/>
+    <config key="custom_prediction_name_Internals">
+        <entry key="EnabledStatus" type="xboolean" value="false"/>
+        <entry key="SettingsModelID" type="xstring" isnull="true" value=""/>
+    </config>
     <entry key="include_probabilites" type="xboolean" value="false"/>
-    <entry key="propability_columns_suffix" type="xstring" isnull="true" value=""/>
+    <entry key="propability_columns_suffix" type="xstring" value=""/>
+    <config key="propability_columns_suffix_Internals">
+        <entry key="EnabledStatus" type="xboolean" value="false"/>
+        <entry key="SettingsModelID" type="xstring" isnull="true" value=""/>
+    </config>
 </config>

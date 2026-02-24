@@ -48,8 +48,6 @@ package org.knime.base.node.mine.util;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.function.Supplier;
 
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -71,9 +69,6 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.pmml.PMMLPortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
-import org.knime.node.parameters.NodeParametersInput;
-import org.knime.node.parameters.updates.ParameterReference;
-import org.knime.node.parameters.widget.OptionalWidget.DefaultValueProvider;
 
 /**
  * Helper class to create predictor output table specification with a common naming scheme.
@@ -340,78 +335,6 @@ public class PredictorHelper {
         newCols[numCols - 1] = new DataColumnSpecCreator(predictionColumnName, StringCell.TYPE).createSpec();
         DataTableSpec newColSpec = new DataTableSpec(newCols);
         return new DataTableSpec(inSpec, newColSpec);
-    }
-
-    /**
-     * Default provider for the prediction column name optional widget used in various predictor nodes.
-     *
-     * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
-     * @since 5.11
-     */
-    public abstract static class PredictionColumnNameDefaultProvider implements DefaultValueProvider<String> {
-
-        private Class<? extends ParameterReference<Optional<String>>> m_predictionColumnClass;
-
-        private String m_predictionColumnDefault;
-
-        /**
-         * Constructor.
-         *
-         * @param predictionColumnClass The parameter reference class of the prediction column name.
-         * @param predictionColumnDefault The default value for the prediction column name.
-         */
-        protected PredictionColumnNameDefaultProvider(
-            final Class<? extends ParameterReference<Optional<String>>> predictionColumnClass,
-            final String predictionColumnDefault) {
-            m_predictionColumnClass = predictionColumnClass;
-            m_predictionColumnDefault = predictionColumnDefault;
-        }
-
-        private Supplier<Optional<String>> m_currentValue;
-
-        @Override
-        public void init(final StateProviderInitializer i) {
-            i.computeBeforeOpenDialog();
-            m_currentValue = i.getValueSupplier(m_predictionColumnClass);
-        }
-
-        @Override
-        public String computeState(final NodeParametersInput context) {
-            final String current = m_currentValue.get().orElse(null);
-            if (current != null && !current.isEmpty() && !m_predictionColumnDefault.equals(current)) {
-                return current;
-            }
-            return getDefaultPredictionColumnNameFromContext(context);
-        }
-
-        private String getDefaultPredictionColumnNameFromContext(final NodeParametersInput context) {
-            final var pmmlSpec = context.getInPortSpec(0);
-            if (pmmlSpec.isPresent()) {
-                final var targetCols = ((PMMLPortObjectSpec)pmmlSpec.get()).getTargetCols();
-                if (!targetCols.isEmpty()) {
-                    final DataColumnSpec classColumn = targetCols.get(0);
-                    final PredictorHelper predictorHelper = PredictorHelper.getInstance();
-                    return predictorHelper.computePredictionDefault(classColumn.getName());
-                }
-            }
-            return m_predictionColumnDefault;
-        }
-
-    }
-
-    /**
-     * Default provider for the probability suffix optional widget used in various predictor nodes.
-     *
-     * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
-     * @since 5.11
-     */
-    public static final class ProbabilitySuffixDefaultProvider implements DefaultValueProvider<String> {
-
-        @Override
-        public String computeState(final NodeParametersInput parametersInput) {
-            return PredictorHelper.DEFAULT_SUFFIX;
-        }
-
     }
 
 }

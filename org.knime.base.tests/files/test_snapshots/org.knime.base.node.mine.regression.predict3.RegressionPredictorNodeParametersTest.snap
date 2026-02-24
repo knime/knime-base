@@ -1,7 +1,8 @@
 {
   "data" : {
     "model" : {
-      "customPredictionName" : null
+      "changePredictionColumn" : false,
+      "predictionColumnNameEnabled" : false
     }
   },
   "schema" : {
@@ -10,11 +11,26 @@
       "model" : {
         "type" : "object",
         "properties" : {
-          "customPredictionName" : {
-            "type" : [ "string", "null" ],
-            "title" : "Custom prediction column name",
-            "description" : "Allows you to specify a customized name for the prediction column that is appended to the input table.\nIf not checked, \"Prediction (target)\" (where target is the name of the target column of the provided\nregression model) is used as default.\n",
-            "default" : null
+          "changePredictionColumn" : {
+            "type" : "boolean",
+            "title" : "Change prediction column name",
+            "description" : "When set, you can change the name of the prediction column.\n",
+            "default" : false
+          },
+          "makeDialogDirty" : {
+            "type" : "object"
+          },
+          "predictionColumnModelID" : {
+            "type" : "string"
+          },
+          "predictionColumnName" : {
+            "type" : "string",
+            "title" : "Prediction column",
+            "description" : "The possibly overridden column name for the predicted column.\n(The default is <tt>Prediction(trainingColumn)</tt>)\n"
+          },
+          "predictionColumnNameEnabled" : {
+            "type" : "boolean",
+            "default" : false
           }
         }
       }
@@ -23,7 +39,20 @@
   "ui_schema" : {
     "elements" : [ {
       "type" : "Control",
-      "scope" : "#/properties/model/properties/customPredictionName",
+      "id" : "#/properties/model/properties/makeDialogDirty",
+      "options" : {
+        "format" : "dirtyTracker"
+      },
+      "providedOptions" : [ "makeDirty" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/changePredictionColumn",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/predictionColumnName",
       "options" : {
         "validation" : {
           "pattern" : {
@@ -32,10 +61,17 @@
               "pattern" : "\\S(.*\\S)?"
             }
           }
-        },
-        "hideOnNull" : true
+        }
       },
-      "providedOptions" : [ "default" ]
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/changePredictionColumn",
+          "schema" : {
+            "const" : true
+          }
+        }
+      }
     } ]
   },
   "persist" : {
@@ -44,19 +80,37 @@
       "model" : {
         "type" : "object",
         "properties" : {
-          "customPredictionName" : {
-            "configPaths" : [ [ "has_custom_predicition_name" ], [ "custom_prediction_name" ] ]
+          "makeDialogDirty" : { },
+          "changePredictionColumn" : {
+            "configKey" : "has_custom_predicition_name"
+          },
+          "predictionColumnName" : {
+            "configKey" : "custom_prediction_name"
+          },
+          "predictionColumnNameEnabled" : {
+            "configKey" : "EnabledStatus",
+            "route" : [ "custom_prediction_name_Internals" ]
+          },
+          "predictionColumnModelID" : {
+            "configKey" : "SettingsModelID",
+            "route" : [ "custom_prediction_name_Internals" ]
           }
         }
       }
     }
   },
   "initialUpdates" : [ {
-    "scope" : "#/properties/model/properties/customPredictionName",
-    "providedOptionName" : "default",
+    "scope" : "#/properties/model/properties/predictionColumnName",
     "values" : [ {
       "indices" : [ ],
       "value" : "Prediction (Universe_1_1)"
+    } ]
+  }, {
+    "id" : "#/properties/model/properties/makeDialogDirty",
+    "providedOptionName" : "makeDirty",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : false
     } ]
   } ]
 }

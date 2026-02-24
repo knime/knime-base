@@ -46,19 +46,20 @@
 
 package org.knime.base.node.mine.regression.logistic.predictor;
 
-import java.util.Optional;
-
 import org.knime.base.node.mine.regression.predict3.RegressionPredictorSettings;
 import org.knime.base.node.mine.util.PredictorHelper;
-import org.knime.base.node.mine.util.PredictorHelper.ProbabilitySuffixDefaultProvider;
-import org.knime.node.parameters.NodeParameters;
+import org.knime.base.node.mine.util.PredictorNodeParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.PersistWithin;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
-import org.knime.node.parameters.persistence.Persistor;
-import org.knime.node.parameters.persistence.legacy.OptionalStringPersistor;
+import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.ValueProvider;
 import org.knime.node.parameters.updates.ValueReference;
-import org.knime.node.parameters.widget.OptionalWidget;
+import org.knime.node.parameters.updates.util.BooleanReference;
 import org.knime.node.parameters.widget.text.TextInputWidget;
 import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils.ColumnNameValidation;
 
@@ -68,56 +69,119 @@ import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils.Colu
  * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
  * @author AI Migration Pipeline v1.2
  */
-@LoadDefaultsForAbsentFields
 @SuppressWarnings("restriction")
-final class LogisticRegressionPredictorNodeParameters implements NodeParameters {
+@LoadDefaultsForAbsentFields
+@Modification(LogisticRegressionPredictorNodeParameters.LogRegPredictorNodeParametersModification.class)
+final class LogisticRegressionPredictorNodeParameters extends PredictorNodeParameters {
 
-    @Persistor(PredictionColumnNamePersistor.class)
-    @Widget(title = "Custom prediction column name", description = """
-            Allows you to specify a customized name for the prediction column that is appended to the input table.
-            If not checked, "Prediction (target)" (where target is the name of the target column of the provided
-            regression model) is used as default.
+    static final class LogRegPredictorNodeParametersModification implements Modification.Modifier {
+
+        @Override
+        public void modify(final Modification.WidgetGroupModifier group) {
+            addDirtyTracker(group, MakeLogRegPredictorDialogDirtyProvider.class);
+        }
+
+    }
+
+    @Persist(configKey = RegressionPredictorSettings.CFG_HAS_CUSTOM_PREDICTION_NAME)
+    @Widget(title = "Change prediction column name", description = """
+            When set, you can change the name of the prediction column.
             """)
-    @OptionalWidget(defaultProvider = LogisticRegressionPredictionColumnDefaultProvider.class)
+    @ValueReference(ChangePredictionColumn.class)
+    boolean m_changePredictionColumn;
+
+    private static class ChangePredictionColumn implements BooleanReference {
+    }
+
+    @Persist(configKey = RegressionPredictorSettings.CFG_CUSTOM_PREDICTION_NAME)
+    @Widget(title = "Prediction column", description = """
+            The possibly overridden column name for the predicted column.
+            (The default is <tt>Prediction(trainingColumn)</tt>)
+            """)
     @TextInputWidget(patternValidation = ColumnNameValidation.class)
+    @ValueProvider(LogRegPredictionColumnDefaultProvider.class)
     @ValueReference(PredictionColumnNameRef.class)
-    Optional<String> m_predictionColumnName = Optional.empty();
+    @Effect(predicate = ChangePredictionColumn.class, type = EffectType.SHOW)
+    String m_predictionColumnName;
 
-    static class PredictionColumnNameRef implements ParameterReference<Optional<String>> {
+    private static class PredictionColumnNameRef implements ParameterReference<String> {
     }
 
-    @Persistor(ProbabilitySuffixPersistor.class)
-    @Widget(title = "Append columns with normalized class distribution", description = """
-            If selected, a column is appended for each class instance with the normalized probability
-            of this row being a member of this class. The probability columns will have names like:
-            <tt>P (trainingColumn=value)</tt> with an optional suffix that can be specified.
+    @PersistWithin({RegressionPredictorSettings.CFG_CUSTOM_PREDICTION_NAME + "_Internals"})
+    @Persist(configKey = "EnabledStatus")
+    @ValueProvider(PredictionColumnEnabledProvider.class)
+    @ValueReference(IsPredictionColumnNameEnabled.class)
+    boolean m_predictionColumnNameEnabled;
+
+    private static final class IsPredictionColumnNameEnabled implements BooleanReference {
+    }
+
+    @PersistWithin({RegressionPredictorSettings.CFG_CUSTOM_PREDICTION_NAME + "_Internals"})
+    @Persist(configKey = "SettingsModelID")
+    String m_predictionColumnModelID;
+
+    @Persist(configKey = RegressionPredictorSettings.CFG_INCLUDE_PROBABILITIES)
+    @Widget(title = "Append class columns", description = """
+            Append class probability columns.
             """)
-    @OptionalWidget(defaultProvider = ProbabilitySuffixDefaultProvider.class)
-    Optional<String> m_probabilitySuffix = Optional.empty();
+    @ValueReference(AddProbabilitySuffix.class)
+    boolean m_addProbabilitySuffix;
 
-    static class LogisticRegressionPredictionColumnDefaultProvider
-        extends PredictorHelper.PredictionColumnNameDefaultProvider {
+    private static class AddProbabilitySuffix implements BooleanReference {
+    }
 
-        protected LogisticRegressionPredictionColumnDefaultProvider() {
-            super(PredictionColumnNameRef.class, "");
+    @Persist(configKey = RegressionPredictorSettings.CFG_PROP_COLUMN_SUFFIX)
+    @Widget(title = "Suffix for probability columns", description = """
+            Suffix for the normalized distribution columns. Their names are like: <tt>P(trainingColumn=value)</tt>.
+            """)
+    @ValueReference(ProbabilitySuffixRef.class)
+    @Effect(predicate = AddProbabilitySuffix.class, type = EffectType.SHOW)
+    String m_probabilitySuffix;
+
+    private static class ProbabilitySuffixRef implements ParameterReference<String> {
+    }
+
+    @PersistWithin({RegressionPredictorSettings.CFG_PROP_COLUMN_SUFFIX + "_Internals"})
+    @Persist(configKey = "EnabledStatus")
+    @ValueProvider(ProbabilitySuffixEnabledProvider.class)
+    @ValueReference(IsProbabilitySuffixEnabled.class)
+    boolean m_probabilitySuffixEnabled;
+
+    private static final class IsProbabilitySuffixEnabled implements BooleanReference {
+    }
+
+    @PersistWithin({RegressionPredictorSettings.CFG_PROP_COLUMN_SUFFIX + "_Internals"})
+    @Persist(configKey = "SettingsModelID")
+    String m_probabilitySuffixModelID;
+
+    static class LogRegPredictionColumnDefaultProvider extends PredictionColumnNameDefaultProvider {
+
+        protected LogRegPredictionColumnDefaultProvider() {
+            super(PredictionColumnNameRef.class, PredictorHelper.DEFAULT_PREDICTION_COLUMN);
         }
 
     }
 
-    static final class PredictionColumnNamePersistor extends OptionalStringPersistor {
+    private static final class PredictionColumnEnabledProvider extends EnabledStatusProvider {
 
-        PredictionColumnNamePersistor() {
-            super(RegressionPredictorSettings.CFG_HAS_CUSTOM_PREDICTION_NAME,
-                RegressionPredictorSettings.CFG_CUSTOM_PREDICTION_NAME);
+        PredictionColumnEnabledProvider() {
+            super(ChangePredictionColumn.class, IsPredictionColumnNameEnabled.class);
         }
 
     }
 
-    static final class ProbabilitySuffixPersistor extends OptionalStringPersistor {
+    private static final class ProbabilitySuffixEnabledProvider extends EnabledStatusProvider {
 
-        ProbabilitySuffixPersistor() {
-            super(RegressionPredictorSettings.CFG_INCLUDE_PROBABILITIES,
-                RegressionPredictorSettings.CFG_PROP_COLUMN_SUFFIX);
+        ProbabilitySuffixEnabledProvider() {
+            super(AddProbabilitySuffix.class, IsProbabilitySuffixEnabled.class);
+        }
+
+    }
+
+    static final class MakeLogRegPredictorDialogDirtyProvider extends MakeDialogDirtyProvider {
+
+        MakeLogRegPredictorDialogDirtyProvider() {
+            super(IsPredictionColumnNameEnabled.class, IsProbabilitySuffixEnabled.class);
         }
 
     }

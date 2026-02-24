@@ -44,17 +44,19 @@
  */
 package org.knime.base.node.mine.regression.predict3;
 
-import java.util.Optional;
-
 import org.knime.base.node.mine.util.PredictorHelper;
-import org.knime.node.parameters.NodeParameters;
+import org.knime.base.node.mine.util.PredictorNodeParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.PersistWithin;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
-import org.knime.node.parameters.persistence.Persistor;
-import org.knime.node.parameters.persistence.legacy.OptionalStringPersistor;
+import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.ValueProvider;
 import org.knime.node.parameters.updates.ValueReference;
-import org.knime.node.parameters.widget.OptionalWidget;
+import org.knime.node.parameters.updates.util.BooleanReference;
 import org.knime.node.parameters.widget.text.TextInputWidget;
 import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils.ColumnNameValidation;
 
@@ -64,38 +66,77 @@ import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils.Colu
  * @author Leon Wenzler, KNIME GmbH, Konstanz, Germany
  * @author AI Migration Pipeline v1.1
  */
-@LoadDefaultsForAbsentFields
 @SuppressWarnings("restriction")
-class RegressionPredictorNodeParameters implements NodeParameters {
+@LoadDefaultsForAbsentFields
+@Modification(RegressionPredictorNodeParameters.RegPredictorNodeParametersModification.class)
+class RegressionPredictorNodeParameters extends PredictorNodeParameters {
 
-    @Widget(title = "Custom prediction column name", description = """
-            Allows you to specify a customized name for the prediction column that is appended to the input table.
-            If not checked, "Prediction (target)" (where target is the name of the target column of the provided
-            regression model) is used as default.
-            """)
-    @Persistor(CustomPredictionNamePersistor.class)
-    @OptionalWidget(defaultProvider = RegressionPredictionColumnDefaultProvider.class)
-    @TextInputWidget(patternValidation = ColumnNameValidation.class)
-    @ValueReference(CustomPredictionNameRef.class)
-    Optional<String> m_customPredictionName = Optional.empty();
+    static final class RegPredictorNodeParametersModification implements Modification.Modifier {
 
-    static final class CustomPredictionNameRef implements ParameterReference<Optional<String>> {
-    }
-
-    static class RegressionPredictionColumnDefaultProvider
-        extends PredictorHelper.PredictionColumnNameDefaultProvider {
-
-        protected RegressionPredictionColumnDefaultProvider() {
-            super(CustomPredictionNameRef.class, "");
+        @Override
+        public void modify(final Modification.WidgetGroupModifier group) {
+            addDirtyTracker(group, MakeRegPredictorDialogDirtyProvider.class);
         }
 
     }
 
-    static final class CustomPredictionNamePersistor extends OptionalStringPersistor {
+    @Persist(configKey = RegressionPredictorSettings.CFG_HAS_CUSTOM_PREDICTION_NAME)
+    @Widget(title = "Change prediction column name", description = """
+            When set, you can change the name of the prediction column.
+            """)
+    @ValueReference(ChangePredictionColumn.class)
+    boolean m_changePredictionColumn;
 
-        CustomPredictionNamePersistor() {
-            super(RegressionPredictorSettings.CFG_HAS_CUSTOM_PREDICTION_NAME,
-                RegressionPredictorSettings.CFG_CUSTOM_PREDICTION_NAME);
+    private static class ChangePredictionColumn implements BooleanReference {
+    }
+
+    @Persist(configKey = RegressionPredictorSettings.CFG_CUSTOM_PREDICTION_NAME)
+    @Widget(title = "Prediction column", description = """
+            The possibly overridden column name for the predicted column.
+            (The default is <tt>Prediction(trainingColumn)</tt>)
+            """)
+    @TextInputWidget(patternValidation = ColumnNameValidation.class)
+    @ValueProvider(RegPredictionColumnDefaultProvider.class)
+    @ValueReference(PredictionColumnNameRef.class)
+    @Effect(predicate = ChangePredictionColumn.class, type = EffectType.SHOW)
+    String m_predictionColumnName;
+
+    private static class PredictionColumnNameRef implements ParameterReference<String> {
+    }
+
+    @PersistWithin({RegressionPredictorSettings.CFG_CUSTOM_PREDICTION_NAME + "_Internals"})
+    @Persist(configKey = "EnabledStatus")
+    @ValueProvider(PredictionColumnEnabledProvider.class)
+    @ValueReference(IsPredictionColumnNameEnabled.class)
+    boolean m_predictionColumnNameEnabled;
+
+    private static final class IsPredictionColumnNameEnabled implements BooleanReference {
+    }
+
+    @PersistWithin({RegressionPredictorSettings.CFG_CUSTOM_PREDICTION_NAME + "_Internals"})
+    @Persist(configKey = "SettingsModelID")
+    String m_predictionColumnModelID;
+
+    static class RegPredictionColumnDefaultProvider extends PredictionColumnNameDefaultProvider {
+
+        protected RegPredictionColumnDefaultProvider() {
+            super(PredictionColumnNameRef.class, PredictorHelper.DEFAULT_PREDICTION_COLUMN);
+        }
+
+    }
+
+    private static final class PredictionColumnEnabledProvider extends EnabledStatusProvider {
+
+        PredictionColumnEnabledProvider() {
+            super(ChangePredictionColumn.class, IsPredictionColumnNameEnabled.class);
+        }
+
+    }
+
+    static final class MakeRegPredictorDialogDirtyProvider extends MakeDialogDirtyProvider {
+
+        MakeRegPredictorDialogDirtyProvider() {
+            super(IsPredictionColumnNameEnabled.class, null);
         }
 
     }

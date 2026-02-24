@@ -46,19 +46,19 @@
 
 package org.knime.base.node.mine.decisiontree2.predictor2;
 
-import java.util.Optional;
-
 import org.knime.base.node.mine.util.PredictorHelper;
-import org.knime.base.node.mine.util.PredictorHelper.ProbabilitySuffixDefaultProvider;
-import org.knime.node.parameters.NodeParameters;
+import org.knime.base.node.mine.util.PredictorNodeParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.PersistWithin;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
 import org.knime.node.parameters.persistence.Persist;
-import org.knime.node.parameters.persistence.Persistor;
-import org.knime.node.parameters.persistence.legacy.OptionalStringPersistor;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.ValueProvider;
 import org.knime.node.parameters.updates.ValueReference;
-import org.knime.node.parameters.widget.OptionalWidget;
+import org.knime.node.parameters.updates.util.BooleanReference;
 import org.knime.node.parameters.widget.number.NumberInputWidget;
 import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsNonNegativeValidation;
 import org.knime.node.parameters.widget.text.TextInputWidget;
@@ -70,9 +70,19 @@ import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils.Colu
  * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
  * @author AI Migration Pipeline v1.2
  */
-@LoadDefaultsForAbsentFields
 @SuppressWarnings("restriction")
-final class DecTreePredictorNodeParameters implements NodeParameters {
+@LoadDefaultsForAbsentFields
+@Modification(DecTreePredictorNodeParameters.DecTreePredictorNodeParametersModification.class)
+final class DecTreePredictorNodeParameters extends PredictorNodeParameters {
+
+    static final class DecTreePredictorNodeParametersModification implements Modification.Modifier {
+
+        @Override
+        public void modify(final Modification.WidgetGroupModifier group) {
+            addDirtyTracker(group, MakeDecTreePredictorDialogDirtyProvider.class);
+        }
+
+    }
 
     @Persist(configKey = DecTreePredictorNodeModel.MAXCOVERED)
     @Widget(title = "Number of patterns for hiliting", description = """
@@ -81,49 +91,105 @@ final class DecTreePredictorNodeParameters implements NodeParameters {
     @NumberInputWidget(minValidation = IsNonNegativeValidation.class, stepSize = 100)
     int m_maxNumCoveredPattern = 10000;
 
-    @Persistor(PredictionColumnNamePersistor.class)
+    @Persist(configKey = PredictorHelper.CFGKEY_CHANGE_PREDICTION)
     @Widget(title = "Change prediction column name", description = """
             When set, you can change the name of the prediction column.
-            The default prediction column name is: <tt>Prediction (trainingColumn)</tt>.
             """)
-    @OptionalWidget(defaultProvider = DecisionTreePredictionColumnDefaultProvider.class)
-    @TextInputWidget(patternValidation = ColumnNameValidation.class)
-    @ValueReference(PredictionColumnNameRef.class)
-    Optional<String> m_predictionColumnName = Optional.empty();
+    @ValueReference(ChangePredictionColumn.class)
+    boolean m_changePredictionColumn;
 
-    static class PredictionColumnNameRef implements ParameterReference<Optional<String>> {
+    private static class ChangePredictionColumn implements BooleanReference {
     }
 
-    @Persistor(ProbabilitySuffixPersistor.class)
-    @Widget(title = "Append columns with normalized class distribution", description = """
-            If selected, a column is appended for each class instance with the normalized probability
-            of this row being a member of this class. The probability columns will have names like:
-            <tt>P (trainingColumn=value)</tt> with an optional suffix that can be specified.
+    @Persist(configKey = PredictorHelper.CFGKEY_PREDICTION_COLUMN)
+    @Widget(title = "Prediction column", description = """
+            The possibly overridden column name for the predicted column.
+            (The default is <tt>Prediction(trainingColumn)</tt>)
             """)
-    @OptionalWidget(defaultProvider = ProbabilitySuffixDefaultProvider.class)
-    Optional<String> m_probabilitySuffix = Optional.empty();
+    @TextInputWidget(patternValidation = ColumnNameValidation.class)
+    @ValueProvider(DecTreePredictionColumnDefaultProvider.class)
+    @ValueReference(PredictionColumnNameRef.class)
+    @Effect(predicate = ChangePredictionColumn.class, type = EffectType.SHOW)
+    String m_predictionColumnName;
 
-    static class DecisionTreePredictionColumnDefaultProvider
-        extends PredictorHelper.PredictionColumnNameDefaultProvider {
+    private static class PredictionColumnNameRef implements ParameterReference<String> {
+    }
 
-        protected DecisionTreePredictionColumnDefaultProvider() {
+    @PersistWithin({PredictorHelper.CFGKEY_PREDICTION_COLUMN + "_Internals"})
+    @Persist(configKey = "EnabledStatus")
+    @ValueProvider(PredictionColumnEnabledProvider.class)
+    @ValueReference(IsPredictionColumnNameEnabled.class)
+    boolean m_predictionColumnNameEnabled;
+
+    private static final class IsPredictionColumnNameEnabled implements BooleanReference {
+    }
+
+    @PersistWithin({PredictorHelper.CFGKEY_PREDICTION_COLUMN + "_Internals"})
+    @Persist(configKey = "SettingsModelID")
+    String m_predictionColumnModelID;
+
+    @Persist(configKey = DecTreePredictorNodeModel.SHOW_DISTRIBUTION)
+    @Widget(title = "Append class columns", description = """
+            Append class probability columns.
+            """)
+    @ValueReference(AddProbabilitySuffix.class)
+    boolean m_addProbabilitySuffix;
+
+    private static class AddProbabilitySuffix implements BooleanReference {
+    }
+
+    @Persist(configKey = PredictorHelper.CFGKEY_SUFFIX)
+    @Widget(title = "Suffix for probability columns", description = """
+            Suffix for the normalized distribution columns. Their names are like: <tt>P(trainingColumn=value)</tt>.
+            """)
+    @ValueReference(ProbabilitySuffixRef.class)
+    @Effect(predicate = AddProbabilitySuffix.class, type = EffectType.SHOW)
+    String m_probabilitySuffix;
+
+    private static class ProbabilitySuffixRef implements ParameterReference<String> {
+    }
+
+    @PersistWithin({PredictorHelper.CFGKEY_SUFFIX + "_Internals"})
+    @Persist(configKey = "EnabledStatus")
+    @ValueProvider(ProbabilitySuffixEnabledProvider.class)
+    @ValueReference(IsProbabilitySuffixEnabled.class)
+    boolean m_probabilitySuffixEnabled;
+
+    private static final class IsProbabilitySuffixEnabled implements BooleanReference {
+    }
+
+    @PersistWithin({PredictorHelper.CFGKEY_SUFFIX + "_Internals"})
+    @Persist(configKey = "SettingsModelID")
+    String m_probabilitySuffixModelID;
+
+    static class DecTreePredictionColumnDefaultProvider extends PredictionColumnNameDefaultProvider {
+
+        protected DecTreePredictionColumnDefaultProvider() {
             super(PredictionColumnNameRef.class, PredictorHelper.DEFAULT_PREDICTION_COLUMN);
         }
 
     }
 
-    static final class PredictionColumnNamePersistor extends OptionalStringPersistor {
+    private static final class PredictionColumnEnabledProvider extends EnabledStatusProvider {
 
-        PredictionColumnNamePersistor() {
-            super(PredictorHelper.CFGKEY_CHANGE_PREDICTION, PredictorHelper.CFGKEY_PREDICTION_COLUMN);
+        PredictionColumnEnabledProvider() {
+            super(ChangePredictionColumn.class, IsPredictionColumnNameEnabled.class);
         }
 
     }
 
-    static final class ProbabilitySuffixPersistor extends OptionalStringPersistor {
+    private static final class ProbabilitySuffixEnabledProvider extends EnabledStatusProvider {
 
-        ProbabilitySuffixPersistor() {
-            super(DecTreePredictorNodeModel.SHOW_DISTRIBUTION, PredictorHelper.CFGKEY_SUFFIX);
+        ProbabilitySuffixEnabledProvider() {
+            super(AddProbabilitySuffix.class, IsProbabilitySuffixEnabled.class);
+        }
+
+    }
+
+    static final class MakeDecTreePredictorDialogDirtyProvider extends MakeDialogDirtyProvider {
+
+        MakeDecTreePredictorDialogDirtyProvider() {
+            super(IsPredictionColumnNameEnabled.class, IsProbabilitySuffixEnabled.class);
         }
 
     }

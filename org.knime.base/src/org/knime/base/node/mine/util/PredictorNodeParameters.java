@@ -182,7 +182,7 @@ public abstract class PredictorNodeParameters implements NodeParameters {
 
         @Override
         public Boolean computeState(final NodeParametersInput parametersInput) throws StateComputationFailureException {
-            if(m_enabledStatusSupplier.get() != m_changePropertySupplier.get()) {
+            if(!m_enabledStatusSupplier.get().equals(m_changePropertySupplier.get())) {
                 return m_changePropertySupplier.get();
             }
             throw new StateComputationFailureException();
