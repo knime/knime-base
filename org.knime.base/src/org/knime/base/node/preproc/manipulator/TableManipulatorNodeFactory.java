@@ -57,14 +57,34 @@ import org.knime.core.node.NodeView;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.port.PortType;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.node.NodeFactory.NodeType;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.core.node.NodeDescription;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import java.util.Map;
+import org.knime.node.impl.description.PortDescription;
+import java.util.List;
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+import static org.knime.node.impl.description.PortDescription.dynamicPort;
 
 /**
  * Factory implementation of the table manipulation node.
  *
  * @author Tobias Koetter, KNIME GmbH, Konstanz, Germany
+ * @author Thomas Reifenberger, TNG Technology Consulting GmbH
+ * @author AI Migration Pipeline v1.2
  * @noreference This class is not intended to be referenced by clients.
  */
-public class TableManipulatorNodeFactory extends ConfigurableNodeFactory<TableManipulatorNodeModel> {
+@SuppressWarnings("restriction")
+public class TableManipulatorNodeFactory extends ConfigurableNodeFactory<TableManipulatorNodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     @Override
     protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
@@ -80,11 +100,6 @@ public class TableManipulatorNodeFactory extends ConfigurableNodeFactory<TableMa
     }
 
     @Override
-    protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
-        return new TableManipulatorNodeDialog();
-    }
-
-    @Override
     protected boolean hasDialog() {
         return true;
     }
@@ -95,7 +110,8 @@ public class TableManipulatorNodeFactory extends ConfigurableNodeFactory<TableMa
     }
 
     @Override
-    public NodeView<TableManipulatorNodeModel> createNodeView(final int viewIndex, final TableManipulatorNodeModel nodeModel) {
+    public NodeView<TableManipulatorNodeModel> createNodeView(final int viewIndex,
+        final TableManipulatorNodeModel nodeModel) {
         return null;
     }
 
@@ -103,5 +119,65 @@ public class TableManipulatorNodeFactory extends ConfigurableNodeFactory<TableMa
         return creationConfig.getPortConfig().get();
     }
 
-}
+    private static final String NODE_NAME = "Table Manipulator";
 
+    private static final String NODE_ICON = "./manipulator.png";
+
+    private static final String SHORT_DESCRIPTION = """
+            Allows to perform several transformations on any number of input tables such as renaming, filtering,
+                re-ordering and type changing of the input columns. If more than one input table is available the
+                node concatenates all input rows into a single result table.
+            """;
+
+    private static final String FULL_DESCRIPTION = """
+            Allows to perform several column transformations on any number of input tables such as renaming,
+                filtering, re-ordering and type changing of the input columns. <p>If more than one input table is
+                available the node concatenates all input rows into a single result table. If the input tables
+                contain the same RowID the node can either generate a new RowID or prepend the input table index to
+                the original RowID of the corresponding input table. </p>
+            """;
+
+    private static final List<PortDescription> INPUT_PORTS = List.of(fixedPort("Table 0", """
+            Table to manipulate
+            """), dynamicPort("input", "Table ...", """
+            Table(s) contributing subsequent rows and columns.
+            """));
+
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(fixedPort("Appended table", """
+            A table with the transformed columns from all input tables (Table 0, Table 1, Table ...)
+            """));
+
+    @Override
+    public NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, TableManipulatorNodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription( //
+            NODE_NAME, //
+            NODE_ICON, //
+            INPUT_PORTS, //
+            OUTPUT_PORTS, //
+            SHORT_DESCRIPTION, //
+            FULL_DESCRIPTION, //
+            List.of(), //
+            TableManipulatorNodeParameters.class, //
+            null, //
+            NodeType.Manipulator, //
+            List.of(), //
+            null //
+        );
+    }
+
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, TableManipulatorNodeParameters.class));
+    }
+
+}
