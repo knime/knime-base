@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -42,28 +43,33 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ------------------------------------------------------------------------
  */
-package org.knime.base.node.mine.regression.predict3;
+
+package org.knime.base.node.mine.svm.predictor2;
 
 import java.util.Optional;
 
+import org.knime.base.node.mine.util.PredictorHelper;
 import org.knime.base.node.mine.util.PredictorHelper.PredictionColumnNameDefaultProvider;
 import org.knime.base.node.mine.util.PredictorHelper.PredictionColumnPersistor;
+import org.knime.base.node.mine.util.PredictorHelper.ProbabilitySuffixDefaultProvider;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
 import org.knime.node.parameters.persistence.Persistor;
+import org.knime.node.parameters.persistence.legacy.OptionalStringPersistor;
 import org.knime.node.parameters.widget.OptionalWidget;
 import org.knime.node.parameters.widget.text.TextInputWidget;
 import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils.ColumnNameValidation;
 
 /**
- * Node parameters for Regression Predictor.
+ * Node parameters for SVM Predictor.
  *
- * @author Leon Wenzler, KNIME GmbH, Konstanz, Germany
- * @author AI Migration Pipeline v1.1
+ * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.2
  */
+@SuppressWarnings("restriction")
 @LoadDefaultsForAbsentFields
-class RegressionPredictorNodeParameters implements NodeParameters {
+final class SVMPredictorNodeParameters implements NodeParameters {
 
     @Persistor(PredictionColumnNamePersistor.class)
     @Widget(title = "Custom prediction column name", description = """
@@ -75,11 +81,27 @@ class RegressionPredictorNodeParameters implements NodeParameters {
     @TextInputWidget(patternValidation = ColumnNameValidation.class)
     Optional<String> m_predictionColumnName = Optional.empty();
 
+    @Persistor(ProbabilitySuffixPersistor.class)
+    @Widget(title = "Append columns with normalized class distribution", description = """
+            If selected, a column is appended for each class instance with the normalized probability
+            of this row being a member of this class. The probability columns will have names like:
+            <tt>P(targetColumn=value)</tt> with an optional suffix that can be specified.
+            """)
+    @OptionalWidget(defaultProvider = ProbabilitySuffixDefaultProvider.class)
+    Optional<String> m_probabilitySuffix = Optional.empty();
+
     static final class PredictionColumnNamePersistor extends PredictionColumnPersistor {
 
         PredictionColumnNamePersistor() {
-            super(RegressionPredictorSettings.CFG_HAS_CUSTOM_PREDICTION_NAME,
-                RegressionPredictorSettings.CFG_CUSTOM_PREDICTION_NAME);
+            super(PredictorHelper.CFGKEY_CHANGE_PREDICTION, PredictorHelper.CFGKEY_PREDICTION_COLUMN);
+        }
+
+    }
+
+    static final class ProbabilitySuffixPersistor extends OptionalStringPersistor {
+
+        ProbabilitySuffixPersistor() {
+            super(SVMPredictorNodeModel.CFGKEY_ADD_PROBABILITIES, PredictorHelper.CFGKEY_SUFFIX);
         }
 
     }

@@ -1,7 +1,7 @@
 {
   "data" : {
     "model" : {
-      "customPredictionName" : null
+      "predictionColumnName" : null
     }
   },
   "schema" : {
@@ -10,10 +10,10 @@
       "model" : {
         "type" : "object",
         "properties" : {
-          "customPredictionName" : {
+          "predictionColumnName" : {
             "type" : [ "string", "null" ],
             "title" : "Custom prediction column name",
-            "description" : "Allows you to specify a customized name for the prediction column that is appended to the input table.\nIf not checked, \"Prediction (target)\" (where target is the name of the target column of the provided\nregression model) is used as default.\n",
+            "description" : "Allows you to specify a customized name for the prediction column that is appended to the input table.\nIf not checked, <tt>Prediction(target)</tt> (where target is the name of the target column of the provided\nregression model) is used as default.\n",
             "default" : null
           }
         }
@@ -23,7 +23,7 @@
   "ui_schema" : {
     "elements" : [ {
       "type" : "Control",
-      "scope" : "#/properties/model/properties/customPredictionName",
+      "scope" : "#/properties/model/properties/predictionColumnName",
       "options" : {
         "validation" : {
           "pattern" : {
@@ -44,7 +44,7 @@
       "model" : {
         "type" : "object",
         "properties" : {
-          "customPredictionName" : {
+          "predictionColumnName" : {
             "configPaths" : [ [ "has_custom_predicition_name" ], [ "custom_prediction_name" ] ]
           }
         }
@@ -52,7 +52,7 @@
     }
   },
   "initialUpdates" : [ {
-    "scope" : "#/properties/model/properties/customPredictionName",
+    "scope" : "#/properties/model/properties/predictionColumnName",
     "providedOptionName" : "default",
     "values" : [ {
       "indices" : [ ],

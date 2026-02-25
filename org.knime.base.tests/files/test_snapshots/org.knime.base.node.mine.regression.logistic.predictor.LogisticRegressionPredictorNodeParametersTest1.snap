@@ -14,13 +14,13 @@
           "predictionColumnName" : {
             "type" : [ "string", "null" ],
             "title" : "Custom prediction column name",
-            "description" : "Allows you to specify a customized name for the prediction column that is appended to the input table.\nIf not checked, \"Prediction (target)\" (where target is the name of the target column of the provided\nregression model) is used as default.\n",
+            "description" : "Allows you to specify a customized name for the prediction column that is appended to the input table.\nIf not checked, <tt>Prediction(target)</tt> (where target is the name of the target column of the provided\nregression model) is used as default.\n",
             "default" : null
           },
           "probabilitySuffix" : {
             "type" : [ "string", "null" ],
             "title" : "Append columns with normalized class distribution",
-            "description" : "If selected, a column is appended for each class instance with the normalized probability\nof this row being a member of this class. The probability columns will have names like:\n<tt>P (trainingColumn=value)</tt> with an optional suffix that can be specified.\n",
+            "description" : "If selected, a column is appended for each class instance with the normalized probability\nof this row being a member of this class. The probability columns will have names like:\n<tt>P(targetColumn=value)</tt> with an optional suffix that can be specified.\n",
             "default" : null
           }
         }

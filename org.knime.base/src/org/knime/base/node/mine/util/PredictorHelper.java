@@ -49,7 +49,6 @@ package org.knime.base.node.mine.util;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Supplier;
 
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -63,6 +62,8 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.defaultnodesettings.DialogComponentString;
@@ -72,7 +73,7 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.pmml.PMMLPortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.node.parameters.NodeParametersInput;
-import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
 import org.knime.node.parameters.widget.OptionalWidget.DefaultValueProvider;
 
 /**
@@ -90,8 +91,11 @@ public class PredictorHelper {
      * The overrides the prediction column name checkbox text.
      */
     public static final String CHANGE_PREDICTION_COLUMN_NAME = "Change prediction column name";
+
     /** The dialog text for adding probabilities columns. */
-    public static final String APPEND_COLUMNS_WITH_NORMALIZED_CLASS_DISTRIBUTION = "Append columns with normalized class distribution";
+    public static final String APPEND_COLUMNS_WITH_NORMALIZED_CLASS_DISTRIBUTION =
+        "Append columns with normalized class distribution";
+
     /** Dialog text for the suffix of probability columns. */
     public static final String SUFFIX_FOR_PROBABILITY_COLUMNS = "Suffix for probability columns";
 
@@ -180,13 +184,15 @@ public class PredictorHelper {
         //dialog.createNewGroup("Prediction Column");
         dialog.closeCurrentGroup();
         dialog.setHorizontalPlacement(true);
-        DialogComponentBoolean changeDefault = new DialogComponentBoolean(changePredictionColName, CHANGE_PREDICTION_COLUMN_NAME);
+        DialogComponentBoolean changeDefault =
+            new DialogComponentBoolean(changePredictionColName, CHANGE_PREDICTION_COLUMN_NAME);
         changeDefault.setToolTipText("Allows to override the default column name for the predictions.");
         changePredictionColName.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(final ChangeEvent e) {
                 ret.getModel().setEnabled(changePredictionColName.getBooleanValue());
-            }});
+            }
+        });
         dialog.addDialogComponent(changeDefault);
         dialog.addDialogComponent(ret);
         //TODO add a dummy dialogcomponent to initialize the button.
@@ -234,8 +240,8 @@ public class PredictorHelper {
      *            the probability columns' suffices.
      * @return The newly created {@link DialogComponentString} for the probability columns' suffices.
      */
-    public DialogComponentString
-        addProbabilitySuffix(final DefaultNodeSettingsPane dialog, final SettingsModelString suffixModel) {
+    public DialogComponentString addProbabilitySuffix(final DefaultNodeSettingsPane dialog,
+        final SettingsModelString suffixModel) {
         DialogComponentString ret = new DialogComponentString(suffixModel, "Suffix for probability columns");
         ret.setToolTipText("This suffix will be appended after the \"P ([trainingColumn]=[value])\" columns.");
         dialog.addDialogComponent(ret);
@@ -271,7 +277,7 @@ public class PredictorHelper {
     public String checkedComputePredictionColumnName(final String predictionColumn, final boolean shouldOverride,
         final String trainingColumnName) throws InvalidSettingsException {
         CheckUtils.checkSetting(!shouldOverride || (predictionColumn != null && !predictionColumn.trim().isEmpty()),
-                "Prediction column name cannot be empty");
+            "Prediction column name cannot be empty");
         return computePredictionColumnName(predictionColumn, shouldOverride, trainingColumnName);
     }
 
@@ -300,7 +306,8 @@ public class PredictorHelper {
      * @throws InvalidSettingsException Invalid settings for the prediction column name.
      */
     public DataTableSpec createOutTableSpec(final PortObjectSpec dataSpec, final PortObjectSpec modelSpec,
-        final boolean addProbs, final String predictionCol, final boolean shouldOverride, final String suffix) throws InvalidSettingsException {
+        final boolean addProbs, final String predictionCol, final boolean shouldOverride, final String suffix)
+        throws InvalidSettingsException {
         CheckUtils.checkSettingNotNull(predictionCol, "Prediction column name cannot be null");
         CheckUtils.checkSetting(!predictionCol.trim().isEmpty(), "Prediction column name cannot be empty");
         List<DataCell> predValues = null;
@@ -328,9 +335,8 @@ public class PredictorHelper {
         // add all distribution columns
         for (int i = 0; i < numCols - 1; i++) {
             assert predValues != null;
-            DataColumnSpecCreator colSpecCreator =
-                new DataColumnSpecCreator(probabilityColumnName(trainingColumnName, predValues.get(i).toString(),
-                    suffix), DoubleCell.TYPE);
+            DataColumnSpecCreator colSpecCreator = new DataColumnSpecCreator(
+                probabilityColumnName(trainingColumnName, predValues.get(i).toString(), suffix), DoubleCell.TYPE);
             //            colSpecCreator.setProperties(propsRendering);
             colSpecCreator.setDomain(domain);
             newCols[i] = colSpecCreator.createSpec();
@@ -348,43 +354,15 @@ public class PredictorHelper {
      * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
      * @since 5.11
      */
-    public abstract static class PredictionColumnNameDefaultProvider implements DefaultValueProvider<String> {
-
-        private Class<? extends ParameterReference<Optional<String>>> m_predictionColumnClass;
-
-        private String m_predictionColumnDefault;
-
-        /**
-         * Constructor.
-         *
-         * @param predictionColumnClass The parameter reference class of the prediction column name.
-         * @param predictionColumnDefault The default value for the prediction column name.
-         */
-        protected PredictionColumnNameDefaultProvider(
-            final Class<? extends ParameterReference<Optional<String>>> predictionColumnClass,
-            final String predictionColumnDefault) {
-            m_predictionColumnClass = predictionColumnClass;
-            m_predictionColumnDefault = predictionColumnDefault;
-        }
-
-        private Supplier<Optional<String>> m_currentValue;
+    public static class PredictionColumnNameDefaultProvider implements DefaultValueProvider<String> {
 
         @Override
         public void init(final StateProviderInitializer i) {
             i.computeBeforeOpenDialog();
-            m_currentValue = i.getValueSupplier(m_predictionColumnClass);
         }
 
         @Override
         public String computeState(final NodeParametersInput context) {
-            final String current = m_currentValue.get().orElse(null);
-            if (current != null && !current.isEmpty() && !m_predictionColumnDefault.equals(current)) {
-                return current;
-            }
-            return getDefaultPredictionColumnNameFromContext(context);
-        }
-
-        private String getDefaultPredictionColumnNameFromContext(final NodeParametersInput context) {
             final var pmmlSpec = context.getInPortSpec(0);
             if (pmmlSpec.isPresent()) {
                 final var targetCols = ((PMMLPortObjectSpec)pmmlSpec.get()).getTargetCols();
@@ -394,9 +372,8 @@ public class PredictorHelper {
                     return predictorHelper.computePredictionDefault(classColumn.getName());
                 }
             }
-            return m_predictionColumnDefault;
+            return DEFAULT_PREDICTION_COLUMN;
         }
-
     }
 
     /**
@@ -410,6 +387,53 @@ public class PredictorHelper {
         @Override
         public String computeState(final NodeParametersInput parametersInput) {
             return PredictorHelper.DEFAULT_SUFFIX;
+        }
+
+    }
+
+    /**
+     * {@link NodeParametersPersistor} for the prediction column name optional widget used in various predictor nodes.
+     *
+     * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
+     * @since 5.12
+     */
+    public abstract static class PredictionColumnPersistor implements NodeParametersPersistor<Optional<String>> {
+
+        private final String m_booleanCfgKey;
+
+        private final String m_stringCfgKey;
+
+        /**
+         * Constructor.
+         *
+         * @param booleanCfgKey the config key of the boolean setting that controls whether the string is set
+         * @param stringCfgKey the config key of the string setting
+         */
+        protected PredictionColumnPersistor(final String booleanCfgKey, final String stringCfgKey) {
+            m_booleanCfgKey = booleanCfgKey;
+            m_stringCfgKey = stringCfgKey;
+        }
+
+        @Override
+        public void save(final Optional<String> param, final NodeSettingsWO settings) {
+            if (param.isPresent()) {
+                settings.addBoolean(m_booleanCfgKey, true);
+                settings.addString(m_stringCfgKey, param.get());
+            } else {
+                settings.addBoolean(m_booleanCfgKey, false);
+                settings.addString(m_stringCfgKey, DEFAULT_PREDICTION_COLUMN);
+            }
+        }
+
+        @Override
+        public Optional<String> load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            return settings.getBoolean(m_booleanCfgKey)
+                ? Optional.of(settings.getString(m_stringCfgKey, DEFAULT_PREDICTION_COLUMN)) : Optional.empty();
+        }
+
+        @Override
+        public String[][] getConfigPaths() {
+            return new String[][]{{m_booleanCfgKey}, {m_stringCfgKey}};
         }
 
     }

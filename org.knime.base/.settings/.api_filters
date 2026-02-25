@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <component id="org.knime.base" version="2">
+    <resource path="src/org/knime/base/node/mine/util/PredictorHelper.java" type="org.knime.base.node.mine.util.PredictorHelper$PredictionColumnNameDefaultProvider">
+        <filter comment="Abstraction not needed for predictor nodes" id="338722907">
+            <message_arguments>
+                <message_argument value="org.knime.base.node.mine.util.PredictorHelper.PredictionColumnNameDefaultProvider"/>
+                <message_argument value="PredictionColumnNameDefaultProvider(Class&lt;? extends ParameterReference&lt;Optional&lt;String&gt;&gt;&gt;, String)"/>
+            </message_arguments>
+        </filter>
+    </resource>
     <resource path="META-INF/MANIFEST.MF" type="org.knime.base.node.mine.knn.KnnNodeDialogPane2">
         <filter comment="kNN node migration - dialog was no API" id="305324134">
             <message_arguments>

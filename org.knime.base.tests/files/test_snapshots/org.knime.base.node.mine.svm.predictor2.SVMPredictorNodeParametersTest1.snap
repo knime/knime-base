@@ -1,9 +1,8 @@
 {
   "data" : {
     "model" : {
-      "maxNumCoveredPattern" : 10000,
-      "predictionColumnName" : null,
-      "probabilitySuffix" : null
+      "predictionColumnName" : "Prediction (Cluster Membership)",
+      "probabilitySuffix" : "qwsxcq"
     }
   },
   "schema" : {
@@ -12,13 +11,6 @@
       "model" : {
         "type" : "object",
         "properties" : {
-          "maxNumCoveredPattern" : {
-            "type" : "integer",
-            "format" : "int32",
-            "title" : "Number of patterns for hiliting",
-            "description" : "Determines the maximum number of patterns the tree will store to support hiliting.\n",
-            "default" : 10000
-          },
           "predictionColumnName" : {
             "type" : [ "string", "null" ],
             "title" : "Custom prediction column name",
@@ -37,28 +29,6 @@
   },
   "ui_schema" : {
     "elements" : [ {
-      "type" : "Control",
-      "scope" : "#/properties/model/properties/maxNumCoveredPattern",
-      "options" : {
-        "stepSize" : 100.0,
-        "validation" : {
-          "max" : {
-            "errorMessage" : "The value must not exceed 2147483647.",
-            "parameters" : {
-              "isExclusive" : false,
-              "max" : 2.147483647E9
-            }
-          },
-          "min" : {
-            "errorMessage" : "The value must be at least 0.",
-            "parameters" : {
-              "isExclusive" : false,
-              "min" : 0.0
-            }
-          }
-        }
-      }
-    }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/predictionColumnName",
       "options" : {
@@ -88,14 +58,11 @@
       "model" : {
         "type" : "object",
         "properties" : {
-          "maxNumCoveredPattern" : {
-            "configKey" : "UseGainRatio"
-          },
           "predictionColumnName" : {
             "configPaths" : [ [ "change prediction" ], [ "prediction column name" ] ]
           },
           "probabilitySuffix" : {
-            "configPaths" : [ [ "ShowDistribution" ], [ "class probability suffix" ] ]
+            "configPaths" : [ [ "add probabilities" ], [ "class probability suffix" ] ]
           }
         }
       }
