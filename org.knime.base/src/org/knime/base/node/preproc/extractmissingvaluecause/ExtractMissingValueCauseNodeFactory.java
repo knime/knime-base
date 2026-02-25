@@ -44,56 +44,114 @@
  */
 package org.knime.base.node.preproc.extractmissingvaluecause;
 
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
 
 /**
  * Factory class of the missing value extractor node.
  *
  * @author Simon Schmid
+ * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.2
  */
-public final class ExtractMissingValueCauseNodeFactory extends NodeFactory<ExtractMissingValueCauseNodeModel> {
+@SuppressWarnings("restriction")
+public final class ExtractMissingValueCauseNodeFactory extends NodeFactory<ExtractMissingValueCauseNodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new ExtractMissingValueCauseNodeDialog();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public ExtractMissingValueCauseNodeModel createNodeModel() {
         return new ExtractMissingValueCauseNodeModel();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public NodeView<ExtractMissingValueCauseNodeModel> createNodeView(final int viewIndex,
             final ExtractMissingValueCauseNodeModel nodeModel) {
         return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected int getNrNodeViews() {
         return 0;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected boolean hasDialog() {
         return true;
+    }
+
+    private static final String NODE_NAME = "Extract Missing Value Cause";
+
+    private static final String NODE_ICON = "extractmissingvaluecause-icon.png";
+
+    private static final String SHORT_DESCRIPTION = """
+            Extracts the strings of missing values.
+            """;
+
+    private static final String FULL_DESCRIPTION = """
+            <p> This node can be used to extract the error messages of missing values. If there is no error message for
+            a specific missing value, an empty string will be returned. </p>
+            """;
+
+    private static final List<PortDescription> INPUT_PORTS = List.of(
+            fixedPort("Table to be extracted", """
+                Table from which error messages of missing values are to be extracted.
+                """)
+    );
+
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(
+            fixedPort("Extracted table", """
+                Table appending the error messages of missing values.
+                """)
+    );
+
+    @Override
+    public NodeDialogPane createNodeDialogPane() {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, ExtractMissingValueCauseNodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription( //
+            NODE_NAME, //
+            NODE_ICON, //
+            INPUT_PORTS, //
+            OUTPUT_PORTS, //
+            SHORT_DESCRIPTION, //
+            FULL_DESCRIPTION, //
+            List.of(), //
+            ExtractMissingValueCauseNodeParameters.class, //
+            null, //
+            NodeType.Manipulator, //
+            List.of(), //
+            null //
+        );
+    }
+
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, ExtractMissingValueCauseNodeParameters.class));
     }
 
 }

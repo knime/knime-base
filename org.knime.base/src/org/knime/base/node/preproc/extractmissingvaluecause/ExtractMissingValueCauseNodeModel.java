@@ -92,6 +92,12 @@ import org.knime.core.util.UniqueNameGenerator;
  */
 final class ExtractMissingValueCauseNodeModel extends NodeModel {
 
+    static final String CFG_IS_FILTERED = "isFiltered";
+
+    static final String CFG_COL_SELECT = "col_select";
+
+    static final String CFG_SUFFIX = "suffix";
+
     private final SettingsModelBoolean m_isFiltered = createIsFilteredModel();
 
     private final SettingsModelColumnFilter2 m_colSelect = createColSelectModel();
@@ -100,17 +106,17 @@ final class ExtractMissingValueCauseNodeModel extends NodeModel {
 
     /** @return the 'is filtered' model for both dialog and model. */
     static SettingsModelBoolean createIsFilteredModel() {
-        return new SettingsModelBoolean("isFiltered", true);
+        return new SettingsModelBoolean(CFG_IS_FILTERED, true);
     }
 
     /** @return the column select model, used in both dialog and model. */
     static SettingsModelColumnFilter2 createColSelectModel() {
-        return new SettingsModelColumnFilter2("col_select");
+        return new SettingsModelColumnFilter2(CFG_COL_SELECT);
     }
 
     /** @return the suffix model used in both dialog and model. */
     static SettingsModelString createSuffixModel() {
-        return new SettingsModelString("suffix", " (error cause)");
+        return new SettingsModelString(CFG_SUFFIX, " (error cause)");
     }
 
     /** One in, one out. */
