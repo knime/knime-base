@@ -47,57 +47,130 @@
  */
 package org.knime.base.node.preproc.colconvert.categorytonumber;
 
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
 
 /**
+ * {@link NodeFactory} for the "Category to Number (Apply)" Node.
  *
  * @author Heiko Hofer
+ * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.2
  */
-public class CategoryToNumberApplyNodeFactory
-    extends NodeFactory<CategoryToNumberApplyNodeModel> {
+@SuppressWarnings("restriction")
+public class CategoryToNumberApplyNodeFactory extends NodeFactory<CategoryToNumberApplyNodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        protected NodeDialogPane createNodeDialogPane() {
-            return new CategoryToNumberApplyNodeDialogPane();
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public CategoryToNumberApplyNodeModel createNodeModel() {
-            return new CategoryToNumberApplyNodeModel();
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public NodeView<CategoryToNumberApplyNodeModel> createNodeView(
-                final int viewIndex,
-                final CategoryToNumberApplyNodeModel nodeModel) {
-            return null;
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        protected int getNrNodeViews() {
-            return 0;
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        protected boolean hasDialog() {
-            return true;
-        }
-
+    @Override
+    public CategoryToNumberApplyNodeModel createNodeModel() {
+        return new CategoryToNumberApplyNodeModel();
     }
+
+    @Override
+    public NodeView<CategoryToNumberApplyNodeModel> createNodeView(final int viewIndex,
+        final CategoryToNumberApplyNodeModel nodeModel) {
+        return null;
+    }
+
+    @Override
+    protected int getNrNodeViews() {
+        return 0;
+    }
+
+    @Override
+    protected boolean hasDialog() {
+        return true;
+    }
+
+    private static final String NODE_NAME = "Category to Number (Apply)";
+
+    private static final String NODE_ICON = "./categoryToNumberApply.png";
+
+    private static final String SHORT_DESCRIPTION = """
+            Maps each category of a column with nominal data to an integer.
+            """;
+
+    private static final String FULL_DESCRIPTION = """
+            <p>This node takes columns with nominal data and maps every category to an integer. The information for
+            the value mapping is taken from the PMML model.</p>
+            <p>This node is typically used to apply the same mapping found by a Category To Number node. </p>
+            """;
+
+    private static final List<PortDescription> INPUT_PORTS = List.of(fixedPort("Model", """
+            PMML document containing value mapping.
+            """), fixedPort("Table to normalize", """
+            Data.
+            """));
+
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(fixedPort("Model", """
+            Pass-through of the incoming PMML document.
+            """), fixedPort("Processed data", """
+            Data with transformed columns.
+            """));
+
+    /**
+     * {@inheritDoc}
+     *
+     * @since 5.12
+     */
+    @Override
+    public NodeDialogPane createNodeDialogPane() {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @since 5.12
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, CategoryToNumberApplyNodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription( //
+            NODE_NAME, //
+            NODE_ICON, //
+            INPUT_PORTS, //
+            OUTPUT_PORTS, //
+            SHORT_DESCRIPTION, //
+            FULL_DESCRIPTION, //
+            List.of(), //
+            CategoryToNumberApplyNodeParameters.class, //
+            null, //
+            NodeType.Manipulator, //
+            List.of(), //
+            null //
+        );
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @since 5.12
+     */
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, CategoryToNumberApplyNodeParameters.class));
+    }
+
+}

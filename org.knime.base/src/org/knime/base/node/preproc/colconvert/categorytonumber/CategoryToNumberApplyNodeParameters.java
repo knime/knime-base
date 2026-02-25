@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -41,93 +42,45 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ------------------------------------------------------------------------
- *
- * History
- *   25.08.2011 (hofer): created
  */
+
 package org.knime.base.node.preproc.colconvert.categorytonumber;
 
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
+import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.updates.util.BooleanReference;
+import org.knime.node.parameters.widget.text.TextInputWidget;
 
 /**
- * The settings object of the Category2Number node.
+ * Node parameters for Category to Number (Apply).
  *
- * @author Heiko Hofer
+ * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.2
  */
-public class CategoryToNumberApplyNodeSettings {
-    static final String APPEND_COLUMN = "append_columns";
-    static final String COLUMN_SUFFIX = "column_suffix";
+@LoadDefaultsForAbsentFields
+final class CategoryToNumberApplyNodeParameters implements NodeParameters {
 
-    /** Define names of new columns. */
-    private boolean m_appendColumns;
-    private String m_columnSuffix;
+    @Widget(title = "Append columns", description = """
+            If checked, the computed columns will be appended to the input table. Otherwise the computed columns
+            replace their source columns.
+            """)
+    @Persist(configKey = CategoryToNumberApplyNodeSettings.APPEND_COLUMN)
+    @ValueReference(IsAppendColumns.class)
+    boolean m_appendColumns = true;
 
-    /**
-     * Create an instance with default values.
-     */
-    public CategoryToNumberApplyNodeSettings() {
-        m_appendColumns = true;
-        m_columnSuffix = " (to number)";
+    static final class IsAppendColumns implements BooleanReference {
     }
 
-    /**
-     * @return the appendColumns
-     */
-    boolean getAppendColumns() {
-        return m_appendColumns;
-    }
-
-    /**
-     * @param appendColumns the appendColumns to set
-     */
-    void setAppendColumns(final boolean appendColumns) {
-        m_appendColumns = appendColumns;
-    }
-
-    /**
-     * @return the columnSuffix
-     */
-    String getColumnSuffix() {
-        return m_columnSuffix;
-    }
-
-    /**
-     * @param columnSuffix the columnSuffix to set
-     */
-    void setColumnSuffix(final String columnSuffix) {
-        m_columnSuffix = columnSuffix;
-    }
-
-
-    /** Called from dialog when settings are to be loaded.
-     * @param settings To load from
-     */
-    void loadSettingsForDialog(final NodeSettingsRO settings) {
-        /** Define names of new columns. */
-        m_appendColumns = settings.getBoolean(APPEND_COLUMN, true);
-        m_columnSuffix = settings.getString(COLUMN_SUFFIX, " (to number)");
-    }
-
-    /** Called from model when settings are to be loaded.
-     * @param settings To load from
-     * @throws InvalidSettingsException If settings are invalid.
-     */
-    void loadSettingsForModel(final NodeSettingsRO settings)
-        throws InvalidSettingsException {
-        /** Define names of new columns. */
-        m_appendColumns = settings.getBoolean(APPEND_COLUMN);
-        m_columnSuffix = settings.getString(COLUMN_SUFFIX);
-    }
-
-    /** Called from model and dialog to save current settings.
-     * @param settings To save to.
-     */
-    void saveSettings(final NodeSettingsWO settings) {
-        /** Define names of new columns. */
-        settings.addBoolean(APPEND_COLUMN, m_appendColumns);
-        settings.addString(COLUMN_SUFFIX, m_columnSuffix);
-    }
-
+    @Widget(title = "Column suffix", description = """
+            The column name of the computed columns are the name of the column in the input appended by this suffix.
+            """)
+    @TextInputWidget(placeholder = " (to number)")
+    @Persist(configKey = CategoryToNumberApplyNodeSettings.COLUMN_SUFFIX)
+    @Effect(predicate = IsAppendColumns.class, type = EffectType.SHOW)
+    String m_columnSuffix = " (to number)";
 }
