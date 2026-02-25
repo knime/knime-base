@@ -46,8 +46,20 @@
     
 package org.knime.base.node.preproc.manipulator;
 
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
 import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
+import org.knime.node.parameters.persistence.Persistor;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
+import org.knime.node.parameters.updates.EffectPredicate;
+import org.knime.node.parameters.updates.EffectPredicateProvider;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.ValueReference;
 
 /**
  * Node parameters for Table Manipulator.
@@ -57,7 +69,74 @@ import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
  */
 @LoadDefaultsForAbsentFields
 class TableManipulatorNodeParameters implements NodeParameters {
-    
+
+    private static final String CFG_SETTINGS_TAB = "settings";
+
+    private static final String CFG_HAS_ROW_ID = "has_row_id";
+
+    private static final String CFG_PREPEND_TABLE_IDX_TO_ROWID = "prepend_table_index_to_row_id";
+
+    // ----- RowID handling -----
+
+    interface UseExistingRowIDRef extends ParameterReference<Boolean> {
+    }
+
+    static final class UseExistingRowIDPersistor implements NodeParametersPersistor<Boolean> {
+        @Override
+        public Boolean load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            return settings.getNodeSettings(CFG_SETTINGS_TAB).getBoolean(CFG_HAS_ROW_ID);
+        }
+
+        @Override
+        public void save(final Boolean value, final NodeSettingsWO settings) {
+            settings.addNodeSettings(CFG_SETTINGS_TAB).addBoolean(CFG_HAS_ROW_ID, value);
+        }
+
+        @Override
+        public String[][] getConfigPaths() {
+            return new String[][]{{CFG_SETTINGS_TAB, CFG_HAS_ROW_ID}};
+        }
+    }
+
+    static final class PrependTableIndexPersistor implements NodeParametersPersistor<Boolean> {
+        @Override
+        public Boolean load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            return settings.getNodeSettings(CFG_SETTINGS_TAB).getBoolean(CFG_PREPEND_TABLE_IDX_TO_ROWID);
+        }
+
+        @Override
+        public void save(final Boolean value, final NodeSettingsWO settings) {
+            settings.addNodeSettings(CFG_SETTINGS_TAB).addBoolean(CFG_PREPEND_TABLE_IDX_TO_ROWID, value);
+        }
+
+        @Override
+        public String[][] getConfigPaths() {
+            return new String[][]{{CFG_SETTINGS_TAB, CFG_PREPEND_TABLE_IDX_TO_ROWID}};
+        }
+    }
+
+    static final class IsUseExistingRowID implements EffectPredicateProvider {
+        @Override
+        public EffectPredicate init(final PredicateInitializer i) {
+            return i.getBoolean(UseExistingRowIDRef.class).isTrue();
+        }
+    }
+
+    @Widget(title = "Use existing RowID",
+        description = "If checked, the RowIDs from the input tables are used for the output table. "
+            + "If unchecked, a new RowID is generated following the schema \"Row0\", \"Row1\", and so on.")
+    @Persistor(UseExistingRowIDPersistor.class)
+    @ValueReference(UseExistingRowIDRef.class)
+    boolean m_useExistingRowID = true;
+
+    @Widget(title = "Prepend table index to RowID",
+        description = "Only enabled if the existing RowIDs are used. If checked, a prefix is prepended "
+            + "to the RowIDs that indicates which table the row came from. "
+            + "The format of the prefix is \"Table_0_\", \"Table_1_\", and so on.")
+    @Persistor(PrependTableIndexPersistor.class)
+    @Effect(predicate = IsUseExistingRowID.class, type = EffectType.SHOW)
+    boolean m_prependTableIndexToRowID = false;
+
     /**
      * TODO: Implement the actual parameters based on the dialog configuration
      * Use the following descriptions extracted from the node factory xml for
