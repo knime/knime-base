@@ -1,0 +1,70 @@
+{
+  "data" : {
+    "model" : {
+      "appendColumns" : true,
+      "columnSuffix" : " (to number)"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "appendColumns" : {
+            "type" : "boolean",
+            "title" : "Append columns",
+            "description" : "If checked, the computed columns will be appended to the input table. Otherwise the computed columns\nreplace their source columns.\n",
+            "default" : true
+          },
+          "columnSuffix" : {
+            "type" : "string",
+            "title" : "Column suffix",
+            "description" : "The column name of the computed columns are the name of the column in the input appended by this suffix.\n",
+            "default" : " (to number)"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/appendColumns",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/columnSuffix",
+      "options" : {
+        "placeholder" : " (to number)"
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/appendColumns",
+          "schema" : {
+            "const" : true
+          }
+        }
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "appendColumns" : {
+            "configKey" : "append_columns"
+          },
+          "columnSuffix" : {
+            "configKey" : "column_suffix"
+          }
+        }
+      }
+    }
+  }
+}
