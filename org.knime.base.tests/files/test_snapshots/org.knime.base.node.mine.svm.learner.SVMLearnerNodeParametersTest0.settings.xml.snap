@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
+    <entry key="classcol" type="xstring" value="Cluster Membership"/>
+    <entry key="c_parameter" type="xdouble" value="1.1"/>
+    <entry key="kernel_type" type="xstring" value="HyperTangent"/>
+    <entry key="kernel_param_Bias" type="xdouble" value="0.9"/>
+    <entry key="kernel_param_Power" type="xdouble" value="1.1"/>
+    <entry key="kernel_param_Gamma" type="xdouble" value="1.0"/>
+    <entry key="kernel_param_kappa" type="xdouble" value="0.1"/>
+    <entry key="kernel_param_delta" type="xdouble" value="0.4"/>
+    <entry key="kernel_param_sigma" type="xdouble" value="0.2"/>
+</config>

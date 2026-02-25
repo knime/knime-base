@@ -49,15 +49,14 @@ package org.knime.base.node.mine.regression.logistic.predictor;
 import java.util.Optional;
 
 import org.knime.base.node.mine.regression.predict3.RegressionPredictorSettings;
-import org.knime.base.node.mine.util.PredictorHelper;
+import org.knime.base.node.mine.util.PredictorHelper.PredictionColumnNameDefaultProvider;
+import org.knime.base.node.mine.util.PredictorHelper.PredictionColumnPersistor;
 import org.knime.base.node.mine.util.PredictorHelper.ProbabilitySuffixDefaultProvider;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
 import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.persistence.legacy.OptionalStringPersistor;
-import org.knime.node.parameters.updates.ParameterReference;
-import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.OptionalWidget;
 import org.knime.node.parameters.widget.text.TextInputWidget;
 import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils.ColumnNameValidation;
@@ -75,36 +74,23 @@ final class LogisticRegressionPredictorNodeParameters implements NodeParameters 
     @Persistor(PredictionColumnNamePersistor.class)
     @Widget(title = "Custom prediction column name", description = """
             Allows you to specify a customized name for the prediction column that is appended to the input table.
-            If not checked, "Prediction (target)" (where target is the name of the target column of the provided
+            If not checked, <tt>Prediction(target)</tt> (where target is the name of the target column of the provided
             regression model) is used as default.
             """)
-    @OptionalWidget(defaultProvider = LogisticRegressionPredictionColumnDefaultProvider.class)
+    @OptionalWidget(defaultProvider = PredictionColumnNameDefaultProvider.class)
     @TextInputWidget(patternValidation = ColumnNameValidation.class)
-    @ValueReference(PredictionColumnNameRef.class)
     Optional<String> m_predictionColumnName = Optional.empty();
-
-    static class PredictionColumnNameRef implements ParameterReference<Optional<String>> {
-    }
 
     @Persistor(ProbabilitySuffixPersistor.class)
     @Widget(title = "Append columns with normalized class distribution", description = """
             If selected, a column is appended for each class instance with the normalized probability
             of this row being a member of this class. The probability columns will have names like:
-            <tt>P (trainingColumn=value)</tt> with an optional suffix that can be specified.
+            <tt>P(targetColumn=value)</tt> with an optional suffix that can be specified.
             """)
     @OptionalWidget(defaultProvider = ProbabilitySuffixDefaultProvider.class)
     Optional<String> m_probabilitySuffix = Optional.empty();
 
-    static class LogisticRegressionPredictionColumnDefaultProvider
-        extends PredictorHelper.PredictionColumnNameDefaultProvider {
-
-        protected LogisticRegressionPredictionColumnDefaultProvider() {
-            super(PredictionColumnNameRef.class, "");
-        }
-
-    }
-
-    static final class PredictionColumnNamePersistor extends OptionalStringPersistor {
+    static final class PredictionColumnNamePersistor extends PredictionColumnPersistor {
 
         PredictionColumnNamePersistor() {
             super(RegressionPredictorSettings.CFG_HAS_CUSTOM_PREDICTION_NAME,

@@ -1,0 +1,255 @@
+{
+  "data" : {
+    "model" : {
+      "paramC" : 1.0,
+      "kernelType" : "HyperTangent",
+      "bias" : 1.0,
+      "power" : 1.0,
+      "gamma" : 1.0,
+      "kappa" : 0.1,
+      "delta" : 0.5,
+      "sigma" : 0.1
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "bias" : {
+            "type" : "number",
+            "format" : "double",
+            "title" : "Bias",
+            "description" : "The bias parameter for the polynomial kernel.\n",
+            "default" : 1.0
+          },
+          "classColumn" : {
+            "type" : "string",
+            "title" : "Class column",
+            "description" : "Choose the column that contains the nominal target variable.\n"
+          },
+          "delta" : {
+            "type" : "number",
+            "format" : "double",
+            "title" : "Delta",
+            "description" : "The delta parameter for the hyperbolic tangent kernel\n",
+            "default" : 0.5
+          },
+          "gamma" : {
+            "type" : "number",
+            "format" : "double",
+            "title" : "Gamma",
+            "description" : "The gamma parameter for the polynomial kernel.\n",
+            "default" : 1.0
+          },
+          "kappa" : {
+            "type" : "number",
+            "format" : "double",
+            "title" : "Kappa",
+            "description" : "The kappa parameter for the hyperbolic tangent kernel.\n",
+            "default" : 0.1
+          },
+          "kernelType" : {
+            "oneOf" : [ {
+              "const" : "Polynomial",
+              "title" : "Polynomial"
+            }, {
+              "const" : "HyperTangent",
+              "title" : "HyperTangent"
+            }, {
+              "const" : "RBF",
+              "title" : "RBF"
+            } ],
+            "title" : "Kernel type",
+            "description" : "Choose the kernel function for the support vector machine. Each kernel has its own\nparameters which can be configured below.\n\n<ul>\n<li><b>Polynomial</b>: Polynomial kernel of the form (gamma * x * y + bias)^power.\n</li>\n<li><b>HyperTangent</b>: Hyperbolic tangent kernel of the form tanh(kappa * x * y + delta).\n</li>\n<li><b>RBF</b>: Radial Basis Function kernel of the form exp(-||x - y||^2 / (2 * sigma^2)).\n</li>\n</ul>",
+            "default" : "HyperTangent"
+          },
+          "paramC" : {
+            "type" : "number",
+            "format" : "double",
+            "title" : "Overlapping penalty",
+            "description" : "The overlapping penalty is useful in the case that the input data is not separable.\nIt determines how much penalty is assigned to each point that is misclassified.\nA good value for it is 1.\n",
+            "default" : 1.0
+          },
+          "power" : {
+            "type" : "number",
+            "format" : "double",
+            "title" : "Power",
+            "description" : "The power parameter for the polynomial kernel.\n",
+            "default" : 1.0
+          },
+          "sigma" : {
+            "type" : "number",
+            "format" : "double",
+            "title" : "Sigma",
+            "description" : "The sigma parameter for the Radial Basis Function (RBF) kernel.\n",
+            "default" : 0.1
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/classColumn",
+      "options" : {
+        "format" : "dropDown"
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/paramC"
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/kernelType",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/bias",
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/kernelType",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "Polynomial"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/power",
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/kernelType",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "Polynomial"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/gamma",
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/kernelType",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "Polynomial"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/kappa",
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/kernelType",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "HyperTangent"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/delta",
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/kernelType",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "HyperTangent"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/sigma",
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/kernelType",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "RBF"
+            } ]
+          }
+        }
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "classColumn" : {
+            "configKey" : "classcol"
+          },
+          "paramC" : {
+            "configKey" : "c_parameter"
+          },
+          "kernelType" : {
+            "configKey" : "kernel_type"
+          },
+          "bias" : {
+            "configKey" : "kernel_param_Bias"
+          },
+          "power" : {
+            "configKey" : "kernel_param_Power"
+          },
+          "gamma" : {
+            "configKey" : "kernel_param_Gamma"
+          },
+          "kappa" : {
+            "configKey" : "kernel_param_kappa"
+          },
+          "delta" : {
+            "configKey" : "kernel_param_delta"
+          },
+          "sigma" : {
+            "configKey" : "kernel_param_sigma"
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/classColumn",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Cluster Membership",
+        "text" : "Cluster Membership",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      } ]
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "id" : "after-open-dialog"
+    },
+    "triggerInitially" : true,
+    "dependencies" : [ "#/properties/model/properties/classColumn" ]
+  } ]
+}
