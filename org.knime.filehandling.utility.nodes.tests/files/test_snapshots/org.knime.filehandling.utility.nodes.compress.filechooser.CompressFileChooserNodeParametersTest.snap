@@ -16,17 +16,17 @@
           "filterMode" : "FILE",
           "filterFilesExtension" : false,
           "filesExtensionExpression" : "",
-          "filesExtensionCaseSensitive" : false,
+          "filesExtensionCaseSensitive" : "CASE_INSENSITIVE",
           "filterFilesName" : false,
           "filesNameExpression" : "*",
           "filesNameFilterType" : "WILDCARD",
-          "filesNameCaseSensitive" : false,
+          "filesNameCaseSensitive" : "CASE_INSENSITIVE",
           "includeHiddenFiles" : true,
           "includeSpecialFiles" : true,
           "filterFoldersName" : false,
           "foldersNameExpression" : "*",
           "foldersNameFilterType" : "WILDCARD",
-          "foldersNameCaseSensitive" : false,
+          "foldersNameCaseSensitive" : "CASE_INSENSITIVE",
           "includeHiddenFolders" : true,
           "followSymlinks" : false
         }
@@ -189,10 +189,16 @@
                 "type" : "object",
                 "properties" : {
                   "filesExtensionCaseSensitive" : {
-                    "type" : "boolean",
+                    "oneOf" : [ {
+                      "const" : "CASE_SENSITIVE",
+                      "title" : "Case sensitive"
+                    }, {
+                      "const" : "CASE_INSENSITIVE",
+                      "title" : "Case insensitive"
+                    } ],
                     "title" : "Case sensitive (extensions)",
                     "description" : "Treat the entered extensions as case sensitive when matching.",
-                    "default" : false
+                    "default" : "CASE_INSENSITIVE"
                   },
                   "filesExtensionExpression" : {
                     "type" : "string",
@@ -201,10 +207,16 @@
                     "default" : ""
                   },
                   "filesNameCaseSensitive" : {
-                    "type" : "boolean",
+                    "oneOf" : [ {
+                      "const" : "CASE_SENSITIVE",
+                      "title" : "Case sensitive"
+                    }, {
+                      "const" : "CASE_INSENSITIVE",
+                      "title" : "Case insensitive"
+                    } ],
                     "title" : "Case sensitive (names)",
                     "description" : "Make file name filtering case sensitive.",
-                    "default" : false
+                    "default" : "CASE_INSENSITIVE"
                   },
                   "filesNameExpression" : {
                     "type" : "string",
@@ -265,10 +277,16 @@
                     "default" : "FILE"
                   },
                   "foldersNameCaseSensitive" : {
-                    "type" : "boolean",
+                    "oneOf" : [ {
+                      "const" : "CASE_SENSITIVE",
+                      "title" : "Case sensitive"
+                    }, {
+                      "const" : "CASE_INSENSITIVE",
+                      "title" : "Case insensitive"
+                    } ],
                     "title" : "Case sensitive (folders)",
                     "description" : "Make folder name filtering case sensitive.",
-                    "default" : false
+                    "default" : "CASE_INSENSITIVE"
                   },
                   "foldersNameExpression" : {
                     "type" : "string",
@@ -317,17 +335,17 @@
                   "filterMode" : "FILE",
                   "filterFilesExtension" : false,
                   "filesExtensionExpression" : "",
-                  "filesExtensionCaseSensitive" : false,
+                  "filesExtensionCaseSensitive" : "CASE_INSENSITIVE",
                   "filterFilesName" : false,
                   "filesNameExpression" : "*",
                   "filesNameFilterType" : "WILDCARD",
-                  "filesNameCaseSensitive" : false,
+                  "filesNameCaseSensitive" : "CASE_INSENSITIVE",
                   "includeHiddenFiles" : true,
                   "includeSpecialFiles" : true,
                   "filterFoldersName" : false,
                   "foldersNameExpression" : "*",
                   "foldersNameFilterType" : "WILDCARD",
-                  "foldersNameCaseSensitive" : false,
+                  "foldersNameCaseSensitive" : "CASE_INSENSITIVE",
                   "includeHiddenFolders" : true,
                   "followSymlinks" : false
                 }
@@ -359,17 +377,17 @@
                 "filterMode" : "FILE",
                 "filterFilesExtension" : false,
                 "filesExtensionExpression" : "",
-                "filesExtensionCaseSensitive" : false,
+                "filesExtensionCaseSensitive" : "CASE_INSENSITIVE",
                 "filterFilesName" : false,
                 "filesNameExpression" : "*",
                 "filesNameFilterType" : "WILDCARD",
-                "filesNameCaseSensitive" : false,
+                "filesNameCaseSensitive" : "CASE_INSENSITIVE",
                 "includeHiddenFiles" : true,
                 "includeSpecialFiles" : true,
                 "filterFoldersName" : false,
                 "foldersNameExpression" : "*",
                 "foldersNameFilterType" : "WILDCARD",
-                "foldersNameCaseSensitive" : false,
+                "foldersNameCaseSensitive" : "CASE_INSENSITIVE",
                 "includeHiddenFolders" : true,
                 "followSymlinks" : false
               }
@@ -442,7 +460,7 @@
                   "type" : "Control",
                   "scope" : "#/properties/filesExtensionCaseSensitive",
                   "options" : {
-                    "format" : "checkbox"
+                    "format" : "valueSwitch"
                   },
                   "rule" : {
                     "effect" : "SHOW",
@@ -490,7 +508,7 @@
                   "type" : "Control",
                   "scope" : "#/properties/filesNameCaseSensitive",
                   "options" : {
-                    "format" : "checkbox"
+                    "format" : "valueSwitch"
                   },
                   "rule" : {
                     "effect" : "SHOW",
@@ -527,7 +545,7 @@
                   "type" : "Control",
                   "scope" : "#/properties/foldersNameExpression",
                   "rule" : {
-                    "effect" : "ENABLE",
+                    "effect" : "SHOW",
                     "condition" : {
                       "scope" : "#/properties/filterFoldersName",
                       "schema" : {
@@ -542,7 +560,7 @@
                     "format" : "valueSwitch"
                   },
                   "rule" : {
-                    "effect" : "ENABLE",
+                    "effect" : "SHOW",
                     "condition" : {
                       "scope" : "#/properties/filterFoldersName",
                       "schema" : {
@@ -554,10 +572,10 @@
                   "type" : "Control",
                   "scope" : "#/properties/foldersNameCaseSensitive",
                   "options" : {
-                    "format" : "checkbox"
+                    "format" : "valueSwitch"
                   },
                   "rule" : {
-                    "effect" : "ENABLE",
+                    "effect" : "SHOW",
                     "condition" : {
                       "scope" : "#/properties/filterFoldersName",
                       "schema" : {
@@ -709,7 +727,7 @@
                     "configKey" : "files_extension_expression"
                   },
                   "filesExtensionCaseSensitive" : {
-                    "configKey" : "files_extension_case_sensitive"
+                    "configPaths" : [ [ "files_extension_case_sensitive" ] ]
                   },
                   "filterFilesName" : {
                     "configKey" : "filter_files_name"
@@ -721,7 +739,7 @@
                     "configKey" : "files_name_filter_type"
                   },
                   "filesNameCaseSensitive" : {
-                    "configKey" : "files_name_case_sensitive"
+                    "configPaths" : [ [ "files_name_case_sensitive" ] ]
                   },
                   "includeHiddenFiles" : {
                     "configKey" : "include_hidden_files"
@@ -739,7 +757,7 @@
                     "configKey" : "folders_name_filter_type"
                   },
                   "foldersNameCaseSensitive" : {
-                    "configKey" : "folders_name_case_sensitive"
+                    "configPaths" : [ [ "folders_name_case_sensitive" ] ]
                   },
                   "includeHiddenFolders" : {
                     "configKey" : "include_hidden_folders"
