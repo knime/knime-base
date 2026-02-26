@@ -2,7 +2,7 @@
   "data" : {
     "model" : {
       "predictionColumnName" : null,
-      "probabilitySuffix" : null
+      "appendProbabilityColumns" : true
     }
   },
   "schema" : {
@@ -11,6 +11,12 @@
       "model" : {
         "type" : "object",
         "properties" : {
+          "appendProbabilityColumns" : {
+            "type" : "boolean",
+            "title" : "Append columns with normalized class distribution",
+            "description" : "If selected, a column is appended for each class instance with the normalized probability\nof this row being a member of this class. The probability columns will have names like:\n<tt>P(targetColumn=value)</tt>.\n",
+            "default" : true
+          },
           "predictionColumnName" : {
             "type" : [ "string", "null" ],
             "title" : "Custom prediction column name",
@@ -18,10 +24,9 @@
             "default" : null
           },
           "probabilitySuffix" : {
-            "type" : [ "string", "null" ],
-            "title" : "Append columns with normalized class distribution",
-            "description" : "If selected, a column is appended for each class instance with the normalized probability\nof this row being a member of this class. The probability columns will have names like:\n<tt>P(targetColumn=value)</tt> with an optional suffix that can be specified.\n",
-            "default" : null
+            "type" : "string",
+            "title" : "Probability column suffix",
+            "description" : "Suffix for the probability columns.\n"
           }
         }
       }
@@ -45,11 +50,22 @@
       "providedOptions" : [ "default" ]
     }, {
       "type" : "Control",
-      "scope" : "#/properties/model/properties/probabilitySuffix",
+      "scope" : "#/properties/model/properties/appendProbabilityColumns",
       "options" : {
-        "hideOnNull" : true
-      },
-      "providedOptions" : [ "default" ]
+        "format" : "checkbox"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/probabilitySuffix",
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/appendProbabilityColumns",
+          "schema" : {
+            "const" : true
+          }
+        }
+      }
     } ]
   },
   "persist" : {
@@ -61,8 +77,11 @@
           "predictionColumnName" : {
             "configPaths" : [ [ "change prediction" ], [ "prediction column name" ] ]
           },
+          "appendProbabilityColumns" : {
+            "configKey" : "add probabilities"
+          },
           "probabilitySuffix" : {
-            "configPaths" : [ [ "add probabilities" ], [ "class probability suffix" ] ]
+            "configKey" : "class probability suffix"
           }
         }
       }
@@ -74,13 +93,6 @@
     "values" : [ {
       "indices" : [ ],
       "value" : "Prediction (Cluster Membership)"
-    } ]
-  }, {
-    "scope" : "#/properties/model/properties/probabilitySuffix",
-    "providedOptionName" : "default",
-    "values" : [ {
-      "indices" : [ ],
-      "value" : ""
     } ]
   } ]
 }

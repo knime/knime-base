@@ -51,12 +51,15 @@ import java.util.Optional;
 import org.knime.base.node.mine.regression.predict3.RegressionPredictorSettings;
 import org.knime.base.node.mine.util.PredictorHelper.PredictionColumnNameDefaultProvider;
 import org.knime.base.node.mine.util.PredictorHelper.PredictionColumnPersistor;
-import org.knime.base.node.mine.util.PredictorHelper.ProbabilitySuffixDefaultProvider;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
+import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistor;
-import org.knime.node.parameters.persistence.legacy.OptionalStringPersistor;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.updates.util.BooleanReference;
 import org.knime.node.parameters.widget.OptionalWidget;
 import org.knime.node.parameters.widget.text.TextInputWidget;
 import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils.ColumnNameValidation;
@@ -81,29 +84,30 @@ final class LogisticRegressionPredictorNodeParameters implements NodeParameters 
     @TextInputWidget(patternValidation = ColumnNameValidation.class)
     Optional<String> m_predictionColumnName = Optional.empty();
 
-    @Persistor(ProbabilitySuffixPersistor.class)
+    @Persist(configKey = RegressionPredictorSettings.CFG_INCLUDE_PROBABILITIES)
     @Widget(title = "Append columns with normalized class distribution", description = """
             If selected, a column is appended for each class instance with the normalized probability
             of this row being a member of this class. The probability columns will have names like:
-            <tt>P(targetColumn=value)</tt> with an optional suffix that can be specified.
+            <tt>P(targetColumn=value)</tt>.
             """)
-    @OptionalWidget(defaultProvider = ProbabilitySuffixDefaultProvider.class)
-    Optional<String> m_probabilitySuffix = Optional.empty();
+    @ValueReference(AppendProbabilityColumns.class)
+    boolean m_appendProbabilityColumns = true;
+
+    static final class AppendProbabilityColumns implements BooleanReference {
+    }
+
+    @Persist(configKey = RegressionPredictorSettings.CFG_PROP_COLUMN_SUFFIX)
+    @Widget(title = "Probability column suffix", description = """
+            Suffix for the probability columns.
+            """)
+    @Effect(predicate = AppendProbabilityColumns.class, type = EffectType.SHOW)
+    String m_probabilitySuffix;
 
     static final class PredictionColumnNamePersistor extends PredictionColumnPersistor {
 
         PredictionColumnNamePersistor() {
             super(RegressionPredictorSettings.CFG_HAS_CUSTOM_PREDICTION_NAME,
                 RegressionPredictorSettings.CFG_CUSTOM_PREDICTION_NAME);
-        }
-
-    }
-
-    static final class ProbabilitySuffixPersistor extends OptionalStringPersistor {
-
-        ProbabilitySuffixPersistor() {
-            super(RegressionPredictorSettings.CFG_INCLUDE_PROBABILITIES,
-                RegressionPredictorSettings.CFG_PROP_COLUMN_SUFFIX);
         }
 
     }

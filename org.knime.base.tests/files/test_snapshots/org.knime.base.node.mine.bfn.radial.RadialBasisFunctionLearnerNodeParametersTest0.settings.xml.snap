@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
+    <entry key="missing" type="xint" value="2"/>
+    <entry key="shrink_after_commit" type="xboolean" value="true"/>
+    <entry key="max_class_coverage" type="xboolean" value="false"/>
+    <entry key="max_epochs" type="xint" value="41"/>
+    <config key="target_column">
+        <entry key="array-size" type="xint" value="1"/>
+        <entry key="0" type="xstring" value="Cluster Membership"/>
+    </config>
+    <entry key="distance_function" type="xint" value="0"/>
+    <entry key="theta_minus" type="xdouble" value="0.2"/>
+    <entry key="theta_plus" type="xdouble" value="0.3"/>
+</config>
