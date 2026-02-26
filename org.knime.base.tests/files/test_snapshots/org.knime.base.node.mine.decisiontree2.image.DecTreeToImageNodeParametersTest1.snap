@@ -1,0 +1,303 @@
+{
+  "data" : {
+    "model" : {
+      "width" : 800,
+      "height" : 600,
+      "scaling" : "fixed",
+      "scaleFactor" : 444.9999809265137,
+      "unfoldMethod" : "level",
+      "unfoldToLevel" : 1,
+      "unfoldWithCoverage" : 5.0,
+      "displayTable" : true,
+      "displayChart" : false
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "displayChart" : {
+            "type" : "boolean",
+            "title" : "Display chart",
+            "description" : "If checked, each node of the decision tree will include a bar chart visualizing the class distribution.\nNote that the chart is only available when the optional data input provides a column with color\ninformation.\n",
+            "default" : true
+          },
+          "displayTable" : {
+            "type" : "boolean",
+            "title" : "Display table",
+            "description" : "If checked, each node of the decision tree will include a table showing the class distribution of the\ntraining data that reached that node.\n",
+            "default" : true
+          },
+          "height" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Height (in Pixel)",
+            "description" : "The height of the output image.\n",
+            "default" : 600
+          },
+          "scaleFactor" : {
+            "type" : "number",
+            "format" : "double",
+            "title" : "Zoom",
+            "description" : "The zoom factor applied when <b>Fixed value</b> scaling is selected. Values range from 10% to 500%.\n",
+            "default" : 100.0
+          },
+          "scaling" : {
+            "oneOf" : [ {
+              "const" : "shrink",
+              "title" : "Shrink to image area"
+            }, {
+              "const" : "fit",
+              "title" : "Fit to image area"
+            }, {
+              "const" : "fixed",
+              "title" : "Fixed value"
+            } ],
+            "title" : "Tree scaling",
+            "description" : "Controls how the decision tree is scaled to fit into the image area.\n\n<ul>\n<li><b>Shrink to image area</b>: The tree is only scaled down if it does not fit, ensuring it is always fully visible.\n</li>\n<li><b>Fit to image area</b>: The tree is scaled up or down so it always fills the entire image area.\n</li>\n<li><b>Fixed value</b>: A specific zoom factor is applied regardless of the tree size.\n</li>\n</ul>",
+            "default" : "shrink"
+          },
+          "unfoldMethod" : {
+            "oneOf" : [ {
+              "const" : "totalCoverage",
+              "title" : "Unfold with data coverage"
+            }, {
+              "const" : "level",
+              "title" : "Unfold to level"
+            } ],
+            "title" : "Branch display method",
+            "description" : "Controls which branches of the decision tree are rendered on the image.\n\n<ul>\n<li><b>Unfold with data coverage</b>: All branches whose total data coverage is greater than the specified threshold are displayed.\n</li>\n<li><b>Unfold to level</b>: All nodes from the root (level 0) down to the specified level are displayed.\n</li>\n</ul>",
+            "default" : "totalCoverage"
+          },
+          "unfoldToLevel" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Unfold to level",
+            "description" : "The tree is unfolded from the root (level 0) down to this level. For example, entering 2 will show the\nroot, its children, and their children.\n",
+            "default" : 2
+          },
+          "unfoldWithCoverage" : {
+            "type" : "number",
+            "format" : "double",
+            "title" : "Unfold with data coverage",
+            "description" : "All branches with a total data coverage greater than this threshold are unfolded.\nValues range from 0% to 100%.\n",
+            "default" : 5.0
+          },
+          "width" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Width (in Pixel)",
+            "description" : "The width of the output image.\n",
+            "default" : 800
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/width",
+      "options" : {
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 2147483647.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 2.147483647E9
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 1.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 1.0
+            }
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/height",
+      "options" : {
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 2147483647.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 2.147483647E9
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 1.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 1.0
+            }
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/scaling",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/scaleFactor",
+      "options" : {
+        "stepSize" : 0.1,
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 500.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 500.0
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 10.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 10.0
+            }
+          }
+        }
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/scaling",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "fixed"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/unfoldMethod",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/unfoldToLevel",
+      "options" : {
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 2147483647.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 2.147483647E9
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 0.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 0.0
+            }
+          }
+        }
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/unfoldMethod",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "level"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/unfoldWithCoverage",
+      "options" : {
+        "stepSize" : 0.01,
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 100.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 100.0
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 0.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 0.0
+            }
+          }
+        }
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/unfoldMethod",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "totalCoverage"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/displayTable",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/displayChart",
+      "options" : {
+        "format" : "checkbox"
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "width" : {
+            "configKey" : "width"
+          },
+          "height" : {
+            "configKey" : "height"
+          },
+          "scaling" : {
+            "configKey" : "scaling"
+          },
+          "scaleFactor" : {
+            "configPaths" : [ [ "scaleFactor" ] ]
+          },
+          "unfoldMethod" : {
+            "configKey" : "unfoldMethod"
+          },
+          "unfoldToLevel" : {
+            "configKey" : "unfoldToLevel"
+          },
+          "unfoldWithCoverage" : {
+            "configPaths" : [ [ "unfoldWithCoverage" ] ]
+          },
+          "displayTable" : {
+            "configKey" : "displayTable"
+          },
+          "displayChart" : {
+            "configKey" : "displayChart"
+          }
+        }
+      }
+    }
+  }
+}
