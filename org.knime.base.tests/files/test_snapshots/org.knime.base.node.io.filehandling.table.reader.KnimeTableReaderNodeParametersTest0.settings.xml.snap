@@ -59,11 +59,6 @@
     <config key="transformationParameters">
         <config key="specs">
             <config key="0">
-                <config key="fsLocation">
-                    <entry key="location_present" type="xboolean" value="true"/>
-                    <entry key="file_system_type" type="xstring" value="LOCAL"/>
-                    <entry key="path" type="xstring" value="/tmp/test.table"/>
-                </config>
                 <entry key="sourceIdentifier" type="xstring" value="/tmp/test.table"/>
                 <config key="spec">
                     <config key="0">
@@ -91,6 +86,11 @@
                         <entry key="type" type="xstring" value="{&quot;name&quot;:&quot;type&quot;,&quot;value&quot;:{&quot;type&quot;:{&quot;type&quot;:&quot;tree&quot;,&quot;value&quot;:{&quot;cell_class&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;value&quot;:&quot;org.knime.core.data.def.StringCell&quot;},&quot;is_null&quot;:{&quot;type&quot;:&quot;boolean&quot;,&quot;value&quot;:false}}}}}"/>
                         <entry key="hasType" type="xboolean" value="true"/>
                     </config>
+                </config>
+                <config key="fsLocation">
+                    <entry key="location_present" type="xboolean" value="true"/>
+                    <entry key="file_system_type" type="xstring" value="LOCAL"/>
+                    <entry key="path" type="xstring" value="/tmp/test.table"/>
                 </config>
             </config>
         </config>
