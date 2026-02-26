@@ -71,9 +71,7 @@ import org.knime.base.node.io.filehandling.webui.reader2.ReaderSpecific.Producti
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.ColumnSpecSettings;
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.TableSpecSettings;
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.TableSpecSettingsRef;
-import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.TransformationElementSettings;
-import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.TransformationElementSettings.ColumnNameRef;
-import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.TransformationElementSettingsData;
+import org.knime.base.node.io.filehandling.webui.reader2.TransformationElementSettings.ColumnNameRef;
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.TransformationElementSettingsRef;
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParametersStateProviders.DependsOnTypedReaderTableSpecProvider.TypedReaderTableSpecWithLocation;
 import org.knime.core.data.DataType;
@@ -544,7 +542,7 @@ public final class TransformationParametersStateProviders {
     }
 
     static class InitialTransformationElementSettingsStateProvider
-        implements StateProvider<TransformationElementSettingsData[]> {
+        implements StateProvider<TransformationElementSettings.Data[]> {
 
         Supplier<TransformationElementSettings[]> m_initialTransformationElementSettingsSupplier;
 
@@ -557,12 +555,12 @@ public final class TransformationParametersStateProviders {
         }
 
         @Override
-        public TransformationElementSettingsData[] computeState(final NodeParametersInput parametersInput)
+        public TransformationElementSettings.Data[] computeState(final NodeParametersInput parametersInput)
             throws StateComputationFailureException {
             return Arrays.stream(m_initialTransformationElementSettingsSupplier.get())
-                .map(TransformationElementSettingsData::new) //
+                .map(TransformationElementSettings.Data::new) //
                 .toList() //
-                .toArray(TransformationElementSettingsData[]::new);
+                .toArray(TransformationElementSettings.Data[]::new);
         }
     }
 
@@ -572,7 +570,7 @@ public final class TransformationParametersStateProviders {
      */
     static class TransformationElementsDirtyTrackerStateProvider implements StateProvider<Boolean> {
 
-        Supplier<TransformationElementSettingsData[]> m_initialSpecSupplier;
+        Supplier<TransformationElementSettings.Data[]> m_initialSpecSupplier;
 
         Supplier<TransformationElementSettings[]> m_currentSpecSupplier;
 
@@ -592,7 +590,7 @@ public final class TransformationParametersStateProviders {
                 return false;
             }
 
-            return !TransformationElementSettingsData.areSettingsMatching(initialSpecs, currentSpecs);
+            return !TransformationElementSettings.Data.areSettingsMatching(initialSpecs, currentSpecs);
         }
     }
 

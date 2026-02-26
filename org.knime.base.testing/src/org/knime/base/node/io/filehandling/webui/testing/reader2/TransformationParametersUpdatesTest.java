@@ -76,7 +76,7 @@ import org.knime.base.node.io.filehandling.webui.reader2.MultiFileReaderParamete
 import org.knime.base.node.io.filehandling.webui.reader2.ReaderSpecific.ExternalDataTypeSerializer;
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters;
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.TableSpecSettings;
-import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.TransformationElementSettings;
+import org.knime.base.node.io.filehandling.webui.reader2.TransformationElementSettings;
 import org.knime.base.node.io.filehandling.webui.testing.LocalWorkflowContextTest;
 import org.knime.core.data.DataType;
 import org.knime.core.data.def.DoubleCell;

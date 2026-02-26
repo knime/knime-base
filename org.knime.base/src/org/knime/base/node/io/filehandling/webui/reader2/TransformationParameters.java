@@ -73,14 +73,10 @@ import org.knime.core.data.DataType;
 import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dirty.DirtyTracker;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.WidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.datatype.convert.ProductionPathUtils;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.datatype.convert.ProductionPathUtils.ProductionPathPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
@@ -92,7 +88,6 @@ import org.knime.filehandling.core.node.table.reader.config.MultiTableReadConfig
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigID;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.DefaultTableSpecConfig;
-import org.knime.filehandling.core.node.table.reader.config.tablespec.ProductionPathSerializer;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.ImmutableUnknownColumnsTransformation;
@@ -102,30 +97,19 @@ import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.node.parameters.Advanced;
 import org.knime.node.parameters.NodeParameters;
-import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
-import org.knime.node.parameters.WidgetGroup;
 import org.knime.node.parameters.array.ArrayWidget;
 import org.knime.node.parameters.layout.After;
 import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.layout.Section;
 import org.knime.node.parameters.migration.NodeParametersMigration;
-import org.knime.node.parameters.persistence.NodeParametersPersistor;
-import org.knime.node.parameters.persistence.Persistable;
 import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.updates.Effect;
 import org.knime.node.parameters.updates.Effect.EffectType;
-import org.knime.node.parameters.updates.EffectPredicate;
-import org.knime.node.parameters.updates.EffectPredicateProvider;
 import org.knime.node.parameters.updates.ParameterReference;
-import org.knime.node.parameters.updates.StateProvider;
 import org.knime.node.parameters.updates.ValueProvider;
 import org.knime.node.parameters.updates.ValueReference;
-import org.knime.node.parameters.widget.text.TextInputWidget;
 import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils;
-
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 /**
  * Extend these settings to define the transformation settings for a reader node. Use the {@link ConfigIdSettings}
@@ -266,332 +250,6 @@ public abstract class TransformationParameters<T>
     @DirtyTracker(TransformationParametersStateProviders.TransformationElementsDirtyTrackerStateProvider.class)
     Void m_dirtyTracker;
 
-    /**
-     * A "data copy" of the {@link TransformationElementSettings}, but without all the UI specific annotations. Just
-     * reusing the {@link TransformationElementSettings} directly does not work, as then some references show up twice
-     * and therefore widget modifications don't work.
-     */
-    static class TransformationElementSettingsData {
-        String m_columnName;
-
-        String m_originalProductionPath;
-
-        String m_originalTypeLabel;
-
-        boolean m_includeInOutput;
-
-        String m_columnRename;
-
-        String m_productionPath;
-
-        private TransformationElementSettingsData() {
-            // needed by framework
-        }
-
-        TransformationElementSettingsData(final TransformationElementSettings settings) {
-            m_columnName = settings.m_columnName;
-            m_originalProductionPath = settings.m_originalProductionPath;
-            m_originalTypeLabel = settings.m_originalTypeLabel;
-            m_includeInOutput = settings.m_includeInOutput;
-            m_columnRename = settings.m_columnRename;
-            m_productionPath = settings.m_productionPath;
-        }
-
-        @SuppressWarnings("java:S1067") // number of conditional operators
-        private boolean matches(TransformationElementSettings other) {
-            return Objects.equals(m_columnName, other.m_columnName)
-                && Objects.equals(m_originalProductionPath, other.m_originalProductionPath)
-                && Objects.equals(m_originalTypeLabel, other.m_originalTypeLabel)
-                && m_includeInOutput == other.m_includeInOutput && Objects.equals(m_columnRename, other.m_columnRename)
-                && Objects.equals(m_productionPath, other.m_productionPath);
-        }
-
-        static boolean areSettingsMatching(TransformationElementSettingsData[] data,
-            TransformationElementSettings[] settings) {
-            if (data.length != settings.length) {
-                return false;
-            }
-            for (int i = 0; i < data.length; i++) {
-                if (!data[i].matches(settings[i])) {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        static class DoNotPersist implements NodeParametersPersistor<TransformationElementSettingsData[]> {
-
-            @Override
-            public TransformationElementSettingsData[] load(NodeSettingsRO settings) throws InvalidSettingsException {
-                return new TransformationElementSettingsData[0];
-            }
-
-            @Override
-            public void save(TransformationElementSettingsData[] param, NodeSettingsWO settings) {
-                // do nothing
-            }
-
-            @Override
-            public String[][] getConfigPaths() {
-                return new String[0][];
-            }
-        }
-    }
-
-    /**
-     * Visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
-     */
-    public static class TransformationElementSettings implements WidgetGroup, Persistable {
-
-        static class ColumnNameRef implements ParameterReference<String> {
-        }
-
-        static final class ColumnNameIsNull implements EffectPredicateProvider {
-            @Override
-            public EffectPredicate init(final PredicateInitializer i) {
-                return i.getString(ColumnNameRef.class).isEqualTo(null);
-            }
-        }
-
-        /**
-         * visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
-         */
-        @ValueReference(ColumnNameRef.class)
-        @JsonInclude(Include.ALWAYS) // Necessary for the ColumnNameIsNull PredicateProvider to work
-        public String m_columnName;
-
-        static class OriginalProductionPathRef implements ParameterReference<String> {
-        }
-
-        /**
-         * visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
-         */
-        @ValueReference(OriginalProductionPathRef.class)
-        @Persistor(OriginalPathPersistor.class)
-        public String m_originalProductionPath;
-
-        static final class OriginalPathPersistor extends ProductionPathPersistor {
-
-            private static final String CFG_ORIGINAL_PRODUCTION_PATH = "originalProductionPath";
-
-            OriginalPathPersistor() {
-                super(CFG_ORIGINAL_PRODUCTION_PATH);
-            }
-
-            @Override
-            public String load(final NodeSettingsRO settings) throws InvalidSettingsException {
-                if (settings.containsKey(CFG_ORIGINAL_PRODUCTION_PATH)) {
-                    return super.load(settings);
-                }
-                return TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID;
-            }
-
-            @Override
-            public void save(final String param, final NodeSettingsWO settings) {
-                if (TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID.equals(param)) {
-                    // do not save default value
-                    return;
-                }
-                super.save(param, settings);
-            }
-        }
-
-        static class OriginalProductionPathLabelRef implements ParameterReference<String> {
-        }
-
-        @ValueReference(OriginalProductionPathLabelRef.class)
-        String m_originalTypeLabel;
-
-        /**
-         * Visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
-         */
-        @Widget(title = "Include in output", description = "") // TODO NOSONAR UIEXT-1901 add description
-        @ArrayWidgetInternal.ElementCheckboxWidget
-        public boolean m_includeInOutput;
-
-        static final class ColumnNameResetter implements StateProvider<String> {
-
-            private Supplier<String> m_originalColumnNameSupplier;
-
-            @Override
-            public void init(final StateProviderInitializer initializer) {
-                initializer.computeOnButtonClick(ArrayWidgetInternal.ElementResetButton.class);
-                m_originalColumnNameSupplier = initializer.getValueSupplier(ColumnNameRef.class);
-            }
-
-            @Override
-            public String computeState(final NodeParametersInput context) {
-                return m_originalColumnNameSupplier.get();
-            }
-        }
-
-        static final class TypeResetter implements StateProvider<String> {
-
-            private Supplier<String> m_originalTypeSupplier;
-
-            @Override
-            public void init(final StateProviderInitializer initializer) {
-                initializer.computeOnButtonClick(ArrayWidgetInternal.ElementResetButton.class);
-                m_originalTypeSupplier = initializer.getValueSupplier(OriginalProductionPathRef.class);
-            }
-
-            @Override
-            public String computeState(final NodeParametersInput context) {
-                return m_originalTypeSupplier.get();
-            }
-        }
-
-        static final class TitleProvider implements StateProvider<String> {
-
-            private Supplier<String> m_originalColumnNameSupplier;
-
-            @Override
-            public void init(final StateProviderInitializer initializer) {
-                initializer.computeOnValueChange(TableSpecSettingsRef.class);
-                m_originalColumnNameSupplier = initializer.getValueSupplier(ColumnNameRef.class);
-            }
-
-            @Override
-            public String computeState(final NodeParametersInput context) {
-                final var originalName = m_originalColumnNameSupplier.get();
-                return originalName == null ? "Any unknown column" : originalName;
-            }
-        }
-
-        static final class SubTitleProvider implements StateProvider<String> {
-
-            private Supplier<String> m_originalTypeLabelSupplier;
-
-            @Override
-            public void init(final StateProviderInitializer initializer) {
-                initializer.computeOnValueChange(TableSpecSettingsRef.class);
-                m_originalTypeLabelSupplier = initializer.getValueSupplier(OriginalProductionPathLabelRef.class);
-            }
-
-            @Override
-            public String computeState(final NodeParametersInput context) {
-                return m_originalTypeLabelSupplier.get();
-            }
-        }
-
-        static final class ElementIsEditedAndColumnNameIsNotNull implements EffectPredicateProvider {
-            @Override
-            public EffectPredicate init(final PredicateInitializer i) {
-                return i.getPredicate(ArrayWidgetInternal.ElementIsEdited.class)
-                    .and(i.getPredicate(ColumnNameIsNull.class).negate());
-            }
-        }
-
-        /**
-         * visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
-         */
-        @Widget(title = "Column name", description = "")
-        @WidgetInternal(hideControlHeader = true)
-        @ValueProvider(ColumnNameResetter.class)
-        @Effect(predicate = ElementIsEditedAndColumnNameIsNotNull.class, type = EffectType.SHOW)
-        @JsonInclude(Include.ALWAYS) // Necessary for comparison against m_columnName
-        @TextInputWidget(patternValidation = ColumnNameValidationUtils.ColumnNameValidation.class)
-        public String m_columnRename;
-
-        /**
-         * visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
-         */
-        @Widget(title = "Column type", description = "")
-        @WidgetInternal(hideControlHeader = true)
-        // for adding dynamic choices
-        @Modification.WidgetReference(TransformationSettingsWidgetModification.TypeChoicesWidgetRef.class)
-        @ValueProvider(TypeResetter.class)
-        @Effect(predicate = ArrayWidgetInternal.ElementIsEdited.class, type = EffectType.SHOW)
-        @Persistor(PathPersistor.class)
-        public String m_productionPath;
-
-        static final class PathPersistor extends ProductionPathPersistor {
-
-            private static final String CFG_UNKNOWNS_COLUMN_DATA_TYPE = "unknownsColumnDataType";
-
-            private static final String CFG_PRODUCTION_PATH = "productionPath";
-
-            PathPersistor() {
-                super(CFG_PRODUCTION_PATH);
-            }
-
-            @Override
-            public String load(final NodeSettingsRO settings) throws InvalidSettingsException {
-                if (settings.containsKey(CFG_UNKNOWNS_COLUMN_DATA_TYPE)) {
-                    return settings.getString(CFG_UNKNOWNS_COLUMN_DATA_TYPE);
-                }
-                return super.load(settings);
-            }
-
-            @Override
-            public void save(final String param, final NodeSettingsWO settings) {
-                if (ProductionPathUtils.isPathIdentifier(param)) {
-                    super.save(param, settings);
-                } else {
-                    settings.addString(CFG_UNKNOWNS_COLUMN_DATA_TYPE, param);
-                }
-            }
-        }
-
-        TransformationElementSettings() {
-        }
-
-        /**
-         * visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
-         */
-        @SuppressWarnings("javadoc")
-        public TransformationElementSettings(final String columnName, final boolean includeInOutput,
-            final String columnRename, final String type, final String originalType, final String originalTypeLabel) {
-            m_columnName = columnName;
-            m_includeInOutput = includeInOutput;
-            m_columnRename = columnRename;
-            m_productionPath = type; // converter fac id
-            m_originalProductionPath = originalType; // converter fac id
-            m_originalTypeLabel = originalTypeLabel;
-        }
-
-        /**
-         * Constructor for concrete columns.
-         *
-         * @param columnName
-         * @param includeInOutput
-         * @param columnRename
-         * @param productionPath
-         * @param defaultProductionPath
-         * @param productionPathSerializer
-         */
-        TransformationElementSettings(final String columnName, final boolean includeInOutput, final String columnRename,
-            final ProductionPath productionPath, final ProductionPath defaultProductionPath,
-            final ProductionPathSerializer productionPathSerializer) {
-            this(columnName, includeInOutput, columnRename, //
-                ProductionPathUtils.getPathIdentifier(productionPath, productionPathSerializer), //
-                ProductionPathUtils.getPathIdentifier(defaultProductionPath, productionPathSerializer), //
-                defaultProductionPath.getDestinationType().toPrettyString() //
-            );
-        }
-
-        /**
-         * Constructor for unknown columns.
-         *
-         * @param includeInOutput
-         * @param dataType Override data type for unknown columns. Leave null for using the default type.
-         */
-        TransformationElementSettings(final boolean includeInOutput, final DataType dataType) {
-            this(null, includeInOutput, null,
-                dataType == null ? TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID : getDataTypeId(dataType),
-                TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID, //
-                TypeChoicesProvider.DEFAULT_COLUMNTYPE_TEXT //
-            );
-        }
-
-        /**
-         * visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
-         */
-        public static TransformationElementSettings createUnknownElement() {
-            return new TransformationElementSettings(true, null);
-        }
-    }
-
     static final class TransformationElementSettingsRef implements ParameterReference<TransformationElementSettings[]> {
     }
 
@@ -611,13 +269,13 @@ public abstract class TransformationParameters<T>
         new TransformationElementSettings[]{TransformationElementSettings.createUnknownElement()};
 
     static final class InitialTransformationElementSettingsRef
-        implements ParameterReference<TransformationElementSettingsData[]> {
+        implements ParameterReference<TransformationElementSettings.Data[]> {
     }
 
     @ValueReference(InitialTransformationElementSettingsRef.class)
     @ValueProvider(TransformationParametersStateProviders.InitialTransformationElementSettingsStateProvider.class)
-    @Persistor(TransformationElementSettingsData.DoNotPersist.class)
-    TransformationElementSettingsData[] m_initialColumnTransformation = new TransformationElementSettingsData[0];
+    @Persistor(TransformationElementSettings.Data.DoNotPersist.class)
+    TransformationElementSettings.Data[] m_initialColumnTransformation = new TransformationElementSettings.Data[0];
 
     /**
      * Call this method in a reader node's ConfigAndSourceSerializer to save the transformation settings to the config

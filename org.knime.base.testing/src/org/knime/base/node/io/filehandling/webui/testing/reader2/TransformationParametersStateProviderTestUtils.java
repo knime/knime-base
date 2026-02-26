@@ -61,7 +61,7 @@ import org.knime.base.node.io.filehandling.webui.reader2.ReaderSpecific.External
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters;
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.ColumnSpecSettings;
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.TableSpecSettings;
-import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.TransformationElementSettings;
+import org.knime.base.node.io.filehandling.webui.reader2.TransformationElementSettings;
 import org.knime.core.data.DataType;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
