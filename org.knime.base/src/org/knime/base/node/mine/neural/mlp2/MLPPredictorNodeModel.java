@@ -138,7 +138,7 @@ public final class MLPPredictorNodeModel extends NodeModel {
 
     private final SettingsModelBoolean m_appendProbs = createAppendProbs();
 
-    private static final String CFGKEY_APPEND_PROBS = "append probabilities";
+    static final String CFGKEY_APPEND_PROBS = "append probabilities";
     private static final boolean DEFAULT_APPEND_PROBS = true;
     /**
      * @return The "append probabilities" node model.
