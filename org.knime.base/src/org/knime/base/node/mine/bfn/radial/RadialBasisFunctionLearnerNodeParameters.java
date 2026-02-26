@@ -44,69 +44,44 @@
  * ------------------------------------------------------------------------
  */
 
-package org.knime.base.node.mine.svm.predictor2;
+package org.knime.base.node.mine.bfn.radial;
 
-import java.util.Optional;
-
-import org.knime.base.node.mine.util.PredictorHelper;
-import org.knime.base.node.mine.util.PredictorHelper.PredictionColumnNameDefaultProvider;
-import org.knime.base.node.mine.util.PredictorHelper.PredictionColumnPersistor;
-import org.knime.node.parameters.NodeParameters;
+import org.knime.base.node.mine.bfn.BasisFunctionLearnerNodeParameters;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
 import org.knime.node.parameters.persistence.Persist;
-import org.knime.node.parameters.persistence.Persistor;
-import org.knime.node.parameters.updates.Effect;
-import org.knime.node.parameters.updates.Effect.EffectType;
-import org.knime.node.parameters.updates.ValueReference;
-import org.knime.node.parameters.updates.util.BooleanReference;
-import org.knime.node.parameters.widget.OptionalWidget;
-import org.knime.node.parameters.widget.text.TextInputWidget;
-import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils.ColumnNameValidation;
+import org.knime.node.parameters.widget.number.NumberInputWidget;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MaxValidation;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsNonNegativeValidation;
 
 /**
- * Node parameters for SVM Predictor.
+ * Node parameters for PNN Learner (DDA).
  *
  * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
  * @author AI Migration Pipeline v1.2
  */
-@SuppressWarnings("restriction")
 @LoadDefaultsForAbsentFields
-final class SVMPredictorNodeParameters implements NodeParameters {
+final class RadialBasisFunctionLearnerNodeParameters extends BasisFunctionLearnerNodeParameters {
 
-    @Persistor(PredictionColumnNamePersistor.class)
-    @Widget(title = "Custom prediction column name", description = """
-            Allows you to specify a customized name for the prediction column that is appended to the input table.
-            If not checked, <tt>Prediction(target)</tt> (where target is the name of the target column of the provided
-            regression model) is used as default.
+    @Widget(title = "Theta minus", description = """
+            This defines the upper boundary of activation for conflicting rules.
             """)
-    @OptionalWidget(defaultProvider = PredictionColumnNameDefaultProvider.class)
-    @TextInputWidget(patternValidation = ColumnNameValidation.class)
-    Optional<String> m_predictionColumnName = Optional.empty();
+    @NumberInputWidget(minValidation = IsNonNegativeValidation.class, maxValidation = MaximumOneValidation.class)
+    @Persist(configKey = RadialBasisFunctionFactory.THETA_MINUS)
+    double m_thetaMinus = RadialBasisFunctionLearnerNodeModel.THETAMINUS;
 
-    @Persist(configKey = SVMPredictorNodeModel.CFGKEY_ADD_PROBABILITIES)
-    @Widget(title = "Append columns with normalized class distribution", description = """
-            If selected, a column is appended for each class instance with the normalized probability
-            of this row being a member of this class. The probability columns will have names like:
-            <tt>P(targetColumn=value)</tt>.
+    @Widget(title = "Theta plus", description = """
+            This defines the lower boundary of activation for non-conflicting rules.
             """)
-    @ValueReference(AppendProbabilityColumns.class)
-    boolean m_appendProbabilityColumns = true;
+    @NumberInputWidget(minValidation = IsNonNegativeValidation.class, maxValidation = MaximumOneValidation.class)
+    @Persist(configKey = RadialBasisFunctionFactory.THETA_PLUS)
+    double m_thetaPlus = RadialBasisFunctionLearnerNodeModel.THETAPLUS;
 
-    static final class AppendProbabilityColumns implements BooleanReference {
-    }
+    static final class MaximumOneValidation extends MaxValidation {
 
-    @Persist(configKey = PredictorHelper.CFGKEY_SUFFIX)
-    @Widget(title = "Probability column suffix", description = """
-            Suffix for the probability columns.
-            """)
-    @Effect(predicate = AppendProbabilityColumns.class, type = EffectType.SHOW)
-    String m_probabilitySuffix;
-
-    static final class PredictionColumnNamePersistor extends PredictionColumnPersistor {
-
-        PredictionColumnNamePersistor() {
-            super(PredictorHelper.CFGKEY_CHANGE_PREDICTION, PredictorHelper.CFGKEY_PREDICTION_COLUMN);
+        @Override
+        protected double getMax() {
+            return 1;
         }
 
     }

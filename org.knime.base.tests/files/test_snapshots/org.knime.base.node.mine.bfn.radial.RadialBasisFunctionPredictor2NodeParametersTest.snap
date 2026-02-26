@@ -1,9 +1,12 @@
 {
   "data" : {
     "model" : {
-      "maxNumCoveredPattern" : 10000,
+      "dontKnowClass" : {
+        "mode" : "IGNORE",
+        "threshold" : 0.0
+      },
       "predictionColumnName" : null,
-      "appendProbabilityColumns" : true
+      "appendProbabilityColumns" : false
     }
   },
   "schema" : {
@@ -16,14 +19,38 @@
             "type" : "boolean",
             "title" : "Append columns with normalized class distribution",
             "description" : "If selected, a column is appended for each class instance with the normalized probability\nof this row being a member of this class. The probability columns will have names like:\n<tt>P(targetColumn=value)</tt>.\n",
-            "default" : true
+            "default" : false
           },
-          "maxNumCoveredPattern" : {
-            "type" : "integer",
-            "format" : "int32",
-            "title" : "Number of patterns for hiliting",
-            "description" : "Determines the maximum number of patterns the tree will store to support hiliting.\n",
-            "default" : 10000
+          "dontKnowClass" : {
+            "type" : "object",
+            "properties" : {
+              "mode" : {
+                "oneOf" : [ {
+                  "const" : "DEFAULT",
+                  "title" : "Default"
+                }, {
+                  "const" : "IGNORE",
+                  "title" : "Ignore"
+                }, {
+                  "const" : "CUSTOM_THRESHOLD",
+                  "title" : "Custom threshold"
+                } ],
+                "title" : "Unkown class handling",
+                "description" : "Select how to handle cases where the activation degree for all classes is below a certain threshold.\n\n<ul>\n<li><b>Default</b>: Use the minimum activation threshold from the learning algorithm.</li>\n<li><b>Ignore</b>: If selected, no lower degree of class activation is set.</li>\n<li><b>Custom threshold</b>: Instances where the activation lies below this threshold are classified as a missing (unknown)\nclass. This is useful in cases where the feature space is not completely covered by rules.\n</li>\n</ul>",
+                "default" : "IGNORE"
+              },
+              "threshold" : {
+                "type" : "number",
+                "format" : "double",
+                "title" : "Threshold",
+                "description" : "The threshold value between 0 and 1. Instances where the activation lies below this threshold\nare classified as unknown.\n",
+                "default" : 0.0
+              }
+            },
+            "default" : {
+              "mode" : "IGNORE",
+              "threshold" : 0.0
+            }
           },
           "predictionColumnName" : {
             "type" : [ "string", "null" ],
@@ -34,7 +61,7 @@
           "probabilitySuffix" : {
             "type" : "string",
             "title" : "Probability column suffix",
-            "description" : "Suffix for the probability columns.\n"
+            "description" : "Suffix for the probability columns."
           }
         }
       }
@@ -43,15 +70,20 @@
   "ui_schema" : {
     "elements" : [ {
       "type" : "Control",
-      "scope" : "#/properties/model/properties/maxNumCoveredPattern",
+      "scope" : "#/properties/model/properties/dontKnowClass/properties/mode",
       "options" : {
-        "stepSize" : 100.0,
+        "format" : "valueSwitch"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/dontKnowClass/properties/threshold",
+      "options" : {
         "validation" : {
           "max" : {
-            "errorMessage" : "The value must not exceed 2147483647.",
+            "errorMessage" : "The value must not exceed 1.",
             "parameters" : {
               "isExclusive" : false,
-              "max" : 2.147483647E9
+              "max" : 1.0
             }
           },
           "min" : {
@@ -60,6 +92,17 @@
               "isExclusive" : false,
               "min" : 0.0
             }
+          }
+        }
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/dontKnowClass/properties/mode",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "CUSTOM_THRESHOLD"
+            } ]
           }
         }
       }
@@ -104,14 +147,14 @@
       "model" : {
         "type" : "object",
         "properties" : {
-          "maxNumCoveredPattern" : {
-            "configKey" : "UseGainRatio"
+          "dontKnowClass" : {
+            "configPaths" : [ [ "ignore_dont_know" ], [ "dont_know_prop" ] ]
           },
           "predictionColumnName" : {
             "configPaths" : [ [ "change prediction" ], [ "prediction column name" ] ]
           },
           "appendProbabilityColumns" : {
-            "configKey" : "ShowDistribution"
+            "configKey" : "append_class_probabilities"
           },
           "probabilitySuffix" : {
             "configKey" : "class probability suffix"
@@ -125,7 +168,7 @@
     "providedOptionName" : "default",
     "values" : [ {
       "indices" : [ ],
-      "value" : "Prediction (Cluster Membership)"
+      "value" : "Prediction (support)"
     } ]
   } ]
 }

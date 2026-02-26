@@ -51,13 +51,15 @@ import java.util.Optional;
 import org.knime.base.node.mine.util.PredictorHelper;
 import org.knime.base.node.mine.util.PredictorHelper.PredictionColumnNameDefaultProvider;
 import org.knime.base.node.mine.util.PredictorHelper.PredictionColumnPersistor;
-import org.knime.base.node.mine.util.PredictorHelper.ProbabilitySuffixDefaultProvider;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
 import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistor;
-import org.knime.node.parameters.persistence.legacy.OptionalStringPersistor;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.updates.util.BooleanReference;
 import org.knime.node.parameters.widget.OptionalWidget;
 import org.knime.node.parameters.widget.number.NumberInputWidget;
 import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsNonNegativeValidation;
@@ -91,27 +93,29 @@ final class DecTreePredictorNodeParameters implements NodeParameters {
     @TextInputWidget(patternValidation = ColumnNameValidation.class)
     Optional<String> m_predictionColumnName = Optional.empty();
 
-    @Persistor(ProbabilitySuffixPersistor.class)
+    @Persist(configKey = DecTreePredictorNodeModel.SHOW_DISTRIBUTION)
     @Widget(title = "Append columns with normalized class distribution", description = """
             If selected, a column is appended for each class instance with the normalized probability
             of this row being a member of this class. The probability columns will have names like:
-            <tt>P(targetColumn=value)</tt> with an optional suffix that can be specified.
+            <tt>P(targetColumn=value)</tt>.
             """)
-    @OptionalWidget(defaultProvider = ProbabilitySuffixDefaultProvider.class)
-    Optional<String> m_probabilitySuffix = Optional.empty();
+    @ValueReference(AppendProbabilityColumns.class)
+    boolean m_appendProbabilityColumns = true;
+
+    static final class AppendProbabilityColumns implements BooleanReference {
+    }
+
+    @Persist(configKey = PredictorHelper.CFGKEY_SUFFIX)
+    @Widget(title = "Probability column suffix", description = """
+            Suffix for the probability columns.
+            """)
+    @Effect(predicate = AppendProbabilityColumns.class, type = EffectType.SHOW)
+    String m_probabilitySuffix;
 
     static final class PredictionColumnNamePersistor extends PredictionColumnPersistor {
 
         PredictionColumnNamePersistor() {
             super(PredictorHelper.CFGKEY_CHANGE_PREDICTION, PredictorHelper.CFGKEY_PREDICTION_COLUMN);
-        }
-
-    }
-
-    static final class ProbabilitySuffixPersistor extends OptionalStringPersistor {
-
-        ProbabilitySuffixPersistor() {
-            super(DecTreePredictorNodeModel.SHOW_DISTRIBUTION, PredictorHelper.CFGKEY_SUFFIX);
         }
 
     }

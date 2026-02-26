@@ -4,5 +4,5 @@
     <entry key="change prediction" type="xboolean" value="false"/>
     <entry key="prediction column name" type="xstring" value="Prediction ()"/>
     <entry key="ShowDistribution" type="xboolean" value="false"/>
-    <entry key="class probability suffix" type="xstring" isnull="true" value=""/>
+    <entry key="class probability suffix" type="xstring" value=""/>
 </config>
