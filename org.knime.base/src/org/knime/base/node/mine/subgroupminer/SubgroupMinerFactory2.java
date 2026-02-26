@@ -141,7 +141,7 @@ public class SubgroupMinerFactory2 extends NodeFactory<SubgroupMinerModel2>
 
     /**
      * {@inheritDoc}
-     * @since 5.11
+     * @since 5.12
      */
     @Override
     public NodeDialog createNodeDialog() {
@@ -168,7 +168,7 @@ public class SubgroupMinerFactory2 extends NodeFactory<SubgroupMinerModel2>
 
     /**
      * {@inheritDoc}
-     * @since 5.11
+     * @since 5.12
      */
     @Override
     public KaiNodeInterface createKaiNodeInterface() {
