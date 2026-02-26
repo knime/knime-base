@@ -44,56 +44,132 @@
  */
 package org.knime.base.node.preproc.rowsplit;
 
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
 
 /**
- * 
+ * {@link NodeFactory} for the "Numeric Row Splitter" Node.
+ *
  * @author Thomas Gabriel, University of Konstanz
+ * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.2
  */
-public class NumericRowSplitterNodeFactory extends NodeFactory {
+@SuppressWarnings("restriction")
+public class NumericRowSplitterNodeFactory extends NodeFactory implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new NumericRowSplitterNodeDialogPane();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public NodeModel createNodeModel() {
         return new NumericRowSplitterNodeModel();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public NodeView createNodeView(final int viewIndex, 
+    public NodeView createNodeView(final int viewIndex,
             final NodeModel nodeModel) {
         return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected int getNrNodeViews() {
         return 0;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected boolean hasDialog() {
         return true;
+    }
+
+    private static final String NODE_NAME = "Numeric Row Splitter";
+
+    private static final String NODE_ICON = "./numericrowsplitter.png";
+
+    private static final String SHORT_DESCRIPTION = """
+            Node splits the input data according to a given numeric range. The first output port contains the data that
+            matches the criteria, the second the that does not comply with the settings.
+            """;
+
+    private static final String FULL_DESCRIPTION = """
+            This node uses a well-defined numeric range to split the input data into two parts. While the first output
+            port contains the data that matches the criteria, the second contains the data that does not comply with
+            the settings. Within the dialog the user can select one numeric column and optionally specify a lower and
+            upper bound on it to split the data that matches/does not match the criteria.
+            """;
+
+    private static final List<PortDescription> INPUT_PORTS = List.of(
+            fixedPort("Input", """
+                Arbitrary input data.
+                """)
+    );
+
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(
+            fixedPort("Data accepted", """
+                Data that matches numeric filter criteria.
+                """),
+            fixedPort("Data discarded", """
+                Data that does not match filter criteria.
+                """)
+    );
+
+    /**
+     * {@inheritDoc}
+     * @since 5.12
+     */
+    @Override
+    public NodeDialogPane createNodeDialogPane() {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    /**
+     * {@inheritDoc}
+     * @since 5.12
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, NumericRowSplitterNodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription( //
+            NODE_NAME, //
+            NODE_ICON, //
+            INPUT_PORTS, //
+            OUTPUT_PORTS, //
+            SHORT_DESCRIPTION, //
+            FULL_DESCRIPTION, //
+            List.of(), //
+            NumericRowSplitterNodeParameters.class, //
+            null, //
+            NodeType.Manipulator, //
+            List.of(), //
+            null //
+        );
+    }
+
+    /**
+     * {@inheritDoc}
+     * @since 5.12
+     */
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, NumericRowSplitterNodeParameters.class));
     }
 
 }
