@@ -58,10 +58,11 @@ import java.util.stream.IntStream;
 import org.knime.base.node.io.filehandling.webui.reader2.ClassSerializer;
 import org.knime.base.node.io.filehandling.webui.reader2.DataTypeSerializer;
 import org.knime.base.node.io.filehandling.webui.reader2.ReaderSpecific.ExternalDataTypeSerializer;
+import org.knime.base.node.io.filehandling.webui.reader2.TableSpecSettings;
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters;
-import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.ColumnSpecSettings;
-import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.TableSpecSettings;
-import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.TransformationElementSettings;
+import org.knime.base.node.io.filehandling.webui.reader2.ColumnSpecSettings;
+import org.knime.base.node.io.filehandling.webui.reader2.TableSpecSettingsWithFsLocation;
+import org.knime.base.node.io.filehandling.webui.reader2.TransformationElementSettings;
 import org.knime.core.data.DataType;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
@@ -93,18 +94,14 @@ public final class TransformationParametersStateProviderTestUtils {
      * @param columNames the names of the columns
      * @param types the types of the columns
      */
-    public static <S> void assertTableSpec(final TableSpecSettings[] specs, final String file,
+    public static <S> void assertTableSpec(final TableSpecSettingsWithFsLocation[] specs, final String file,
         final String[] columNames, final List<S> types) {
+        assertTableSpec(specs, columNames, types);
         assertThat(specs).hasSize(1);
         final var spec = specs[0];
         if (file != null) {
             assertThat(spec.m_fsLocation.getPath()).isEqualTo(file);
             assertThat(spec.m_sourceIdentifier).isEqualTo(file);
-        }
-        assertThat(spec.m_spec).hasSize(columNames.length);
-        for (int i = 0; i < columNames.length; i++) {
-            assertThat(spec.m_spec[i].m_name).isEqualTo(columNames[i]);
-            assertThat(spec.m_spec[i].m_type).isEqualTo(types.get(i));
         }
     }
 
@@ -112,13 +109,19 @@ public final class TransformationParametersStateProviderTestUtils {
      * Use this method to assert the result of a simulated value update of specs.
      *
      * @param <S> the serialize type for external data types
-     * @param specsObj to assert
+     * @param specs to assert
      * @param columNames the names of the columns
      * @param types the types of the columns
      */
-    public static <S> void assertTableSpec(final TableSpecSettings[] specsObj, final String[] columNames,
-        final List<S> types) {
-        assertTableSpec(specsObj, null, columNames, types);
+    public static <S> void assertTableSpec(final TableSpecSettings[] specs, final String[] columNames,
+                                           final List<S> types) {
+        assertThat(specs).hasSize(1);
+        final var spec = specs[0];
+        assertThat(spec.m_spec).hasSize(columNames.length);
+        for (int i = 0; i < columNames.length; i++) {
+            assertThat(spec.m_spec[i].m_name).isEqualTo(columNames[i]);
+            assertThat(spec.m_spec[i].m_type).isEqualTo(types.get(i));
+        }
     }
 
     /**
@@ -133,8 +136,9 @@ public final class TransformationParametersStateProviderTestUtils {
         final var columnSpecSettings = IntStream.range(0, columnNames.size())
             .mapToObj(i -> new ColumnSpecSettings(columnNames.get(i), columnTypes.get(i), true))
             .toArray(ColumnSpecSettings[]::new);
-        transformationSettings.m_specs = new TableSpecSettings[]{new TableSpecSettings("existingSource",
-            new FSLocation(FSCategory.LOCAL, "existingSource"), columnSpecSettings)};
+        transformationSettings.m_specs =
+            new TableSpecSettingsWithFsLocation[]{new TableSpecSettingsWithFsLocation("existingSource",
+                new FSLocation(FSCategory.LOCAL, "existingSource"), columnSpecSettings)};
     }
 
     /**
