@@ -1,0 +1,207 @@
+{
+  "data" : {
+    "model" : {
+      "lowerBoundDefined" : true,
+      "lowerBoundValue" : 0.0,
+      "lowerBoundOperator" : "GREATER_THAN_OR_EQUAL",
+      "upperBoundDefined" : true,
+      "upperBoundValue" : 0.0,
+      "upperBoundOperator" : "LESS_THAN_OR_EQUAL"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columnSelection" : {
+            "type" : "string",
+            "title" : "Column",
+            "description" : "Select one numeric column whose values will be tested against the specified bounds.\n"
+          },
+          "lowerBoundDefined" : {
+            "type" : "boolean",
+            "title" : "Use lower bound",
+            "description" : "If enabled, only rows whose column value satisfies the lower bound condition are directed to the first\noutput port.\n",
+            "default" : true
+          },
+          "lowerBoundOperator" : {
+            "oneOf" : [ {
+              "const" : "GREATER_THAN_OR_EQUAL",
+              "title" : "Greater than or equal"
+            }, {
+              "const" : "GREATER_THAN",
+              "title" : "Greater than"
+            } ],
+            "title" : "Lower bound operator",
+            "description" : "Defines how the lower bound is applied to the column value.\n<ul>\n<li><b>Greater than or equal</b>: Rows where the column value is greater than or equal to the lower bound are matched.\n</li>\n<li><b>Greater than</b>: Rows where the column value is strictly greater than the lower bound are matched.\n</li>\n</ul>",
+            "default" : "GREATER_THAN_OR_EQUAL"
+          },
+          "lowerBoundValue" : {
+            "type" : "number",
+            "format" : "double",
+            "title" : "Lower bound value",
+            "description" : "The lower bound value. Only rows whose column value satisfies the lower bound condition are directed to\nthe first output port.\n",
+            "default" : 0.0
+          },
+          "upperBoundDefined" : {
+            "type" : "boolean",
+            "title" : "Use upper bound",
+            "description" : "If enabled, only rows whose column value satisfies the upper bound condition are directed to the first\noutput port.\n",
+            "default" : true
+          },
+          "upperBoundOperator" : {
+            "oneOf" : [ {
+              "const" : "LESS_THAN_OR_EQUAL",
+              "title" : "Less than or equal"
+            }, {
+              "const" : "LESS_THAN",
+              "title" : "Less than"
+            } ],
+            "title" : "Upper bound operator",
+            "description" : "Defines how the upper bound is applied to the column value.\n<ul>\n<li><b>Less than or equal</b>: Rows where the column value is less than or equal to the upper bound are matched.\n</li>\n<li><b>Less than</b>: Rows where the column value is strictly less than the upper bound are matched.\n</li>\n</ul>",
+            "default" : "LESS_THAN_OR_EQUAL"
+          },
+          "upperBoundValue" : {
+            "type" : "number",
+            "format" : "double",
+            "title" : "Upper bound value",
+            "description" : "The upper bound value. Only rows whose column value satisfies the upper bound condition are directed to\nthe first output port.\n",
+            "default" : 0.0
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/columnSelection",
+      "options" : {
+        "format" : "dropDown"
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/lowerBoundDefined",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/lowerBoundValue",
+      "providedOptions" : [ "validation.max" ],
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/lowerBoundDefined",
+          "schema" : {
+            "const" : true
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/lowerBoundOperator",
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/lowerBoundDefined",
+          "schema" : {
+            "const" : true
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/upperBoundDefined",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/upperBoundValue",
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/upperBoundDefined",
+          "schema" : {
+            "const" : true
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/upperBoundOperator",
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/upperBoundDefined",
+          "schema" : {
+            "const" : true
+          }
+        }
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columnSelection" : {
+            "configKey" : "column_selection"
+          },
+          "lowerBoundDefined" : {
+            "configKey" : "lower_bound_defined"
+          },
+          "lowerBoundValue" : {
+            "configKey" : "lower_bound_value"
+          },
+          "lowerBoundOperator" : {
+            "configPaths" : [ [ "lower_bound" ] ]
+          },
+          "upperBoundDefined" : {
+            "configKey" : "upper_bound_defined"
+          },
+          "upperBoundValue" : {
+            "configKey" : "upper_bound_value"
+          },
+          "upperBoundOperator" : {
+            "configPaths" : [ [ "upper_bound" ] ]
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/columnSelection",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Universe_0_1",
+        "text" : "Universe_0_1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "numeric_column",
+        "text" : "numeric_column",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      } ]
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/upperBoundValue"
+    },
+    "dependencies" : [ "#/properties/model/properties/upperBoundValue" ]
+  } ]
+}
