@@ -1,0 +1,202 @@
+{
+  "data" : {
+    "model" : {
+      "subsetColumn" : "Universe_0_0",
+      "setIDColumn" : {
+        "regularChoice" : "New column"
+      },
+      "setColumn" : "Universe_0_0",
+      "appendSetColumn" : true,
+      "maxMismatches" : 3
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "appendSetColumn" : {
+            "type" : "boolean",
+            "title" : "Append set column",
+            "description" : "The matching set is appended if this option is ticked. A new row is created for each matching set.\n",
+            "default" : true
+          },
+          "maxMismatches" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Maximum mismatches",
+            "description" : "The maximum number of allowed mismatches, e.g. 1 allows for one item of the subset to be missing in the\nset. Default value is 0 where only sets match that contain all items of the subset.\n",
+            "default" : 0
+          },
+          "setColumn" : {
+            "type" : "string",
+            "title" : "Set column",
+            "description" : "The column that contains sets to search in\n"
+          },
+          "setIDColumn" : {
+            "type" : "object",
+            "properties" : {
+              "regularChoice" : {
+                "type" : "string"
+              },
+              "specialChoice" : {
+                "oneOf" : [ {
+                  "const" : "ROW_ID",
+                  "title" : "RowID"
+                } ]
+              }
+            },
+            "title" : "ID column",
+            "description" : "The id of the set to search in.\n",
+            "default" : {
+              "specialChoice" : "ROW_ID"
+            }
+          },
+          "subsetColumn" : {
+            "type" : "string",
+            "title" : "Subset column",
+            "description" : "The column that contains the subsets to search for.\n"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/subsetColumn",
+      "options" : {
+        "format" : "dropDown"
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/setIDColumn",
+      "options" : {
+        "format" : "singleSelection",
+        "specialChoices" : [ {
+          "id" : "ROW_ID",
+          "text" : "RowID"
+        } ]
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/setColumn",
+      "options" : {
+        "format" : "dropDown"
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/appendSetColumn",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/maxMismatches",
+      "options" : {
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 2147483647.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 2.147483647E9
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 0.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 0.0
+            }
+          }
+        }
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "subsetColumn" : {
+            "configKey" : "subsetColumn"
+          },
+          "setIDColumn" : {
+            "configPaths" : [ [ "setIDCol", "columnName" ], [ "setIDCol", "useRowID" ] ]
+          },
+          "setColumn" : {
+            "configKey" : "setColumn"
+          },
+          "appendSetColumn" : {
+            "configKey" : "appendSetListCol"
+          },
+          "maxMismatches" : {
+            "configKey" : "maxMismatches"
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/setColumn",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Universe_0_0",
+        "text" : "Universe_0_0",
+        "type" : {
+          "id" : "org.knime.core.data.collection.SetDataValue",
+          "text" : "Collection (Set)"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/setIDColumn",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "New column",
+        "text" : "New column",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "Universe_0_0",
+        "text" : "Universe_0_0",
+        "type" : {
+          "id" : "org.knime.core.data.collection.SetDataValue",
+          "text" : "Collection (Set)"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/subsetColumn",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Universe_0_0",
+        "text" : "Universe_0_0",
+        "type" : {
+          "id" : "org.knime.core.data.collection.SetDataValue",
+          "text" : "Collection (Set)"
+        }
+      } ]
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "id" : "after-open-dialog"
+    },
+    "triggerInitially" : true,
+    "dependencies" : [ "#/properties/model/properties/setColumn", "#/properties/model/properties/setIDColumn", "#/properties/model/properties/subsetColumn" ]
+  } ]
+}
