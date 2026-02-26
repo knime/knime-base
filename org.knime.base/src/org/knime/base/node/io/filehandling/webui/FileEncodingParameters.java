@@ -305,7 +305,7 @@ public class FileEncodingParameters implements NodeParameters {
      * Abstract persistor for file encoding parameters.
      *
      * @author Tim Crundall
-     * @since 5.11
+     * @since 5.12
      */
     public abstract static class AbstractFileEncodingPersistor
         implements NodeParametersPersistor<FileEncodingParameters> {
