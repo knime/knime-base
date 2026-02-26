@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
+    <entry key="width" type="xint" value="800"/>
+    <entry key="height" type="xint" value="600"/>
+    <entry key="scaling" type="xstring" value="fixed"/>
+    <entry key="scaleFactor" type="xfloat" value="4.449999809265137"/>
+    <entry key="unfoldMethod" type="xstring" value="level"/>
+    <entry key="unfoldToLevel" type="xint" value="1"/>
+    <entry key="unfoldWithCoverage" type="xdouble" value="0.05"/>
+    <entry key="displayTable" type="xboolean" value="true"/>
+    <entry key="displayChart" type="xboolean" value="false"/>
+</config>
