@@ -1,0 +1,98 @@
+{
+  "data" : {
+    "model" : {
+      "predictionColumnName" : null,
+      "appendProbabilityColumns" : true
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "appendProbabilityColumns" : {
+            "type" : "boolean",
+            "title" : "Append columns with normalized class distribution",
+            "description" : "If selected, a column is appended for each class instance with the normalized probability\nof this row being a member of this class. The probability columns will have names like:\n<tt>P(targetColumn=value)</tt>.\n",
+            "default" : true
+          },
+          "predictionColumnName" : {
+            "type" : [ "string", "null" ],
+            "title" : "Custom prediction column name",
+            "description" : "Allows you to specify a customized name for the prediction column that is appended to the input table.\nIf not checked, <tt>Prediction(target)</tt> (where target is the name of the target column of the provided\nregression model) is used as default.\n",
+            "default" : null
+          },
+          "probabilitySuffix" : {
+            "type" : "string",
+            "title" : "Probability column suffix",
+            "description" : "Suffix for the probability columns.\n"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/predictionColumnName",
+      "options" : {
+        "validation" : {
+          "pattern" : {
+            "errorMessage" : "The string must start and end with a non-whitespace character.",
+            "parameters" : {
+              "pattern" : "\\S(.*\\S)?"
+            }
+          }
+        },
+        "hideOnNull" : true
+      },
+      "providedOptions" : [ "default" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/appendProbabilityColumns",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/probabilitySuffix",
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/appendProbabilityColumns",
+          "schema" : {
+            "const" : true
+          }
+        }
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "predictionColumnName" : {
+            "configPaths" : [ [ "change prediction" ], [ "prediction column name" ] ]
+          },
+          "appendProbabilityColumns" : {
+            "configKey" : "append probabilities"
+          },
+          "probabilitySuffix" : {
+            "configKey" : "class probability suffix"
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/predictionColumnName",
+    "providedOptionName" : "default",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : "Prediction (Cluster Membership)"
+    } ]
+  } ]
+}

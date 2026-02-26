@@ -47,22 +47,37 @@
  */
 package org.knime.base.node.mine.neural.mlp2;
 
-import org.knime.base.node.mine.util.PredictorNodeDialog;
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
 
 /**
  * The Factory for the NeuralNet PredictorNode. This node reads a neural network and computes the outputs.
  * <p>Despite being public no official API.
+ *
  * @author Nicolas Cebron, University of Konstanz
+ * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.2
  */
-public final class MLPPredictorNodeFactory extends NodeFactory<MLPPredictorNodeModel> {
-
-    @Override
-    public NodeDialogPane createNodeDialogPane() {
-        return new MLPPredictorNodeDialog();
-    }
+@SuppressWarnings("restriction")
+public final class MLPPredictorNodeFactory extends NodeFactory<MLPPredictorNodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     @Override
     public MLPPredictorNodeModel createNodeModel() {
@@ -84,13 +99,75 @@ public final class MLPPredictorNodeFactory extends NodeFactory<MLPPredictorNodeM
         return true;
     }
 
-    private static final class MLPPredictorNodeDialog extends PredictorNodeDialog {
+    private static final String NODE_NAME = "MultiLayerPerceptron Predictor";
 
-        protected MLPPredictorNodeDialog() {
-            super(MLPPredictorNodeModel.createAppendProbs());
-            setAppendProbabilitiesLabel("Append columns with class probabilities");
-        }
+    private static final String NODE_ICON = "./mlppred.png";
 
+    private static final String SHORT_DESCRIPTION = """
+            Predicts output values based on a trained MLP.
+            """;
+
+    private static final String FULL_DESCRIPTION = """
+            Based on a trained MultiLayerPerceptron-model given at the model inport of this node, the expected
+            output values are computed. If the output variable is nominal, the output of each neuron and the class
+            of the winner neuron are produced. Otherwise, the regression value is computed. Filter out missing
+            values before using this node.
+            """;
+
+    private static final List<PortDescription> INPUT_PORTS = List.of(
+            fixedPort("Trained MLP", """
+                Trained MLP Neural Network.
+                """),
+            fixedPort("Test Data", """
+                Datatable with test data to classify.
+                """)
+    );
+
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(
+            fixedPort("Classified Data", """
+                Datatable with classified data.
+                """)
+    );
+
+    @Override
+    public NodeDialogPane createNodeDialogPane() {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    /**
+     * {@inheritDoc}
+     * @since 5.12
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, MLPPredictorNodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription( //
+            NODE_NAME, //
+            NODE_ICON, //
+            INPUT_PORTS, //
+            OUTPUT_PORTS, //
+            SHORT_DESCRIPTION, //
+            FULL_DESCRIPTION, //
+            List.of(), //
+            MLPPredictorNodeParameters.class, //
+            null, //
+            NodeType.Predictor, //
+            List.of(), //
+            null //
+        );
+    }
+
+    /**
+     * {@inheritDoc}
+     * @since 5.12
+     */
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, MLPPredictorNodeParameters.class));
     }
 
 }
