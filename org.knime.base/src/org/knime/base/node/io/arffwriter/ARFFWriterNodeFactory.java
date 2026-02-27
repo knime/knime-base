@@ -69,11 +69,10 @@ import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
 import org.knime.node.impl.description.PortDescription;
 
 /**
+ * A {@link NodeFactory} for ARFF Writer.
  *
  * @author Peter Ohl, University of Konstanz
-
  * @author Tim Crundall, TNG Technology Consulting GmbH
-
  * @author AI Migration Pipeline v1.2
  */
 @SuppressWarnings("restriction")
@@ -145,7 +144,7 @@ public class ARFFWriterNodeFactory extends NodeFactory implements NodeDialogFact
     }
 
     /**
-     * @since 5.11
+     * @since 5.12
      */
     @Override
     public NodeDialog createNodeDialog() {
@@ -171,7 +170,7 @@ public class ARFFWriterNodeFactory extends NodeFactory implements NodeDialogFact
     }
 
     /**
-     * @since 5.11
+     * @since 5.12
      */
     @Override
     public KaiNodeInterface createKaiNodeInterface() {
