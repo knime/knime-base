@@ -50,6 +50,7 @@ package org.knime.base.node.mine.decisiontree2.image;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.node.parameters.widget.choices.Label;
 
 /**
  * The settings of the Decision Tree To Image node.
@@ -57,15 +58,15 @@ import org.knime.core.node.NodeSettingsWO;
  * @author Heiko Hofer
  */
 public class DecTreeToImageNodeSettings {
-    private static final String UNFOLD_METHOD = "unfoldMethod";
-    private static final String UNFOLD_WITH_COVERAGE = "unfoldWithCoverage";
-    private static final String UNFOLD_TO_Level = "unfoldToLevel";
-    private static final String DISPLAY_TABLE = "displayTable";
-    private static final String DISPLAY_CHART = "displayChart";
-    private static final String WIDTH = "width";
-    private static final String HEIGHT = "height";
-    private static final String SCALE_FACTOR = "scaleFactor";
-    private static final String SCALING = "scaling";
+    static final String UNFOLD_METHOD = "unfoldMethod";
+    static final String UNFOLD_WITH_COVERAGE = "unfoldWithCoverage";
+    static final String UNFOLD_TO_Level = "unfoldToLevel";
+    static final String DISPLAY_TABLE = "displayTable";
+    static final String DISPLAY_CHART = "displayChart";
+    static final String WIDTH = "width";
+    static final String HEIGHT = "height";
+    static final String SCALE_FACTOR = "scaleFactor";
+    static final String SCALING = "scaling";
 
     /**
      * Scaling method.
@@ -73,12 +74,21 @@ public class DecTreeToImageNodeSettings {
      * @author Heiko Hofer
      */
     enum Scaling {
-        /** fixed scaling using m_scale_factor */
-        fixed,
-        /** Fit To Image Area */
-        fit,
         /** Shrink To Image Area */
-        shrink
+        @Label(value = "Shrink to image area", description = """
+                The tree is only scaled down if it does not fit, ensuring it is always fully visible.
+                """)
+        shrink, //
+        /** Fit To Image Area */
+        @Label(value = "Fit to image area", description = """
+                The tree is scaled up or down so it always fills the entire image area.
+                """)
+        fit, //
+        /** fixed scaling using m_scale_factor */
+        @Label(value = "Fixed value", description = """
+        A specific zoom factor is applied regardless of the tree size.
+        """)
+        fixed;
     }
 
     /**
@@ -88,11 +98,16 @@ public class DecTreeToImageNodeSettings {
      * @author Heiko Hofer
      */
     enum UnfoldMethod {
-        /** Display all nodes from the root (level 0) to a predefined level. */
-        level,
         /** Display nodes with a coverage of trainings data greater
          * than a predefined value. */
-        totalCoverage,
+        @Label(value = "Unfold with data coverage", description = """
+                All branches whose total data coverage is greater than the specified threshold are displayed.
+                """)
+        totalCoverage, //
+        @Label(value = "Unfold to level", description = """
+                All nodes from the root (level 0) down to the specified level are displayed.
+                """)
+        level;
     }
 
     private UnfoldMethod m_unfoldMethod = UnfoldMethod.totalCoverage;

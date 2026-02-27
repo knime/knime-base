@@ -47,56 +47,134 @@
  */
 package org.knime.base.node.mine.decisiontree2.image;
 
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
+import org.knime.node.impl.description.ViewDescription;
 
 /**
  * The NodeFactory of the Decision Tree to Image node.
  *
  * @author Heiko Hofer
+ * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.2
  */
-public class DecTreeToImageNodeFactory extends
-        NodeFactory<DecTreeToImageNodeModel> {
+@SuppressWarnings("restriction")
+public class DecTreeToImageNodeFactory extends NodeFactory<DecTreeToImageNodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public DecTreeToImageNodeModel createNodeModel() {
         return new DecTreeToImageNodeModel();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int getNrNodeViews() {
         return 1;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public NodeView<DecTreeToImageNodeModel> createNodeView(
             final int viewIndex, final DecTreeToImageNodeModel nodeModel) {
         return new DecTreeToImageView(nodeModel);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean hasDialog() {
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    private static final String NODE_NAME = "Decision Tree to Image";
+
+    private static final String NODE_ICON = "./dectree_image.png";
+
+    private static final String SHORT_DESCRIPTION = """
+            Renders a decision tree view on an image (PNG).
+            """;
+
+    private static final String FULL_DESCRIPTION = """
+            Renders a decision tree view on an image. Currently supported image type is PNG. The data input is
+            optional. It can be used to provide a column with color information. This color information is needed
+            for the chart in the nodes of the decision tree.
+            """;
+
+    private static final List<PortDescription> INPUT_PORTS = List.of(
+            fixedPort("Decision Tree Model", """
+                A previously learned decision tree model.
+                """),
+            fixedPort("Data (color information)", """
+                A data input which has the only purpose to provide a columns with color information.
+                """)
+    );
+
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(
+            fixedPort("Image", """
+                The image of the decision tree (PNG).
+                """)
+    );
+
+    private static final List<ViewDescription> VIEWS = List.of(
+            new ViewDescription("Decision Tree View", """
+                The rendered image. The second tab provides a dynamic decision tree view which allows to explore the
+                decision tree.
+                """)
+    );
+
     @Override
     public NodeDialogPane createNodeDialogPane() {
-        return new DecTreeToImageNodeDialog();
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
     }
+
+    /**
+     * {@inheritDoc}
+     * @since 5.12
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, DecTreeToImageNodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription( //
+            NODE_NAME, //
+            NODE_ICON, //
+            INPUT_PORTS, //
+            OUTPUT_PORTS, //
+            SHORT_DESCRIPTION, //
+            FULL_DESCRIPTION, //
+            List.of(), //
+            DecTreeToImageNodeParameters.class, //
+            VIEWS, //
+            NodeType.Manipulator, //
+            List.of(), //
+            null //
+        );
+    }
+
+    /**
+     * {@inheritDoc}
+     * @since 5.12
+     */
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, DecTreeToImageNodeParameters.class));
+    }
+
 }
