@@ -188,8 +188,10 @@
                 <message_argument value="computeState(NodeParametersInput)"/>
             </message_arguments>
         </filter>
-        <filter comment="non-public API" id="1143996420">
+        <filter comment="Class is not public API (see Javadoc)" id="643842064">
             <message_arguments>
+                <message_argument value="Collection&lt;E&gt;"/>
+                <message_argument value="TypedReaderTableSpecsProvider&lt;C, T, M&gt;"/>
                 <message_argument value="computeState(NodeParametersInput)"/>
             </message_arguments>
         </filter>

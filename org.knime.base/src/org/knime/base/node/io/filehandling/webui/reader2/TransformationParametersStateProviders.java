@@ -219,6 +219,11 @@ public final class TransformationParametersStateProviders {
             return location.getFSCategory() == FSCategory.CONNECTED;
         }
 
+        /**
+         * {@inheritDoc}
+         *
+         * @since 5.11
+         */
         @Override
         public final Collection<DependsOnTypedReaderTableSpecProvider.TypedReaderTableSpecWithLocation<T>>
             computeState(final NodeParametersInput context) throws StateComputationFailureException {
