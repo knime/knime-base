@@ -48,7 +48,12 @@
  */
 package org.knime.base.node.io.filehandling.webui.reader2;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
+import java.util.Objects;
+import java.util.function.Supplier;
+
+import org.knime.base.node.io.filehandling.webui.reader2.TransformationParametersStateProvidersCommon.ColumnNameRef;
+import org.knime.base.node.io.filehandling.webui.reader2.TransformationParametersStateProvidersCommon.TableSpecSettingsRef;
+import org.knime.base.node.io.filehandling.webui.reader2.TransformationParametersStateProvidersCommon.TypeChoicesWidgetRef;
 import org.knime.core.data.DataType;
 import org.knime.core.data.convert.map.ProductionPath;
 import org.knime.core.node.InvalidSettingsException;
@@ -75,8 +80,10 @@ import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.text.TextInputWidget;
 import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils;
 
-import java.util.Objects;
-import java.util.function.Supplier;
+import com.fasterxml.jackson.annotation.JsonInclude;
+
+import static org.knime.base.node.io.filehandling.webui.reader2.TransformationParametersStateProvidersCommon.DEFAULT_COLUMNTYPE_ID;
+import static org.knime.base.node.io.filehandling.webui.reader2.TransformationParametersStateProvidersCommon.DEFAULT_COLUMNTYPE_TEXT;
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
@@ -86,9 +93,6 @@ import java.util.function.Supplier;
  *
  */
 public class TransformationElementSettings implements WidgetGroup, Persistable {
-
-    static class ColumnNameRef implements ParameterReference<String> {
-    }
 
     static final class ColumnNameIsNull implements EffectPredicateProvider {
         @Override
@@ -127,12 +131,12 @@ public class TransformationElementSettings implements WidgetGroup, Persistable {
             if (settings.containsKey(CFG_ORIGINAL_PRODUCTION_PATH)) {
                 return super.load(settings);
             }
-            return TransformationParametersStateProviders.TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID;
+            return DEFAULT_COLUMNTYPE_ID;
         }
 
         @Override
         public void save(final String param, final NodeSettingsWO settings) {
-            if (TransformationParametersStateProviders.TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID.equals(param)) {
+            if (DEFAULT_COLUMNTYPE_ID.equals(param)) {
                 // do not save default value
                 return;
             }
@@ -185,13 +189,16 @@ public class TransformationElementSettings implements WidgetGroup, Persistable {
         }
     }
 
-    static final class TitleProvider implements StateProvider<String> {
+    /**
+     * @noreference non-public API
+     */
+    public static final class TitleProvider implements StateProvider<String> {
 
         private Supplier<String> m_originalColumnNameSupplier;
 
         @Override
         public void init(final StateProviderInitializer initializer) {
-            initializer.computeOnValueChange(TransformationParameters.TableSpecSettingsRef.class);
+            initializer.computeOnValueChange(TableSpecSettingsRef.class);
             m_originalColumnNameSupplier = initializer.getValueSupplier(ColumnNameRef.class);
         }
 
@@ -202,13 +209,16 @@ public class TransformationElementSettings implements WidgetGroup, Persistable {
         }
     }
 
-    static final class SubTitleProvider implements StateProvider<String> {
+    /**
+     * @noreference non-public API
+     */
+    public static final class SubTitleProvider implements StateProvider<String> {
 
         private Supplier<String> m_originalTypeLabelSupplier;
 
         @Override
         public void init(final StateProviderInitializer initializer) {
-            initializer.computeOnValueChange(TransformationParameters.TableSpecSettingsRef.class);
+            initializer.computeOnValueChange(TableSpecSettingsRef.class);
             m_originalTypeLabelSupplier = initializer.getValueSupplier(OriginalProductionPathLabelRef.class);
         }
 
@@ -243,7 +253,7 @@ public class TransformationElementSettings implements WidgetGroup, Persistable {
     @Widget(title = "Column type", description = "")
     @WidgetInternal(hideControlHeader = true)
     // for adding dynamic choices
-    @Modification.WidgetReference(TransformationParametersStateProviders.TransformationSettingsWidgetModification.TypeChoicesWidgetRef.class)
+    @Modification.WidgetReference(TypeChoicesWidgetRef.class)
     @ValueProvider(TypeResetter.class)
     @Effect(predicate = ArrayWidgetInternal.ElementIsEdited.class, type = Effect.EffectType.SHOW)
     @Persistor(PathPersistor.class)
@@ -277,13 +287,13 @@ public class TransformationElementSettings implements WidgetGroup, Persistable {
         }
     }
 
+    @SuppressWarnings("unused") // needed by framework
     TransformationElementSettings() {
     }
 
     /**
      * visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
      */
-    @SuppressWarnings("javadoc")
     public TransformationElementSettings(final String columnName, final boolean includeInOutput,
                                          final String columnRename, final String type, final String originalType, final String originalTypeLabel) {
         m_columnName = columnName;
@@ -322,9 +332,9 @@ public class TransformationElementSettings implements WidgetGroup, Persistable {
      */
     TransformationElementSettings(final boolean includeInOutput, final DataType dataType) {
         this(null, includeInOutput, null,
-                dataType == null ? TransformationParametersStateProviders.TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID : TransformationParameters.getDataTypeId(dataType),
-                TransformationParametersStateProviders.TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID, //
-                TransformationParametersStateProviders.TypeChoicesProvider.DEFAULT_COLUMNTYPE_TEXT //
+                dataType == null ? DEFAULT_COLUMNTYPE_ID : TransformationParameters.getDataTypeId(dataType),
+                DEFAULT_COLUMNTYPE_ID, //
+                DEFAULT_COLUMNTYPE_TEXT //
         );
     }
 
@@ -339,8 +349,10 @@ public class TransformationElementSettings implements WidgetGroup, Persistable {
      * A "data copy" of the {@link TransformationElementSettings}, but without all the UI specific annotations. Just
      * reusing the {@link TransformationElementSettings} directly does not work, as then some references show up twice
      * and therefore widget modifications don't work.
+     *
+     * @noreference non-public API
      */
-    static class Data {
+    public static class Data {
         String m_columnName;
 
         String m_originalProductionPath;
@@ -353,8 +365,8 @@ public class TransformationElementSettings implements WidgetGroup, Persistable {
 
         String m_productionPath;
 
+        @SuppressWarnings("unused") // needed by framework
         private Data() {
-            // needed by framework
         }
 
         Data(final TransformationElementSettings settings) {
@@ -388,7 +400,11 @@ public class TransformationElementSettings implements WidgetGroup, Persistable {
             return true;
         }
 
-        static class DoNotPersist implements NodeParametersPersistor<Data[]> {
+        /**
+         * Do not persist the settings, they are only used for the dirty tracker (UI-only).
+         * @noreference non-public API
+         */
+        public static class DoNotPersist implements NodeParametersPersistor<Data[]> {
 
             @Override
             public Data[] load(NodeSettingsRO settings) throws InvalidSettingsException {

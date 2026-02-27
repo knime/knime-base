@@ -54,7 +54,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Supplier;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -67,6 +66,13 @@ import org.knime.base.node.io.filehandling.webui.reader2.ReaderSpecific.External
 import org.knime.base.node.io.filehandling.webui.reader2.ReaderSpecific.ExternalDataTypeSerializer;
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParametersStateProviders.TransformationSettingsWidgetModification;
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParametersStateProviders.TypeChoicesProvider;
+import org.knime.base.node.io.filehandling.webui.reader2.TransformationParametersStateProvidersCommon.InitialTransformationElementSettingsRef;
+import org.knime.base.node.io.filehandling.webui.reader2.TransformationParametersStateProvidersCommon.InitialTransformationElementSettingsStateProvider;
+import org.knime.base.node.io.filehandling.webui.reader2.TransformationParametersStateProvidersCommon.SpecsRef;
+import org.knime.base.node.io.filehandling.webui.reader2.TransformationParametersStateProvidersCommon.TableSpecSettingsRef;
+import org.knime.base.node.io.filehandling.webui.reader2.TransformationParametersStateProvidersCommon.TransformationElementSettingsArrayWidgetRef;
+import org.knime.base.node.io.filehandling.webui.reader2.TransformationParametersStateProvidersCommon.TransformationElementSettingsRef;
+import org.knime.base.node.io.filehandling.webui.reader2.TransformationParametersStateProvidersCommon.TransformationElementsDirtyTrackerStateProvider;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataType;
@@ -93,8 +99,6 @@ import org.knime.filehandling.core.node.table.reader.selector.ColumnTransformati
 import org.knime.filehandling.core.node.table.reader.selector.ImmutableUnknownColumnsTransformation;
 import org.knime.filehandling.core.node.table.reader.selector.RawSpec;
 import org.knime.filehandling.core.node.table.reader.selector.UnknownColumnsTransformation;
-import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
-import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.node.parameters.Advanced;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.Widget;
@@ -106,10 +110,12 @@ import org.knime.node.parameters.migration.NodeParametersMigration;
 import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.updates.Effect;
 import org.knime.node.parameters.updates.Effect.EffectType;
-import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.ValueProvider;
 import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils;
+
+import static org.knime.base.node.io.filehandling.webui.reader2.TransformationParametersStateProvidersCommon.DEFAULT_COLUMNTYPE_ID;
+import static org.knime.base.node.io.filehandling.webui.reader2.TransformationParametersStateProvidersCommon.fromDataTypeId;
 
 /**
  * Extend these settings to define the transformation settings for a reader node. Use the {@link ConfigIdSettings}
@@ -160,83 +166,15 @@ public abstract class TransformationParameters<T>
         }
     }
 
-    /**
-     * The serializable and persistable equivalent of the {@link TypedReaderColumnSpec}. Visible for testing classes in
-     * org.knime.base.node.io.filehandling.webui.testing
-     */
-    public static final class ColumnSpecSettings implements NodeParameters {
-
-        /**
-         * visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
-         */
-        public String m_name;
-
-        /**
-         * visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
-         */
-        public String m_type;
-
-        boolean m_hasType;
-
-        /**
-         * Visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
-         */
-        public ColumnSpecSettings(final String name, final String type, final boolean hasType) {
-            m_name = name;
-            m_type = type;
-            m_hasType = hasType;
-        }
-
-        ColumnSpecSettings() {
-        }
-    }
-
-    /**
-     * The serializable and persistable equivalent of the {@link TypedReaderTableSpec}
-     */
-    public static final class TableSpecSettings implements NodeParameters {
-
-        /**
-         * visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
-         */
-        public FSLocation m_fsLocation;
-
-        /**
-         * visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
-         */
-        public String m_sourceIdentifier;
-
-        /**
-         * visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
-         */
-        public ColumnSpecSettings[] m_spec;
-
-        /**
-         * visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
-         */
-        public TableSpecSettings(final String sourceIdentifier, final FSLocation fsLocation,
-            final ColumnSpecSettings[] spec) {
-            m_sourceIdentifier = sourceIdentifier;
-            m_fsLocation = fsLocation;
-            m_spec = spec;
-        }
-
-        TableSpecSettings() {
-        }
-    }
-
-    static class TableSpecSettingsRef implements ParameterReference<TableSpecSettings[]> {
-    }
-
     @ValueReference(TableSpecSettingsRef.class)
     // for adding dynamic and provider
-    @Modification.WidgetReference(TransformationSettingsWidgetModification.SpecsRef.class)
+    @Modification.WidgetReference(SpecsRef.class)
 
     /*
      * Note that this field remains `null` until it is updated by the state provider when specs could be computed.
      * visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
      */
-    public TableSpecSettings[] m_specs;
+    public TableSpecSettingsWithFsLocation[] m_specs;
 
     @Widget(title = "Enforce types", description = """
             Controls how columns whose type changes are dealt with.
@@ -247,11 +185,8 @@ public abstract class TransformationParameters<T>
     @Layout(Transformation.EnforceTypes.class)
     boolean m_enforceTypes = true;
 
-    @DirtyTracker(TransformationParametersStateProviders.TransformationElementsDirtyTrackerStateProvider.class)
+    @DirtyTracker(TransformationElementsDirtyTrackerStateProvider.class)
     Void m_dirtyTracker;
-
-    static final class TransformationElementSettingsRef implements ParameterReference<TransformationElementSettings[]> {
-    }
 
     @Widget(title = "Transformations", description = Transformation.DESCRIPTION)
     @ArrayWidget(elementTitle = "Column", showSortButtons = true, hasFixedSize = true)
@@ -260,20 +195,15 @@ public abstract class TransformationParameters<T>
         subTitleProvider = TransformationElementSettings.SubTitleProvider.class)
     @ValueReference(TransformationElementSettingsRef.class)
     // for adding dynamic choices
-    @Modification.WidgetReference(TransformationSettingsWidgetModification.//
-            TransformationElementSettingsArrayWidgetRef.class)
+    @Modification.WidgetReference(TransformationElementSettingsArrayWidgetRef.class)
     @Effect(predicate = FileSystemPortConnectionUtil.ConnectedWithoutFileSystemSpec.class, type = EffectType.HIDE)
     @Layout(Transformation.ColumnTransformation.class)
     // visible for testing classes in org.knime.base.node.io.filehandling.webui.testing
     public TransformationElementSettings[] m_columnTransformation =
         new TransformationElementSettings[]{TransformationElementSettings.createUnknownElement()};
 
-    static final class InitialTransformationElementSettingsRef
-        implements ParameterReference<TransformationElementSettings.Data[]> {
-    }
-
     @ValueReference(InitialTransformationElementSettingsRef.class)
-    @ValueProvider(TransformationParametersStateProviders.InitialTransformationElementSettingsStateProvider.class)
+    @ValueProvider(InitialTransformationElementSettingsStateProvider.class)
     @Persistor(TransformationElementSettings.Data.DoNotPersist.class)
     TransformationElementSettings.Data[] m_initialColumnTransformation = new TransformationElementSettings.Data[0];
 
@@ -387,9 +317,8 @@ public abstract class TransformationParameters<T>
     private static ImmutableUnknownColumnsTransformation determineUnknownTransformation(
         final TransformationElementSettings unknownTransformation, final int unknownColumnsTransformationPosition) {
         DataType forcedUnknownType = null;
-        if (!unknownTransformation.m_productionPath.equals(TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID)) {
-            forcedUnknownType =
-                TransformationParametersStateProviders.fromDataTypeId(unknownTransformation.m_productionPath);
+        if (!unknownTransformation.m_productionPath.equals(DEFAULT_COLUMNTYPE_ID)) {
+            forcedUnknownType = fromDataTypeId(unknownTransformation.m_productionPath);
         }
         return new ImmutableUnknownColumnsTransformation(unknownColumnsTransformationPosition,
             unknownTransformation.m_includeInOutput, forcedUnknownType != null, forcedUnknownType);
@@ -430,7 +359,7 @@ public abstract class TransformationParameters<T>
     }
 
     private void validateSpecs() throws InvalidSettingsException {
-        for (TableSpecSettings tSpec : m_specs) {
+        for (TableSpecSettingsWithFsLocation tSpec : m_specs) {
             for (ColumnSpecSettings cSpec : tSpec.m_spec) {
                 try {
                     toExternalType(cSpec.m_type);
@@ -496,8 +425,8 @@ public abstract class TransformationParameters<T>
                         .map(colSpec -> new ColumnSpecSettings(colSpec.getName().get(),
                             toSerializableType(colSpec.getType()), colSpec.hasType()))
                         .toArray(ColumnSpecSettings[]::new);
-                return new TableSpecSettings(key, fsLocation, colSpecs);
-            }).toArray(TableSpecSettings[]::new);
+                return new TableSpecSettingsWithFsLocation(key, fsLocation, colSpecs);
+            }).toArray(TableSpecSettingsWithFsLocation[]::new);
             m_specs = specs;
             m_enforceTypes = tableSpecConfig.getTableTransformation().enforceTypes();
         } catch (final Exception e) { // NOSONAR The dialog can still work even if loading persistor settings fails

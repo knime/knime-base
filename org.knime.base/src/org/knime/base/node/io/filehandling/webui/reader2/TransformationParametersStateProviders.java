@@ -50,17 +50,11 @@ package org.knime.base.node.io.filehandling.webui.reader2;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.knime.base.node.io.filehandling.webui.FileChooserPathAccessor;
 import org.knime.base.node.io.filehandling.webui.FileSystemPortConnectionUtil;
@@ -68,21 +62,18 @@ import org.knime.base.node.io.filehandling.webui.reader2.MultiFileReaderParamete
 import org.knime.base.node.io.filehandling.webui.reader2.MultiFileReaderParameters.HowToCombineColumnsOptionRef;
 import org.knime.base.node.io.filehandling.webui.reader2.ReaderSpecific.ExternalDataTypeSerializer;
 import org.knime.base.node.io.filehandling.webui.reader2.ReaderSpecific.ProductionPathProviderAndTypeHierarchy;
-import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.ColumnSpecSettings;
-import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.TableSpecSettings;
-import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.TableSpecSettingsRef;
-import org.knime.base.node.io.filehandling.webui.reader2.TransformationElementSettings.ColumnNameRef;
-import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.TransformationElementSettingsRef;
-import org.knime.base.node.io.filehandling.webui.reader2.TransformationParametersStateProviders.DependsOnTypedReaderTableSpecProvider.TypedReaderTableSpecWithLocation;
-import org.knime.core.data.DataType;
-import org.knime.core.data.convert.map.ProductionPath;
+import org.knime.base.node.io.filehandling.webui.reader2.TransformationParametersStateProvidersCommon.HasTableSpec;
+import org.knime.base.node.io.filehandling.webui.reader2.TransformationParametersStateProvidersCommon.TableSpecSettingsRef;
+import org.knime.base.node.io.filehandling.webui.reader2.TransformationParametersStateProvidersCommon.ColumnNameRef;
+import org.knime.base.node.io.filehandling.webui.reader2.TransformationParametersStateProvidersCommon.TransformationElementSettingsRef;
+import org.knime.base.node.io.filehandling.webui.reader2.TransformationParametersStateProvidersCommon.TransformationElementsMapper;
+import org.knime.base.node.io.filehandling.webui.reader2.TransformationParametersStateProvidersCommon.TypeChoicesMapper;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.DefaultFileChooserFilters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelection;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.datatype.convert.ProductionPathUtils;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.filehandling.core.connections.FSCategory;
@@ -93,15 +84,11 @@ import org.knime.filehandling.core.defaultnodesettings.filechooser.AbstractFileC
 import org.knime.filehandling.core.node.table.reader.config.AbstractMultiTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.DefaultTableReadConfig;
 import org.knime.filehandling.core.node.table.reader.config.ReaderSpecificConfig;
-import org.knime.filehandling.core.node.table.reader.spec.TypedReaderColumnSpec;
 import org.knime.filehandling.core.node.table.reader.spec.TypedReaderTableSpec;
 import org.knime.filehandling.core.node.table.reader.util.MultiTableUtils;
 import org.knime.filehandling.core.util.WorkflowContextUtil;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.updates.StateProvider;
-import org.knime.node.parameters.updates.ValueProvider;
-import org.knime.node.parameters.updates.internal.StateProviderInitializerInternal;
-import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.StringChoice;
 import org.knime.node.parameters.widget.choices.StringChoicesProvider;
 
@@ -325,7 +312,12 @@ public final class TransformationParametersStateProviders {
             return true;
         }
 
-        record TypedReaderTableSpecWithLocation<T>(FSLocation location, String sourceId, TypedReaderTableSpec<T> spec) {
+        record TypedReaderTableSpecWithLocation<T>(FSLocation location, String sourceId, TypedReaderTableSpec<T> spec)
+            implements HasTableSpec<T> {
+            @Override
+            public TypedReaderTableSpec<T> getTableSpec() {
+                return spec;
+            }
         }
 
         protected Supplier<Collection<TypedReaderTableSpecWithLocation<T>>> m_specSupplier;
@@ -355,10 +347,10 @@ public final class TransformationParametersStateProviders {
      * @param <T> the type used to represent external data [T]ypes
      */
     public abstract static class TableSpecSettingsProvider<T>
-        extends DependsOnTypedReaderTableSpecProvider<TableSpecSettings[], T> {
+        extends DependsOnTypedReaderTableSpecProvider<TableSpecSettingsWithFsLocation[], T> {
 
         @Override
-        public TableSpecSettings[] computeState(final NodeParametersInput context) {
+        public TableSpecSettingsWithFsLocation[] computeState(final NodeParametersInput context) {
 
             final var suppliedSpecs = m_specSupplier.get();
 
@@ -367,10 +359,12 @@ public final class TransformationParametersStateProviders {
             }
 
             return suppliedSpecs.stream()
-                .map(e -> new TableSpecSettings(e.sourceId(), e.location(),
-                    e.spec().stream().map(spec -> new ColumnSpecSettings(spec.getName().get(),
-                        toSerializableType(spec.getType()), spec.hasType())).toArray(ColumnSpecSettings[]::new)))
-                .toArray(TableSpecSettings[]::new);
+                .map(e -> new TableSpecSettingsWithFsLocation(e.sourceId(), e.location(),
+                    e.spec().stream()
+                        .map(spec -> new ColumnSpecSettings(spec.getName().get(), toSerializableType(spec.getType()),
+                            spec.hasType()))
+                        .toArray(ColumnSpecSettings[]::new)))
+                .toArray(TableSpecSettingsWithFsLocation[]::new);
         }
     }
 
@@ -381,7 +375,7 @@ public final class TransformationParametersStateProviders {
      */
     public abstract static class TransformationElementSettingsProvider<T>
         extends DependsOnTypedReaderTableSpecProvider<TransformationElementSettings[], T>
-        implements ProductionPathProviderAndTypeHierarchy<T> {
+        implements TransformationElementsMapper<T>, ProductionPathProviderAndTypeHierarchy<T> {
 
         private Supplier<MultiFileReaderParameters.HowToCombineColumnsOption> m_howToCombineColumnsSup;
 
@@ -408,189 +402,10 @@ public final class TransformationParametersStateProviders {
 
         @Override
         public TransformationElementSettings[] computeState(final NodeParametersInput context) {
-
             final var suppliedSpecs = m_specSupplier.get();
-
             return toTransformationElements(suppliedSpecs == null ? List.of() : suppliedSpecs,
-                m_howToCombineColumnsSup.get(), m_existingSettings.get(), getExistingSpecsUnion());
-        }
-
-        TransformationElementSettings[] toTransformationElements(
-            final Collection<TypedReaderTableSpecWithLocation<T>> specs,
-            final HowToCombineColumnsOption howToCombineColumnsOption,
-            final TransformationElementSettings[] existingSettings, final TypedReaderTableSpec<T> existingSpecsUnion) {
-
-            /**
-             * List of existing elements before the unknown element
-             */
-            final List<TransformationElementSettings> elementsBeforeUnknown = new ArrayList<>();
-
-            final var existingColumnTypesByName = existingSpecsUnion.stream().filter(s -> s.getName().isPresent())
-                .collect(Collectors.toMap(s -> s.getName().get(), TypedReaderColumnSpec::getType));
-            final Collection<String> existingElementNamesWithChangedType = new HashSet<>();
-            /**
-             * The existing unknown element.
-             */
-            TransformationElementSettings foundUnknownElement = null;
-            /**
-             * List of existing elements after the unknown element
-             */
-            final List<TransformationElementSettings> elementsAfterUnknown = new ArrayList<>();
-
-            final var rawSpec = toRawSpec(specs.stream().map(TypedReaderTableSpecWithLocation::spec).toList());
-            final var newSpecs = howToCombineColumnsOption.toColumnFilterMode().getRelevantSpec(rawSpec);
-            final var newSpecsByName = newSpecs.stream().filter(column -> column.getName().isPresent())
-                .collect(Collectors.toMap(column -> column.getName().get(), Function.identity()));
-
-            for (int i = 0; i < existingSettings.length; i++) { // NOSONAR
-                final var existingElement = existingSettings[i];
-                if (existingElement.m_columnName == null) {
-                    foundUnknownElement = existingSettings[i];
-                    continue;
-                }
-                final var newSpec = newSpecsByName.get(existingElement.m_columnName);
-                if (newSpec == null) {
-                    // element does not exist anymore -> it is removed
-                    continue;
-                }
-                final var existingType = existingColumnTypesByName.get(newSpec.getName().orElse(null));
-                if (existingType != null && !existingType.equals(newSpec.getType())) {
-                    // element has different type than before
-                    existingElementNamesWithChangedType.add(existingElement.m_columnName);
-                    continue;
-                }
-                final var targetList = foundUnknownElement == null ? elementsBeforeUnknown : elementsAfterUnknown;
-                targetList.add(mergeExistingWithNew(existingElement, newSpec));
-            }
-
-            /**
-             * foundUnknownElement can only be null when the dialog is opened for the first time
-             */
-            final var unknownElement = foundUnknownElement == null
-                ? TransformationElementSettings.createUnknownElement() : foundUnknownElement;
-
-            final var existingColumnNames = Stream.concat(elementsBeforeUnknown.stream(), elementsAfterUnknown.stream())
-                .map(element -> element.m_columnName).collect(Collectors.toSet());
-
-            final var unknownElementsType = getUnknownElementsType(unknownElement);
-            final Predicate<String> isNewColumn = colName -> existingElementNamesWithChangedType.contains(colName)
-                || !existingColumnNames.contains(colName);
-
-            final var newElements =
-                newSpecs.stream().filter(colSpec -> isNewColumn.test(colSpec.getName().orElse(null)))
-                    .map(colSpec -> createNewElement(colSpec, unknownElementsType.orElse(null),
-                        unknownElement.m_includeInOutput))
-                    .toList();
-
-            return Stream.concat( //
-                Stream.concat(elementsBeforeUnknown.stream(), newElements.stream()),
-                Stream.concat(Stream.of(unknownElement), elementsAfterUnknown.stream()))
-                .toArray(TransformationElementSettings[]::new);
-
-        }
-
-        private TypedReaderTableSpec<T> getExistingSpecsUnion() {
-            final var existingSpecs = toSpecMap(this, m_existingSpecs.get());
-            final var existingRawSpecs = toRawSpec(existingSpecs.values());
-            return existingRawSpecs.getUnion();
-        }
-
-        private TransformationElementSettings mergeExistingWithNew(final TransformationElementSettings existingElement,
-            final TypedReaderColumnSpec<T> newSpec) {
-            final var newElement = createNewElement(newSpec);
-            if (!newElement.m_originalProductionPath.equals(existingElement.m_originalProductionPath)) {
-                return newElement;
-            }
-            newElement.m_productionPath = existingElement.m_productionPath;
-            newElement.m_columnRename = existingElement.m_columnRename;
-            newElement.m_includeInOutput = existingElement.m_includeInOutput;
-            return newElement;
-
-        }
-
-        private static Optional<DataType> getUnknownElementsType(final TransformationElementSettings unknownElement) {
-            if (TypeChoicesProvider.DEFAULT_COLUMNTYPE_ID.equals(unknownElement.m_productionPath)) {
-                return Optional.empty();
-            }
-            return Optional.of(fromDataTypeId(unknownElement.m_productionPath));
-        }
-
-        /**
-         * @return a new element as if it would be constructed as unknown new when the <any unknown column> element is
-         *         configured like the default.
-         */
-        private TransformationElementSettings createNewElement(final TypedReaderColumnSpec<T> colSpec) {
-            return createNewElement(colSpec, null, true);
-        }
-
-        private TransformationElementSettings createNewElement(final TypedReaderColumnSpec<T> colSpec,
-            final DataType unknownElementsType, final boolean includeInOutput) {
-            final var name = colSpec.getName().get(); // NOSONAR in the TypedReaderTableSpecProvider we make sure that names are always present
-            final var defPath = getProductionPathProvider().getDefaultProductionPath(colSpec.getType());
-
-            final var path = Optional.ofNullable(unknownElementsType)
-                .flatMap(type -> findProductionPath(colSpec.getType(), type)).orElse(defPath);
-            return new TransformationElementSettings(name, includeInOutput, name, path, defPath,
-                getProductionPathSerializer());
-
-        }
-
-        private Optional<ProductionPath> findProductionPath(final T from, final DataType to) {
-            return getProductionPathProvider().getAvailableProductionPaths(from).stream()
-                .filter(path -> to.equals(path.getDestinationType())).findFirst();
-        }
-    }
-
-    static class InitialTransformationElementSettingsStateProvider
-        implements StateProvider<TransformationElementSettings.Data[]> {
-
-        Supplier<TransformationElementSettings[]> m_initialTransformationElementSettingsSupplier;
-
-        @Override
-        public void init(final StateProviderInitializer initializer) {
-            initializer.computeBeforeOpenDialog();
-            ((StateProviderInitializerInternal)initializer).computeAfterApplyDialog();
-            m_initialTransformationElementSettingsSupplier =
-                initializer.getValueSupplier(TransformationElementSettingsRef.class);
-        }
-
-        @Override
-        public TransformationElementSettings.Data[] computeState(final NodeParametersInput parametersInput)
-            throws StateComputationFailureException {
-            return Arrays.stream(m_initialTransformationElementSettingsSupplier.get())
-                .map(TransformationElementSettings.Data::new) //
-                .toList() //
-                .toArray(TransformationElementSettings.Data[]::new);
-        }
-    }
-
-    /**
-     * Dirty tracker to make the dialog dirty in cases not covered by the framework, e.g. file schema has changed or
-     * column reordering
-     */
-    static class TransformationElementsDirtyTrackerStateProvider implements StateProvider<Boolean> {
-
-        Supplier<TransformationElementSettings.Data[]> m_initialSpecSupplier;
-
-        Supplier<TransformationElementSettings[]> m_currentSpecSupplier;
-
-        @Override
-        public void init(final StateProviderInitializer initializer) {
-            m_initialSpecSupplier =
-                initializer.getValueSupplier(TransformationParameters.InitialTransformationElementSettingsRef.class);
-            m_currentSpecSupplier = initializer.computeFromValueSupplier(TransformationElementSettingsRef.class);
-        }
-
-        @Override
-        public Boolean computeState(final NodeParametersInput parametersInput) throws StateComputationFailureException {
-            var initialSpecs = m_initialSpecSupplier.get();
-            var currentSpecs = m_currentSpecSupplier.get();
-
-            if (initialSpecs == null || currentSpecs == null) {
-                return false;
-            }
-
-            return !TransformationElementSettings.Data.areSettingsMatching(initialSpecs, currentSpecs);
+                m_howToCombineColumnsSup.get(), m_existingSettings.get(),
+                getExistingSpecsUnion(this, m_existingSpecs.get()));
         }
     }
 
@@ -601,61 +416,28 @@ public final class TransformationParametersStateProviders {
      * @param <T> the type used to represent external data [T]ypes
      */
     public abstract static class TypeChoicesProvider<T> implements StringChoicesProvider,
-        ProductionPathProviderAndTypeHierarchy<T>, TypedReaderTableSpecsProvider.Dependent<T> {
-
-        static final String DEFAULT_COLUMNTYPE_ID = "<default-columntype>";
-
-        static final String DEFAULT_COLUMNTYPE_TEXT = "Default columntype";
+        ProductionPathProviderAndTypeHierarchy<T>, TypedReaderTableSpecsProvider.Dependent<T>, TypeChoicesMapper<T> {
 
         private Supplier<String> m_columnNameSupplier;
 
-        private Supplier<Collection<DependsOnTypedReaderTableSpecProvider.TypedReaderTableSpecWithLocation<T>>> m_specSupplier;
+        private Supplier<? extends Collection<? extends HasTableSpec<T>>> m_specSupplier;
 
         @Override
         public void init(final StateProviderInitializer initializer) {
             m_columnNameSupplier = initializer.getValueSupplier(ColumnNameRef.class);
-            initializer.computeOnValueChange(TransformationParameters.TableSpecSettingsRef.class);
+            initializer.computeOnValueChange(TableSpecSettingsRef.class);
             m_specSupplier = initializer.computeFromProvidedState(getTypedReaderTableSpecsProvider());
         }
 
         @Override
         public List<StringChoice> computeState(final NodeParametersInput context) {
             final var columnName = m_columnNameSupplier.get();
-
-            if (columnName == null) { // i.e., any unknown column
-                final var defaultChoice = new StringChoice(DEFAULT_COLUMNTYPE_ID, DEFAULT_COLUMNTYPE_TEXT);
-                final var dataTypeChoices = getProductionPathProvider().getAvailableDataTypes().stream()
-                    .sorted((t1, t2) -> t1.toPrettyString().compareTo(t2.toPrettyString()))
-                    .map(type -> new StringChoice(getDataTypeId(type), type.toPrettyString())).toList();
-                return Stream.concat(Stream.of(defaultChoice), dataTypeChoices.stream()).toList();
-            }
-
             final var suppliedSpecs = m_specSupplier.get();
-            final Collection<TypedReaderTableSpecWithLocation<T>> specs =
-                suppliedSpecs == null ? List.of() : suppliedSpecs;
-            final var specsOnly = specs.stream().map(TypedReaderTableSpecWithLocation::spec).toList();
-            final var union = toRawSpec(specsOnly).getUnion();
-            final var columnSpecOpt =
-                union.stream().filter(colSpec -> colSpec.getName().get().equals(columnName)).findAny();
-            if (columnSpecOpt.isEmpty()) {
-                return List.of();
-            }
-            final var columnSpec = columnSpecOpt.get();
-            final var productionPaths = getProductionPathProvider().getAvailableProductionPaths(columnSpec.getType());
-            return productionPaths.stream()
-                .map(p -> new StringChoice(ProductionPathUtils.getPathIdentifier(p, getProductionPathSerializer()),
-                    p.getDestinationType().toPrettyString()))
-                .toList();
+            final List<TypedReaderTableSpec<T>> specsOnly =
+                suppliedSpecs == null ? List.of() : suppliedSpecs.stream().map(HasTableSpec::getTableSpec).toList();
+            return computeTypeChoices(specsOnly, columnName);
         }
 
-    }
-
-    static String getDataTypeId(final DataType type) {
-        return DataTypeSerializer.typeToString(type);
-    }
-
-    static DataType fromDataTypeId(final String id) {
-        return DataTypeSerializer.stringToType(id);
     }
 
     /**
@@ -671,44 +453,27 @@ public final class TransformationParametersStateProviders {
      *
      * @param <T> the type used to represent external data [T]ypes
      */
-    public abstract static class TransformationSettingsWidgetModification<T> implements Modification.Modifier {
-
-        static class ConfigIdSettingsRef implements Modification.Reference {
-        }
-
-        static class SpecsRef implements Modification.Reference {
-        }
-
-        static class TypeChoicesWidgetRef implements Modification.Reference {
-        }
-
-        static final class TransformationElementSettingsArrayWidgetRef implements Modification.Reference {
-        }
-
-        @Override
-        public void modify(final Modification.WidgetGroupModifier group) {
-            group.find(SpecsRef.class).addAnnotation(ValueProvider.class).withValue(getSpecsValueProvider()).modify();
-            group.find(TypeChoicesWidgetRef.class).addAnnotation(ChoicesProvider.class)
-                .withValue(getTypeChoicesProvider()).modify();
-            group.find(TransformationElementSettingsArrayWidgetRef.class).addAnnotation(ValueProvider.class)
-                .withValue(getTransformationSettingsValueProvider()).modify();
-        }
+    public abstract static class TransformationSettingsWidgetModification<T> extends
+        TransformationParametersStateProvidersCommon.AbstractTransformationSettingsWidgetModification<TableSpecSettingsWithFsLocation> {
 
         /**
          * @return the value provider for the specs.
          */
-        protected abstract Class<? extends TableSpecSettingsProvider<T>> getSpecsValueProvider();
+        protected abstract Class<? extends TransformationParametersStateProviders.TableSpecSettingsProvider<T>>
+            getSpecsValueProvider();
 
         /**
          * @return the value provider for the transformation settings array layout.
          */
-        protected abstract Class<? extends TransformationElementSettingsProvider<T>>
+        protected abstract
+            Class<? extends TransformationParametersStateProviders.TransformationElementSettingsProvider<T>>
             getTransformationSettingsValueProvider();
 
         /**
          * @return the choices provider for the types of array layout elements.
          */
-        protected abstract Class<? extends TypeChoicesProvider<T>> getTypeChoicesProvider();
+        protected abstract Class<? extends TransformationParametersStateProviders.TypeChoicesProvider<T>>
+            getTypeChoicesProvider();
     }
 
     private TransformationParametersStateProviders() {

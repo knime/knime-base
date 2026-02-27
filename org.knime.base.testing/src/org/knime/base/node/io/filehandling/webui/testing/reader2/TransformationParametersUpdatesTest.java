@@ -75,7 +75,7 @@ import org.knime.base.node.io.filehandling.webui.reader.DataTypeStringSerializer
 import org.knime.base.node.io.filehandling.webui.reader2.MultiFileReaderParameters.HowToCombineColumnsOption;
 import org.knime.base.node.io.filehandling.webui.reader2.ReaderSpecific.ExternalDataTypeSerializer;
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters;
-import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.TableSpecSettings;
+import org.knime.base.node.io.filehandling.webui.reader2.TableSpecSettingsWithFsLocation;
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationElementSettings;
 import org.knime.base.node.io.filehandling.webui.testing.LocalWorkflowContextTest;
 import org.knime.core.data.DataType;
@@ -223,7 +223,7 @@ public abstract class TransformationParametersUpdatesTest<R extends WidgetGroup,
 
     }
 
-    protected void assertIntegerAndStringColumn(final TableSpecSettings[] specs) {
+    protected void assertIntegerAndStringColumn(final TableSpecSettingsWithFsLocation[] specs) {
         final var serializer = getExternalDataTypeSerializer();
         assertTableSpec(specs, m_filePath, new String[]{INT_COL, STRING_COL},
             List.of(serializer.toSerializableType(getIntType()), serializer.toSerializableType(getStringType())));
@@ -518,8 +518,8 @@ public abstract class TransformationParametersUpdatesTest<R extends WidgetGroup,
             .toList();
     }
 
-    protected TableSpecSettings[] getTableSpecsValueUpdate(final UpdateSimulatorResult simulatorResult) {
-        return (TableSpecSettings[])simulatorResult.getValueUpdateAt(combineWithPathToTransformationSettings("specs"));
+    protected TableSpecSettingsWithFsLocation[] getTableSpecsValueUpdate(final UpdateSimulatorResult simulatorResult) {
+        return (TableSpecSettingsWithFsLocation[])simulatorResult.getValueUpdateAt(combineWithPathToTransformationSettings("specs"));
     }
 
     protected TransformationElementSettings[]

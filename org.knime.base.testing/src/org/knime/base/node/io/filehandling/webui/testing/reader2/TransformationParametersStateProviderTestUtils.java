@@ -59,8 +59,8 @@ import org.knime.base.node.io.filehandling.webui.reader2.ClassSerializer;
 import org.knime.base.node.io.filehandling.webui.reader2.DataTypeSerializer;
 import org.knime.base.node.io.filehandling.webui.reader2.ReaderSpecific.ExternalDataTypeSerializer;
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters;
-import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.ColumnSpecSettings;
-import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters.TableSpecSettings;
+import org.knime.base.node.io.filehandling.webui.reader2.ColumnSpecSettings;
+import org.knime.base.node.io.filehandling.webui.reader2.TableSpecSettingsWithFsLocation;
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationElementSettings;
 import org.knime.core.data.DataType;
 import org.knime.core.data.def.DoubleCell;
@@ -93,8 +93,8 @@ public final class TransformationParametersStateProviderTestUtils {
      * @param columNames the names of the columns
      * @param types the types of the columns
      */
-    public static <S> void assertTableSpec(final TableSpecSettings[] specs, final String file,
-        final String[] columNames, final List<S> types) {
+    public static <S> void assertTableSpec(final TableSpecSettingsWithFsLocation[] specs, final String file,
+                                           final String[] columNames, final List<S> types) {
         assertThat(specs).hasSize(1);
         final var spec = specs[0];
         if (file != null) {
@@ -116,8 +116,8 @@ public final class TransformationParametersStateProviderTestUtils {
      * @param columNames the names of the columns
      * @param types the types of the columns
      */
-    public static <S> void assertTableSpec(final TableSpecSettings[] specsObj, final String[] columNames,
-        final List<S> types) {
+    public static <S> void assertTableSpec(final TableSpecSettingsWithFsLocation[] specsObj, final String[] columNames,
+                                           final List<S> types) {
         assertTableSpec(specsObj, null, columNames, types);
     }
 
@@ -133,7 +133,7 @@ public final class TransformationParametersStateProviderTestUtils {
         final var columnSpecSettings = IntStream.range(0, columnNames.size())
             .mapToObj(i -> new ColumnSpecSettings(columnNames.get(i), columnTypes.get(i), true))
             .toArray(ColumnSpecSettings[]::new);
-        transformationSettings.m_specs = new TableSpecSettings[]{new TableSpecSettings("existingSource",
+        transformationSettings.m_specs = new TableSpecSettingsWithFsLocation[]{new TableSpecSettingsWithFsLocation("existingSource",
             new FSLocation(FSCategory.LOCAL, "existingSource"), columnSpecSettings)};
     }
 
