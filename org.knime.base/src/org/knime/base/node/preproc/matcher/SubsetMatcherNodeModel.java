@@ -95,6 +95,20 @@ import org.knime.core.util.ThreadPool;
  */
 public class SubsetMatcherNodeModel extends NodeModel {
 
+    static final String CFG_SET_COLUMN = "setColumn";
+
+    static final String CFG_SUBSET_COLUMN = "subsetColumn";
+
+    static final String CFG_SET_ID_COLUMN = "setIDCol";
+
+    static final String CFG_APPEND_SET_LIST_COLUMN = "appendSetListCol";
+
+    static final String CFG_MAX_MISMATCHES = "maxMismatches";
+
+    static final String CFG_USE_ROW_ID = "useRowID";
+
+    static final String CFG_COLUMN_NAME = "columnName";
+
     private static final NodeLogger LOGGER =
         NodeLogger.getLogger(SubsetMatcherNodeModel.class);
 
@@ -138,35 +152,35 @@ public class SubsetMatcherNodeModel extends NodeModel {
      * @return transaction column name model
      */
     static SettingsModelString createSetColNameModel() {
-        return new SettingsModelString("setColumn", null);
+        return new SettingsModelString(CFG_SET_COLUMN, null);
     }
 
     /**
      * @return the item set column model
      */
     static SettingsModelString createSubsetColNameModel() {
-        return new SettingsModelString("subsetColumn", null);
+        return new SettingsModelString(CFG_SUBSET_COLUMN, null);
     }
 
     /**
      * @return the transaction id column model.
      */
     static SettingsModelColumnName createSetIDColNameModel() {
-        return new SettingsModelColumnName("setIDCol", null);
+        return new SettingsModelColumnName(CFG_SET_ID_COLUMN, null);
     }
 
     /**
      * @return the append item set column model
      */
     static SettingsModelBoolean createAppendSetListColModel() {
-        return new SettingsModelBoolean("appendSetListCol", true);
+        return new SettingsModelBoolean(CFG_APPEND_SET_LIST_COLUMN, true);
     }
 
     /**
      * @return the maximum mismatches model
      */
     static SettingsModelInteger createMaxMismatchesModel() {
-        return new SettingsModelIntegerBounded("maxMismatches", 0,
+        return new SettingsModelIntegerBounded(CFG_MAX_MISMATCHES, 0,
                 0, Integer.MAX_VALUE);
     }
 
