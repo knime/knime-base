@@ -44,12 +44,11 @@
  * ------------------------------------------------------------------------
  */
 
-package org.knime.base.node.mine.bfn.radial;
+package org.knime.base.node.mine.bfn;
 
 import java.util.Optional;
 
-import org.knime.base.node.mine.bfn.BasisFunctionPredictor2NodeDialog;
-import org.knime.base.node.mine.bfn.radial.RadialBasisFunctionPredictor2NodeParameters.DontKnowClassNodeParameters.DontKnowClassPersistor;
+import org.knime.base.node.mine.bfn.BasisFunctionPredictor2NodeParameters.DontKnowClassNodeParameters.DontKnowClassPersistor;
 import org.knime.base.node.mine.util.PredictorHelper;
 import org.knime.base.node.mine.util.PredictorHelper.PredictionColumnPersistor;
 import org.knime.core.node.InvalidSettingsException;
@@ -80,13 +79,14 @@ import org.knime.node.parameters.widget.text.TextInputWidget;
 import org.knime.node.parameters.widget.text.util.ColumnNameValidationUtils.ColumnNameValidation;
 
 /**
- * Node parameters for PNN Predictor.
+ * Node parameters for PNN and Fuzzy Rule Predictor.
  *
  * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
  * @author AI Migration Pipeline v1.2
+ * @since 5.12
  */
 @LoadDefaultsForAbsentFields
-final class RadialBasisFunctionPredictor2NodeParameters implements NodeParameters {
+public final class BasisFunctionPredictor2NodeParameters implements NodeParameters {
 
     @Persistor(DontKnowClassPersistor.class)
     DontKnowClassNodeParameters m_dontKnowClass = new DontKnowClassNodeParameters();
