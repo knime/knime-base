@@ -3,5 +3,5 @@
     <entry key="has_custom_predicition_name" type="xboolean" value="false"/>
     <entry key="custom_prediction_name" type="xstring" value="Prediction ()"/>
     <entry key="include_probabilites" type="xboolean" value="false"/>
-    <entry key="propability_columns_suffix" type="xstring" isnull="true" value=""/>
+    <entry key="propability_columns_suffix" type="xstring" value=""/>
 </config>

@@ -191,8 +191,6 @@ public abstract class BasisFunctionLearnerNodeModel extends NodeModel {
                 DataColumnSpec cspec = inSpec.getColumnSpec(i);
                 if (!cspec.getType().isCompatible(DoubleValue.class)) {
                     m_targetColumns = new String[]{cspec.getName()};
-                    super.setWarningMessage("Target column guessed as \""
-                            + cspec.getName() + "\"");
                     break;
                 }
             }
