@@ -44,39 +44,49 @@
  */
 package org.knime.base.node.mine.bfn.fuzzy;
 
-import org.knime.base.node.mine.bfn.BasisFunctionPredictor2NodeDialog;
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.base.node.mine.bfn.BasisFunctionPredictor2NodeParameters;
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
 
 /**
+ * {@link NodeFactory} for the "Fuzzy Rule Predictor" Node.
  *
  * @author Thomas Gabriel, University of Konstanz
+ * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.2
  * @since 2.9
  */
-public class FuzzyBasisFunctionPredictor2NodeFactory
-        extends NodeFactory<FuzzyBasisFunctionPredictor2NodeModel> {
+@SuppressWarnings("restriction")
+public class FuzzyBasisFunctionPredictor2NodeFactory extends NodeFactory<FuzzyBasisFunctionPredictor2NodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
-
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public FuzzyBasisFunctionPredictor2NodeModel createNodeModel() {
         return new FuzzyBasisFunctionPredictor2NodeModel();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int getNrNodeViews() {
         return 0;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public NodeView<FuzzyBasisFunctionPredictor2NodeModel> createNodeView(
             final int viewIndex,
@@ -84,19 +94,79 @@ public class FuzzyBasisFunctionPredictor2NodeFactory
         return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean hasDialog() {
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    private static final String NODE_NAME = "Fuzzy Rule Predictor";
+
+    private static final String NODE_ICON = "./fuzzybfpredictor.png";
+
+    private static final String SHORT_DESCRIPTION = """
+            Applies a Fuzzy Rule Model to numeric data and outputs a prediction for each test instance.
+            """;
+
+    private static final String FULL_DESCRIPTION = """
+            The first port contains the Fuzzy Rule Model that is applied to the test data contained in the second
+            input port. The output data has then one additional column containing the predicted class attribute
+            which is the best match for all rules.
+            """;
+
+    private static final List<PortDescription> INPUT_PORTS = List.of(
+            fixedPort("Fuzzy rule model", """
+                Fuzzy Rule Model to which test data is applied.
+                """),
+            fixedPort("Test data", """
+                Test data matching the Fuzzy Rule Model structure.
+                """)
+    );
+
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(
+            fixedPort("Predicted data", """
+                Predicted data with one additional classification column.
+                """)
+    );
+
     @Override
     public NodeDialogPane createNodeDialogPane() {
-        return new BasisFunctionPredictor2NodeDialog();
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
     }
+
+    /**
+     * {@inheritDoc}
+     * @since 5.12
+     */
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, BasisFunctionPredictor2NodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription( //
+            NODE_NAME, //
+            NODE_ICON, //
+            INPUT_PORTS, //
+            OUTPUT_PORTS, //
+            SHORT_DESCRIPTION, //
+            FULL_DESCRIPTION, //
+            List.of(), //
+            BasisFunctionPredictor2NodeParameters.class, //
+            null, //
+            NodeType.Predictor, //
+            List.of(), //
+            null //
+        );
+    }
+
+    /**
+     * {@inheritDoc}
+     * @since 5.12
+     */
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, BasisFunctionPredictor2NodeParameters.class));
+    }
+
 }
