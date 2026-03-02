@@ -49,6 +49,7 @@ import static org.knime.node.impl.description.PortDescription.fixedPort;
 import java.util.List;
 import java.util.Map;
 
+import org.knime.base.node.mine.bfn.BasisFunctionPredictor2NodeParameters;
 import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
@@ -138,7 +139,7 @@ public class RadialBasisFunctionPredictor2NodeFactory extends NodeFactory<Radial
      */
     @Override
     public NodeDialog createNodeDialog() {
-        return new DefaultNodeDialog(SettingsType.MODEL, RadialBasisFunctionPredictor2NodeParameters.class);
+        return new DefaultNodeDialog(SettingsType.MODEL, BasisFunctionPredictor2NodeParameters.class);
     }
 
     @Override
@@ -151,7 +152,7 @@ public class RadialBasisFunctionPredictor2NodeFactory extends NodeFactory<Radial
             SHORT_DESCRIPTION, //
             FULL_DESCRIPTION, //
             List.of(), //
-            RadialBasisFunctionPredictor2NodeParameters.class, //
+            BasisFunctionPredictor2NodeParameters.class, //
             null, //
             NodeType.Predictor, //
             List.of(), //
@@ -166,7 +167,7 @@ public class RadialBasisFunctionPredictor2NodeFactory extends NodeFactory<Radial
     @Override
     public KaiNodeInterface createKaiNodeInterface() {
         return new DefaultKaiNodeInterface(
-            Map.of(SettingsType.MODEL, RadialBasisFunctionPredictor2NodeParameters.class));
+            Map.of(SettingsType.MODEL, BasisFunctionPredictor2NodeParameters.class));
     }
 
 }
