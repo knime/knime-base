@@ -1,0 +1,261 @@
+{
+  "data" : {
+    "model" : {
+      "missing" : "MIN",
+      "shrinkAfterCommit" : false,
+      "maxClassCoverage" : true,
+      "maxEpochsParameters" : 41,
+      "targetColumns" : [ "Universe_0_0", "Universe_1_0" ],
+      "distance" : 0,
+      "norm" : "LUKASIEWICZ",
+      "shrink" : "VOLUME_RULE_BASED"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "distance" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 0
+          },
+          "maxClassCoverage" : {
+            "type" : "boolean",
+            "title" : "Use class with max coverage",
+            "description" : "If selected, only the class with maximum coverage degree of the target columns is used during\ntraining, otherwise all class columns are considered for coverage.\n",
+            "default" : true
+          },
+          "maxEpochsParameters" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int32",
+            "title" : "Use maximum number of epochs",
+            "description" : "If selected, the option defines the maximum number of epochs the algorithm has to process the\nentire data set, otherwise it repeats this process until this rule model is stable, i.e. no new\nrule has been committed and/or no shrink is executed.\n",
+            "default" : 42
+          },
+          "missing" : {
+            "oneOf" : [ {
+              "const" : "INCORP",
+              "title" : "Incorp"
+            }, {
+              "const" : "BEST_GUESS",
+              "title" : "Best Guess"
+            }, {
+              "const" : "MEAN",
+              "title" : "Mean"
+            }, {
+              "const" : "MIN",
+              "title" : "Min"
+            }, {
+              "const" : "MAX",
+              "title" : "Max"
+            }, {
+              "const" : "ZERO",
+              "title" : "Zero"
+            }, {
+              "const" : "ONE",
+              "title" : "One"
+            } ],
+            "title" : "Missing values",
+            "description" : "Select one method to handle missing values.\n<ul>\n<li><b>Incorp</b>: May generate fuzzy rules with missing values, if no replacement value has been found during the\nlearning process.\n</li>\n<li><b>Best Guess</b>: Computes the optimal replacement value by projecting the fuzzy rule (with missing value(s)) onto the\nmissing dimension(s) of all other rules.\n</li>\n<li><b>Mean</b>: Replaces the missing value(s) with the column mean.</li>\n<li><b>Min</b>: Replaces the missing value(s) with the column min.</li>\n<li><b>Max</b>: Replaces the missing value(s) with the column max.</li>\n<li><b>Zero</b>: Replaces the missing value(s) with zero.</li>\n<li><b>One</b>: Replaces the missing value(s) with one.</li>\n</ul>",
+            "default" : "INCORP"
+          },
+          "norm" : {
+            "oneOf" : [ {
+              "const" : "MIN_MAX",
+              "title" : "Min/Max Norm"
+            }, {
+              "const" : "PRODUCT",
+              "title" : "Product Norm"
+            }, {
+              "const" : "LUKASIEWICZ",
+              "title" : "Lukasiewicz Norm"
+            }, {
+              "const" : "YAGER_2",
+              "title" : "Yager[2.0] Norm"
+            }, {
+              "const" : "YAGER_05",
+              "title" : "Yager[0.5] Norm"
+            } ],
+            "title" : "Fuzzy norm",
+            "description" : "Select a fuzzy norm to compute the rules' activation across all dimensions and\nrules. Fuzzy norms are important, because they combine the membership values of each fuzzy\ninterval for one rule and compute a final output across all rules.\n",
+            "default" : "MIN_MAX"
+          },
+          "shrink" : {
+            "oneOf" : [ {
+              "const" : "VOLUME_BORDER_BASED",
+              "title" : "Volume border based"
+            }, {
+              "const" : "VOLUME_ANCHOR_BASED",
+              "title" : "Volume anchor based"
+            }, {
+              "const" : "VOLUME_RULE_BASED",
+              "title" : "Volume rule based"
+            } ],
+            "title" : "Shrink function",
+            "description" : "Select a shrink method to reduce rules in order to avoid conflicts between rules of different classes.\n\n<ul>\n<li><b>Volume border based</b>: Applies the volume loss in terms of the support or core region borders.\n</li>\n<li><b>Volume anchor based</b>: Uses the anchor value border.</li>\n<li><b>Volume rule based</b>: Uses the entire rule volume interval for one rule and compute a final output across all rules.\n</li>\n</ul>",
+            "default" : "VOLUME_BORDER_BASED"
+          },
+          "shrinkAfterCommit" : {
+            "type" : "boolean",
+            "title" : "Shrink after commit",
+            "description" : "If selected, a shrink to reduce conflicting rules is executed\nimmediately after a new rule is committed, i.e. the new rule is reduced so that conflicts with\nall other rules of different classes are avoided.\n",
+            "default" : false
+          },
+          "targetColumns" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            },
+            "title" : "Target columns",
+            "description" : "Select the target(s) to be used for classification. If more than one column (only numeric) is\nselected, the columns must contain class membership values between 0 and 1 for each class given\nby the column name.\n",
+            "default" : [ ]
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/missing"
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/shrinkAfterCommit",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/maxClassCoverage",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/maxEpochsParameters",
+      "options" : {
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 2147483647.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 2.147483647E9
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least -2147483648.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : -2.147483648E9
+            }
+          }
+        },
+        "hideOnNull" : true
+      },
+      "providedOptions" : [ "default" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/targetColumns",
+      "options" : {
+        "format" : "twinList"
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/norm"
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/shrink"
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "missing" : {
+            "configPaths" : [ [ "missing" ] ]
+          },
+          "shrinkAfterCommit" : {
+            "configKey" : "shrink_after_commit"
+          },
+          "maxClassCoverage" : {
+            "configKey" : "max_class_coverage"
+          },
+          "maxEpochsParameters" : {
+            "configPaths" : [ [ "max_epochs" ] ]
+          },
+          "targetColumns" : {
+            "configKey" : "target_column",
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ ]
+            } ]
+          },
+          "distance" : {
+            "configKey" : "distance_function"
+          },
+          "norm" : {
+            "configPaths" : [ [ "norm" ] ]
+          },
+          "shrink" : {
+            "configPaths" : [ [ "shrink" ] ]
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/maxEpochsParameters",
+    "providedOptionName" : "default",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : 42
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/targetColumns",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "Feature_1",
+        "text" : "Feature_1",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Feature_2",
+        "text" : "Feature_2",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Feature_3",
+        "text" : "Feature_3",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Universe_0_0",
+        "text" : "Universe_0_0",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      }, {
+        "id" : "Universe_1_0",
+        "text" : "Universe_1_0",
+        "type" : {
+          "id" : "org.knime.core.data.DoubleValue",
+          "text" : "Number (Float)"
+        }
+      } ]
+    } ]
+  } ]
+}

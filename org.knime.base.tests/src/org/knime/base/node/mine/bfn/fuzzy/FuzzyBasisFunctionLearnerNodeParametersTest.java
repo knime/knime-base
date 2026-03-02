@@ -43,16 +43,14 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ------------------------------------------------------------------------
  */
-package org.knime.base.node.mine.bfn.radial;
+package org.knime.base.node.mine.bfn.fuzzy;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 
-import org.knime.base.node.mine.bfn.BasisFunctionPredictor2NodeParameters;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.def.DoubleCell;
-import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.port.PortObjectSpec;
@@ -62,32 +60,32 @@ import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
 import org.knime.testing.node.dialog.SnapshotTestConfiguration;
 
 /**
- * Snapshot test for {@link RadialBasisFunctionPredictor2NodeParameters}.
+ * Snapshot test for {@link FuzzyBasisFunctionLearnerNodeParameters}.
  */
 @SuppressWarnings("restriction")
-final class RadialBasisFunctionPredictor2NodeParametersTest extends DefaultNodeSettingsSnapshotTest {
+final class FuzzyBasisFunctionLearnerNodeParametersTest extends DefaultNodeSettingsSnapshotTest {
 
-    RadialBasisFunctionPredictor2NodeParametersTest() {
+    FuzzyBasisFunctionLearnerNodeParametersTest() {
         super(getConfig());
     }
 
     private static SnapshotTestConfiguration getConfig() {
         return SnapshotTestConfiguration.builder() //
             .withInputPortObjectSpecs(createInputPortSpecs()) //
-            .testJsonFormsForModel(BasisFunctionPredictor2NodeParameters.class) //
+            .testJsonFormsForModel(FuzzyBasisFunctionLearnerNodeParameters.class) //
             .testJsonFormsWithInstance(SettingsType.MODEL, () -> readSettings()) //
             .testNodeSettingsStructure(() -> readSettings()) //
             .build();
     }
 
-    private static BasisFunctionPredictor2NodeParameters readSettings() {
+    private static FuzzyBasisFunctionLearnerNodeParameters readSettings() {
         try {
-            var path = getSnapshotPath(BasisFunctionPredictor2NodeParameters.class).getParent()
-                .resolve("node_settings").resolve("RadialBasisFunctionPredictor2NodeParameters.xml");
+            var path = getSnapshotPath(FuzzyBasisFunctionLearnerNodeParameters.class).getParent()
+                .resolve("node_settings").resolve("FuzzyBasisFunctionLearnerNodeParameters.xml");
             try (var fis = new FileInputStream(path.toFile())) {
                 var nodeSettings = NodeSettings.loadFromXML(fis);
                 return NodeParametersUtil.loadSettings(nodeSettings.getNodeSettings(SettingsType.MODEL.getConfigKey()),
-                    BasisFunctionPredictor2NodeParameters.class);
+                    FuzzyBasisFunctionLearnerNodeParameters.class);
             }
         } catch (IOException | InvalidSettingsException e) {
             throw new IllegalStateException(e);
@@ -95,41 +93,13 @@ final class RadialBasisFunctionPredictor2NodeParametersTest extends DefaultNodeS
     }
 
     private static PortObjectSpec[] createInputPortSpecs() {
-        return new PortObjectSpec[]{createBasisFunctionModelSpec(), createDefaultTestTableSpec()};
-    }
-
-    private static DataTableSpec createBasisFunctionModelSpec() {
-        return new DataTableSpec(
-            new String[]{"Feature_1", "Feature_2", "Feature_3", "Feature_4", "Feature_5",
-                "Feature_6", "Feature_7", "Feature_8", "Cluster Membership",
-                "support", "core", "anchor", "class", "covered"},
-            new DataType[]{
-                DataType.getType(DoubleCell.class),
-                DataType.getType(DoubleCell.class),
-                DataType.getType(DoubleCell.class),
-                DataType.getType(DoubleCell.class),
-                DataType.getType(DoubleCell.class),
-                DataType.getType(DoubleCell.class),
-                DataType.getType(DoubleCell.class),
-                DataType.getType(DoubleCell.class),
-                DataType.getType(StringCell.class),
-                DataType.getType(DoubleCell.class),
-                DataType.getType(DoubleCell.class),
-                DataType.getType(DoubleCell.class),
-                DataType.getType(StringCell.class),
-                DataType.getType(DoubleCell.class)
-            }
-        );
+        return new PortObjectSpec[]{createDefaultTestTableSpec()};
     }
 
     private static DataTableSpec createDefaultTestTableSpec() {
         return new DataTableSpec(
-            new String[]{"Feature_1", "Feature_2", "Feature_3", "Feature_4", "Feature_5",
-                "Feature_6", "Feature_7", "Feature_8"},
+            new String[]{"Feature_1", "Feature_2", "Feature_3", "Universe_0_0", "Universe_1_0"},
             new DataType[]{
-                DataType.getType(DoubleCell.class),
-                DataType.getType(DoubleCell.class),
-                DataType.getType(DoubleCell.class),
                 DataType.getType(DoubleCell.class),
                 DataType.getType(DoubleCell.class),
                 DataType.getType(DoubleCell.class),
