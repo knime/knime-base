@@ -127,7 +127,7 @@ public final class TableToVariable3NodeSettings implements NodeParameters {
     @Widget(title = "Output as variables", description = """
             Select the columns to be converted to flow variables. For each selected column, a flow variable
             is created. The name of the flow variable corresponds to the column name and the value corresponds
-            to the value of the first row in that column.
+            to the value of that column's row used in the current iteration.
             """)
     @ChoicesProvider(AllColumnsProvider.class)
     @Layout(OutputAsVariablesSection.class)
