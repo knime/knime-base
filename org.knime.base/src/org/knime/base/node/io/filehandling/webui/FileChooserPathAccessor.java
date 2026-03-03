@@ -50,6 +50,7 @@ package org.knime.base.node.io.filehandling.webui;
 
 import java.util.Optional;
 
+import org.knime.core.node.CanceledExecutionException.CancelChecker;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.DefaultFileChooserFilters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelection;
@@ -99,10 +100,25 @@ public final class FileChooserPathAccessor extends AbstractFileChooserPathAccess
      */
     public FileChooserPathAccessor(final MultiFileSelection<DefaultFileChooserFilters> multiFileSelection,
         final Optional<FSConnection> portObjectConnection) { //NOSONAR
+        this(multiFileSelection, portObjectConnection, () -> {});
+    }
+
+    /**
+     * Creates a new FileChooserAccessor for the provided location.
+     *
+     * @param multiFileSelection provided by the user
+     * @param portObjectConnection an optional connection of a connected {@link FileSystemPortObjectSpec}
+     * @param cancelationCheck a {@link CancelChecker} that is checked for cancellation during potentially long-running
+     *            operations such as file system traversal
+     *
+     * @since 5.11
+     */
+    public FileChooserPathAccessor(final MultiFileSelection<DefaultFileChooserFilters> multiFileSelection,
+        final Optional<FSConnection> portObjectConnection, final CancelChecker cancelationCheck) { //NOSONAR
         super(new FileChooserPathAccessorSettings(multiFileSelection.getFSLocation(),
             new FilterSettings(toFilterMode(multiFileSelection.m_filterMode), multiFileSelection.m_includeSubfolders,
                 multiFileSelection.m_filters.toFilterOptionsSettings(), multiFileSelection.m_filters.followSymlinks())),
-            portObjectConnection);
+            portObjectConnection, cancelationCheck);
     }
 
     static FilterMode toFilterMode(final MultiFileSelectionMode multiFileSelectionMode) { // NOSONAR 6 returns seem fine
