@@ -1,5 +1,6 @@
 /*
  * ------------------------------------------------------------------------
+ *
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
@@ -40,15 +41,17 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * ------------------------------------------------------------------------
+ * ---------------------------------------------------------------------
  *
  * History
- *   Aug 7, 2010 (wiswedel): created
+ *   Mar 3, 2026 (lw): created
  */
-package org.knime.base.node.flowvariable.tablerowtovariable3;
+package org.knime.base.node.meta.looper.variable.start;
 
 import java.util.Locale;
 
+import org.knime.base.node.flowvariable.tablerowtovariable3.MissingValuePolicy;
+import org.knime.base.node.flowvariable.tablerowtovariable3.TableToVariable3NodeSettings;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -74,21 +77,13 @@ import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
 import org.knime.node.parameters.widget.choices.util.AllColumnsProvider;
 
 /**
- * Settings class to generate the node dialog.
+ * A clone of {@link TableToVariable3NodeSettings}, except for the description
+ * of "Output as variables" (see AP-21769).
  *
- * Output as variables (twinlist)
- *
- * If value is not available (switch, default=Ignore, Use defaults or fail, Fail)
- *
- * [Only if value is not available=Use defaults or fail]
- *
- * Default string (text input, default=”missing”) Default boolean (switch, True, default=False) Default integer
- * (spinner, default=0) Default long (spinner, default=0) Default double (spinner, default=0)
- *
- * @author Carl Witt, KNIME AG, Zurich, Switzerland
+ * @author Leon Wenzler, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
-public final class TableToVariable3NodeSettings implements NodeParameters {
+public class LoopStartVariable3NodeSettings implements NodeParameters {
 
     /** The columns selected for conversion to a flow variable. */
     static final String CFG_KEY_COLUMNS = "column_selection";
@@ -127,7 +122,7 @@ public final class TableToVariable3NodeSettings implements NodeParameters {
     @Widget(title = "Output as variables", description = """
             Select the columns to be converted to flow variables. For each selected column, a flow variable
             is created. The name of the flow variable corresponds to the column name and the value corresponds
-            to the value of the first row in that column.
+            to the value of that column's row used in the current iteration.
             """)
     @ChoicesProvider(AllColumnsProvider.class)
     @Layout(OutputAsVariablesSection.class)
@@ -221,7 +216,7 @@ public final class TableToVariable3NodeSettings implements NodeParameters {
     /**
      * Constructor.
      */
-    TableToVariable3NodeSettings() {
+    LoopStartVariable3NodeSettings() {
 
     }
 

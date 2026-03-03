@@ -55,8 +55,7 @@ import org.knime.node.parameters.widget.choices.Label;
  *
  * @author Mark Ortmann, KNIME GmbH, Berlin, Germany
  */
-@SuppressWarnings("restriction")
-enum MissingValuePolicy implements ButtonGroupEnumInterface {
+public enum MissingValuePolicy implements ButtonGroupEnumInterface {
 
         /**
          * Fail the nodes execution.
@@ -87,7 +86,7 @@ enum MissingValuePolicy implements ButtonGroupEnumInterface {
     /**
      * @param name Name of this policy
      */
-    private MissingValuePolicy(final String name, final String toolTip) {
+    MissingValuePolicy(final String name, final String toolTip) {
         m_name = name;
         m_toolTip = toolTip;
     }

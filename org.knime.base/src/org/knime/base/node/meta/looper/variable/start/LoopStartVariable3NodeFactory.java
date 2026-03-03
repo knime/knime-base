@@ -48,7 +48,6 @@
  */
 package org.knime.base.node.meta.looper.variable.start;
 
-import org.knime.base.node.flowvariable.tablerowtovariable3.TableToVariable3NodeSettings;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeFactory;
@@ -69,7 +68,7 @@ public class LoopStartVariable3NodeFactory extends WebUINodeFactory<LoopStartVar
         .fullDescription(
             "This node uses each row of a data table to define new variable values for each loop iteration. "
                 + "The names of the variables are defined by the column names.")//
-        .modelSettingsClass(TableToVariable3NodeSettings.class)//
+        .modelSettingsClass(LoopStartVariable3NodeSettings.class)//
         .nodeType(NodeType.LoopStart)//
         .addInputTable("Parameters table", "The table whose rows will constitute variables' "
             + "values for each iteration.")//
