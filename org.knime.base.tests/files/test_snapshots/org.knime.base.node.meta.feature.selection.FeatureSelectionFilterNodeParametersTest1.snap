@@ -1,0 +1,268 @@
+{
+  "data" : {
+    "model" : {
+      "selectionMode" : "THRESHOLD",
+      "nrOfFeatures" : 4,
+      "errorThreshold" : 0.86,
+      "includeStaticColumns" : true,
+      "selectedFeatures" : [ "WebActivity", "Sentiment Analysis", "EstimatedYearlyIncome", "Age" ]
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "errorThreshold" : {
+            "type" : "number",
+            "format" : "double",
+            "title" : "Prediction score threshold",
+            "description" : "Enter a prediction score threshold here. The smallest feature set whose score meets the threshold\nrequirement is selected.\n",
+            "default" : 0.5
+          },
+          "featureSelectionFilterInfo" : {
+            "type" : "object"
+          },
+          "includeStaticColumns" : {
+            "type" : "boolean",
+            "title" : "Include static columns",
+            "description" : "If checked, any static columns (columns that were not part of the feature selection, i.e. constant columns\nkept throughout the selection loop) are included in the output table. Otherwise, they are filtered out.\n",
+            "default" : false
+          },
+          "nrOfFeatures" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Number of features",
+            "description" : "Specify the number of features to include.\n",
+            "default" : 1
+          },
+          "optimizationInfo" : {
+            "type" : "object"
+          },
+          "selectedFeatures" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            },
+            "title" : "Included features",
+            "description" : "This shows the columns that are included in the output table. The list is automatically updated based on\nthe selected feature set and whether static columns are included. You can also manually add or remove\ncolumns from this list. Manually added columns must be present in the input table and will be ignored if\nthey are not. Manually removed columns will be excluded from the output even if they are part of the\nselected feature set or are static columns.\n",
+            "default" : [ ]
+          },
+          "selectionMode" : {
+            "oneOf" : [ {
+              "const" : "NUMBER_OF_FEATURES",
+              "title" : "Features"
+            }, {
+              "const" : "BEST_SCORE",
+              "title" : "Best score"
+            }, {
+              "const" : "THRESHOLD",
+              "title" : "Threshold"
+            } ],
+            "title" : "Feature selection mode",
+            "description" : "Choose how the features are selected from the available feature sets computed during the feature selection\nloop.\n\n<ul>\n<li><b>Features</b>: Choose a set of features by specifying the number of features to include. The feature set with the\nmatching number of features from the trained model is selected.\n</li>\n<li><b>Best score</b>: The feature set with the best prediction score is chosen. If the score is being maximized, the best\nscore is the highest score value; if the score is being minimized, the best score is the lowest\nscore value.\n</li>\n<li><b>Threshold</b>: Set a prediction score threshold. The smallest feature set whose score meets the threshold requirement\nis selected: below the threshold if the score is minimized, above the threshold if the score is\nmaximized.\n</li>\n</ul>",
+            "default" : "NUMBER_OF_FEATURES"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "id" : "#/properties/model/properties/optimizationInfo",
+      "options" : {
+        "format" : "textMessage"
+      },
+      "providedOptions" : [ "message" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/selectionMode",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/nrOfFeatures",
+      "options" : {
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 2147483647.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 2.147483647E9
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 1.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 1.0
+            }
+          }
+        }
+      },
+      "providedOptions" : [ "validation.max" ],
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/selectionMode",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "NUMBER_OF_FEATURES"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/errorThreshold",
+      "options" : {
+        "stepSize" : 0.01,
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 1.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 1.0
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least 0.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : 0.0
+            }
+          }
+        }
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/selectionMode",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "THRESHOLD"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/includeStaticColumns",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/selectedFeatures",
+      "options" : {
+        "format" : "twinList"
+      },
+      "providedOptions" : [ "possibleValues" ]
+    }, {
+      "type" : "Control",
+      "id" : "#/properties/model/properties/featureSelectionFilterInfo",
+      "options" : {
+        "format" : "textMessage"
+      },
+      "providedOptions" : [ "message" ]
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "optimizationInfo" : { },
+          "selectionMode" : {
+            "configPaths" : [ [ "thresholdMode" ], [ "bestScoreMode" ] ]
+          },
+          "nrOfFeatures" : {
+            "configKey" : "nrOfFeatures"
+          },
+          "errorThreshold" : {
+            "configKey" : "errorThreshold"
+          },
+          "includeStaticColumns" : {
+            "configKey" : "includeTargetColumn"
+          },
+          "selectedFeatures" : {
+            "configKey" : "selectedFeatures"
+          },
+          "featureSelectionFilterInfo" : { }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/nrOfFeatures",
+    "providedOptionName" : "validation.max",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : null
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/selectedFeatures",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/selectedFeatures",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "WebActivity",
+        "text" : "WebActivity"
+      }, {
+        "id" : "Sentiment Analysis",
+        "text" : "Sentiment Analysis"
+      }, {
+        "id" : "EstimatedYearlyIncome",
+        "text" : "EstimatedYearlyIncome"
+      }, {
+        "id" : "Age",
+        "text" : "Age"
+      } ]
+    } ]
+  }, {
+    "id" : "#/properties/model/properties/featureSelectionFilterInfo",
+    "providedOptionName" : "message",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : null
+    } ]
+  }, {
+    "id" : "#/properties/model/properties/optimizationInfo",
+    "providedOptionName" : "message",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : null
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/errorThreshold"
+    },
+    "dependencies" : [ "#/properties/model/properties/errorThreshold", "#/properties/model/properties/includeStaticColumns", "#/properties/model/properties/nrOfFeatures", "#/properties/model/properties/selectionMode" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/includeStaticColumns"
+    },
+    "dependencies" : [ "#/properties/model/properties/errorThreshold", "#/properties/model/properties/includeStaticColumns", "#/properties/model/properties/nrOfFeatures", "#/properties/model/properties/selectionMode" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/nrOfFeatures"
+    },
+    "dependencies" : [ "#/properties/model/properties/errorThreshold", "#/properties/model/properties/includeStaticColumns", "#/properties/model/properties/nrOfFeatures", "#/properties/model/properties/selectionMode" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/selectionMode"
+    },
+    "dependencies" : [ "#/properties/model/properties/errorThreshold", "#/properties/model/properties/includeStaticColumns", "#/properties/model/properties/nrOfFeatures", "#/properties/model/properties/selectionMode" ]
+  } ]
+}

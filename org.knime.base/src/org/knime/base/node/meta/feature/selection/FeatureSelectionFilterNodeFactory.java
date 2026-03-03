@@ -47,57 +47,123 @@
  */
 package org.knime.base.node.meta.feature.selection;
 
+import static org.knime.node.impl.description.PortDescription.fixedPort;
+
+import java.util.List;
+import java.util.Map;
+
+import org.knime.core.node.NodeDescription;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.webui.node.dialog.NodeDialog;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.NodeDialogManager;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
+import org.knime.node.impl.description.PortDescription;
 
 /**
  * This factory creates all necessary classes for the feature elimination filter
  * node.
  *
  * @author Thorsten Meinl, University of Konstanz
+ * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
+ * @author AI Migration Pipeline v1.2
  */
-public class FeatureSelectionFilterNodeFactory extends
-        NodeFactory<FeatureSelectionFilterNodeModel> {
+@SuppressWarnings("restriction")
+public class FeatureSelectionFilterNodeFactory extends NodeFactory<FeatureSelectionFilterNodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return new FeatureSelectionFilterNodeDialog();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected int getNrNodeViews() {
         return 0;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected boolean hasDialog() {
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public FeatureSelectionFilterNodeModel createNodeModel() {
         return new FeatureSelectionFilterNodeModel();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public NodeView<FeatureSelectionFilterNodeModel> createNodeView(
             final int index, final FeatureSelectionFilterNodeModel model) {
         return null;
     }
+
+    private static final String NODE_NAME = "Feature Selection Filter";
+
+    private static final String NODE_ICON = "featureselection-filter.png";
+
+    private static final String SHORT_DESCRIPTION = """
+            Applies a feature filter model built during feature selection.
+            """;
+
+    private static final String FULL_DESCRIPTION = """
+            This node takes a model built with a feature selection loop as input and lets you choose the subset of
+            columns you want to include in the output table. The dialog shows all computed subsets together with
+            their scores. You can select a subset manually or specify a score threshold. If you specify a threshold,
+            the smallest feature set whose score meets the threshold requirement is selected. If the "Minimize
+            Score" option was checked in the Feature Selection Loop End node, this is the smallest feature set with
+            a score below the specified threshold; if the "Minimize Score" option was left unchecked in the Feature
+            Selection Loop End node, this is the smallest feature set with a score above the specified threshold.
+            """;
+
+    private static final List<PortDescription> INPUT_PORTS = List.of(
+            fixedPort("Selection model", """
+                A feature selection model.
+                """),
+            fixedPort("Any datatable", """
+                Any data table that should contain the same columns as used in the selection loop.
+                """)
+    );
+
+    private static final List<PortDescription> OUTPUT_PORTS = List.of(
+            fixedPort("Filtered table", """
+                The input table with some columns filtered out.
+                """)
+    );
+
+    @Override
+    public NodeDialogPane createNodeDialogPane() {
+        return NodeDialogManager.createLegacyFlowVariableNodeDialog(createNodeDialog());
+    }
+
+    @Override
+    public NodeDialog createNodeDialog() {
+        return new DefaultNodeDialog(SettingsType.MODEL, FeatureSelectionFilterNodeParameters.class);
+    }
+
+    @Override
+    public NodeDescription createNodeDescription() {
+        return DefaultNodeDescriptionUtil.createNodeDescription( //
+            NODE_NAME, //
+            NODE_ICON, //
+            INPUT_PORTS, //
+            OUTPUT_PORTS, //
+            SHORT_DESCRIPTION, //
+            FULL_DESCRIPTION, //
+            List.of(), //
+            FeatureSelectionFilterNodeParameters.class, //
+            null, //
+            NodeType.Manipulator, //
+            List.of(), //
+            null //
+        );
+    }
+
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, FeatureSelectionFilterNodeParameters.class));
+    }
+
 }

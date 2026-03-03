@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
+    <entry key="thresholdMode" type="xboolean" value="true"/>
+    <entry key="bestScoreMode" type="xboolean" value="false"/>
+    <entry key="nrOfFeatures" type="xint" value="4"/>
+    <entry key="errorThreshold" type="xdouble" value="0.86"/>
+    <entry key="includeTargetColumn" type="xboolean" value="true"/>
+    <config key="selectedFeatures">
+        <entry key="array-size" type="xint" value="4"/>
+        <entry key="0" type="xstring" value="WebActivity"/>
+        <entry key="1" type="xstring" value="Sentiment Analysis"/>
+        <entry key="2" type="xstring" value="EstimatedYearlyIncome"/>
+        <entry key="3" type="xstring" value="Age"/>
+    </config>
+</config>
