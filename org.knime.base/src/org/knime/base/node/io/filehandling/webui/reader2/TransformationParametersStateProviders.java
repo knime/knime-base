@@ -360,6 +360,16 @@ public final class TransformationParametersStateProviders {
         extends DependsOnTypedReaderTableSpecProvider<TableSpecSettings[], T> {
 
         @Override
+        public void init(final StateProviderInitializer initializer) {
+            super.init(initializer);
+            if (isMultiFileSelection()) {
+                // The "How to combine columns" option does not influence the table specs, but we need to
+                // recompute anyway to trigger transitive updates in case this option changes.
+                initializer.computeOnValueChange(HowToCombineColumnsOptionRef.class);
+            }
+        }
+
+        @Override
         public TableSpecSettings[] computeState(final NodeParametersInput context) {
 
             final var suppliedSpecs = m_specSupplier.get();
@@ -427,6 +437,10 @@ public final class TransformationParametersStateProviders {
              */
             final List<TransformationElementSettings> elementsBeforeUnknown = new ArrayList<>();
 
+            /**
+             * Although the previous multiple file handling option could have been the intersection, extracting them
+             * from the union works just the same, since the intersection columns are just a subset of the union.
+             */
             final var existingColumnTypesByName = existingSpecsUnion.stream().filter(s -> s.getName().isPresent())
                 .collect(Collectors.toMap(s -> s.getName().get(), TypedReaderColumnSpec::getType));
             final Collection<String> existingElementNamesWithChangedType = new HashSet<>();
@@ -636,6 +650,10 @@ public final class TransformationParametersStateProviders {
             final Collection<TypedReaderTableSpecWithLocation<T>> specs =
                 suppliedSpecs == null ? List.of() : suppliedSpecs;
             final var specsOnly = specs.stream().map(TypedReaderTableSpecWithLocation::spec).toList();
+            /**
+             * Although the multiple file handling option could be the intersection, extracting the type from the union
+             * works just the same, since the intersection columns are just a subset of the union.
+             */
             final var union = toRawSpec(specsOnly).getUnion();
             final var columnSpecOpt =
                 union.stream().filter(colSpec -> colSpec.getName().get().equals(columnName)).findAny();
