@@ -43,51 +43,54 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
- * History
- *   Dec 5, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.base.node.preproc.manipulator;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.stream.Stream;
+import static org.knime.base.node.preproc.manipulator.mapping.DataTypeProducerRegistry.PATH_SERIALIZER;
 
-import org.knime.base.node.preproc.manipulator.table.Table;
-import org.knime.filehandling.core.node.table.reader.SourceGroup;
+import org.knime.base.node.io.filehandling.webui.reader2.ReaderSpecific;
+import org.knime.base.node.preproc.manipulator.mapping.DataTypeTypeHierarchy;
+import org.knime.core.data.DataType;
+import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.ProductionPathSerializer;
+import org.knime.filehandling.core.node.table.reader.type.hierarchy.TypeHierarchy;
 
 /**
- * {@link SourceGroup} based on {@link Table} that uses a constant value as ID.
- *
- * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @author Thomas Reifenberger, TNG Technology Consulting GmbH, Germany
  */
-final class TableSourceGroup implements SourceGroup<Table> {
+final class TableManipulatorSpecific {
 
-    static final String ROOTPATH = "ROOTPATH";
+    private static final ProductionPathProvider<DataType> PRODUCTION_PATH_PROVIDER =
+        TableManipulatorNodeModel.createProductionPathProvider();
 
-    private final List<Table> m_tables;
-
-    TableSourceGroup(final List<Table> tables) {
-        m_tables = tables;
+    /**
+     * Another layer of indirection for testing / mocking only
+     */
+    static ProductionPathProvider<DataType> getProductionPathProvider() {
+        return PRODUCTION_PATH_PROVIDER;
     }
 
-    @Override
-    public Iterator<Table> iterator() {
-        return m_tables.iterator();
+    interface ProductionPathProviderAndTypeHierarchy
+        extends ReaderSpecific.ProductionPathProviderAndTypeHierarchy<DataType> {
+
+        @Override
+        default ProductionPathProvider<DataType> getProductionPathProvider() {
+            return TableManipulatorSpecific.getProductionPathProvider();
+        }
+
+        @Override
+        default ProductionPathSerializer getProductionPathSerializer() {
+            return PATH_SERIALIZER;
+        }
+
+        @Override
+        default TypeHierarchy<DataType, DataType> getTypeHierarchy() {
+            return DataTypeTypeHierarchy.INSTANCE;
+        }
+
     }
 
-    @Override
-    public String getID() {
-        return ROOTPATH;
+    private TableManipulatorSpecific() {
+        // Utility class
     }
-
-    @Override
-    public Stream<Table> stream() {
-        return m_tables.stream();
-    }
-
-    @Override
-    public int size() {
-        return m_tables.size();
-    }
-
 }

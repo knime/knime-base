@@ -87,9 +87,9 @@ public enum TableManipulatorConfigSerializer implements ConfigSerializer<TableMa
 
     private static final String CFG_PREPEND_TABLE_IDX_TO_ROWID = "prepend_table_index_to_row_id";
 
-    private static final String CFG_SETTINGS_TAB = "settings";
+    static final String CFG_SETTINGS_TAB = "settings";
 
-    private static final String CFG_TABLE_SPEC_CONFIG = "table_spec_config" + SettingsModel.CFGKEY_INTERNAL;
+    static final String CFG_TABLE_SPEC_CONFIG = "table_spec_config" + SettingsModel.CFGKEY_INTERNAL;
 
     private final TableSpecConfigSerializer<DataType> m_tableSpecSerializer;
 

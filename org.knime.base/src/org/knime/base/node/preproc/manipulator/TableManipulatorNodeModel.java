@@ -84,14 +84,19 @@ import org.knime.core.node.streamable.PortOutput;
 import org.knime.core.node.streamable.RowInput;
 import org.knime.core.node.streamable.RowOutput;
 import org.knime.core.node.streamable.StreamableOperator;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.filehandling.core.node.table.reader.DefaultMultiTableReadFactory;
 import org.knime.filehandling.core.node.table.reader.DefaultProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.MultiTableReader;
 import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
 import org.knime.filehandling.core.node.table.reader.ReadAdapterFactory;
 import org.knime.filehandling.core.node.table.reader.config.StorableMultiTableReadConfig;
+import org.knime.filehandling.core.node.table.reader.config.tablespec.ConfigIDSerializationUtil;
 import org.knime.filehandling.core.node.table.reader.config.tablespec.TableSpecConfig;
 import org.knime.filehandling.core.node.table.reader.rowkey.DefaultRowKeyGeneratorContextFactory;
+
+import static org.knime.base.node.preproc.manipulator.TableManipulatorMigration.CFG_TRANSFORMATION_PARAMETERS;
+import static org.knime.core.node.defaultnodesettings.SettingsModel.CFGKEY_INTERNAL;
 
 /**
  * Node model implementation of the table manipulation node.
@@ -218,24 +223,44 @@ final class TableManipulatorNodeModel extends NodeModel {
         // no internals to load
     }
 
+    private static final String CFG_ID_KEY = "configId" + CFGKEY_INTERNAL;
+
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
         m_config.saveInModel(settings);
+        var configID = m_config.getConfigID();
+        ConfigIDSerializationUtil.saveID(CFG_ID_KEY, configID, settings);
     }
 
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_config.validate(settings);
+        if (isLegacySettings(settings)) {
+            m_config.validate(settings);
+        } else {
+            var parameters = NodeParametersUtil.loadSettings(settings, TableManipulatorNodeParameters.class);
+            parameters.validate();
+        }
     }
 
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_config.loadInModel(settings);
+        if (isLegacySettings(settings)) {
+            m_config.loadInModel(settings);
+        } else {
+            var parameters = NodeParametersUtil.loadSettings(settings, TableManipulatorNodeParameters.class);
+            var configID =
+                    ConfigIDSerializationUtil.loadID(CFG_ID_KEY, TableManipulatorConfigSerializer.INSTANCE, settings);
+            parameters.saveToConfig((TableManipulatorMultiTableReadConfig) m_config, configID);
+        }
     }
 
     @Override
     protected void reset() {
         m_tableReader.reset();
+    }
+
+    private static boolean isLegacySettings(final NodeSettingsRO settings) {
+        return !settings.containsKey(CFG_TRANSFORMATION_PARAMETERS);
     }
 
 }
