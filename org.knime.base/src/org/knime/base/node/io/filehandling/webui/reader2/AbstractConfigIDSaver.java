@@ -65,7 +65,9 @@ public abstract class AbstractConfigIDSaver<P> implements ParametersSaver<P> {
     @Override
     public final void save(final P param, final NodeSettingsWO nodeSettings) {
         createConfigID(param).save(nodeSettings.addNodeSettings(NodeParametersConfigAndSourceSerializer.CFG_ID_KEY));
-        nodeSettings.addString(NodeParametersConfigAndSourceSerializer.SOURCE_ID_KEY, getSourceID(param));
+        if (getSourceID(param) != null) {
+            nodeSettings.addString(NodeParametersConfigAndSourceSerializer.SOURCE_ID_KEY, getSourceID(param));
+        }
     }
 
     /**
@@ -77,10 +79,12 @@ public abstract class AbstractConfigIDSaver<P> implements ParametersSaver<P> {
     protected abstract ConfigID createConfigID(P param);
 
     /**
-     * Returns the source ID to be used for the given parameters.
+     * Returns the source ID to be used for the given parameters. Is only stored if the returned value is not null.
      *
      * @param param the parameters
      * @return the source id
      */
-    protected abstract String getSourceID(P param);
+    protected String getSourceID(P param) {
+        return null;
+    }
 }
