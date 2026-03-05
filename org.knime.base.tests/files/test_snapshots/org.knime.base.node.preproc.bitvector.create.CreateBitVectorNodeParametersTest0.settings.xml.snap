@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="test">
+    <entry key="columnType" type="xstring" value="SINGLE_COLLECTION"/>
+    <entry key="multiStringColumnPatter" type="xstring" isnull="true" value=""/>
+    <entry key="multiStringColumnCaseSensitive" type="xboolean" value="false"/>
+    <entry key="multiStringColumnIsRegex" type="xboolean" value="false"/>
+    <entry key="multiStringColumnHasWildcards" type="xboolean" value="false"/>
+    <entry key="multiStringColumnSetMatching" type="xstring" value="MATCHING"/>
+    <entry key="singleNumericUseMean" type="xboolean" value="false"/>
+    <entry key="singleNumericThreshold" type="xdouble" value="1.0"/>
+    <entry key="singleNumericMeanThreshold" type="xint" value="100"/>
+    <config key="multiColumnNames">
+        <entry key="filter-type" type="xstring" value="STANDARD"/>
+        <config key="included_names">
+            <entry key="array-size" type="xint" value="4"/>
+            <entry key="0" type="xstring" value="GroupCol1"/>
+            <entry key="1" type="xstring" value="GroupCol2"/>
+            <entry key="2" type="xstring" value="List*(Numbers1)"/>
+            <entry key="3" type="xstring" value="Set*(Numbers2)"/>
+        </config>
+        <config key="excluded_names">
+            <entry key="array-size" type="xint" value="0"/>
+        </config>
+        <entry key="enforce_option" type="xstring" value="EnforceExclusion"/>
+        <config key="name_pattern">
+            <entry key="pattern" type="xstring" value=""/>
+            <entry key="caseSensitive" type="xboolean" value="true"/>
+            <entry key="excludeMatching" type="xboolean" value="false"/>
+            <entry key="type" type="xstring" value="Wildcard"/>
+        </config>
+        <config key="datatype">
+            <config key="typelist"/>
+        </config>
+    </config>
+    <entry key="singleStringType" type="xstring" value="BIT"/>
+    <entry key="singleColumnName" type="xstring" value="List*(Numbers1)"/>
+    <entry key="removeInputColumns" type="xboolean" value="false"/>
+    <entry key="outputColumnName" type="xstring" value="BitVector"/>
+    <entry key="failOnParseError" type="xboolean" value="false"/>
+    <entry key="vectorType" type="xstring" value="DENSE"/>
+</config>
