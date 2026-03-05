@@ -126,11 +126,10 @@ public final class StringToPathVariableNodeFactory extends ConfigurableNodeFacto
             """;
 
     private static final String FULL_DESCRIPTION = """
-            <p>This node converts the selected string variables into <a href="https://docs.knime.com/2021-06/
-            analytics_platform_file_handling_guide/index.html#path"> path variables</a>.</p>
-            <p> <i>This node can access a variety of different</i>
-            <a href="https://docs.knime.com/2021-06/
-            analytics_platform_file_handling_guide/index.html#analytics-platform-file-systems"><i>file systems.</i></a>
+            <p>This node converts the selected string variables into <a
+            href="https://docs.knime.com/2021-06/analytics_platform_file_handling_guide/index.html#path"> path variables</a>.</p>
+            <p> <i>This node can access a variety of different</i> <a
+            href="https://docs.knime.com/2021-06/analytics_platform_file_handling_guide/index.html#analytics-platform-file-systems"><i>file systems.</i></a>
              <i>More information about file handling in KNIME can be found in the official</i>
              <a href="https://docs.knime.com/latest/analytics_platform_file_handling_guide/index.html"><i>File Handling
              Guide.</i></a> </p>
