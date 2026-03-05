@@ -109,9 +109,9 @@ public class DecTreeToImageNodeFactory extends NodeFactory<DecTreeToImageNodeMod
             """;
 
     private static final String FULL_DESCRIPTION = """
-            Renders a decision tree view on an image. Currently supported image type is PNG. The data input is
-            optional. It can be used to provide a column with color information. This color information is needed
-            for the chart in the nodes of the decision tree.
+            Renders a decision tree view as an image. <br/><br/>
+            The data input port is optional and can provide a column with color information used to color the charts
+            displayed in the nodes of the decision tree.
             """;
 
     private static final List<PortDescription> INPUT_PORTS = List.of(

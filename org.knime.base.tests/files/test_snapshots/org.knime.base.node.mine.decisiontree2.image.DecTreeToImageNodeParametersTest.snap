@@ -138,7 +138,8 @@
             }
           }
         }
-      }
+      },
+      "providedOptions" : [ "validation.max" ]
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/scaling",
@@ -299,5 +300,16 @@
         }
       }
     }
-  }
+  },
+  "globalUpdates" : [ {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/height"
+    },
+    "dependencies" : [ "#/properties/model/properties/height", "#/properties/model/properties/width" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/width"
+    },
+    "dependencies" : [ "#/properties/model/properties/height", "#/properties/model/properties/width" ]
+  } ]
 }
