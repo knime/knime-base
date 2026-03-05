@@ -46,12 +46,19 @@
 
 package org.knime.base.node.mine.decisiontree2.image;
 
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.util.Locale;
+import java.util.function.Supplier;
+
 import org.knime.base.node.mine.decisiontree2.image.DecTreeToImageNodeSettings.Scaling;
 import org.knime.base.node.mine.decisiontree2.image.DecTreeToImageNodeSettings.UnfoldMethod;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
 import org.knime.node.parameters.persistence.NodeParametersPersistor;
@@ -62,6 +69,7 @@ import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.updates.EffectPredicate;
 import org.knime.node.parameters.updates.EffectPredicateProvider;
 import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.StateProvider;
 import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 import org.knime.node.parameters.widget.number.NumberInputWidget;
@@ -77,21 +85,33 @@ import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinVa
  * @author AI Migration Pipeline v1.2
  */
 @LoadDefaultsForAbsentFields
+@SuppressWarnings("restriction")
 final class DecTreeToImageNodeParameters implements NodeParameters {
+
+    static final DecimalFormat ZOOM_FORMAT = new DecimalFormat("#.0####", new DecimalFormatSymbols(Locale.US));
 
     @Widget(title = "Width (in Pixel)", description = """
             The width of the output image.
             """)
     @NumberInputWidget(minValidation = IsPositiveIntegerValidation.class)
     @Persist(configKey = DecTreeToImageNodeSettings.WIDTH)
+    @ValueReference(WidthRef.class)
     int m_width = 800;
+
+    static final class WidthRef implements ParameterReference<Integer> {
+    }
 
     @Widget(title = "Height (in Pixel)", description = """
             The height of the output image.
             """)
-    @NumberInputWidget(minValidation = IsPositiveIntegerValidation.class)
+    @NumberInputWidget(minValidation = IsPositiveIntegerValidation.class,
+        maxValidationProvider = MaxImageSizeValidation.class)
     @Persist(configKey = DecTreeToImageNodeSettings.HEIGHT)
+    @ValueReference(HeightRef.class)
     int m_height = 600;
+
+    static final class HeightRef implements ParameterReference<Integer> {
+    }
 
     @Widget(title = "Tree scaling", description = """
             Controls how the decision tree is scaled to fit into the image area.
@@ -212,13 +232,55 @@ final class DecTreeToImageNodeParameters implements NodeParameters {
 
     }
 
+    static final class MaxImageSizeValidation implements StateProvider<MaxValidation> {
+
+        Supplier<Integer> m_widthSupplier;
+
+        Supplier<Integer> m_heightSupplier;
+
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            m_widthSupplier = initializer.computeFromValueSupplier(WidthRef.class);
+            m_heightSupplier = initializer.computeFromValueSupplier(HeightRef.class);
+        }
+
+        @Override
+        public MaxValidation computeState(final NodeParametersInput parametersInput)
+            throws StateComputationFailureException {
+            final var width = m_widthSupplier.get();
+            final var height = m_heightSupplier.get();
+            if ((width == null || width == 0) || (height == null || height == 0)) {
+                throw new StateComputationFailureException();
+            }
+            final var imageSize = (double)width * height;
+            if (imageSize <= Integer.MAX_VALUE) {
+                throw new StateComputationFailureException();
+            }
+
+            return new MaxValidation() {
+                @Override
+                public double getMax() {
+                    return (int)(Integer.MAX_VALUE / (double)width);
+                }
+
+                @Override
+                public String getErrorMessage() {
+                    return "Image size (width x height) must not exceed " + Integer.MAX_VALUE;
+                }
+            };
+        }
+
+    }
+
     static final class ScaleFactorFloatPersistor implements NodeParametersPersistor<Double> {
 
         private static final String CFG_KEY = DecTreeToImageNodeSettings.SCALE_FACTOR;
 
         @Override
         public Double load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            return (double)100 * settings.getFloat(CFG_KEY);
+            final var zoom = settings.getFloat(CFG_KEY, 1);
+            final var zoomAsDouble = Double.valueOf(ZOOM_FORMAT.format(zoom));
+            return zoomAsDouble <= 5 ? (100 * zoomAsDouble) : zoomAsDouble;
         }
 
         @Override

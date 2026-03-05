@@ -4,7 +4,7 @@
       "width" : 800,
       "height" : 600,
       "scaling" : "fixed",
-      "scaleFactor" : 444.9999809265137,
+      "scaleFactor" : 445.0,
       "unfoldMethod" : "level",
       "unfoldToLevel" : 1,
       "unfoldWithCoverage" : 5.0,
@@ -138,7 +138,8 @@
             }
           }
         }
-      }
+      },
+      "providedOptions" : [ "validation.max" ]
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/scaling",
@@ -299,5 +300,16 @@
         }
       }
     }
-  }
+  },
+  "globalUpdates" : [ {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/height"
+    },
+    "dependencies" : [ "#/properties/model/properties/height", "#/properties/model/properties/width" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/width"
+    },
+    "dependencies" : [ "#/properties/model/properties/height", "#/properties/model/properties/width" ]
+  } ]
 }
