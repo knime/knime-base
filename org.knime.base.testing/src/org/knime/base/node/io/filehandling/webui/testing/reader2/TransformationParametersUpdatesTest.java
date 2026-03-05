@@ -59,6 +59,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -74,9 +75,9 @@ import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.knime.base.node.io.filehandling.webui.reader.DataTypeStringSerializer;
 import org.knime.base.node.io.filehandling.webui.reader2.MultiFileReaderParameters.HowToCombineColumnsOption;
 import org.knime.base.node.io.filehandling.webui.reader2.ReaderSpecific.ExternalDataTypeSerializer;
-import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters;
 import org.knime.base.node.io.filehandling.webui.reader2.TableSpecSettingsWithFsLocation;
 import org.knime.base.node.io.filehandling.webui.reader2.TransformationElementSettings;
+import org.knime.base.node.io.filehandling.webui.reader2.TransformationParameters;
 import org.knime.base.node.io.filehandling.webui.testing.LocalWorkflowContextTest;
 import org.knime.core.data.DataType;
 import org.knime.core.data.def.DoubleCell;
@@ -515,7 +516,7 @@ public abstract class TransformationParametersUpdatesTest<R extends WidgetGroup,
         return productionPaths.stream()
             .map(path -> new StringChoice(ProductionPathUtils.getPathIdentifier(path, getProductionPathSerializer()),
                 path.getDestinationType().toPrettyString()))
-            .toList();
+            .sorted(Comparator.comparing(StringChoice::text)).toList();
     }
 
     protected TableSpecSettingsWithFsLocation[] getTableSpecsValueUpdate(final UpdateSimulatorResult simulatorResult) {

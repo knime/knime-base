@@ -51,6 +51,7 @@ package org.knime.base.node.io.filehandling.webui.reader2;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -302,7 +303,10 @@ public final class TransformationParametersStateProvidersCommon {
                 final var dataTypeChoices = getProductionPathProvider().getAvailableDataTypes().stream()
                     .sorted((t1, t2) -> t1.toPrettyString().compareTo(t2.toPrettyString()))
                     .map(type -> new StringChoice(getDataTypeId(type), type.toPrettyString())).toList();
-                return Stream.concat(Stream.of(defaultChoice), dataTypeChoices.stream()).toList();
+                return Stream.concat( //
+                    Stream.of(defaultChoice), //
+                    dataTypeChoices.stream().sorted(Comparator.comparing(StringChoice::text)) //
+                ).toList();
             }
 
             /*
@@ -320,7 +324,7 @@ public final class TransformationParametersStateProvidersCommon {
             return productionPaths.stream()
                 .map(p -> new StringChoice(ProductionPathUtils.getPathIdentifier(p, getProductionPathSerializer()),
                     p.getDestinationType().toPrettyString()))
-                .toList();
+                .sorted(Comparator.comparing(StringChoice::text)).toList();
         }
     }
 
