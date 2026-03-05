@@ -1,0 +1,727 @@
+{
+  "data" : {
+    "model" : {
+      "columnType" : "SINGLE_COLLECTION",
+      "mscCaseSensitive" : false,
+      "patternMatchingMethod" : "MANUAL",
+      "mscSetMatching" : "MATCHING",
+      "thresholdMode" : "GLOBAL",
+      "threshold" : 1.0,
+      "meanPercentage" : 100,
+      "multiColumns" : {
+        "mode" : "MANUAL",
+        "patternFilter" : {
+          "pattern" : "",
+          "isCaseSensitive" : true,
+          "isInverted" : false
+        },
+        "manualFilter" : {
+          "manuallySelected" : [ "GroupCol1", "GroupCol2", "List*(Numbers1)", "Set*(Numbers2)" ],
+          "manuallyDeselected" : [ ],
+          "includeUnknownColumns" : true
+        },
+        "typeFilter" : {
+          "selectedTypes" : [ ],
+          "typeDisplays" : [ ]
+        }
+      },
+      "singleStringColumnType" : "BIT",
+      "singleColumn" : "List*(Numbers1)",
+      "removeColumns" : false,
+      "outputColumn" : "BitVector",
+      "failOnError" : false,
+      "vectorType" : "DENSE"
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columnType" : {
+            "oneOf" : [ {
+              "const" : "SINGLE_STRING",
+              "title" : "Single string column"
+            }, {
+              "const" : "SINGLE_COLLECTION",
+              "title" : "Single collection column"
+            }, {
+              "const" : "MULTI_STRING",
+              "title" : "Multiple string columns"
+            }, {
+              "const" : "MULTI_NUMERICAL",
+              "title" : "Multiple numeric columns"
+            } ],
+            "title" : "Input column(s)",
+            "description" : "Select the input column(s) for creating bit vectors.\n<ul>\n<li><b>Single string column</b>: Create bit vectors from a single string column</li>\n<li><b>Single collection column</b>: Create bit vectors from a single collection column</li>\n<li><b>Multiple string columns</b>: Create bit vectors from multiple string columns</li>\n<li><b>Multiple numeric columns</b>: Create bit vectors from multiple numeric columns</li>\n</ul>",
+            "default" : "SINGLE_STRING"
+          },
+          "failOnError" : {
+            "type" : "boolean",
+            "title" : "Fail on invalid input",
+            "description" : "If selected, the node will fail during execution if a data cell could not be converted\nto a bit set. If unselected, the node will skip invalid entries and insert a missing\nvalue instead.\n",
+            "default" : false
+          },
+          "meanPercentage" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Percentage of the mean",
+            "description" : "Specify which percentage of the mean a value should have in order to be set. For example,\nwith a mean percentage of 50% and a column mean of 2, the bit is set if the value is\nabove or equal to 1.\n",
+            "default" : 100
+          },
+          "mscCaseSensitive" : {
+            "type" : "boolean",
+            "title" : "Case sensitive match",
+            "description" : "A case sensitive matching is performed if this option is selected.",
+            "default" : false
+          },
+          "mscPattern" : {
+            "type" : "string",
+            "title" : "Pattern",
+            "description" : "The pattern to search for in the data value of each selected string column."
+          },
+          "mscSetMatching" : {
+            "oneOf" : [ {
+              "const" : "MATCHING",
+              "title" : "Matches"
+            }, {
+              "const" : "NOT_MATCHING",
+              "title" : "Mismatches"
+            } ],
+            "title" : "Set bit if pattern",
+            "description" : "Sets the bit if the pattern:\n\n<ul>\n<li><b>Matches</b>: Set the bit for matching columns</li>\n<li><b>Mismatches</b>: Set the bit for non-matching columns</li>\n</ul>",
+            "default" : "MATCHING"
+          },
+          "multiColumns" : {
+            "type" : "object",
+            "properties" : {
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "includeUnknownColumns" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "manuallyDeselected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "manuallySelected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "manuallySelected" : [ ],
+                  "manuallyDeselected" : [ ],
+                  "includeUnknownColumns" : false
+                }
+              },
+              "mode" : {
+                "oneOf" : [ {
+                  "const" : "MANUAL",
+                  "title" : "Manual"
+                }, {
+                  "const" : "REGEX",
+                  "title" : "Regex"
+                }, {
+                  "const" : "WILDCARD",
+                  "title" : "Wildcard"
+                }, {
+                  "const" : "TYPE",
+                  "title" : "Type"
+                } ],
+                "default" : "MANUAL"
+              },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "isCaseSensitive" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "isInverted" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "pattern" : {
+                    "type" : "string",
+                    "default" : ""
+                  }
+                },
+                "default" : {
+                  "pattern" : "",
+                  "isCaseSensitive" : false,
+                  "isInverted" : false
+                }
+              },
+              "selected" : {
+                "type" : "array",
+                "items" : {
+                  "type" : "string"
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "selectedTypes" : [ ],
+                  "typeDisplays" : [ ]
+                }
+              }
+            },
+            "title" : "Column selection",
+            "description" : "Select the columns to include for bit vector creation. When creating bit vectors from\nmultiple string columns, include string columns. When creating from multiple numeric\ncolumns, include numeric columns. The position of a column in the selection corresponds\nto the bit position in the resulting bit vector.\n",
+            "default" : {
+              "mode" : "MANUAL",
+              "patternFilter" : {
+                "pattern" : "",
+                "isCaseSensitive" : false,
+                "isInverted" : false
+              },
+              "manualFilter" : {
+                "manuallySelected" : [ ],
+                "manuallyDeselected" : [ ],
+                "includeUnknownColumns" : false
+              },
+              "typeFilter" : {
+                "selectedTypes" : [ ],
+                "typeDisplays" : [ ]
+              }
+            }
+          },
+          "outputColumn" : {
+            "type" : "string",
+            "title" : "Output column",
+            "description" : "The name of the output column containing the generated bit vectors.",
+            "default" : "BitVector"
+          },
+          "patternMatchingMethod" : {
+            "oneOf" : [ {
+              "const" : "MANUAL",
+              "title" : "Manual"
+            }, {
+              "const" : "WILDCARDS",
+              "title" : "Wildcard"
+            }, {
+              "const" : "REGEX",
+              "title" : "Regex"
+            } ],
+            "title" : "Pattern matching",
+            "description" : "Select the pattern matching method.\n\n<ul>\n<li><b>Manual</b>: Define the pattern manually for simple string matching.</li>\n<li><b>Wildcard</b>: Use wild cards in the pattern. Wildcard patterns contain\n'*' (matching any sequence of characters) and '?' (matching any one character).\n</li>\n<li><b>Regex</b>: Specify a regular expression. Examples: \"^foo.*\" matches anything\nthat starts with \"foo\". \"[0-9]*\" matches any string of digits. For a complete explanation\nof regular expressions, see the java.util.regex.Pattern class documentation.\n</li>\n</ul>",
+            "default" : "MANUAL"
+          },
+          "patternValidationInfo" : {
+            "type" : "object"
+          },
+          "removeColumns" : {
+            "type" : "boolean",
+            "title" : "Remove column(s) used for bit vector creation",
+            "description" : "If checked, the generating column(s) (the included columns for multi-column modes,\nor the selected single column) are removed from the output table. If unchecked, the\ngenerated bit vectors are appended to the input table.\n",
+            "default" : false
+          },
+          "singleColumn" : {
+            "type" : "string",
+            "title" : "Column",
+            "description" : "The column to parse for creating bit vectors. Select a string column when using a\nsingle string column source, or a collection column when using a single collection\ncolumn source.\n"
+          },
+          "singleStringColumnType" : {
+            "oneOf" : [ {
+              "const" : "BIT",
+              "title" : "Bit string"
+            }, {
+              "const" : "HEX",
+              "title" : "Hexadecimal"
+            }, {
+              "const" : "ID",
+              "title" : "IDs"
+            } ],
+            "title" : "String representation format",
+            "description" : "Select one of the three valid input formats for the single string column:\n\n<ul>\n<li><b>Bit string</b>: A string of '0' and '1'</li>\n<li><b>Hexadecimal</b>: A hexadecimal representation of bits</li>\n<li><b>IDs</b>: A string of ids, where every id indicates the position in the bit set to set.\n</li>\n</ul>",
+            "default" : "BIT"
+          },
+          "threshold" : {
+            "type" : "number",
+            "format" : "double",
+            "title" : "Global threshold",
+            "description" : "Specify the global threshold. All values which are above or equal to this threshold\nwill result in a 1 in the bit vector.\n",
+            "default" : 1.0
+          },
+          "thresholdMode" : {
+            "oneOf" : [ {
+              "const" : "GLOBAL",
+              "title" : "Global"
+            }, {
+              "const" : "MEAN",
+              "title" : "Mean"
+            } ],
+            "title" : "Threshold",
+            "description" : "Choose how to define the threshold for setting bits when using multiple numeric columns.\n\n<ul>\n<li><b>Global</b>: Specify the global threshold. All values which are above or equal to this threshold\nwill result in a 1 in the bit vector.\n</li>\n<li><b>Mean</b>: Specify a percentage of the mean of each column which is used as threshold.\n</li>\n</ul>",
+            "default" : "GLOBAL"
+          },
+          "vectorType" : {
+            "oneOf" : [ {
+              "const" : "DENSE",
+              "title" : "Dense"
+            }, {
+              "const" : "SPARSE",
+              "title" : "Sparse"
+            } ],
+            "title" : "Bit vector type",
+            "description" : "The storage type for the generated bit vectors.\n<ul>\n<li><b>Dense</b>: Standard option recommended for dense vectors e.g. with more than 10% set bits\n</li>\n<li><b>Sparse</b>: Option recommended for sparse vectors e.g. less than 10% set bits</li>\n</ul>",
+            "default" : "DENSE"
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/columnType"
+    }, {
+      "label" : "Multiple Columns",
+      "type" : "Section",
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "type" : "OR",
+          "conditions" : [ {
+            "scope" : "#/properties/model/properties/columnType",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "MULTI_STRING"
+              } ]
+            }
+          }, {
+            "scope" : "#/properties/model/properties/columnType",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "MULTI_NUMERICAL"
+              } ]
+            }
+          } ]
+        }
+      },
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/mscPattern",
+        "options" : {
+          "validation" : {
+            "minLength" : {
+              "errorMessage" : "The field cannot be empty (it must contain at least one character).",
+              "parameters" : {
+                "minLength" : 1
+              }
+            }
+          }
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/columnType",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "MULTI_STRING"
+              } ]
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "id" : "#/properties/model/properties/patternValidationInfo",
+        "options" : {
+          "format" : "textMessage"
+        },
+        "providedOptions" : [ "message" ]
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/mscCaseSensitive",
+        "options" : {
+          "format" : "checkbox"
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/columnType",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "MULTI_STRING"
+              } ]
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/patternMatchingMethod",
+        "options" : {
+          "format" : "valueSwitch"
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/columnType",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "MULTI_STRING"
+              } ]
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/mscSetMatching",
+        "options" : {
+          "format" : "valueSwitch"
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/columnType",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "MULTI_STRING"
+              } ]
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/thresholdMode",
+        "options" : {
+          "format" : "valueSwitch"
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/columnType",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "MULTI_NUMERICAL"
+              } ]
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/threshold",
+        "options" : {
+          "stepSize" : 0.1,
+          "validation" : { }
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "type" : "AND",
+            "conditions" : [ {
+              "type" : "OR",
+              "conditions" : [ {
+                "scope" : "#/properties/model/properties/thresholdMode",
+                "schema" : {
+                  "not" : {
+                    "oneOf" : [ {
+                      "const" : "MEAN"
+                    } ]
+                  }
+                }
+              }, {
+                "scope" : "#/properties/model/properties/columnType",
+                "schema" : {
+                  "not" : {
+                    "oneOf" : [ {
+                      "const" : "MULTI_NUMERICAL"
+                    } ]
+                  }
+                }
+              } ]
+            }, {
+              "scope" : "#/properties/model/properties/columnType",
+              "schema" : {
+                "oneOf" : [ {
+                  "const" : "MULTI_NUMERICAL"
+                } ]
+              }
+            } ]
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/meanPercentage",
+        "options" : {
+          "validation" : {
+            "max" : {
+              "errorMessage" : "The value must not exceed 2147483647.",
+              "parameters" : {
+                "isExclusive" : false,
+                "max" : 2.147483647E9
+              }
+            },
+            "min" : {
+              "errorMessage" : "The value must be at least 0.",
+              "parameters" : {
+                "isExclusive" : false,
+                "min" : 0.0
+              }
+            }
+          }
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "type" : "AND",
+            "conditions" : [ {
+              "scope" : "#/properties/model/properties/thresholdMode",
+              "schema" : {
+                "oneOf" : [ {
+                  "const" : "MEAN"
+                } ]
+              }
+            }, {
+              "scope" : "#/properties/model/properties/columnType",
+              "schema" : {
+                "oneOf" : [ {
+                  "const" : "MULTI_NUMERICAL"
+                } ]
+              }
+            } ]
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/multiColumns",
+        "options" : {
+          "format" : "typedStringFilter",
+          "unknownValuesText" : "Any unknown column",
+          "emptyStateLabel" : "No columns in this list.",
+          "hideTypeFilter" : true
+        },
+        "providedOptions" : [ "possibleValues" ]
+      } ]
+    }, {
+      "label" : "Single Column",
+      "type" : "Section",
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/columnType",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "SINGLE_STRING"
+            }, {
+              "const" : "SINGLE_COLLECTION"
+            } ]
+          }
+        }
+      },
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/singleStringColumnType",
+        "options" : {
+          "format" : "valueSwitch"
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/model/properties/columnType",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "SINGLE_STRING"
+              } ]
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/singleColumn",
+        "options" : {
+          "format" : "dropDown"
+        },
+        "providedOptions" : [ "possibleValues" ]
+      } ]
+    }, {
+      "label" : "Output",
+      "type" : "Section",
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/removeColumns",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/outputColumn",
+        "options" : {
+          "validation" : {
+            "pattern" : {
+              "errorMessage" : "The string must start and end with a non-whitespace character.",
+              "parameters" : {
+                "pattern" : "\\S(.*\\S)?"
+              }
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/failOnError",
+        "options" : {
+          "format" : "checkbox"
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/vectorType",
+        "options" : {
+          "format" : "valueSwitch"
+        }
+      } ]
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "columnType" : {
+            "configKey" : "columnType"
+          },
+          "mscPattern" : {
+            "configKey" : "multiStringColumnPatter"
+          },
+          "patternValidationInfo" : { },
+          "mscCaseSensitive" : {
+            "configKey" : "multiStringColumnCaseSensitive"
+          },
+          "patternMatchingMethod" : {
+            "configPaths" : [ [ "multiStringColumnIsRegex" ], [ "multiStringColumnHasWildcards" ] ]
+          },
+          "mscSetMatching" : {
+            "configKey" : "multiStringColumnSetMatching"
+          },
+          "thresholdMode" : {
+            "configPaths" : [ [ "singleNumericUseMean" ] ]
+          },
+          "threshold" : {
+            "configKey" : "singleNumericThreshold"
+          },
+          "meanPercentage" : {
+            "configKey" : "singleNumericMeanThreshold"
+          },
+          "multiColumns" : {
+            "configPaths" : [ [ "multiColumnNames", "filter-type" ], [ "multiColumnNames", "included_names" ], [ "multiColumnNames", "excluded_names" ], [ "multiColumnNames", "enforce_option" ], [ "multiColumnNames", "name_pattern", "pattern" ], [ "multiColumnNames", "name_pattern", "type" ], [ "multiColumnNames", "name_pattern", "caseSensitive" ], [ "multiColumnNames", "name_pattern", "excludeMatching" ] ]
+          },
+          "singleStringColumnType" : {
+            "configKey" : "singleStringType"
+          },
+          "singleColumn" : {
+            "configKey" : "singleColumnName"
+          },
+          "removeColumns" : {
+            "configKey" : "removeInputColumns"
+          },
+          "outputColumn" : {
+            "configKey" : "outputColumnName"
+          },
+          "failOnError" : {
+            "configKey" : "failOnParseError"
+          },
+          "vectorType" : {
+            "configKey" : "vectorType"
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/multiColumns",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "GroupCol1",
+        "text" : "GroupCol1",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "GroupCol2",
+        "text" : "GroupCol2",
+        "type" : {
+          "id" : "org.knime.core.data.StringValue",
+          "text" : "String"
+        }
+      }, {
+        "id" : "List*(Numbers1)",
+        "text" : "List*(Numbers1)",
+        "type" : {
+          "id" : "org.knime.core.data.collection.ListDataValue",
+          "text" : "Collection (List)"
+        }
+      }, {
+        "id" : "Set*(Numbers2)",
+        "text" : "Set*(Numbers2)",
+        "type" : {
+          "id" : "org.knime.core.data.collection.SetDataValue",
+          "text" : "Collection (Set)"
+        }
+      } ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/singleColumn",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ {
+        "id" : "List*(Numbers1)",
+        "text" : "List*(Numbers1)",
+        "type" : {
+          "id" : "org.knime.core.data.collection.ListDataValue",
+          "text" : "Collection (List)"
+        }
+      }, {
+        "id" : "Set*(Numbers2)",
+        "text" : "Set*(Numbers2)",
+        "type" : {
+          "id" : "org.knime.core.data.collection.SetDataValue",
+          "text" : "Collection (Set)"
+        }
+      } ]
+    } ]
+  }, {
+    "id" : "#/properties/model/properties/patternValidationInfo",
+    "providedOptionName" : "message",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : null
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/columnType"
+    },
+    "dependencies" : [ "#/properties/model/properties/columnType", "#/properties/model/properties/mscPattern", "#/properties/model/properties/patternMatchingMethod", "#/properties/model/properties/singleColumn" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/mscPattern"
+    },
+    "dependencies" : [ "#/properties/model/properties/columnType", "#/properties/model/properties/mscPattern", "#/properties/model/properties/patternMatchingMethod" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/patternMatchingMethod"
+    },
+    "dependencies" : [ "#/properties/model/properties/columnType", "#/properties/model/properties/mscPattern", "#/properties/model/properties/patternMatchingMethod" ]
+  } ]
+}

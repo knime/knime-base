@@ -56,6 +56,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -100,6 +101,7 @@ import org.knime.core.node.util.filter.NameFilterConfiguration;
 import org.knime.core.node.util.filter.NameFilterConfiguration.FilterResult;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
 import org.knime.core.node.util.filter.column.DataTypeColumnFilter;
+import org.knime.node.parameters.widget.choices.Label;
 
 /**
  * The BitvectorGenerator translates all values above or equal to a given
@@ -123,9 +125,11 @@ public class CreateBitVectorNodeModel extends NodeModel {
      */
     enum SetMatching implements ButtonGroupEnumInterface {
         /**Matching.*/
+        @Label(value = "Matches", description = "Set the bit for matching columns")
         MATCHING("does match", "Set the bit for matching columns"),
         /**Not matching.*/
-        NOT_MATCHING("does not match", "Set the bit for not matching columns");
+        @Label(value = "Mismatches", description = "Set the bit for non-matching columns")
+        NOT_MATCHING("does not match", "Set the bit for non-matching columns");
 
         private final String m_toolTip;
         private final String m_text;
@@ -182,13 +186,17 @@ public class CreateBitVectorNodeModel extends NodeModel {
      */
     enum ColumnType implements ButtonGroupEnumInterface {
         /**Single string option.*/
+        @Label(value = "Single string column", description = "Create bit vectors from a single string column")
         SINGLE_STRING("Create bit vectors from a single string column", null, false, StringValue.class),
         /**Single collection option.*/
+        @Label(value = "Single collection column", description = "Create bit vectors from a single collection column")
         SINGLE_COLLECTION("Create bit vectors from a single collection column", null, false, CollectionDataValue.class),
         /**Multi string option.*/
+        @Label(value = "Multiple string columns", description = "Create bit vectors from multiple string columns")
         MULTI_STRING("Create bit vectors form multiple string columns", null, true, StringValue.class),
         /**Multi numeric option.*/
-        MULTI_NUMERICAL("Create bit vector from multiple numeric columns", null, true, DoubleValue.class);
+        @Label(value = "Multiple numeric columns", description = "Create bit vectors from multiple numeric columns")
+        MULTI_NUMERICAL("Create bit vector from multiple numerical columns", null, true, DoubleValue.class);
 
         private final String m_text;
         private final String m_toolTip;
@@ -295,14 +303,19 @@ public class CreateBitVectorNodeModel extends NodeModel {
      * @author Fabian Dill, University of Konstanz
      */
     enum StringType {
+        /** A string of '0' and '1'. */
+        @Label(value = "Bit string", description = "A string of '0' and '1'")
+        BIT("A string of '0' and '1'"), //
         /** A hexadecimal representation of bits. */
+        @Label(value = "Hexadecimal", description = "A hexadecimal representation of bits")
         HEX("Hexadecimal representation of bits"),
         /**
          * A string of ids, where every id indicates the position in the bitset to set.
          */
-        ID("A string of ids, where every id indicates the position in the bitset to set"),
-        /** A string of '0' and '1'. */
-        BIT("A string of '0' and '1'");
+        @Label(value = "IDs", description = """
+                A string of ids, where every id indicates the position in the bit set to set.
+                """)
+        ID("A string of ids, where every id indicates the position in the bitset to set");
 
         private final String m_tooltip;
 
@@ -349,6 +362,24 @@ public class CreateBitVectorNodeModel extends NodeModel {
     }
 
 
+    static final String CFG_COLUMN_TYPE = "columnType";
+    static final String CFG_MULTI_COLUMN_NAMES = "multiColumnNames";
+    /** Note: the trailing 'e' is intentionally missing for backwards compatibility. */
+    static final String CFG_MSC_PATTERN = "multiStringColumnPatter";
+    static final String CFG_MSC_CASE_SENSITIVE = "multiStringColumnCaseSensitive";
+    static final String CFG_MSC_HAS_WILDCARDS = "multiStringColumnHasWildcards";
+    static final String CFG_MSC_IS_REGEX = "multiStringColumnIsRegex";
+    static final String CFG_MSC_SET_MATCHING = "multiStringColumnSetMatching";
+    static final String CFG_USE_MEAN = "singleNumericUseMean";
+    static final String CFG_THRESHOLD = "singleNumericThreshold";
+    static final String CFG_MEAN_PERCENTAGE = "singleNumericMeanThreshold";
+    static final String CFG_SINGLE_COLUMN = "singleColumnName";
+    static final String CFG_SINGLE_STRING_TYPE = "singleStringType";
+    static final String CFG_OUTPUT_COLUMN = "outputColumnName";
+    static final String CFG_FAIL_ON_ERROR = "failOnParseError";
+    static final String CFG_REMOVE_COLUMNS = "removeInputColumns";
+    static final String CFG_VECTOR_TYPE = "vectorType";
+
     private static final boolean DEFAULT_USE_MEAN = false;
 
     private SettingsModelBoolean m_failOnError = createFailOnErrorModel();
@@ -394,7 +425,7 @@ public class CreateBitVectorNodeModel extends NodeModel {
         } else {
             filter = null;
         }
-        return new DataColumnSpecFilterConfiguration("multiColumnNames", filter,
+        return new DataColumnSpecFilterConfiguration(CFG_MULTI_COLUMN_NAMES, filter,
             NameFilterConfiguration.FILTER_BY_NAMEPATTERN);
     }
 
@@ -402,19 +433,19 @@ public class CreateBitVectorNodeModel extends NodeModel {
      * @return the fail on parse error model
      */
     static SettingsModelBoolean createFailOnErrorModel() {
-        return new SettingsModelBoolean("failOnParseError", false);
+        return new SettingsModelBoolean(CFG_FAIL_ON_ERROR, false);
     }
 
     /**
      * @return the replace columns model
      */
     static SettingsModelBoolean createRemoveColumnsModel() {
-        return new SettingsModelBoolean("removeInputColumns", false);
+        return new SettingsModelBoolean(CFG_REMOVE_COLUMNS, false);
     }
 
     /**@return the multi string column set matching model*/
     static SettingsModelString createMSCSetMatchingModel() {
-        final SettingsModelString m = new SettingsModelString("multiStringColumnSetMatching",
+        final SettingsModelString m = new SettingsModelString(CFG_MSC_SET_MATCHING,
             SetMatching.MATCHING.getActionCommand());
         m.setEnabled(false);
         return m;
@@ -422,28 +453,28 @@ public class CreateBitVectorNodeModel extends NodeModel {
 
     /**@return the multi string pattern.*/
     static SettingsModelString createMSCPattern() {
-        final SettingsModelString m = new SettingsModelString("multiStringColumnPatter", null);
+        final SettingsModelString m = new SettingsModelString(CFG_MSC_PATTERN, null);
         m.setEnabled(false);
         return m;
     }
 
     /**@return the multi string column case sensitive model*/
     static SettingsModelBoolean createMSCCaseSensitiveModel() {
-        final SettingsModelBoolean m = new SettingsModelBoolean("multiStringColumnCaseSensitive", false);
+        final SettingsModelBoolean m = new SettingsModelBoolean(CFG_MSC_CASE_SENSITIVE, false);
         m.setEnabled(false);
         return m;
     }
 
     /**@return the multi string column has wild card model*/
     static SettingsModelBoolean createMSCHasWildcardsModel() {
-        final SettingsModelBoolean m = new SettingsModelBoolean("multiStringColumnHasWildcards", false);
+        final SettingsModelBoolean m = new SettingsModelBoolean(CFG_MSC_HAS_WILDCARDS, false);
         m.setEnabled(false);
         return m;
     }
 
     /**@return the multi string column is regex model*/
     static SettingsModelBoolean createMSCRegexModel() {
-        final SettingsModelBoolean m = new SettingsModelBoolean("multiStringColumnIsRegex", false);
+        final SettingsModelBoolean m = new SettingsModelBoolean(CFG_MSC_IS_REGEX, false);
         m.setEnabled(false);
         return m;
     }
@@ -452,14 +483,14 @@ public class CreateBitVectorNodeModel extends NodeModel {
      * @return the from string model
      */
     static SettingsModelString createColumnTypeModel() {
-        return new SettingsModelString("columnType", ColumnType.getDefault().getActionCommand());
+        return new SettingsModelString(CFG_COLUMN_TYPE, ColumnType.getDefault().getActionCommand());
     }
 
     /**
      * @return the use mean model
      */
     static SettingsModelBoolean createUseMeanModel() {
-        final SettingsModelBoolean model = new SettingsModelBoolean("singleNumericUseMean", DEFAULT_USE_MEAN);
+        final SettingsModelBoolean model = new SettingsModelBoolean(CFG_USE_MEAN, DEFAULT_USE_MEAN);
         model.setEnabled(ColumnType.getDefault().equals(ColumnType.MULTI_NUMERICAL));
         return model;
     }
@@ -469,7 +500,7 @@ public class CreateBitVectorNodeModel extends NodeModel {
      */
     static SettingsModelDouble createThresholdModel() {
         final SettingsModelDoubleBounded model = new SettingsModelDoubleBounded(
-            "singleNumericThreshold", 1.0, -Double.MAX_VALUE, Double.MAX_VALUE);
+            CFG_THRESHOLD, 1.0, -Double.MAX_VALUE, Double.MAX_VALUE);
         model.setEnabled(!DEFAULT_USE_MEAN && ColumnType.getDefault().equals(ColumnType.MULTI_NUMERICAL));
         return model;
     }
@@ -480,7 +511,7 @@ public class CreateBitVectorNodeModel extends NodeModel {
     @SuppressWarnings("unused")
     static SettingsModelInteger createMeanPercentageModel() {
         final SettingsModelIntegerBounded model =
-                new SettingsModelIntegerBounded("singleNumericMeanThreshold", 100, 0, Integer.MAX_VALUE);
+                new SettingsModelIntegerBounded(CFG_MEAN_PERCENTAGE, 100, 0, Integer.MAX_VALUE);
       //disable the model since we use threshold by default
         model.setEnabled(DEFAULT_USE_MEAN && ColumnType.getDefault().equals(ColumnType.MULTI_NUMERICAL));
         return model;
@@ -490,7 +521,7 @@ public class CreateBitVectorNodeModel extends NodeModel {
      * @return the settings model holding the selected string column name
      */
     static SettingsModelString createSingleColumnModel() {
-        final SettingsModelString model = new SettingsModelString("singleColumnName", null);
+        final SettingsModelString model = new SettingsModelString(CFG_SINGLE_COLUMN, null);
         model.setEnabled(!ColumnType.getDefault().isMultiColumn());
         return model;
     }
@@ -499,7 +530,7 @@ public class CreateBitVectorNodeModel extends NodeModel {
      * @return the single string column type model.
      */
     static SettingsModelString createSingleStringColumnTypeModel() {
-        final SettingsModelString model = new SettingsModelString("singleStringType",
+        final SettingsModelString model = new SettingsModelString(CFG_SINGLE_STRING_TYPE,
             StringType.BIT.getActionCommand());
         model.setEnabled(ColumnType.getDefault().equals(ColumnType.SINGLE_STRING));
         return model;
@@ -510,7 +541,7 @@ public class CreateBitVectorNodeModel extends NodeModel {
      * @return the settings model for output column name
      */
     static SettingsModelString createOutputColumnModel() {
-        return new SettingsModelString("outputColumnName", "BitVector");
+        return new SettingsModelString(CFG_OUTPUT_COLUMN, "BitVector");
     }
 
     /**
@@ -545,7 +576,7 @@ public class CreateBitVectorNodeModel extends NodeModel {
      * @return the vector type model
      */
     static SettingsModelString createVectorTypeModel() {
-        return new SettingsModelString("vectorType",
+        return new SettingsModelString(CFG_VECTOR_TYPE,
             org.knime.core.data.vector.bitvector.BitVectorType.getDefault().getActionCommand());
     }
 
@@ -709,6 +740,10 @@ public class CreateBitVectorNodeModel extends NodeModel {
                 newSpec = new DataTableSpec(spec, new DataTableSpec(newColSpec));
             }
         } else {
+            final var autoGuessOpt = autoGuessSingleColumn(spec, columnType, m_singleColumn.getStringValue());
+            if (autoGuessOpt.isPresent()) {
+                m_singleColumn.setStringValue(autoGuessOpt.get());
+            }
             // parse from single column
             if (m_singleColumn.getStringValue() == null) {
                 throw new InvalidSettingsException("No single column selected. Please (re-)configure the node.");
@@ -730,6 +765,26 @@ public class CreateBitVectorNodeModel extends NodeModel {
             newSpec = c.createSpec();
         }
         return new DataTableSpec[]{newSpec};
+    }
+
+    static Optional<String> autoGuessSingleColumn(
+        final DataTableSpec spec, final ColumnType columnType, final String currentSingleColumnName) {
+        final Class<? extends DataValue> valueClass = switch (columnType) {
+            case SINGLE_STRING -> StringValue.class;
+            case SINGLE_COLLECTION -> CollectionDataValue.class;
+            default -> null;
+        };
+        if (valueClass == null) {
+            return Optional.empty();
+        }
+        final var compatibleColumns = Optional.ofNullable(spec).stream().flatMap(DataTableSpec::stream)
+                .filter(col -> col.getType().isCompatible(valueClass)).map(DataColumnSpec::getName).toList();
+        final Optional<String> autoGuessChoice = compatibleColumns.isEmpty() ?
+            Optional.empty() : Optional.of(compatibleColumns.get(compatibleColumns.size() - 1));
+        if ((currentSingleColumnName == null || currentSingleColumnName.isEmpty()) && autoGuessChoice.isPresent()) {
+            return autoGuessChoice;
+        }
+        return Optional.empty();
     }
 
     private static String convert2String(final int limit, final String... removedFromIncludes) {
