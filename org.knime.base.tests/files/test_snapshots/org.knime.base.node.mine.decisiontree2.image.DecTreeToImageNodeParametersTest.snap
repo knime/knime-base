@@ -4,10 +4,10 @@
       "width" : 800,
       "height" : 600,
       "scaling" : "shrink",
-      "scaleFactor" : 100.0,
+      "scaleFactor" : 1.0,
       "unfoldMethod" : "totalCoverage",
       "unfoldToLevel" : 2,
-      "unfoldWithCoverage" : 5.0,
+      "unfoldWithCoverage" : 0.05,
       "displayTable" : true,
       "displayChart" : true
     }
@@ -41,8 +41,8 @@
             "type" : "number",
             "format" : "double",
             "title" : "Zoom",
-            "description" : "The zoom factor applied when <b>Fixed value</b> scaling is selected. Values range from 10% to 500%.\n",
-            "default" : 100.0
+            "description" : "The zoom factor applied when <b>Fixed value</b> scaling is selected. Values range from 0.1 (10%) to 5 (500%).\n",
+            "default" : 1.0
           },
           "scaling" : {
             "oneOf" : [ {
@@ -82,8 +82,8 @@
             "type" : "number",
             "format" : "double",
             "title" : "Unfold with data coverage",
-            "description" : "All branches with a total data coverage greater than this threshold are unfolded.\nValues range from 0% to 100%.\n",
-            "default" : 5.0
+            "description" : "All branches with a total data coverage greater than this threshold are unfolded.\nValues range from 0 to 1.\n",
+            "default" : 0.05
           },
           "width" : {
             "type" : "integer",
@@ -153,17 +153,17 @@
         "stepSize" : 0.1,
         "validation" : {
           "max" : {
-            "errorMessage" : "The value must not exceed 500.",
+            "errorMessage" : "The value must not exceed 5.",
             "parameters" : {
               "isExclusive" : false,
-              "max" : 500.0
+              "max" : 5.0
             }
           },
           "min" : {
-            "errorMessage" : "The value must be at least 10.",
+            "errorMessage" : "The value must be at least 0.1.",
             "parameters" : {
               "isExclusive" : false,
-              "min" : 10.0
+              "min" : 0.1
             }
           }
         }
@@ -224,10 +224,10 @@
         "stepSize" : 0.01,
         "validation" : {
           "max" : {
-            "errorMessage" : "The value must not exceed 100.",
+            "errorMessage" : "The value must not exceed 1.",
             "parameters" : {
               "isExclusive" : false,
-              "max" : 100.0
+              "max" : 1.0
             }
           },
           "min" : {

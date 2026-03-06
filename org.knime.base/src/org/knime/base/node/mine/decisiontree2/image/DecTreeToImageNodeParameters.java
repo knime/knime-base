@@ -125,19 +125,20 @@ final class DecTreeToImageNodeParameters implements NodeParameters {
     }
 
     @Widget(title = "Zoom", description = """
-            The zoom factor applied when <b>Fixed value</b> scaling is selected. Values range from 10% to 500%.
+            The zoom factor applied when <b>Fixed value</b> scaling is selected. \
+            Values range from 0.1 (10%) to 5 (500%).
             """)
     @NumberInputWidget(minValidation = IsScaleFactorMinValidation.class,
         maxValidation = IsScaleFactorMaxValidation.class, stepSize = 0.1)
     @Effect(predicate = IsScalingFixed.class, type = EffectType.SHOW)
     @Persistor(ScaleFactorFloatPersistor.class)
-    double m_scaleFactor = 100;
+    double m_scaleFactor = 1;
 
     static final class IsScaleFactorMinValidation extends MinValidation {
 
         @Override
         public double getMin() {
-            return 10;
+            return 0.1;
         }
 
     }
@@ -146,7 +147,7 @@ final class DecTreeToImageNodeParameters implements NodeParameters {
 
         @Override
         public double getMax() {
-            return 500;
+            return 5;
         }
 
     }
@@ -173,19 +174,19 @@ final class DecTreeToImageNodeParameters implements NodeParameters {
 
     @Widget(title = "Unfold with data coverage", description = """
             All branches with a total data coverage greater than this threshold are unfolded.
-            Values range from 0% to 100%.
+            Values range from 0 to 1.
             """)
     @NumberInputWidget(minValidation = IsNonNegativeValidation.class, maxValidation = IsCoverageMaxValidation.class,
         stepSize = 0.01)
     @Effect(predicate = IsUnfoldByCoverage.class, type = EffectType.SHOW)
     @Persistor(UnfoldWithCoveragePersistor.class)
-    double m_unfoldWithCoverage = 5;
+    double m_unfoldWithCoverage = 0.05;
 
     static final class IsCoverageMaxValidation extends MaxValidation {
 
         @Override
         public double getMax() {
-            return 100;
+            return 1;
         }
 
     }
@@ -250,11 +251,11 @@ final class DecTreeToImageNodeParameters implements NodeParameters {
             final var width = m_widthSupplier.get();
             final var height = m_heightSupplier.get();
             if ((width == null || width == 0) || (height == null || height == 0)) {
-                throw new StateComputationFailureException();
+                return null;
             }
             final var imageSize = (double)width * height;
             if (imageSize <= Integer.MAX_VALUE) {
-                throw new StateComputationFailureException();
+                return null;
             }
 
             return new MaxValidation() {
@@ -279,14 +280,12 @@ final class DecTreeToImageNodeParameters implements NodeParameters {
         @Override
         public Double load(final NodeSettingsRO settings) throws InvalidSettingsException {
             final var zoom = settings.getFloat(CFG_KEY, 1);
-            final var zoomAsDouble = Double.valueOf(ZOOM_FORMAT.format(zoom));
-            return zoomAsDouble <= 5 ? (100 * zoomAsDouble) : zoomAsDouble;
+            return Double.valueOf(ZOOM_FORMAT.format(zoom));
         }
 
         @Override
         public void save(final Double param, final NodeSettingsWO settings) {
-            final Double percentage = param / 100.0;
-            settings.addFloat(CFG_KEY, percentage.floatValue());
+            settings.addFloat(CFG_KEY, param.floatValue());
         }
 
         @Override
@@ -302,12 +301,12 @@ final class DecTreeToImageNodeParameters implements NodeParameters {
 
         @Override
         public Double load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            return 100 * settings.getDouble(CFG_KEY);
+            return settings.getDouble(CFG_KEY);
         }
 
         @Override
         public void save(final Double param, final NodeSettingsWO settings) {
-            settings.addDouble(CFG_KEY, param / 100.0);
+            settings.addDouble(CFG_KEY, param);
         }
 
         @Override
