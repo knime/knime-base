@@ -676,6 +676,10 @@
             factory-class="org.knime.base.node.io.arffwriter.ARFFWriterNodeFactory"
             category-path="/io/write"/>
       <node
+            after="org.knime.base.node.io.arffwriter.ARFFWriterNodeFactory"
+            factory-class="org.knime.base.node.io.commandexecutor.CommandExecutorNodeFactory"
+            category-path="/io/write"/>
+      <node
             category-path="/manipulation/row/row-transform"
             factory-class="org.knime.base.node.preproc.sorter.SorterNodeFactory"/>
       <node
