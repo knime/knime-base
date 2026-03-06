@@ -148,7 +148,7 @@ final class TestHelper {
     static final Map<DataCell, ColorAttr> INITIIAL_COLOR_MAP = Map.<DataCell, ColorAttr> of( //
         new StringCell("A"), ColorPaletteOption.BREWER_SET1_COLORS9.getPaletteAsColorAttr()[0], //
         new StringCell("B"), ColorPaletteOption.BREWER_SET1_COLORS9.getPaletteAsColorAttr()[1], //
-        new MissingCell(null), ColorPaletteDesignerNodeFactory.hexToColorAttr("#808080"));
+        new MissingCell(null), ColorPaletteDesignerNodeFactory.colorToColorAttr(Color.decode("#808080")));
 
     static DataTableSpec createModelSpecWithNominalColorHandler() {
         final var colorModel = new ColorModelNominal(INITIIAL_COLOR_MAP,

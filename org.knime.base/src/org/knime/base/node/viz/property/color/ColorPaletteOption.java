@@ -48,6 +48,7 @@
  */
 package org.knime.base.node.viz.property.color;
 
+import java.awt.Color;
 import java.util.Arrays;
 
 import org.knime.core.data.property.ColorAttr;
@@ -105,7 +106,7 @@ enum ColorPaletteOption {
 
     ColorPaletteOption(final String[] palette) {
         m_paletteAsColorAttr = palette == null ? null
-            : Arrays.stream(palette).map(ColorPaletteDesignerNodeFactory::hexToColorAttr).toArray(ColorAttr[]::new);
+            : Arrays.stream(palette).map(ColorPaletteOption::hexToColorAttr).toArray(ColorAttr[]::new);
     }
 
     /**
@@ -113,5 +114,9 @@ enum ColorPaletteOption {
      */
     ColorAttr[] getPaletteAsColorAttr() {
         return m_paletteAsColorAttr;
+    }
+
+    private static ColorAttr hexToColorAttr(final String hex) {
+        return ColorAttr.getInstance(Color.decode(hex));
     }
 }

@@ -238,17 +238,17 @@ public final class ColorPaletteDesignerNodeFactory extends DefaultNodeFactory {
         final var colorPalette = parameters.m_basePalette == ColorPaletteOption.CUSTOM //
             ? Arrays.stream(parameters.m_customPalette) //
                 .map(customColor -> customColor.m_color) //
-                .map(ColorPaletteDesignerNodeFactory::hexToColorAttr) //
+                .map(ColorPaletteDesignerNodeFactory::colorToColorAttr) //
                 .toArray(ColorAttr[]::new)
             : parameters.m_basePalette.getPaletteAsColorAttr();
 
         final var assignedColors = Arrays.stream(parameters.m_assignedColors) //
             .collect(Collectors.toMap( //
                 colorRule -> new StringCell(colorRule.m_matchingValue), //
-                colorRule -> hexToColorAttr(colorRule.m_color), //
+                colorRule -> colorToColorAttr(colorRule.m_color), //
                 (oldV, newV) -> oldV, //
                 HashMap<DataCell, ColorAttr>::new));
-        assignedColors.put(new MissingCell(null), hexToColorAttr(parameters.m_missingValueColor));
+        assignedColors.put(new MissingCell(null), colorToColorAttr(parameters.m_missingValueColor));
 
         if (spec == null) {
             final var colorModel = createColorModelForValues(assignedColors, colorPalette, List.of());
@@ -297,8 +297,8 @@ public final class ColorPaletteDesignerNodeFactory extends DefaultNodeFactory {
             .collect(Collectors.toCollection(LinkedHashSet<DataCell>::new));
     }
 
-    static ColorAttr hexToColorAttr(final String hex) {
-        return ColorAttr.getInstance(Color.decode(hex));
+    static ColorAttr colorToColorAttr(final Color color) {
+        return ColorAttr.getInstance(color);
     }
 
     private static void validateParameters(final ColorPaletteDesignerNodeParameters parameters,

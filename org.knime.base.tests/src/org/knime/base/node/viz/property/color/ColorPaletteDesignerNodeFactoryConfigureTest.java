@@ -51,6 +51,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.knime.base.node.viz.property.color.TestHelper.COLUMNS_WITH_DOMAIN;
 
+import java.awt.Color;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -112,7 +113,7 @@ final class ColorPaletteDesignerNodeFactoryConfigureTest {
         final var modelSpec = (DataTableSpec)configureOutput.m_outSpecs[0];
         final var receivedColorModel = modelSpec.getColumnSpec(0).getColorHandler().getColorModel();
         final var expectedColorMap = Map.of((DataCell)new MissingCell(null),
-            ColorPaletteDesignerNodeFactory.hexToColorAttr(parameters.m_missingValueColor));
+            ColorPaletteDesignerNodeFactory.colorToColorAttr(parameters.m_missingValueColor));
         final var expectedColorModel = new ColorModelNominal(expectedColorMap,
             ColorPaletteOption.BREWER_SET1_COLORS9.getPaletteAsColorAttr(), Set.of(new MissingCell(null)));
         assertEquals(receivedColorModel, expectedColorModel);
@@ -149,7 +150,7 @@ final class ColorPaletteDesignerNodeFactoryConfigureTest {
             i -> palette[i], //
             (a, b) -> a, HashMap::new));
         colorMap.put(new MissingCell(null),
-            ColorPaletteDesignerNodeFactory.hexToColorAttr(parameters.m_missingValueColor));
+            ColorPaletteDesignerNodeFactory.colorToColorAttr(parameters.m_missingValueColor));
         final var expectedColorModel = new ColorModelNominal(colorMap, palette, Set.of(new MissingCell(null)));
         assertEquals(receivedColorModel, expectedColorModel);
 
@@ -181,13 +182,14 @@ final class ColorPaletteDesignerNodeFactoryConfigureTest {
     @MethodSource("assignedColorTestParameters")
     void testAssignedColor(final String assignedColorHex, final String assignedValue,
         final List<String> defaultPaletteValues) throws InvalidSettingsException {
+        final var assignedColor = Color.decode(assignedColorHex);
         final var parameters = new ColorPaletteDesignerNodeParameters();
         final var testTableSpec = TestHelper.createTestTableSpec();
         parameters.m_columnFilter = new ColumnFilter(COLUMNS_WITH_DOMAIN);
         final var palette = parameters.m_basePalette.getPaletteAsColorAttr();
 
         parameters.m_assignedColors = new ColorPaletteDesignerNodeParameters.ColorRule[]{
-            new ColorPaletteDesignerNodeParameters.ColorRule(assignedColorHex, assignedValue)};
+            new ColorPaletteDesignerNodeParameters.ColorRule(assignedColor, assignedValue)};
         final var configureInput = new TestConfigureInput(parameters, new DataTableSpec[]{testTableSpec});
         final var configureOutput = new TestConfigureOutput();
 
@@ -199,9 +201,9 @@ final class ColorPaletteDesignerNodeFactoryConfigureTest {
 
         final var assignedValueCell = new StringCell(assignedValue);
         final var colorMap = new HashMap<DataCell, ColorAttr>();
-        colorMap.put(assignedValueCell, ColorPaletteDesignerNodeFactory.hexToColorAttr(assignedColorHex));
+        colorMap.put(assignedValueCell, ColorPaletteDesignerNodeFactory.colorToColorAttr(assignedColor));
         colorMap.put(new MissingCell(null),
-            ColorPaletteDesignerNodeFactory.hexToColorAttr(parameters.m_missingValueColor));
+            ColorPaletteDesignerNodeFactory.colorToColorAttr(parameters.m_missingValueColor));
 
         IntStream.range(0, defaultPaletteValues.size()).forEach(i -> {
             final var value = defaultPaletteValues.get(i);
@@ -234,7 +236,7 @@ final class ColorPaletteDesignerNodeFactoryConfigureTest {
         colorMap.put(new StringCell("Column 2"), palette[2]);
         colorMap.put(new StringCell("Column 3"), palette[3]);
         colorMap.put(new MissingCell(null),
-            ColorPaletteDesignerNodeFactory.hexToColorAttr(parameters.m_missingValueColor));
+            ColorPaletteDesignerNodeFactory.colorToColorAttr(parameters.m_missingValueColor));
 
         final var expectedColorModel = new ColorModelNominal(colorMap, palette, Set.of(new MissingCell(null)));
         assertEquals(receivedColorModel, expectedColorModel);
@@ -246,9 +248,9 @@ final class ColorPaletteDesignerNodeFactoryConfigureTest {
     void testCustomPaletteWithColors() throws InvalidSettingsException {
         final var parameters = new ColorPaletteDesignerNodeParameters();
         parameters.m_basePalette = ColorPaletteOption.CUSTOM;
-        final var color1 = "#FF0000";
-        final var color2 = "#00FF00";
-        final var color3 = "#0000FF";
+        final var color1 = Color.decode("#FF0000");
+        final var color2 = Color.decode("#00FF00");
+        final var color3 = Color.decode("#0000FF");
         parameters.m_customPalette = new ColorPaletteDesignerNodeParameters.CustomColor[]{
             new ColorPaletteDesignerNodeParameters.CustomColor(color1),
             new ColorPaletteDesignerNodeParameters.CustomColor(color2),
@@ -263,9 +265,9 @@ final class ColorPaletteDesignerNodeFactoryConfigureTest {
 
         assertEquals(configureOutput.m_outSpecs.length, 2);
         final var modelSpec = (DataTableSpec)configureOutput.m_outSpecs[1];
-        final var palette = new ColorAttr[]{ColorPaletteDesignerNodeFactory.hexToColorAttr(color1),
-            ColorPaletteDesignerNodeFactory.hexToColorAttr(color2),
-            ColorPaletteDesignerNodeFactory.hexToColorAttr(color3)};
+        final var palette = new ColorAttr[]{ColorPaletteDesignerNodeFactory.colorToColorAttr(color1),
+            ColorPaletteDesignerNodeFactory.colorToColorAttr(color2),
+            ColorPaletteDesignerNodeFactory.colorToColorAttr(color3)};
         final var receivedColorModel = modelSpec.getColumnSpec(0).getColorHandler().getColorModel();
 
         // Build expected color map: values get colors from custom palette, D wraps around to first color
@@ -275,7 +277,7 @@ final class ColorPaletteDesignerNodeFactoryConfigureTest {
         colorMap.put(new StringCell("C"), palette[2]);
         colorMap.put(new StringCell("D"), palette[0]); // Wraps around
         colorMap.put(new MissingCell(null),
-            ColorPaletteDesignerNodeFactory.hexToColorAttr(parameters.m_missingValueColor));
+            ColorPaletteDesignerNodeFactory.colorToColorAttr(parameters.m_missingValueColor));
 
         final var expectedColorModel = new ColorModelNominal(colorMap, palette, Set.of(new MissingCell(null)));
         assertEquals(receivedColorModel, expectedColorModel);

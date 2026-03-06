@@ -29,22 +29,22 @@
     <entry key="basePalette" type="xstring" value="CUSTOM"/>
     <config key="customPalette">
         <config key="0">
-            <entry key="color" type="xstring" value="#ffff00"/>
+            <entry key="color" type="xstring" value="#FFFF00"/>
         </config>
         <config key="1">
-            <entry key="color" type="xstring" value="#ff5050"/>
+            <entry key="color" type="xstring" value="#FF5050"/>
         </config>
         <config key="2">
-            <entry key="color" type="xstring" value="#ff00ff"/>
+            <entry key="color" type="xstring" value="#FF00FF"/>
         </config>
         <config key="3">
-            <entry key="color" type="xstring" value="#3366ff"/>
+            <entry key="color" type="xstring" value="#3366FF"/>
         </config>
         <config key="4">
-            <entry key="color" type="xstring" value="#33cccc"/>
+            <entry key="color" type="xstring" value="#33CCCC"/>
         </config>
         <config key="5">
-            <entry key="color" type="xstring" value="#33cc33"/>
+            <entry key="color" type="xstring" value="#33CC33"/>
         </config>
     </config>
     <config key="assignedColors">

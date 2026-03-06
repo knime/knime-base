@@ -77,15 +77,14 @@ import org.knime.testing.util.TableTestUtil;
 @SuppressWarnings("static-method")
 final class ColorGradientDesignerNodeFactoryConfigureTest {
 
-    static Map<SpecialColorType, Color>
-        createSpecialColors(final ColorGradientDesignerNodeParameters parameters) {
+    static Map<SpecialColorType, Color> createSpecialColors(final ColorGradientDesignerNodeParameters parameters) {
         return Map.of(//
-            SpecialColorType.MISSING, Color.decode(parameters.m_missingValueColor), //
-            SpecialColorType.NAN, Color.decode(parameters.m_nanColor), //
-            SpecialColorType.NEGATIVE_INFINITY, Color.decode(parameters.m_negativeInfinityColor), //
-            SpecialColorType.BELOW_MIN, Color.decode(parameters.m_belowMinColor), //
-            SpecialColorType.ABOVE_MAX, Color.decode(parameters.m_aboveMaxColor), //
-            SpecialColorType.POSITIVE_INFINITY, Color.decode(parameters.m_positiveInfinityColor));
+            SpecialColorType.MISSING, parameters.m_missingValueColor, //
+            SpecialColorType.NAN, parameters.m_nanColor, //
+            SpecialColorType.NEGATIVE_INFINITY, parameters.m_negativeInfinityColor, //
+            SpecialColorType.BELOW_MIN, parameters.m_belowMinColor, //
+            SpecialColorType.ABOVE_MAX, parameters.m_aboveMaxColor, //
+            SpecialColorType.POSITIVE_INFINITY, parameters.m_positiveInfinityColor);
     }
 
     private static double[] createStopValues(final ColorGradientDesignerNodeParameters parameters) {
@@ -93,7 +92,7 @@ final class ColorGradientDesignerNodeFactoryConfigureTest {
     }
 
     private static Color[] createStopColors(final ColorGradientDesignerNodeParameters parameters) {
-        return Stream.of(parameters.m_customGradient).map(svc -> Color.decode(svc.m_color)).toArray(Color[]::new);
+        return Stream.of(parameters.m_customGradient).map(svc -> svc.m_color).toArray(Color[]::new);
     }
 
     @Test
