@@ -105,8 +105,9 @@ public final class ExtractMissingValueCauseNodeFactory extends NodeFactory<Extra
             """;
 
     private static final String FULL_DESCRIPTION = """
-            <p> This node can be used to extract the error messages of missing values. If there is no error message for
-            a specific missing value, an empty string will be returned. </p>
+            <p>Extracts the error messages associated with missing values.</p>
+            <p>If a missing value does not have an associated error message, the node returns an empty string for that
+            entry.</p>
             """;
 
     private static final List<PortDescription> INPUT_PORTS = List.of(
