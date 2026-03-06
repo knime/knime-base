@@ -347,14 +347,7 @@
               "type" : "Control",
               "scope" : "#/properties/color",
               "options" : {
-                "validation" : {
-                  "pattern" : {
-                    "errorMessage" : "The field cannot be blank (it must contain at least one non-whitespace character).",
-                    "parameters" : {
-                      "pattern" : ".*\\S.*"
-                    }
-                  }
-                }
+                "format" : "color"
               }
             } ]
           } ],
@@ -381,79 +374,37 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/missingValueColor",
         "options" : {
-          "validation" : {
-            "pattern" : {
-              "errorMessage" : "The field cannot be blank (it must contain at least one non-whitespace character).",
-              "parameters" : {
-                "pattern" : ".*\\S.*"
-              }
-            }
-          }
+          "format" : "color"
         }
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/nanColor",
         "options" : {
-          "validation" : {
-            "pattern" : {
-              "errorMessage" : "The field cannot be blank (it must contain at least one non-whitespace character).",
-              "parameters" : {
-                "pattern" : ".*\\S.*"
-              }
-            }
-          }
+          "format" : "color"
         }
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/negativeInfinityColor",
         "options" : {
-          "validation" : {
-            "pattern" : {
-              "errorMessage" : "The field cannot be blank (it must contain at least one non-whitespace character).",
-              "parameters" : {
-                "pattern" : ".*\\S.*"
-              }
-            }
-          }
+          "format" : "color"
         }
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/belowMinColor",
         "options" : {
-          "validation" : {
-            "pattern" : {
-              "errorMessage" : "The field cannot be blank (it must contain at least one non-whitespace character).",
-              "parameters" : {
-                "pattern" : ".*\\S.*"
-              }
-            }
-          }
+          "format" : "color"
         }
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/aboveMaxColor",
         "options" : {
-          "validation" : {
-            "pattern" : {
-              "errorMessage" : "The field cannot be blank (it must contain at least one non-whitespace character).",
-              "parameters" : {
-                "pattern" : ".*\\S.*"
-              }
-            }
-          }
+          "format" : "color"
         }
       }, {
         "type" : "Control",
         "scope" : "#/properties/model/properties/positiveInfinityColor",
         "options" : {
-          "validation" : {
-            "pattern" : {
-              "errorMessage" : "The field cannot be blank (it must contain at least one non-whitespace character).",
-              "parameters" : {
-                "pattern" : ".*\\S.*"
-              }
-            }
-          }
+          "format" : "color"
         }
       } ]
     } ]

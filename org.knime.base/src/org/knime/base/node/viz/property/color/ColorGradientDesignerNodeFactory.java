@@ -252,12 +252,12 @@ public final class ColorGradientDesignerNodeFactory extends DefaultNodeFactory {
     private static Map<SpecialColorType, Color>
         computeSpecialColors(final ColorGradientDesignerNodeParameters parameters) {
         return Map.of( //
-            SpecialColorType.MISSING, Color.decode(parameters.m_missingValueColor), //
-            SpecialColorType.NAN, Color.decode(parameters.m_nanColor), //
-            SpecialColorType.NEGATIVE_INFINITY, Color.decode(parameters.m_negativeInfinityColor), //
-            SpecialColorType.BELOW_MIN, Color.decode(parameters.m_belowMinColor), //
-            SpecialColorType.ABOVE_MAX, Color.decode(parameters.m_aboveMaxColor), //
-            SpecialColorType.POSITIVE_INFINITY, Color.decode(parameters.m_positiveInfinityColor));
+            SpecialColorType.MISSING, parameters.m_missingValueColor, //
+            SpecialColorType.NAN, parameters.m_nanColor, //
+            SpecialColorType.NEGATIVE_INFINITY, parameters.m_negativeInfinityColor, //
+            SpecialColorType.BELOW_MIN, parameters.m_belowMinColor, //
+            SpecialColorType.ABOVE_MAX, parameters.m_aboveMaxColor, //
+            SpecialColorType.POSITIVE_INFINITY, parameters.m_positiveInfinityColor);
     }
 
     private static DataTableSpec
@@ -362,7 +362,7 @@ public final class ColorGradientDesignerNodeFactory extends DefaultNodeFactory {
 
     private static Color[] extractStopColors(final ColorGradientDesignerNodeParameters parameters) {
         return Arrays.stream(parameters.m_customGradient) //
-            .map(stopValueColor -> Color.decode(stopValueColor.m_color)) //
+            .map(stopValueColor -> stopValueColor.m_color) //
             .toArray(Color[]::new);
     }
 

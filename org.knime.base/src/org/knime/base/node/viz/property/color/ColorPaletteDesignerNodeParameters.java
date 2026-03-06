@@ -78,8 +78,6 @@ import org.knime.node.parameters.widget.choices.ColumnChoicesProvider;
 import org.knime.node.parameters.widget.choices.Label;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
-import org.knime.node.parameters.widget.text.TextInputWidget;
-import org.knime.node.parameters.widget.text.TextInputWidgetValidation.PatternValidation.IsNotBlankValidation;
 
 /**
  * The node parameters for the {@link ColorPaletteDesignerNodeFactory}.
@@ -165,8 +163,7 @@ class ColorPaletteDesignerNodeParameters implements NodeParameters {
 
     @Widget(title = "Missing value color", description = "Define the color assigned to missing values in the data.")
     @Layout(SpecialColorsSection.class)
-    @TextInputWidget(patternValidation = IsNotBlankValidation.class)
-    String m_missingValueColor = "#D30D52";
+    Color m_missingValueColor = Color.decode("#D30D52");
 
     enum ApplyColorTo {
             @Label(value = "Values in columns",
@@ -229,20 +226,19 @@ class ColorPaletteDesignerNodeParameters implements NodeParameters {
         }
     }
 
-    private static final String BLACK = "#000000";
+    private static final Color BLACK = Color.decode("#000000");
 
     static final class CustomColor implements NodeParameters {
 
         CustomColor() {
         }
 
-        CustomColor(final String color) {
+        CustomColor(final Color color) {
             m_color = color;
         }
 
         @Widget(title = "Color", description = "Specify the color to be used in the custom palette.")
-        @TextInputWidget(patternValidation = IsNotBlankValidation.class)
-        String m_color = BLACK;
+        Color m_color = BLACK;
 
     }
 
@@ -251,14 +247,13 @@ class ColorPaletteDesignerNodeParameters implements NodeParameters {
         ColorRule() {
         }
 
-        ColorRule(final String color, final String matchingValue) {
+        ColorRule(final Color color, final String matchingValue) {
             m_color = color;
             m_matchingValue = matchingValue;
         }
 
         @Widget(title = "Color", description = "Specify the color to be used for the corresponding value.")
-        @TextInputWidget(patternValidation = IsNotBlankValidation.class)
-        String m_color = BLACK;
+        Color m_color = BLACK;
 
         @Widget(title = "Matching value",
             description = "Enter the exact value (or column name) that should receive the assigned color.")
@@ -290,31 +285,6 @@ class ColorPaletteDesignerNodeParameters implements NodeParameters {
             if (customPalette.length == 0) {
                 throw new InvalidSettingsException("The custom base palette must contain at least one color.");
             }
-            for (final var customColor : customPalette) {
-                throwOnInvalidColor(customColor.m_color,
-                    String.format("The custom base palette contains an invalid color (\"%s\").", customColor.m_color));
-            }
-        }
-
-        throwOnInvalidColor(m_missingValueColor,
-            String.format("The missing value color \"%s\" is invalid.", m_missingValueColor));
-
-        for (final var assignedColor : m_assignedColors) {
-            throwOnInvalidColor(assignedColor.m_color,
-                String.format("The color \"%s\" assigned to the value \"%s\" is invalid.", assignedColor.m_color,
-                    assignedColor.m_matchingValue));
-        }
-    }
-
-    private static void throwOnInvalidColor(final String color, final String errorMessage)
-        throws InvalidSettingsException {
-        if (color.isBlank()) {
-            throw new InvalidSettingsException(errorMessage);
-        }
-        try {
-            Color.decode(color);
-        } catch (final NumberFormatException e) {
-            throw new InvalidSettingsException(errorMessage, e);
         }
     }
 

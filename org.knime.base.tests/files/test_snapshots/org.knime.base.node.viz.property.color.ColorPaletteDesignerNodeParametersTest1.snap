@@ -21,17 +21,17 @@
       },
       "basePalette" : "CUSTOM",
       "customPalette" : [ {
-        "color" : "#ffff00"
+        "color" : "#FFFF00"
       }, {
-        "color" : "#ff5050"
+        "color" : "#FF5050"
       }, {
-        "color" : "#ff00ff"
+        "color" : "#FF00FF"
       }, {
-        "color" : "#3366ff"
+        "color" : "#3366FF"
       }, {
-        "color" : "#33cccc"
+        "color" : "#33CCCC"
       }, {
-        "color" : "#33cc33"
+        "color" : "#33CC33"
       } ],
       "assignedColors" : [ {
         "color" : "#ABCDEF",
@@ -310,14 +310,7 @@
             "type" : "Control",
             "scope" : "#/properties/color",
             "options" : {
-              "validation" : {
-                "pattern" : {
-                  "errorMessage" : "The field cannot be blank (it must contain at least one non-whitespace character).",
-                  "parameters" : {
-                    "pattern" : ".*\\S.*"
-                  }
-                }
-              }
+              "format" : "color"
             }
           } ],
           "addButtonText" : "Add color",
@@ -347,14 +340,7 @@
             "type" : "Control",
             "scope" : "#/properties/color",
             "options" : {
-              "validation" : {
-                "pattern" : {
-                  "errorMessage" : "The field cannot be blank (it must contain at least one non-whitespace character).",
-                  "parameters" : {
-                    "pattern" : ".*\\S.*"
-                  }
-                }
-              }
+              "format" : "color"
             }
           }, {
             "type" : "Control",
@@ -371,14 +357,7 @@
         "type" : "Control",
         "scope" : "#/properties/model/properties/missingValueColor",
         "options" : {
-          "validation" : {
-            "pattern" : {
-              "errorMessage" : "The field cannot be blank (it must contain at least one non-whitespace character).",
-              "parameters" : {
-                "pattern" : ".*\\S.*"
-              }
-            }
-          }
+          "format" : "color"
         }
       } ]
     } ]

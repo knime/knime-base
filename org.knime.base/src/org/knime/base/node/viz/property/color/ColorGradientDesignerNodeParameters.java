@@ -86,8 +86,6 @@ import org.knime.node.parameters.widget.choices.util.ColumnSelectionUtil;
 import org.knime.node.parameters.widget.number.NumberInputWidget;
 import org.knime.node.parameters.widget.number.NumberInputWidgetValidation;
 import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsNonNegativeValidation;
-import org.knime.node.parameters.widget.text.TextInputWidget;
-import org.knime.node.parameters.widget.text.TextInputWidgetValidation.PatternValidation.IsNotBlankValidation;
 
 /**
  * The node parameters for the {@link ColorGradientDesignerNodeFactory}.
@@ -96,8 +94,8 @@ import org.knime.node.parameters.widget.text.TextInputWidgetValidation.PatternVa
  */
 final class ColorGradientDesignerNodeParameters implements NodeParameters {
 
-    private static final StopValueColor[] DEFAULT_STOP_VALUE_COLORS =
-        new StopValueColor[]{new StopValueColor(0, "#FF0000"), new StopValueColor(100, "#0000FF")};
+    private static final StopValueColor[] DEFAULT_STOP_VALUE_COLORS = new StopValueColor[]{
+        new StopValueColor(0, Color.decode("#FF0000")), new StopValueColor(100, Color.decode("#0000FF"))};
 
     public ColorGradientDesignerNodeParameters() {
         // default constructor
@@ -165,38 +163,32 @@ final class ColorGradientDesignerNodeParameters implements NodeParameters {
 
     @Widget(title = "Missing value color", description = "Define the color assigned to missing values in the data.")
     @Layout(SpecialColorsSection.class)
-    @TextInputWidget(patternValidation = IsNotBlankValidation.class)
-    String m_missingValueColor = "#D30D52";
+    Color m_missingValueColor = Color.decode("#D30D52");
 
     @Widget(title = "Not a number (NaN) color",
         description = "Define the color assigned to NaN (Not a Number) values in the data.")
     @Layout(SpecialColorsSection.class)
-    @TextInputWidget(patternValidation = IsNotBlankValidation.class)
-    String m_nanColor = "#77563C";
+    Color m_nanColor = Color.decode("#77563C");
 
     @Widget(title = "Negative infinity color",
         description = "Define the color assigned to values representing negative infinity.")
     @Layout(SpecialColorsSection.class)
-    @TextInputWidget(patternValidation = IsNotBlankValidation.class)
-    String m_negativeInfinityColor = "#DD691B";
+    Color m_negativeInfinityColor = Color.decode("#DD691B");
 
     @Widget(title = "Bottom out-of-bounds color",
         description = "Define the color assigned to values below the defined gradient range.")
     @Layout(SpecialColorsSection.class)
-    @TextInputWidget(patternValidation = IsNotBlankValidation.class)
-    String m_belowMinColor = "#FF9632";
+    Color m_belowMinColor = Color.decode("#FF9632");
 
     @Widget(title = "Top out-of-bounds color",
         description = "Define the color assigned to values above the defined gradient range.")
     @Layout(SpecialColorsSection.class)
-    @TextInputWidget(patternValidation = IsNotBlankValidation.class)
-    String m_aboveMaxColor = "#FF9632";
+    Color m_aboveMaxColor = Color.decode("#FF9632");
 
     @Widget(title = "Positive infinity color",
         description = "Define the color assigned to values representing positive infinity.")
     @Layout(SpecialColorsSection.class)
-    @TextInputWidget(patternValidation = IsNotBlankValidation.class)
-    String m_positiveInfinityColor = "#DD691B";
+    Color m_positiveInfinityColor = Color.decode("#DD691B");
 
     enum ValueScale {
             @Label(value = "Percentage",
@@ -251,7 +243,7 @@ final class ColorGradientDesignerNodeParameters implements NodeParameters {
         StopValueColor() {
         }
 
-        StopValueColor(final double stopValue, final String color) {
+        StopValueColor(final double stopValue, final Color color) {
             m_stopValue = stopValue;
             m_color = color;
         }
@@ -262,8 +254,7 @@ final class ColorGradientDesignerNodeParameters implements NodeParameters {
         double m_stopValue;
 
         @Widget(title = "Color", description = "The color to apply at the specified stop.")
-        @TextInputWidget(patternValidation = IsNotBlankValidation.class)
-        String m_color = "#000000";
+        Color m_color = Color.decode("#000000");
     }
 
     private static final class CustomGradientProvider implements StateProvider<StopValueColor[]> {
@@ -338,10 +329,6 @@ final class ColorGradientDesignerNodeParameters implements NodeParameters {
             if (m_customGradient.length < 2) {
                 throw new InvalidSettingsException("The custom gradient must contain at least two colors.");
             }
-            for (final var customColor : m_customGradient) {
-                throwOnInvalidColor(customColor.m_color,
-                    String.format("The custom gradient contains an invalid color (\"%s\").", customColor.m_color));
-            }
             CheckUtils.check(
                 IntStream.range(1, m_customGradient.length)
                     .allMatch(i -> m_customGradient[i - 1].m_stopValue <= m_customGradient[i].m_stopValue),
@@ -351,31 +338,6 @@ final class ColorGradientDesignerNodeParameters implements NodeParameters {
                     Arrays.stream(m_customGradient).map(svc -> svc.m_stopValue).allMatch(v -> v >= 0 && v <= 100),
                     InvalidSettingsException::new, () -> "Stop values must be in the range [0, 100].");
             }
-        }
-
-        throwOnInvalidColor(m_missingValueColor,
-            String.format("The missing value color \"%s\" is invalid.", m_missingValueColor));
-        throwOnInvalidColor(m_nanColor, String.format("The \"not a number\" color \"%s\" is invalid.", m_nanColor));
-        throwOnInvalidColor(m_negativeInfinityColor,
-            String.format("The \"negative infinity\" color \"%s\" is invalid.", m_negativeInfinityColor));
-        throwOnInvalidColor(m_belowMinColor,
-            String.format("The \"bottom out-of-bounds\" color \"%s\" is invalid.", m_belowMinColor));
-        throwOnInvalidColor(m_aboveMaxColor,
-            String.format("The \"top out-of-bounds\" color \"%s\" is invalid.", m_aboveMaxColor));
-        throwOnInvalidColor(m_positiveInfinityColor,
-            String.format("The positive infinity color \"%s\" is invalid.", m_positiveInfinityColor));
-
-    }
-
-    private static void throwOnInvalidColor(final String color, final String errorMessage)
-        throws InvalidSettingsException {
-        if (color.isBlank()) {
-            throw new InvalidSettingsException(errorMessage);
-        }
-        try {
-            Color.decode(color);
-        } catch (final NumberFormatException e) {
-            throw new InvalidSettingsException(errorMessage, e);
         }
     }
 

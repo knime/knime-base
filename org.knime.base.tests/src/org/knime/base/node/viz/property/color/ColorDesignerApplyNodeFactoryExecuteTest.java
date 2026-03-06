@@ -55,6 +55,7 @@ import static org.knime.base.node.viz.property.color.TestHelper.createModelSpecW
 import static org.knime.base.node.viz.property.color.TestHelper.createModelSpecWithNumericAbsoluteColorHandler;
 import static org.knime.base.node.viz.property.color.TestHelper.createModelSpecWithNumericPercentageColorHandler;
 
+import java.awt.Color;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -108,7 +109,7 @@ final class ColorDesignerApplyNodeFactoryExecuteTest {
             new StringCell("B"), ColorPaletteOption.BREWER_SET1_COLORS9.getPaletteAsColorAttr()[1], //
             new StringCell("C"), ColorPaletteOption.BREWER_SET1_COLORS9.getPaletteAsColorAttr()[2], //
             new StringCell("D"), ColorPaletteOption.BREWER_SET1_COLORS9.getPaletteAsColorAttr()[3], //
-            new MissingCell(null), ColorPaletteDesignerNodeFactory.hexToColorAttr("#808080"));
+            new MissingCell(null), ColorPaletteDesignerNodeFactory.colorToColorAttr(Color.decode("#808080")));
 
         final var expectedColorModel = new ColorModelNominal(expectedColorMap,
             ColorPaletteOption.BREWER_SET1_COLORS9.getPaletteAsColorAttr(), Set.of(new MissingCell(null)));
@@ -145,7 +146,7 @@ final class ColorDesignerApplyNodeFactoryExecuteTest {
             new StringCell("A"), ColorPaletteOption.BREWER_SET1_COLORS9.getPaletteAsColorAttr()[0], //
             new StringCell("B"), ColorPaletteOption.BREWER_SET1_COLORS9.getPaletteAsColorAttr()[1], //
             new StringCell("Column 1"), ColorPaletteOption.BREWER_SET1_COLORS9.getPaletteAsColorAttr()[2], //
-            new MissingCell(null), ColorPaletteDesignerNodeFactory.hexToColorAttr("#808080"));
+            new MissingCell(null), ColorPaletteDesignerNodeFactory.colorToColorAttr(Color.decode("#808080")));
 
         final var expectedColorModel = new ColorModelNominal(expectedColorMap,
             ColorPaletteOption.BREWER_SET1_COLORS9.getPaletteAsColorAttr(), Set.of(new MissingCell(null)));
