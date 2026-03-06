@@ -108,9 +108,9 @@ public class FuzzyBasisFunctionLearnerNodeFactory extends NodeFactory<FuzzyBasis
 
     private static final String FULL_DESCRIPTION = """
             This rule learner* learns a Fuzzy Rule Model on labeled numeric data using
-            <a href="http://www.uni-konstanz.de/bioml/bioml2/publications/Papers2003/Bert03_mixedFR_ijar.pdf"> Mixed
+            <a href="https://kops.uni-konstanz.de/entities/publication/934859ac-97b4-4eb4-a67e-c530a72abe21"> Mixed
             Fuzzy Rule Formation</a> as the underlying training algorithm (also known as RecBF-DDA algorithm), see
-            <a href="http://www.uni-konstanz.de/bioml/bioml2/publications/Papers2004/GaBe04_mixedFRappendix_ijar.pdf">
+            <a href="https://kops.uni-konstanz.de/entities/publication/7ff6f21e-9d29-457b-bba4-eaebe65bce6d">
             Influence of fuzzy norms and other heuristics on "Mixed Fuzzy Rule Formation"</a> for an extension of
             the algorithm.<br/><br/>
             This algorithm generates rules based on numeric data, which are fuzzy intervals in
