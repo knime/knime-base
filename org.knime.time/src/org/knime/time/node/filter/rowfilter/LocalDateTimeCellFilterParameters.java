@@ -49,27 +49,46 @@
 package org.knime.time.node.filter.rowfilter;
 
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 import org.knime.core.data.DataType;
 import org.knime.core.data.time.localdatetime.LocalDateTimeCell;
 import org.knime.core.data.time.localdatetime.LocalDateTimeCellFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
 import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.migration.Migrate;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.updates.util.BooleanReference;
 
 /**
- * Parameters class for filtering {@link LocalDateTimeCell} values.
+ * Parameters for filtering {@link LocalDateTimeCell} values.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
 public class LocalDateTimeCellFilterParameters
-        implements FilterValueParameters.SingleCellValueParameters<LocalDateTimeCell> {
+    implements FilterValueParameters.SingleCellValueParameters<LocalDateTimeCell> {
 
-    @Widget(title = "Date & Time", description = "The date and time to compare against")
+    @Widget(title = "Date and time", description = "The date and time to compare against")
+    @Effect(predicate = UseExecutionTime.class, type = EffectType.DISABLE)
     LocalDateTime m_dateTime = LocalDateTime.now();
+
+    @Widget(title = "Use execution date and time",
+        description = "Use the current execution date and time instead of the configured value")
+    @ValueReference(UseExecutionTime.class)
+    @Migrate(loadDefaultIfAbsent = true)
+    boolean m_useExecutionTime;
+
+    static final class UseExecutionTime implements BooleanReference {
+    }
 
     @Override
     public LocalDateTimeCell createCell() {
+        if (m_useExecutionTime) {
+            return (LocalDateTimeCell)LocalDateTimeCellFactory.create(ZonedDateTime.now().toLocalDateTime());
+        }
         return (LocalDateTimeCell)LocalDateTimeCellFactory.create(m_dateTime);
     }
 

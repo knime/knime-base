@@ -55,21 +55,39 @@ import org.knime.core.data.time.zoneddatetime.ZonedDateTimeCell;
 import org.knime.core.data.time.zoneddatetime.ZonedDateTimeCellFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
 import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.migration.Migrate;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.updates.util.BooleanReference;
 
 /**
- * Parameters class for filtering {@link ZonedDateTimeCell} values.
+ * Parameters for filtering {@link ZonedDateTimeCell} values.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("restriction")
 public class ZonedDateTimeCellFilterParameters
-        implements FilterValueParameters.SingleCellValueParameters<ZonedDateTimeCell> {
+    implements FilterValueParameters.SingleCellValueParameters<ZonedDateTimeCell> {
 
-    @Widget(title = "Date & Time", description = "The date and time (with time zone) to compare against")
+    @Widget(title = "Date and time (zoned)", description = "The zoned date and time to compare against")
+    @Effect(predicate = UseExecutionTime.class, type = EffectType.DISABLE)
     ZonedDateTime m_dateTime = ZonedDateTime.now();
+
+    @Widget(title = "Use execution date and time (zoned)",
+        description = "Use the current execution date and time instead of the configured value")
+    @Migrate(loadDefaultIfAbsent = true)
+    @ValueReference(UseExecutionTime.class)
+    boolean m_useExecutionTime;
+
+    static final class UseExecutionTime implements BooleanReference {
+    }
 
     @Override
     public ZonedDateTimeCell createCell() {
+        if (m_useExecutionTime) {
+            return (ZonedDateTimeCell)ZonedDateTimeCellFactory.create(ZonedDateTime.now());
+        }
         return (ZonedDateTimeCell)ZonedDateTimeCellFactory.create(m_dateTime);
     }
 

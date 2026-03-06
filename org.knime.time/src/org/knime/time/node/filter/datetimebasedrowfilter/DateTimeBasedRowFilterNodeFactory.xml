@@ -8,10 +8,11 @@
 	</shortDescription>
 	<fullDescription>
 		<intro>
-			Extracts all rows where the time value of the selected column
+			<p><b>Deprecated:</b> Use the <b>Row Filter</b> node instead, which covers the functionality of this node.</p>
+			<p>Extracts all rows where the time value of the selected column
 			lies within a given time window from the input. The time window is
-			specified by a start and either an end date (and time), a duration 
-			or a numerical value combined with a granularity.
+			specified by a start and either an end date (and time), a duration
+			or a numerical value combined with a granularity.</p>
 		</intro>
 		<tab name="Column Selection">
 			<option name="Date&amp;Time Column">

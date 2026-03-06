@@ -1,0 +1,84 @@
+{
+  "data" : {
+    "model" : {
+      "dateTime" : {
+        "dateTime" : "2022-03-15T14:30:00",
+        "timeZone" : "Europe/Berlin"
+      },
+      "useExecutionTime" : false
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "dateTime" : {
+            "type" : "string",
+            "format" : "date-time",
+            "title" : "Date and time (zoned)",
+            "description" : "The zoned date and time to compare against",
+            "default" : {
+              "dateTime" : "2020-01-01T14:00:00",
+              "timeZone" : "Europe/Berlin"
+            }
+          },
+          "useExecutionTime" : {
+            "type" : "boolean",
+            "title" : "Use execution date and time (zoned)",
+            "description" : "Use the current execution date and time instead of the configured value",
+            "default" : false
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/dateTime",
+      "options" : {
+        "possibleValues" : [ {
+          "id" : "America/New_York",
+          "text" : "America/New_York"
+        }, {
+          "id" : "Europe/Berlin",
+          "text" : "Europe/Berlin"
+        }, {
+          "id" : "UTC",
+          "text" : "UTC"
+        } ],
+        "showMilliseconds" : true,
+        "format" : "zonedDateTime"
+      },
+      "rule" : {
+        "effect" : "DISABLE",
+        "condition" : {
+          "scope" : "#/properties/model/properties/useExecutionTime",
+          "schema" : {
+            "const" : true
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/useExecutionTime",
+      "options" : {
+        "format" : "checkbox"
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "dateTime" : { },
+          "useExecutionTime" : { }
+        }
+      }
+    }
+  }
+}

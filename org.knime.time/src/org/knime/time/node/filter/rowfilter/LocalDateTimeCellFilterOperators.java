@@ -54,9 +54,9 @@ import java.util.List;
 import org.knime.core.data.DataType;
 import org.knime.core.data.time.localdatetime.LocalDateTimeCell;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperatorFamily;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperatorFamily.Single;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperators;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.builtin.ComparableOperatorFamily;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.builtin.EqualsOperatorFamily;
 
 /**
@@ -76,7 +76,9 @@ public class LocalDateTimeCellFilterOperators implements FilterOperators {
     public List<FilterOperatorFamily<? extends FilterValueParameters>> getOperatorFamilies() {
         final var operators = new ArrayList<FilterOperatorFamily<? extends FilterValueParameters>>();
         operators.add(new EqualsOperatorFamily<>(getDataType(), LocalDateTimeCellFilterParameters.class));
-        operators.add(new ComparableOperatorFamily<>(getDataType(), LocalDateTimeCellFilterParameters.class));
+        operators.add(new DateTimeComparisonOperators<>(getDataType(), LocalDateTimeCellFilterParameters.class));
+        operators.add(new Single<>(
+            new DateTimeRangeOperator<>(getDataType(), LocalDateTimeRangeFilterParameters.class)));
         return operators;
     }
 

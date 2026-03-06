@@ -49,12 +49,18 @@
 package org.knime.time.node.filter.rowfilter;
 
 import java.time.LocalTime;
+import java.time.ZonedDateTime;
 
 import org.knime.core.data.DataType;
 import org.knime.core.data.time.localtime.LocalTimeCell;
 import org.knime.core.data.time.localtime.LocalTimeCellFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
 import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.migration.Migrate;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.updates.util.BooleanReference;
 
 /**
  * Parameters for filtering {@link LocalTimeCell} values.
@@ -65,10 +71,23 @@ import org.knime.node.parameters.Widget;
 public class LocalTimeCellFilterParameters implements FilterValueParameters.SingleCellValueParameters<LocalTimeCell> {
 
     @Widget(title = "Time", description = "The time to compare against")
+    @Effect(predicate = UseExecutionTime.class, type = EffectType.DISABLE)
     LocalTime m_time = LocalTime.now();
+
+    @Widget(title = "Use execution time",
+        description = "Use the current execution time instead of the configured value")
+    @ValueReference(UseExecutionTime.class)
+    @Migrate(loadDefaultIfAbsent = true)
+    boolean m_useExecutionTime;
+
+    static final class UseExecutionTime implements BooleanReference {
+    }
 
     @Override
     public LocalTimeCell createCell() {
+        if (m_useExecutionTime) {
+            return (LocalTimeCell)LocalTimeCellFactory.create(ZonedDateTime.now().toLocalTime());
+        }
         return (LocalTimeCell)LocalTimeCellFactory.create(m_time);
     }
 

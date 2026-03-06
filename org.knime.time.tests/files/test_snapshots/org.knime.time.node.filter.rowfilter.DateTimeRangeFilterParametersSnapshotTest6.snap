@@ -1,0 +1,366 @@
+{
+  "data" : {
+    "model" : {
+      "startValue" : {
+        "dateTime" : "2020-01-01T14:00:00",
+        "timeZone" : "Europe/Berlin"
+      },
+      "useExecutionTimeStart" : false,
+      "startInclusive" : true,
+      "endMode" : "DATE_TIME",
+      "endValue" : {
+        "dateTime" : "2020-01-01T14:00:00",
+        "timeZone" : "Europe/Berlin"
+      },
+      "useExecutionTimeEnd" : false,
+      "durationValue" : "P0Y0M0W1D",
+      "numericalValue" : 1,
+      "granularity" : "YEAR",
+      "endInclusive" : true
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "durationValue" : {
+            "type" : "object",
+            "title" : "Duration",
+            "description" : "The duration/period to add to the start.",
+            "default" : "P0Y0M0W1D"
+          },
+          "endInclusive" : {
+            "type" : "boolean",
+            "title" : "Include ending point",
+            "description" : "Whether the end value is included in the range.",
+            "default" : true
+          },
+          "endMode" : {
+            "oneOf" : [ {
+              "const" : "DATE_TIME",
+              "title" : "Fixed"
+            }, {
+              "const" : "DURATION",
+              "title" : "Duration"
+            }, {
+              "const" : "NUMERICAL",
+              "title" : "Number"
+            } ],
+            "title" : "Range mode",
+            "description" : "How the end of the range is determined.\n<ul>\n<li><b>Fixed</b>: End is specified as a concrete date/time value.</li>\n<li><b>Duration</b>: End is specified as an interval relative to start.</li>\n<li><b>Number</b>: End is specified as a numerical value to add to the start, with a selected granularity unit.</li>\n</ul>",
+            "default" : "DATE_TIME"
+          },
+          "endValue" : {
+            "type" : "string",
+            "format" : "date-time",
+            "title" : "Ending point",
+            "description" : "The end of the range.",
+            "default" : {
+              "dateTime" : "2020-01-01T14:00:00",
+              "timeZone" : "Europe/Berlin"
+            }
+          },
+          "granularity" : {
+            "oneOf" : [ {
+              "const" : "YEAR",
+              "title" : "Year"
+            }, {
+              "const" : "MONTH",
+              "title" : "Month"
+            }, {
+              "const" : "WEEK",
+              "title" : "Week"
+            }, {
+              "const" : "DAY",
+              "title" : "Day"
+            }, {
+              "const" : "HOUR",
+              "title" : "Hour"
+            }, {
+              "const" : "MINUTE",
+              "title" : "Minute"
+            }, {
+              "const" : "SECOND",
+              "title" : "Second"
+            }, {
+              "const" : "MILLISECOND",
+              "title" : "Millisecond"
+            }, {
+              "const" : "MICROSECOND",
+              "title" : "Microsecond"
+            }, {
+              "const" : "NANOSECOND",
+              "title" : "Nanosecond"
+            } ],
+            "title" : "Granularity",
+            "description" : "The granularity unit for the numerical value.",
+            "default" : "YEAR"
+          },
+          "numericalValue" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Value",
+            "description" : "The numerical value to add to the start.",
+            "default" : 1
+          },
+          "startInclusive" : {
+            "type" : "boolean",
+            "title" : "Include starting point",
+            "description" : "Whether the start value is included in the range.",
+            "default" : true
+          },
+          "startValue" : {
+            "type" : "string",
+            "format" : "date-time",
+            "title" : "Starting point",
+            "description" : "The start of the range",
+            "default" : {
+              "dateTime" : "2020-01-01T14:00:00",
+              "timeZone" : "Europe/Berlin"
+            }
+          },
+          "useExecutionTimeEnd" : {
+            "type" : "boolean",
+            "title" : "Use execution date and time (zoned)",
+            "description" : "Use the current execution date and time (zoned) as the ending point.",
+            "default" : false
+          },
+          "useExecutionTimeStart" : {
+            "type" : "boolean",
+            "title" : "Use execution date and time (zoned)",
+            "description" : "Use the current execution date and time (zoned) as the starting point.",
+            "default" : false
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/startValue",
+      "options" : {
+        "possibleValues" : [ {
+          "id" : "America/New_York",
+          "text" : "America/New_York"
+        }, {
+          "id" : "Europe/Berlin",
+          "text" : "Europe/Berlin"
+        }, {
+          "id" : "UTC",
+          "text" : "UTC"
+        } ],
+        "showMilliseconds" : true,
+        "format" : "zonedDateTime"
+      },
+      "rule" : {
+        "effect" : "DISABLE",
+        "condition" : {
+          "scope" : "#/properties/model/properties/useExecutionTimeStart",
+          "schema" : {
+            "const" : true
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/useExecutionTimeStart",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/startInclusive",
+      "options" : {
+        "format" : "checkbox"
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/endMode",
+      "options" : {
+        "format" : "valueSwitch"
+      }
+    }, {
+      "type" : "MultiRuleWrapper",
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/endMode",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "DATE_TIME"
+            } ]
+          }
+        }
+      },
+      "elements" : [ {
+        "type" : "Control",
+        "scope" : "#/properties/model/properties/endValue",
+        "options" : {
+          "possibleValues" : [ {
+            "id" : "America/New_York",
+            "text" : "America/New_York"
+          }, {
+            "id" : "Europe/Berlin",
+            "text" : "Europe/Berlin"
+          }, {
+            "id" : "UTC",
+            "text" : "UTC"
+          } ],
+          "showMilliseconds" : true,
+          "format" : "zonedDateTime"
+        },
+        "rule" : {
+          "effect" : "DISABLE",
+          "condition" : {
+            "scope" : "#/properties/model/properties/useExecutionTimeEnd",
+            "schema" : {
+              "const" : true
+            }
+          }
+        }
+      } ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/useExecutionTimeEnd",
+      "options" : {
+        "format" : "checkbox"
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/endMode",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "DATE_TIME"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/durationValue",
+      "options" : {
+        "format" : "interval",
+        "intervalType" : "DATE_OR_TIME"
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/endMode",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "DURATION"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/numericalValue",
+      "options" : {
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 2147483647.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 2.147483647E9
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be at least -2147483648.",
+            "parameters" : {
+              "isExclusive" : false,
+              "min" : -2.147483648E9
+            }
+          }
+        }
+      },
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/endMode",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "NUMERICAL"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/granularity",
+      "rule" : {
+        "effect" : "SHOW",
+        "condition" : {
+          "scope" : "#/properties/model/properties/endMode",
+          "schema" : {
+            "oneOf" : [ {
+              "const" : "NUMERICAL"
+            } ]
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/endInclusive",
+      "options" : {
+        "format" : "checkbox"
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "startValue" : { },
+          "useExecutionTimeStart" : { },
+          "startInclusive" : { },
+          "endMode" : { },
+          "endValue" : { },
+          "useExecutionTimeEnd" : { },
+          "durationValue" : { },
+          "numericalValue" : { },
+          "granularity" : { },
+          "endInclusive" : { }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/endValue",
+    "providedOptionName" : "validatorId",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : {
+        "second" : "java.time.ZonedDateTime",
+        "first" : { }
+      }
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/endMode"
+    },
+    "dependencies" : [ "#/properties/model/properties/endMode", "#/properties/model/properties/startValue", "#/properties/model/properties/useExecutionTimeEnd", "#/properties/model/properties/useExecutionTimeStart" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/startValue"
+    },
+    "dependencies" : [ "#/properties/model/properties/endMode", "#/properties/model/properties/startValue", "#/properties/model/properties/useExecutionTimeEnd", "#/properties/model/properties/useExecutionTimeStart" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/useExecutionTimeEnd"
+    },
+    "dependencies" : [ "#/properties/model/properties/endMode", "#/properties/model/properties/startValue", "#/properties/model/properties/useExecutionTimeEnd", "#/properties/model/properties/useExecutionTimeStart" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/useExecutionTimeStart"
+    },
+    "dependencies" : [ "#/properties/model/properties/endMode", "#/properties/model/properties/startValue", "#/properties/model/properties/useExecutionTimeEnd", "#/properties/model/properties/useExecutionTimeStart" ]
+  } ]
+}
