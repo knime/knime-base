@@ -51,6 +51,7 @@ package org.knime.base.node.io.commandexecutor;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import org.knime.core.data.DataColumnSpecCreator;
@@ -75,6 +76,11 @@ import org.knime.core.webui.node.impl.WebUINodeModel;
 /**
  *
  * @author janniksemperowitsch
+ */
+/**
+ * Data model for the Command Executor node, managing execution logic and state.
+ * * <p>Extends {@link WebUINodeModel} to handle command-specific settings defined in
+ * {@link CommandExecutorNodeSettings} and provide integration with the Web UI.</p>
  */
 public class CommandExecutorNodeModel extends WebUINodeModel<CommandExecutorNodeSettings>{
 
@@ -133,8 +139,11 @@ public class CommandExecutorNodeModel extends WebUINodeModel<CommandExecutorNode
             outputLines = new String[] { outputBuffer.toString() };
             errorLines = new String[] { errorBuffer.toString() };
         } else {
-            outputLines = outputBuffer.toString().split("\\R");
-            errorLines = errorBuffer.toString().split("\\R");
+            final Pattern LINE_BREAK_PATTERN = Pattern.compile("\\R");
+            outputLines = LINE_BREAK_PATTERN.split(outputBuffer.toString());
+            errorLines = LINE_BREAK_PATTERN.split(errorBuffer.toString());
+            //outputLines = outputBuffer.toString().split("\\R");
+            //errorLines = errorBuffer.toString().split("\\R");
         }
         String line;
         for (int i = 0; i < outputLines.length; i++)  {
@@ -161,9 +170,7 @@ public class CommandExecutorNodeModel extends WebUINodeModel<CommandExecutorNode
 
     @Override //Portobject
     protected PortObjectSpec[] configure(final PortObjectSpec[] outSpecs,
-        final CommandExecutorNodeSettings modelSettings) throws InvalidSettingsException {/*
-    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs,
-        final CommandExecutorNodeSettings modelSettings) throws InvalidSettingsException {*/
+        final CommandExecutorNodeSettings modelSettings) throws InvalidSettingsException {
         DataTableSpec outSpec = new DataTableSpecCreator()
                 .addColumns(new DataColumnSpecCreator("Output", StringCell.TYPE).createSpec())
                 .createSpec();
@@ -172,10 +179,8 @@ public class CommandExecutorNodeModel extends WebUINodeModel<CommandExecutorNode
                 .createSpec();
         if(modelSettings.m_mergeErrorStream) {
             return new PortObjectSpec[] {outSpec, InactiveBranchPortObjectSpec.INSTANCE};
-        } else {
-            return new PortObjectSpec[] {outSpec, errSpec};
         }
-        //return new DataTableSpec[]{outSpec, errSpec};
+        return new PortObjectSpec[] {outSpec, errSpec};
     }
 
     /**
