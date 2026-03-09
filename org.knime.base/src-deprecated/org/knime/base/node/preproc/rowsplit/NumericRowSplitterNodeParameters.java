@@ -84,7 +84,9 @@ import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinVa
  *
  * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
  * @author AI Migration Pipeline v1.2
+ * @deprecated since 5.12.0, use the Row Filter instead
  */
+@Deprecated
 @LoadDefaultsForAbsentFields
 @SuppressWarnings("restriction")
 final class NumericRowSplitterNodeParameters implements NodeParameters {

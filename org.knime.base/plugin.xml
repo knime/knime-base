@@ -1024,6 +1024,7 @@
             factory-class="org.knime.base.node.preproc.colcompare.ColumnComparatorNodeFactory"/>
       <node
             category-path="/manipulation/row/row-filter"
+            deprecated="true"
             factory-class="org.knime.base.node.preproc.rowsplit.NumericRowSplitterNodeFactory"/>
       <node
             category-path="/manipulation/column/column-convert+replace"

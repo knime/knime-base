@@ -68,14 +68,17 @@ import org.knime.core.node.defaultnodesettings.SettingsModelDouble;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
 /**
- * 
+ * {@link NodeDialogPane} of the {@link NumericRowSplitterNodeModel}.
+ *
  * @author Thomas Gabriel, University of Konstanz
+ * @deprecated since 5.12.0, use the Row Filter instead
  */
+@Deprecated
 public class NumericRowSplitterNodeDialogPane extends NodeDialogPane {
-    
+
     private static final String[] LOWER_BOUNDS = new String[]{">=", ">"};
     private static final String[] UPPER_BOUNDS = new String[]{"<=", "<"};
-    
+
     private final DialogComponentColumnNameSelection m_columnSelection;
     private final DialogComponentBoolean m_lowerBoundCheck;
     private final DialogComponentNumberEdit m_lowerBoundValue;
@@ -87,7 +90,9 @@ public class NumericRowSplitterNodeDialogPane extends NodeDialogPane {
     /**
      * Creates a new dialog pane with a field for numeric column selection,
      * as well as components to define lower and upper bound optionally.
+     * @deprecated
      */
+    @Deprecated
     @SuppressWarnings("unchecked")
     public NumericRowSplitterNodeDialogPane() {
         JPanel columnSelectionPanel = new JPanel(new BorderLayout());
@@ -95,10 +100,10 @@ public class NumericRowSplitterNodeDialogPane extends NodeDialogPane {
                 " Column selection "));
         m_columnSelection = new DialogComponentColumnNameSelection(
                 createColumnSelectionModel(), "", 0, DoubleValue.class);
-        columnSelectionPanel.add(m_columnSelection.getComponentPanel(), 
+        columnSelectionPanel.add(m_columnSelection.getComponentPanel(),
                 BorderLayout.CENTER);
-        
-        final SettingsModelBoolean lowerBoundCheck = 
+
+        final SettingsModelBoolean lowerBoundCheck =
             createLowerBoundCheckBoxModel();
         final SettingsModelDouble lowerBoundValue =
             createLowerBoundTextfieldModel();
@@ -108,30 +113,31 @@ public class NumericRowSplitterNodeDialogPane extends NodeDialogPane {
             /**
              * {@inheritDoc}
              */
+            @Override
             public void stateChanged(final ChangeEvent e) {
                 boolean isSelected = lowerBoundCheck.getBooleanValue();
                 lowerBoundValue.setEnabled(isSelected);
                 lowerBound.setEnabled(isSelected);
             }
         });
-        
+
         JPanel lowerBoundPanel = new JPanel(new BorderLayout());
         lowerBoundPanel.setBorder(BorderFactory.createTitledBorder(
                 " Lower bound "));
         m_lowerBoundCheck = new DialogComponentBoolean(lowerBoundCheck, "");
         lowerBoundPanel.add(
                 m_lowerBoundCheck.getComponentPanel(), BorderLayout.WEST);
-        m_lowerBoundValue = 
-            new DialogComponentNumberEdit(lowerBoundValue, "Value: ", 10, 
+        m_lowerBoundValue =
+            new DialogComponentNumberEdit(lowerBoundValue, "Value: ", 10,
                     createFlowVariableModel(lowerBoundValue));
-        lowerBoundPanel.add(m_lowerBoundValue.getComponentPanel(), 
+        lowerBoundPanel.add(m_lowerBoundValue.getComponentPanel(),
                 BorderLayout.CENTER);
         m_lowerBound = new DialogComponentStringSelection(
                 lowerBound, "", LOWER_BOUNDS);
-        lowerBoundPanel.add(m_lowerBound.getComponentPanel(), 
+        lowerBoundPanel.add(m_lowerBound.getComponentPanel(),
                 BorderLayout.EAST);
 
-        final SettingsModelBoolean upperBoundCheck = 
+        final SettingsModelBoolean upperBoundCheck =
             createUpperBoundCheckBoxModel();
         final SettingsModelDouble upperBoundValue =
             createUpperBoundTextfieldModel();
@@ -141,38 +147,39 @@ public class NumericRowSplitterNodeDialogPane extends NodeDialogPane {
             /**
              * {@inheritDoc}
              */
+            @Override
             public void stateChanged(final ChangeEvent e) {
                 boolean isSelected = upperBoundCheck.getBooleanValue();
                 upperBoundValue.setEnabled(isSelected);
                 upperBound.setEnabled(isSelected);
             }
         });
-        
+
         JPanel upperBoundPanel = new JPanel(new BorderLayout());
         upperBoundPanel.setBorder(BorderFactory.createTitledBorder(
                 " Upper bound "));
         m_upperBoundCheck = new DialogComponentBoolean(upperBoundCheck, "");
-        upperBoundPanel.add(m_upperBoundCheck.getComponentPanel(), 
+        upperBoundPanel.add(m_upperBoundCheck.getComponentPanel(),
                 BorderLayout.WEST);
-        m_upperBoundValue = 
+        m_upperBoundValue =
             new DialogComponentNumberEdit(upperBoundValue, "Value: ", 10,
                     createFlowVariableModel(upperBoundValue));
-        upperBoundPanel.add(m_upperBoundValue.getComponentPanel(), 
+        upperBoundPanel.add(m_upperBoundValue.getComponentPanel(),
                 BorderLayout.CENTER);
-        m_upperBound = 
+        m_upperBound =
             new DialogComponentStringSelection(upperBound, "", UPPER_BOUNDS);
-        upperBoundPanel.add(m_upperBound.getComponentPanel(), 
+        upperBoundPanel.add(m_upperBound.getComponentPanel(),
                 BorderLayout.EAST);
-        
+
         JPanel comp = new JPanel(new GridLayout(3, 1));
         comp.add(columnSelectionPanel);
         comp.add(lowerBoundPanel);
         comp.add(upperBoundPanel);
         super.addTab("Settings", comp);
     }
-    
+
     @Override
-    protected void loadSettingsFrom(final NodeSettingsRO settings, 
+    protected void loadSettingsFrom(final NodeSettingsRO settings,
             final DataTableSpec[] specs) throws NotConfigurableException {
         m_columnSelection.loadSettingsFrom(settings, specs);
         m_lowerBound.loadSettingsFrom(settings, specs);
@@ -182,9 +189,9 @@ public class NumericRowSplitterNodeDialogPane extends NodeDialogPane {
         m_upperBoundCheck.loadSettingsFrom(settings, specs);
         m_upperBoundValue.loadSettingsFrom(settings, specs);
     }
-    
+
     @Override
-    protected void saveSettingsTo(final NodeSettingsWO settings) 
+    protected void saveSettingsTo(final NodeSettingsWO settings)
             throws InvalidSettingsException {
         m_columnSelection.saveSettingsTo(settings);
         m_lowerBound.saveSettingsTo(settings);
@@ -194,60 +201,60 @@ public class NumericRowSplitterNodeDialogPane extends NodeDialogPane {
         m_upperBoundCheck.saveSettingsTo(settings);
         m_upperBoundValue.saveSettingsTo(settings);
     }
-    
+
     /**
      * @return model used for numeric column selection
      */
     static final SettingsModelString createColumnSelectionModel() {
         return new SettingsModelString("column_selection", null);
     }
-    
+
     /**
      * @return model to check if lower bound is defined
      */
     static final SettingsModelBoolean createLowerBoundCheckBoxModel() {
         return new SettingsModelBoolean("lower_bound_defined", true);
     }
-    
+
     /**
      * @return a new model to specify lower bound value
      */
     static final SettingsModelDouble createLowerBoundTextfieldModel() {
         return new SettingsModelDouble("lower_bound_value", 0.0);
     }
-    
+
     /**
-     * 
+     *
      * @return a new string model to select lower bound property
      */
     static final SettingsModelString createLowerBoundModel() {
         return new SettingsModelString("lower_bound", LOWER_BOUNDS[0]);
     }
-    
+
     /**
-     * 
+     *
      * @return model to check if upper bound is defined
      */
     static final SettingsModelBoolean createUpperBoundCheckBoxModel() {
         return new SettingsModelBoolean("upper_bound_defined", true);
     }
-    
+
     /**
      * @return a new model to specify a upper value
      */
     static final SettingsModelDouble createUpperBoundTextfieldModel() {
         return new SettingsModelDouble("upper_bound_value", 0.0);
     }
-    
+
     /**
      * @return a new string model to select the upper bound property
      */
     static final SettingsModelString createUpperBoundModel() {
         return new SettingsModelString("upper_bound", UPPER_BOUNDS[0]);
     }
-    
+
     /**
-     * 
+     *
      * @param model contains the selected lower bound property
      * @return true if the belongs to the interval, otherwise false
      */
@@ -256,7 +263,7 @@ public class NumericRowSplitterNodeDialogPane extends NodeDialogPane {
     }
 
     /**
-     * 
+     *
      * @param model contains the selected upper bound property
      * @return true if the belongs to the interval, otherwise false
      */

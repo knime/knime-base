@@ -65,9 +65,12 @@ import org.knime.core.node.defaultnodesettings.SettingsModelDouble;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
 /**
+ * {@link NodeModel} of the Numeric Row Splitter node.
  *
  * @author Thomas Gabriel, University of Konstanz
+ * @deprecated since 5.12.0, use the Row Filter instead
  */
+@Deprecated
 public class NumericRowSplitterNodeModel extends NodeModel {
 
     private final SettingsModelString m_columnSelection =
@@ -88,8 +91,11 @@ public class NumericRowSplitterNodeModel extends NodeModel {
         NumericRowSplitterNodeDialogPane.createUpperBoundModel();
 
     /**
+     * The constructor.
      *
+     * @deprecated since 5.12.0, use the Row Filter instead
      */
+    @Deprecated
     public NumericRowSplitterNodeModel() {
         super(1, 2);
     }
