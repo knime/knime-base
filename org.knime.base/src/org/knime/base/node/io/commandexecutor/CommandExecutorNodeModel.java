@@ -53,7 +53,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
-import org.knime.base.node.io.arffreader.ARFFReaderNodeModel;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataTableSpecCreator;
@@ -81,7 +80,7 @@ public class CommandExecutorNodeModel extends WebUINodeModel<CommandExecutorNode
 
     /** The node logger for this class. */
     private static final NodeLogger LOGGER = NodeLogger
-            .getLogger(ARFFReaderNodeModel.class);
+            .getLogger(CommandExecutorNodeModel.class);
 
     /**
      *
@@ -90,7 +89,6 @@ public class CommandExecutorNodeModel extends WebUINodeModel<CommandExecutorNode
         super(new PortType[0],
             new PortType[]{BufferedDataTable.TYPE, BufferedDataTable.TYPE},
             CommandExecutorNodeSettings.class);
-        // TODO Auto-generated constructor stub
     }
 
     @SuppressWarnings("unused")
@@ -147,7 +145,7 @@ public class CommandExecutorNodeModel extends WebUINodeModel<CommandExecutorNode
 
         }
         for (int i = 0; i < errorLines.length; i++)  {
-            line = outputLines[i];
+            line = errorLines[i];
             if (!line.strip().isEmpty()) {
                 errContainer.addRowToTable(new DefaultRow("Row_" + i, new StringCell(line)));
             }
@@ -186,7 +184,6 @@ public class CommandExecutorNodeModel extends WebUINodeModel<CommandExecutorNode
     @Override
     protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
         throws IOException, CanceledExecutionException {
-        // TODO Auto-generated method stub
 
     }
 
@@ -196,7 +193,6 @@ public class CommandExecutorNodeModel extends WebUINodeModel<CommandExecutorNode
     @Override
     protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
         throws IOException, CanceledExecutionException {
-        // TODO Auto-generated method stub
 
     }
 
@@ -205,7 +201,6 @@ public class CommandExecutorNodeModel extends WebUINodeModel<CommandExecutorNode
      */
     @Override
     protected void reset() {
-        // TODO Auto-generated method stub
 
     }
 

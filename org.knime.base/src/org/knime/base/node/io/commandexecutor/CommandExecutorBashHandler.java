@@ -7,6 +7,7 @@ import java.util.Arrays;
 import org.knime.core.node.NodeLogger;
 
 final class CommandExecutorBashHandler {
+    private CommandExecutorBashHandler() {}
 
     // 5MB limit in characters (5 * 1024 * 1024 / 2)
     private static final int MAX_CHARS = 2621440;

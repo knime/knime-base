@@ -72,13 +72,11 @@ import org.knime.node.impl.description.PortDescription;
  *
  * @author janniksemperowitsch
  */
-public class CommandExecutorNodeFactory extends NodeFactory<CommandExecutorNodeModel> implements NodeDialogFactory, KaiNodeInterfaceFactory {
+public class CommandExecutorNodeFactory extends NodeFactory<CommandExecutorNodeModel>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     @Override
     public CommandExecutorNodeModel createNodeModel() {
-        return new CommandExecutorNodeModel();
-    }
-    public CommandExecutorNodeModel createNodeModel(final String command) {
         return new CommandExecutorNodeModel();
     }
 
@@ -102,8 +100,12 @@ public class CommandExecutorNodeFactory extends NodeFactory<CommandExecutorNodeM
     private static final String NODE_ICON = "./commandexecutor.png";
     private static final String SHORT_DESCRIPTION = "Executes terminal command saving return";
     private static final String FULL_DESCRIPTION = """
-            Bla Bla Bla If you don'T kno, what to do here, you pobably can't do anything here, as it requires some amount of knowledge.
-            Ask you IT-Friends
+            The Command Executor node allows for the execution of external system commands, scripts, or binaries directly from the workflow.
+
+            It captures the process's standard output (stdout) and standard error (stderr) streams,
+            making them available as data tables for downstream processing.
+            Users should ensure that the execution environment has the necessary permissions and
+            that all paths provided are accessible by the runtime service.
             """;
     private static final List<PortDescription> INPUT_PORTS = List.of();
     private static final List<PortDescription> OUTPUT_PORTS = List.of(

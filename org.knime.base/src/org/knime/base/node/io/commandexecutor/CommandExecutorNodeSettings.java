@@ -61,59 +61,61 @@ import org.knime.node.parameters.widget.text.TextInputWidget;
 //@SuppressWarnings("restriction")
 final class CommandExecutorNodeSettings implements NodeParameters {
 
-  /**
-   * Widget that is always present, taking a bash command to execute
-   */
-  @Widget(title = "Command",
-      description = "ability to run shell commands and invoke external processes."
-  )
-  @TextInputWidget(placeholder = "Write Command")
-  String m_command = "Command";
+    /**
+     * Widget that is always present, taking a bash command to execute
+     */
+    @Widget(title = "Command",
+        description = "ability to run shell commands and invoke external processes."
+    )
+    @TextInputWidget(placeholder = "Write Command")
+    String m_command = "Command";
 
 
-  /**
-   * Widget to define behavior of Stdout and Stderr
-   */
-  @Widget(title = "Merge stderr into stdout",
-      description = "Redirects stderr to stdout." //equivalent to 2>&1
-  )
-  boolean m_mergeErrorStream = false;
+    /**
+     * Widget to define behavior of Stdout and Stderr
+     */
+    @Widget(title = "Merge stderr into stdout",
+        description = "Redirects stderr to stdout." //equivalent to 2>&1
+    )
+    boolean m_mergeErrorStream;
 
-  /**
-   * Widget to define output formatting
-   */
-  @Widget(title = "Single cell output",
-          description = "returns all lines from stdout as a single line."
-  )
-  boolean m_singleOutputCell = false;
-
-
-  /**
-   * Widget that holds subwidgets of Arguments
-   */
-  @Widget(title = "Arguments",
-          description = "ability to pass arguments to previous command."
-  )
-  @ArrayWidget(
-      addButtonText = "Add Argument",
-      elementTitle = "Argument"
-  )
-  NewArgumentSettings[] m_newArgumentSettings = new NewArgumentSettings[]{new NewArgumentSettings()};
+    /**
+     * Widget to define output formatting
+     */
+    @Widget(title = "Single cell output",
+            description = "returns all lines from stdout as a single line."
+    )
+    boolean m_singleOutputCell;
 
 
-  static final class NewArgumentSettings implements NodeParameters {
+    /**
+     * Widget that holds subwidgets of Arguments
+     */
+    @Widget(title = "Arguments",
+            description = "ability to pass arguments to previous command."
+    )
+    @ArrayWidget(
+        addButtonText = "Add Argument",
+        elementTitle = "Argument"
+    )
+    NewArgumentSettings[] m_newArgumentSettings = new NewArgumentSettings[]{new NewArgumentSettings()};
 
-      NewArgumentSettings(){}
 
-      /**
-       * Subwidget of Argument Widget
-       * It's only present, when needed, taking a bash argument to enhance the command from first Widget command to execute
-       */
-      @Widget(title = "New Argument", description = "An Argument to enhance the base commands doings.") //----------change "doings" to something better
-      @TextInputWidget(placeholder = "New Argument")
-      String m_argumentToAppend = "New Argument";
+    static final class NewArgumentSettings implements NodeParameters {
 
-  }
-  static final class NewArgumentSettingsArrayRef implements ParameterReference<NewArgumentSettings[]> {}
+        NewArgumentSettings(){}
+
+        /**
+         * Subwidget of Argument Widget
+         * It's only present, when needed,
+         * taking a bash argument to enhance the command from first Widget command to execute
+         */
+        //----------change "doings" to something better
+        @Widget(title = "New Argument", description = "An Argument to enhance the base commands doings.")
+        @TextInputWidget(placeholder = "New Argument")
+        String m_argumentToAppend = "New Argument";
+
+    }
+    static final class NewArgumentSettingsArrayRef implements ParameterReference<NewArgumentSettings[]> {}
 }
 
