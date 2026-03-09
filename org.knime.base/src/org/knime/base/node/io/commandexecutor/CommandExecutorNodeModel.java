@@ -50,7 +50,10 @@ package org.knime.base.node.io.commandexecutor;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.stream.Stream;
 
+import org.knime.base.node.io.arffreader.ARFFReaderNodeModel;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataTableSpecCreator;
@@ -62,28 +65,42 @@ import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeModel;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.NodeLogger;
+import org.knime.core.node.port.PortObject;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.port.PortType;
+import org.knime.core.node.port.inactive.InactiveBranchPortObject;
+import org.knime.core.node.port.inactive.InactiveBranchPortObjectSpec;
+import org.knime.core.webui.node.impl.WebUINodeModel;
 
 /**
  *
  * @author janniksemperowitsch
  */
-public class CommandExecutorNodeModel extends NodeModel{
+public class CommandExecutorNodeModel extends WebUINodeModel<CommandExecutorNodeSettings>{
+
+    /** The node logger for this class. */
+    private static final NodeLogger LOGGER = NodeLogger
+            .getLogger(ARFFReaderNodeModel.class);
 
     /**
      *
      */
     protected CommandExecutorNodeModel() {
-        super(0, 2);
+        super(new PortType[0],
+            new PortType[]{BufferedDataTable.TYPE, BufferedDataTable.TYPE},
+            CommandExecutorNodeSettings.class);
         // TODO Auto-generated constructor stub
     }
 
     @SuppressWarnings("unused")
-    @Override
+    @Override//Portobject -> Rowagg
+    protected PortObject[] execute (final PortObject[] outPortObjects,
+    final ExecutionContext exec,
+    final CommandExecutorNodeSettings modelSettings) throws Exception {/*
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
-            final ExecutionContext exec) throws Exception {
+            final ExecutionContext exec,
+            final CommandExecutorNodeSettings modelSettings) throws Exception {*/
 
         //Table 1 for Stdout
         DataTableSpec outSpec = new DataTableSpecCreator()
@@ -98,48 +115,69 @@ public class CommandExecutorNodeModel extends NodeModel{
         BufferedDataContainer outContainer = exec.createDataContainer(outSpec);
         BufferedDataContainer errContainer = exec.createDataContainer(errSpec);
 
-        //fill containers //---------------------------------------------------------------------------------true is tester for node to avoid errors
-        if (false) { //
-            for (int i = 0; i < 10; i++) {
-                outContainer.addRowToTable(new DefaultRow("Row_" + i, new StringCell("out" + i)));
-                errContainer.addRowToTable(new DefaultRow("Row_" + i, new StringCell("err" + i)));
-            }
+
+        String[] command = Stream.concat(
+            Stream.of(modelSettings.m_command),
+            Arrays.stream(modelSettings.m_newArgumentSettings).map(arg -> arg.m_argumentToAppend)
+        ).toArray(String[]::new);
+
+        // System.out.println("+++\\nCommand to execute: " + Arrays.toString(command) + "\n+++"); //-------------------------------Debug help
+
+        boolean merge = modelSettings.m_mergeErrorStream;
+        boolean cut = modelSettings.m_singleOutputCell; //true -> all in one cell end may be cut off
+        StringBuilder outputBuffer = new StringBuilder();
+        StringBuilder errorBuffer = new StringBuilder();
+
+        CommandExecutorBashHandler.commandHandler(command, merge, cut, outputBuffer, errorBuffer, LOGGER);
+        String[] outputLines;
+        String[] errorLines;
+        if (cut) {
+            outputLines = new String[] { outputBuffer.toString() };
+            errorLines = new String[] { errorBuffer.toString() };
         } else {
-            //String[] command = {"ls", "-la"}; //-------------------------------------------------------------should be he value from the Widget command
-            String[] command = {"python3", "error.py"};
-            boolean merge = false; //------------------------------------------------------------------------should be the value from the Widget merge
-            StringBuilder outputBuffer = new StringBuilder();
-            StringBuilder errorBuffer = new StringBuilder();
-            CommandExecutorBashHandler.commandHandler(command, merge, outputBuffer, errorBuffer);
-
-            String[] outputLines = outputBuffer.toString().split("\\R");
-            String[] errorLines = errorBuffer.toString().split("\\R");
-
-            for (int i = 0; i < outputLines.length; i++)  {
-                outContainer.addRowToTable(new DefaultRow("Row_" + i, new StringCell(outputLines[i])));
-
-            }
-            for (int i = 0; i < errorLines.length; i++)  {
-                errContainer.addRowToTable(new DefaultRow("Row_" + i, new StringCell(errorLines[i])));
+            outputLines = outputBuffer.toString().split("\\R");
+            errorLines = errorBuffer.toString().split("\\R");
+        }
+        String line;
+        for (int i = 0; i < outputLines.length; i++)  {
+            line = outputLines[i];
+            if (!line.strip().isEmpty()) {
+                outContainer.addRowToTable(new DefaultRow("Row_" + i, new StringCell(line)));
             }
 
         }
+        for (int i = 0; i < errorLines.length; i++)  {
+            line = outputLines[i];
+            if (!line.strip().isEmpty()) {
+                errContainer.addRowToTable(new DefaultRow("Row_" + i, new StringCell(line)));
+            }
+        }
+
         outContainer.close();
         errContainer.close();
-
-        return new BufferedDataTable[]{outContainer.getTable(), errContainer.getTable()};
+        if (merge) {
+            return new PortObject[]{outContainer.getTable(), InactiveBranchPortObject.INSTANCE};
+        }
+        return new PortObject[]{outContainer.getTable(), errContainer.getTable()};
     }
 
-    @Override
-    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
+    @Override //Portobject
+    protected PortObjectSpec[] configure(final PortObjectSpec[] outSpecs,
+        final CommandExecutorNodeSettings modelSettings) throws InvalidSettingsException {/*
+    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs,
+        final CommandExecutorNodeSettings modelSettings) throws InvalidSettingsException {*/
         DataTableSpec outSpec = new DataTableSpecCreator()
                 .addColumns(new DataColumnSpecCreator("Output", StringCell.TYPE).createSpec())
                 .createSpec();
         DataTableSpec errSpec = new DataTableSpecCreator()
                 .addColumns(new DataColumnSpecCreator("Error", StringCell.TYPE).createSpec())
                 .createSpec();
-
-        return new DataTableSpec[]{outSpec, errSpec};
+        if(modelSettings.m_mergeErrorStream) {
+            return new PortObjectSpec[] {outSpec, InactiveBranchPortObjectSpec.INSTANCE};
+        } else {
+            return new PortObjectSpec[] {outSpec, errSpec};
+        }
+        //return new DataTableSpec[]{outSpec, errSpec};
     }
 
     /**
@@ -158,33 +196,6 @@ public class CommandExecutorNodeModel extends NodeModel{
     @Override
     protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
         throws IOException, CanceledExecutionException {
-        // TODO Auto-generated method stub
-
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void saveSettingsTo(final NodeSettingsWO settings) {
-        // TODO Auto-generated method stub
-
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        // TODO Auto-generated method stub
-
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         // TODO Auto-generated method stub
 
     }

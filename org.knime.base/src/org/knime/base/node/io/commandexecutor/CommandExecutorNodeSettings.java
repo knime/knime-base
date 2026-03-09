@@ -67,8 +67,8 @@ final class CommandExecutorNodeSettings implements NodeParameters {
   @Widget(title = "Command",
       description = "ability to run shell commands and invoke external processes."
   )
-  @TextInputWidget(placeholder = "ls")
-  String m_command = "ls";
+  @TextInputWidget(placeholder = "Write Command")
+  String m_command = "Command";
 
 
   /**

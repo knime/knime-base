@@ -78,6 +78,9 @@ public class CommandExecutorNodeFactory extends NodeFactory<CommandExecutorNodeM
     public CommandExecutorNodeModel createNodeModel() {
         return new CommandExecutorNodeModel();
     }
+    public CommandExecutorNodeModel createNodeModel(final String command) {
+        return new CommandExecutorNodeModel();
+    }
 
     @Override
     public NodeView createNodeView(final int viewIndex,
