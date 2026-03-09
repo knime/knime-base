@@ -71,7 +71,9 @@ import org.knime.node.impl.description.PortDescription;
  * @author Thomas Gabriel, University of Konstanz
  * @author Magnus Gohm, KNIME GmbH, Konstanz, Germany
  * @author AI Migration Pipeline v1.2
+ * @deprecated since 5.12.0, use the Row Filter instead
  */
+@Deprecated
 @SuppressWarnings("restriction")
 public class NumericRowSplitterNodeFactory extends NodeFactory implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
@@ -96,7 +98,7 @@ public class NumericRowSplitterNodeFactory extends NodeFactory implements NodeDi
         return true;
     }
 
-    private static final String NODE_NAME = "Numeric Row Splitter";
+    private static final String NODE_NAME = "Numeric Row Splitter (deprecated)";
 
     private static final String NODE_ICON = "./numericrowsplitter.png";
 
@@ -106,10 +108,10 @@ public class NumericRowSplitterNodeFactory extends NodeFactory implements NodeDi
             """;
 
     private static final String FULL_DESCRIPTION = """
-            This node uses a well-defined numeric range to split the input data into two parts. While the first output
-            port contains the data that matches the criteria, the second contains the data that does not comply with
-            the settings. Within the dialog the user can select one numeric column and optionally specify a lower and
-            upper bound on it to split the data that matches/does not match the criteria.
+            <p>Splits the input data into two groups based on a specified numeric range.</p>
+            <p>In the configuration dialog, you select a numeric column and optionally define a lower bound, an upper
+            bound, or both. Rows with values that fall within the defined range are sent to the first output port,
+            while rows that do not meet the criteria are sent to the second output port.</p>
             """;
 
     private static final List<PortDescription> INPUT_PORTS = List.of(
