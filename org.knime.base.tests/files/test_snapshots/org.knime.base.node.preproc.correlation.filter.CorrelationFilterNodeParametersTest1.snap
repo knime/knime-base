@@ -1,0 +1,130 @@
+{
+  "data" : {
+    "model" : {
+      "threshold" : 0.263,
+      "includedColumns" : [ ]
+    }
+  },
+  "schema" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "correlationModelInfo" : {
+            "type" : "object"
+          },
+          "includedColumns" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            },
+            "title" : "Included columns",
+            "description" : "Shows the columns which will be included or excluded in the output table. The list is updated based on the\ncorrelation model and the chosen correlation threshold. This list cannot be edited.\n",
+            "default" : [ ]
+          },
+          "threshold" : {
+            "type" : "number",
+            "format" : "double",
+            "title" : "Correlation threshold",
+            "description" : "Choose the correlation threshold. The higher the value, the fewer columns get filtered out.\n",
+            "default" : 1.0
+          }
+        }
+      }
+    }
+  },
+  "ui_schema" : {
+    "elements" : [ {
+      "type" : "Control",
+      "id" : "#/properties/model/properties/correlationModelInfo",
+      "options" : {
+        "format" : "textMessage"
+      },
+      "providedOptions" : [ "message" ]
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/threshold",
+      "options" : {
+        "stepSize" : 0.01,
+        "validation" : {
+          "max" : {
+            "errorMessage" : "The value must not exceed 1.",
+            "parameters" : {
+              "isExclusive" : false,
+              "max" : 1.0
+            }
+          },
+          "min" : {
+            "errorMessage" : "The value must be greater than 0.",
+            "parameters" : {
+              "isExclusive" : true,
+              "min" : 0.0
+            }
+          }
+        }
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/includedColumns",
+      "options" : {
+        "format" : "twinList"
+      },
+      "providedOptions" : [ "possibleValues" ],
+      "rule" : {
+        "effect" : "DISABLE",
+        "condition" : {
+          "schema" : { }
+        }
+      }
+    } ]
+  },
+  "persist" : {
+    "type" : "object",
+    "properties" : {
+      "model" : {
+        "type" : "object",
+        "properties" : {
+          "correlationModelInfo" : { },
+          "threshold" : {
+            "configKey" : "correlation_threshold"
+          },
+          "includedColumns" : {
+            "configPaths" : [ ]
+          }
+        }
+      }
+    }
+  },
+  "initialUpdates" : [ {
+    "scope" : "#/properties/model/properties/includedColumns",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ ]
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/includedColumns",
+    "providedOptionName" : "possibleValues",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : [ ]
+    } ]
+  }, {
+    "id" : "#/properties/model/properties/correlationModelInfo",
+    "providedOptionName" : "message",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : {
+        "title" : "No correlation data",
+        "description" : "Execute the upstream correlation node first.",
+        "type" : "INFO"
+      }
+    } ]
+  } ],
+  "globalUpdates" : [ {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/threshold"
+    },
+    "dependencies" : [ "#/properties/model/properties/threshold" ]
+  } ]
+}
