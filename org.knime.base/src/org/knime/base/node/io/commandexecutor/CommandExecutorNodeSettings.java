@@ -58,7 +58,7 @@ import org.knime.node.parameters.widget.text.TextInputWidget;
  *
  * @author janniksemperowitsch
  */
-//@SuppressWarnings("restriction")
+@SuppressWarnings("restriction")
 final class CommandExecutorNodeSettings implements NodeParameters {
 
     /**
@@ -68,14 +68,14 @@ final class CommandExecutorNodeSettings implements NodeParameters {
         description = "ability to run shell commands and invoke external processes."
     )
     @TextInputWidget(placeholder = "Write Command")
-    String m_command = "Command";
+    String m_command = "ls";
 
 
     /**
      * Widget to define behavior of Stdout and Stderr
      */
     @Widget(title = "Merge stderr into stdout",
-        description = "Redirects stderr to stdout." //equivalent to 2>&1
+        description = "Redirects stderr to stdout."
     )
     boolean m_mergeErrorStream;
 
@@ -83,7 +83,7 @@ final class CommandExecutorNodeSettings implements NodeParameters {
      * Widget to define output formatting
      */
     @Widget(title = "Single cell output",
-            description = "returns all lines from stdout as a single line."
+            description = "Returns the entire stdout content as a single cell."
     )
     boolean m_singleOutputCell;
 
@@ -110,10 +110,9 @@ final class CommandExecutorNodeSettings implements NodeParameters {
          * It's only present, when needed,
          * taking a bash argument to enhance the command from first Widget command to execute
          */
-        //----------change "doings" to something better
-        @Widget(title = "New Argument", description = "An Argument to enhance the base commands doings.")
+        @Widget(title = "New Argument", description = "An Argument to enhance the base command's functionality.")
         @TextInputWidget(placeholder = "New Argument")
-        String m_argumentToAppend = "New Argument";
+        String m_argumentToAppend = "";
 
     }
     static final class NewArgumentSettingsArrayRef implements ParameterReference<NewArgumentSettings[]> {}

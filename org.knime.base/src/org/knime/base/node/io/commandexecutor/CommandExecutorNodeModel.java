@@ -51,13 +51,11 @@ package org.knime.base.node.io.commandexecutor;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataTableSpecCreator;
-import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
@@ -82,7 +80,8 @@ import org.knime.core.webui.node.impl.WebUINodeModel;
  * * <p>Extends {@link WebUINodeModel} to handle command-specific settings defined in
  * {@link CommandExecutorNodeSettings} and provide integration with the Web UI.</p>
  */
-public class CommandExecutorNodeModel extends WebUINodeModel<CommandExecutorNodeSettings>{
+@SuppressWarnings("deprecation")
+final class CommandExecutorNodeModel extends WebUINodeModel<CommandExecutorNodeSettings>{
 
     /** The node logger for this class. */
     private static final NodeLogger LOGGER = NodeLogger
@@ -98,24 +97,18 @@ public class CommandExecutorNodeModel extends WebUINodeModel<CommandExecutorNode
     }
 
     @SuppressWarnings("unused")
-    @Override//Portobject -> Rowagg
-    protected PortObject[] execute (final PortObject[] outPortObjects,
+    @Override
+    protected PortObject[] execute (final PortObject[] inPortObjects,
     final ExecutionContext exec,
-    final CommandExecutorNodeSettings modelSettings) throws Exception {/*
-    protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
-            final ExecutionContext exec,
-            final CommandExecutorNodeSettings modelSettings) throws Exception {*/
+    final CommandExecutorNodeSettings modelSettings) throws Exception { //TODO Add cancellation
 
-        //Table 1 for Stdout
         DataTableSpec outSpec = new DataTableSpecCreator()
                 .addColumns(new DataColumnSpecCreator("Output", StringCell.TYPE).createSpec())
                 .createSpec();
-        //Table 2 for Stderr //--------------------------------------------------------------------------------Maybe get an if for merge
         DataTableSpec errSpec = new DataTableSpecCreator()
                 .addColumns(new DataColumnSpecCreator("Error", StringCell.TYPE).createSpec())
                 .createSpec();
 
-        //--------------------------------------------------------------------------------------------------------Container for something... Leon
         BufferedDataContainer outContainer = exec.createDataContainer(outSpec);
         BufferedDataContainer errContainer = exec.createDataContainer(errSpec);
 
@@ -125,40 +118,12 @@ public class CommandExecutorNodeModel extends WebUINodeModel<CommandExecutorNode
             Arrays.stream(modelSettings.m_newArgumentSettings).map(arg -> arg.m_argumentToAppend)
         ).toArray(String[]::new);
 
-        // System.out.println("+++\\nCommand to execute: " + Arrays.toString(command) + "\n+++"); //-------------------------------Debug help
-
         boolean merge = modelSettings.m_mergeErrorStream;
-        boolean cut = modelSettings.m_singleOutputCell; //true -> all in one cell end may be cut off
+        boolean cut = modelSettings.m_singleOutputCell;
         StringBuilder outputBuffer = new StringBuilder();
         StringBuilder errorBuffer = new StringBuilder();
 
-        CommandExecutorBashHandler.commandHandler(command, merge, cut, outputBuffer, errorBuffer, LOGGER);
-        String[] outputLines;
-        String[] errorLines;
-        if (cut) {
-            outputLines = new String[] { outputBuffer.toString() };
-            errorLines = new String[] { errorBuffer.toString() };
-        } else {
-            final Pattern LINE_BREAK_PATTERN = Pattern.compile("\\R");
-            outputLines = LINE_BREAK_PATTERN.split(outputBuffer.toString());
-            errorLines = LINE_BREAK_PATTERN.split(errorBuffer.toString());
-            //outputLines = outputBuffer.toString().split("\\R");
-            //errorLines = errorBuffer.toString().split("\\R");
-        }
-        String line;
-        for (int i = 0; i < outputLines.length; i++)  {
-            line = outputLines[i];
-            if (!line.strip().isEmpty()) {
-                outContainer.addRowToTable(new DefaultRow("Row_" + i, new StringCell(line)));
-            }
-
-        }
-        for (int i = 0; i < errorLines.length; i++)  {
-            line = errorLines[i];
-            if (!line.strip().isEmpty()) {
-                errContainer.addRowToTable(new DefaultRow("Row_" + i, new StringCell(line)));
-            }
-        }
+        CommandExecutorBashHandler.commandHandler(command, merge, cut, outContainer, errContainer);
 
         outContainer.close();
         errContainer.close();
@@ -168,9 +133,9 @@ public class CommandExecutorNodeModel extends WebUINodeModel<CommandExecutorNode
         return new PortObject[]{outContainer.getTable(), errContainer.getTable()};
     }
 
-    @Override //Portobject
+    @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] outSpecs,
-        final CommandExecutorNodeSettings modelSettings) throws InvalidSettingsException {
+        final CommandExecutorNodeSettings modelSettings) throws InvalidSettingsException { //TODO add input validation InvalidSettingsException on blank
         DataTableSpec outSpec = new DataTableSpecCreator()
                 .addColumns(new DataColumnSpecCreator("Output", StringCell.TYPE).createSpec())
                 .createSpec();

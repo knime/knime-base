@@ -49,9 +49,14 @@
 package org.knime.base.node.io.commandexecutor;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import org.knime.core.data.def.DefaultRow;
+import org.knime.core.data.def.StringCell;
+import org.knime.core.node.BufferedDataContainer;
+import org.knime.core.node.KNIMEConstants;
 import org.knime.core.node.NodeLogger;
 
 /**
@@ -62,78 +67,108 @@ final class CommandExecutorBashHandler {
 
     private CommandExecutorBashHandler() {}
 
-    // 5MB limit in characters (5 * 1024 * 1024 / 2)
     private static final int MAX_CHARS = 2621440;
+    private static final NodeLogger LOGGER = NodeLogger
+            .getLogger(CommandExecutorBashHandler.class);
 
     /**
-     * HAndles the command execution
      * @param command
      * @param merge
      * @param cut
-     * @param outputPointerStdout
-     * @param outputPointerStderr
-     * @param LOGGER
+     * @param outContainer
+     * @param errContainer
+     * @throws Exception
      */
-    public static void commandHandler(
-        final String[] command, final boolean merge, final boolean cut,
-        final StringBuilder outputPointerStdout, final StringBuilder outputPointerStderr, final NodeLogger LOGGER) {
-        LOGGER.info(Arrays.toString(command));
+    public static void commandHandler(final String[] command, final boolean merge, final boolean cut, final BufferedDataContainer outContainer,
+        final BufferedDataContainer errContainer) throws Exception {
+        LOGGER.infoWithFormat("%s was executed with %d argument%s", command[0], command.length-1, (command.length-1==1)? "":"s");
+
 
         try {
             ProcessBuilder pb = new ProcessBuilder(command);
             pb.redirectErrorStream(merge);
             Process process = pb.start();
 
-            try (var reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-                reader.lines().forEach(line -> {
-                    synchronized (outputPointerStdout) {
-                        outputPointerStdout.append(line).append(System.lineSeparator());
-                    }
-                });
-            } catch (Exception e) {
-                LOGGER.error(e.getMessage());
-            }
+            var FutOut = KNIMEConstants.GLOBAL_THREAD_POOL.submit(() -> readOut(process, cut, outContainer));
+            var FutErr = KNIMEConstants.GLOBAL_THREAD_POOL.submit(() -> readErr(process, cut, errContainer));
+            FutOut.get();
+            FutErr.get();
 
-            if (!merge) {
-                try (var reader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
-                    reader.lines().forEach(line -> {
-                        synchronized (outputPointerStderr) {
-                            outputPointerStderr.append(line).append(System.lineSeparator());
-
-                        }
-                    });
-                } catch (Exception e) {
-                    LOGGER.error(e.getMessage());
-                }
-            }
-
-            if (cut) {
-                truncate(outputPointerStdout, LOGGER);
-                truncate(outputPointerStderr, LOGGER);
-            }
-
-            int exitCode = process.waitFor();
-            if (exitCode != 0) {
-                LOGGER.info(exitCode);
-            }
 
         } catch (Exception e) {
-            synchronized (outputPointerStderr) {
-                LOGGER.error(e.getMessage());
+            LOGGER.error(e.getMessage());
+            throw new Exception("Nonworking Parameters");
+        }
+    }
+    /**
+     * @param process
+     * @param cut
+     * @param outContainer
+     */
+    private static void readOut(final Process process, final boolean cut, final BufferedDataContainer outContainer) {
+        AtomicInteger i = new AtomicInteger(0);
+        try (var reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+            if (!cut) {
+                reader.lines().forEach(line -> {
+                    outContainer.addRowToTable(new DefaultRow("Row_" + i.getAndIncrement(), new StringCell(truncate(line))));
+                });
+                return;
             }
+            final StringBuilder sb = new StringBuilder();
+            reader.lines().forEach(line -> {
+                truncate(sb.append(line).append(System.lineSeparator()));
+            });
+            outContainer.addRowToTable(new DefaultRow("Row_0", new StringCell(sb.toString())));
+        } catch (IOException e) {
+            LOGGER.error(e.getMessage());
         }
     }
 
-    private static void truncate(final StringBuilder sb, final NodeLogger LOGGER) {
+    /**
+     * @param process
+     * @param cut
+     * @param errContainer
+     */
+    private static void readErr(final Process process, final boolean cut, final BufferedDataContainer errContainer) {
+        AtomicInteger j = new AtomicInteger(0);
+        try (var reader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
+            if (!cut) {
+                reader.lines().forEach(line -> {
+                    errContainer.addRowToTable(new DefaultRow("Row_" + j.getAndIncrement(), new StringCell(truncate(line))));
+                });
+                return;
+            }
+            final StringBuilder sb = new StringBuilder();
+            reader.lines().forEach(line -> {
+                truncate(sb.append(line).append(System.lineSeparator()));
+            });
+            errContainer.addRowToTable(new DefaultRow("Row_0", new StringCell(sb.toString())));
+        } catch (IOException e) {
+            LOGGER.error(e.getMessage());
+        }
+    }
+
+    private static StringBuilder truncate(final StringBuilder sb) { //TODO Possibly migrate to counting bytes instead of chars with break for calling method
         synchronized (sb) {
             if (sb.length() > MAX_CHARS) {
-                // Ensure we don't split a Unicode surrogate pair - Gemini
                 int end = Character.isHighSurrogate(sb.charAt(MAX_CHARS - 1))
                           ? MAX_CHARS - 1
                           : MAX_CHARS;
                 sb.setLength(end);
                 LOGGER.warn("Truncated");
             }
+            return sb;
         }
+    }
+    private static String truncate(final String line) {
+        if (line == null || line.length() <= MAX_CHARS) {
+            return line;
+        }
+        int end = Character.isHighSurrogate(line.charAt(MAX_CHARS - 1))
+                  ? MAX_CHARS - 1
+                  : MAX_CHARS;
+
+        LOGGER.warn("Truncated line from {" + line.length() + "} to {" + end + "} characters");
+        return line.substring(0, end);
     }
 }

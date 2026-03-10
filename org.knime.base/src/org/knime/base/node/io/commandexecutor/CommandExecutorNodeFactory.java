@@ -122,8 +122,8 @@ public class CommandExecutorNodeFactory extends NodeFactory<CommandExecutorNodeM
             """;
     private static final List<PortDescription> INPUT_PORTS = List.of();
     private static final List<PortDescription> OUTPUT_PORTS = List.of(
-        fixedPort("System Output", "The data table to be written to the file."),
-        fixedPort("System Error", "The data table to be written to the file.")
+        fixedPort("System Output", "The Standard Output accessible via a port."),
+        fixedPort("System Error", "The Standard Error accessible via a port.")
     );
 
     @Override
