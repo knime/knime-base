@@ -76,7 +76,6 @@ import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.KNIMEConstants;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
@@ -86,9 +85,6 @@ import org.knime.core.node.defaultnodesettings.SettingsModelColumnName;
 import org.knime.core.node.defaultnodesettings.SettingsModelInteger;
 import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
-import org.knime.core.util.ThreadPool;
-
-
 /**
  * <code>NodeModel</code> implementation.
  * @author Tobias Koetter, University of Konstanz
@@ -312,10 +308,6 @@ public class SubsetMatcherNodeModel extends NodeModel {
                 (setRowCount * SET_PROCESSING_FACTOR) / totalRowCount);
         //create the matching processes
         exec.setMessage("Processing sets... ");
-        // initialize the thread pool for parallelization of the set
-        // analysis
-        final ThreadPool pool =
-            KNIMEConstants.GLOBAL_THREAD_POOL.createSubPool(1);
         for (final DataRow row : setTable) {
             exec.checkCanceled();
             DataCell setIDCell;
@@ -342,14 +334,10 @@ public class SubsetMatcherNodeModel extends NodeModel {
                 m_skipCounter.incrementAndGet();
                 continue;
             }
-            // submit for each set a job in the thread pool
-            pool.enqueue(createRunnable(setExec, setRowCount, setIDCell,
+            processSet(setExec, setRowCount, setIDCell,
                     setList, appendSetCol, comparator, sortedMatcher,
-                    m_maxMismatches.getIntValue()));
+                    m_maxMismatches.getIntValue());
         }
-        // wait until all jobs are finished before closing the container
-        // and returning the method
-        pool.waitForTermination();
         exec.setMessage("Creating data table...");
         m_dc.close();
         if (m_skipCounter.intValue() > 0) {
@@ -361,105 +349,98 @@ public class SubsetMatcherNodeModel extends NodeModel {
     }
 
 
-    private Runnable createRunnable(final ExecutionMonitor exec,
+    private void processSet(final ExecutionMonitor exec,
             final long noOfSets, final DataCell setIDCell,
             final CollectionDataValue setCell, final boolean appendSetCol,
             final Comparator<DataCell> comparator,
             final SubsetMatcher[] sortedMatcher, final int maxMismatches) {
-        return new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    //check cancel prior updating the global counter!!!
-                    exec.checkCanceled();
-                    final long transCounter = m_setCounter.incrementAndGet();
-                    exec.setMessage(setIDCell.toString() + " ("
-                            + transCounter + " of "
-                            + noOfSets + ")");
-                    if (setCell.size() < 1) {
-                        //skip empty collections
-                        exec.setProgress(
-                                transCounter / (double)noOfSets);
-                        m_skipCounter.incrementAndGet();
-                        return;
-                    }
-                    final DataCell[] sortedItems = collectionCell2SortedArray(
-                            setCell, comparator);
-                    //try to match the sorted transaction items and the sorted
-                    //matcher until all items or all matchers are processed
-                    int matcherStartIdx = 0;
-                    int itemIdx = 0;
-                    final Collection<SetMissmatches> matchingSets = new LinkedList<>();
-                    while (itemIdx < sortedItems.length
-                            && matcherStartIdx < sortedMatcher.length) {
-                        final DataCell subItem = sortedItems[itemIdx];
-                        //match the current item with all remaining matchers
-                        for (int i = matcherStartIdx;
-                        i < sortedMatcher.length; i++) {
-                            final SubsetMatcher matcher = sortedMatcher[i];
-                            final int result = matcher.compare(subItem);
-                            if (result > 0 && maxMismatches == 0) {
-                                //the smallest matcher is bigger then this item
-                                //and we do not have any mismatches
-                                //exit the matcher loop and continue with
-                                //the next item
-                                break;
-                            }
-                            //this matcher matches the item (result == 0)
-                            //                  or
-                            //the item is bigger than the matcher
-                            //since we may allow for mismatches we have to
-                            //check if subsequent matchers of the matcher
-                            //match the current item
-                            matcher.match(sortedItems, itemIdx,
-                                    matchingSets, new LinkedList<DataCell>(),
-                                    new MismatchCounter(maxMismatches));
-                            matcherStartIdx++;
-                        }
-                        //go to the next index
-                        itemIdx++;
-                    }
-                    if (matchingSets.size() < 1) {
-                        exec.setProgress(
-                                transCounter / (double)noOfSets);
-                        m_skipCounter.incrementAndGet();
-                        return;
-                    }
-                    for (final SetMissmatches matchingSet : matchingSets) {
-                        exec.checkCanceled();
-                        //create for each matching subset a result row
-                        final List<DataCell> cells = new LinkedList<>();
-                        cells.add(setIDCell);
-                        if (appendSetCol) {
-                            cells.add((DataCell)setCell);
-                        }
-                        //the subset column
-                        cells.add(matchingSet.getSet());
-                        if (maxMismatches > 0) {
-                            //append the mismatch counter if mismatches allowed
-                            cells.add(new IntCell(
-                                    matchingSet.getMismatchCounter()));
-                        }
-                        final RowKey rowKey =
-                            RowKey.createRowKey(m_rowId.getAndIncrement());
-                        final DefaultRow row = new DefaultRow(rowKey, cells);
-                        synchronized (m_dc) {
-                            exec.checkCanceled();
-                            m_dc.addRowToTable(row);
-                        }
-                    }
-                    exec.setProgress(transCounter / (double)noOfSets);
-                } catch (final CanceledExecutionException e) {
-                    // ignore this just exit the run method
-                } catch (final Exception e) {
-                    LOGGER.error("Exception while matching sub sets: "
-                            + e.getMessage());
-                }
+        try {
+            //check cancel prior updating the global counter!!!
+            exec.checkCanceled();
+            final long transCounter = m_setCounter.incrementAndGet();
+            exec.setMessage(setIDCell.toString() + " ("
+                    + transCounter + " of "
+                    + noOfSets + ")");
+            if (setCell.size() < 1) {
+                //skip empty collections
+                exec.setProgress(
+                        transCounter / (double)noOfSets);
+                m_skipCounter.incrementAndGet();
+                return;
             }
-        };
+            final DataCell[] sortedItems = collectionCell2SortedArray(
+                    setCell, comparator);
+            //try to match the sorted transaction items and the sorted
+            //matcher until all items or all matchers are processed
+            int matcherStartIdx = 0;
+            int itemIdx = 0;
+            final Collection<SetMissmatches> matchingSets = new LinkedList<>();
+            while (itemIdx < sortedItems.length
+                    && matcherStartIdx < sortedMatcher.length) {
+                final DataCell subItem = sortedItems[itemIdx];
+                //match the current item with all remaining matchers
+                for (int i = matcherStartIdx;
+                i < sortedMatcher.length; i++) {
+                    final SubsetMatcher matcher = sortedMatcher[i];
+                    final int result = matcher.compare(subItem);
+                    if (result > 0 && maxMismatches == 0) {
+                        //the smallest matcher is bigger then this item
+                        //and we do not have any mismatches
+                        //exit the matcher loop and continue with
+                        //the next item
+                        break;
+                    }
+                    //this matcher matches the item (result == 0)
+                    //                  or
+                    //the item is bigger than the matcher
+                    //since we may allow for mismatches we have to
+                    //check if subsequent matchers of the matcher
+                    //match the current item
+                    matcher.match(sortedItems, itemIdx,
+                            matchingSets, new LinkedList<DataCell>(),
+                            new MismatchCounter(maxMismatches));
+                    matcherStartIdx++;
+                }
+                //go to the next index
+                itemIdx++;
+            }
+            if (matchingSets.size() < 1) {
+                exec.setProgress(
+                        transCounter / (double)noOfSets);
+                m_skipCounter.incrementAndGet();
+                return;
+            }
+            for (final SetMissmatches matchingSet : matchingSets) {
+                exec.checkCanceled();
+                //create for each matching subset a result row
+                final List<DataCell> cells = new LinkedList<>();
+                cells.add(setIDCell);
+                if (appendSetCol) {
+                    cells.add((DataCell)setCell);
+                }
+                //the subset column
+                cells.add(matchingSet.getSet());
+                if (maxMismatches > 0) {
+                    //append the mismatch counter if mismatches allowed
+                    cells.add(new IntCell(
+                            matchingSet.getMismatchCounter()));
+                }
+                final RowKey rowKey =
+                    RowKey.createRowKey(m_rowId.getAndIncrement());
+                final DefaultRow row = new DefaultRow(rowKey, cells);
+                exec.checkCanceled();
+                m_dc.addRowToTable(row);
+            }
+            exec.setProgress(transCounter / (double)noOfSets);
+        } catch (final CanceledExecutionException e) {
+            // ignore this just exit the run method
+        } catch (final Exception e) {
+            LOGGER.error("Exception while matching sub sets: "
+                    + e.getMessage());
+        }
     }
 
-    private SubsetMatcher[] createSortedMatcher(
+    private static SubsetMatcher[] createSortedMatcher(
             final ExecutionMonitor exec, final BufferedDataTable table,
             final int colIdx, final Comparator<DataCell> comparator)
     throws CanceledExecutionException {
