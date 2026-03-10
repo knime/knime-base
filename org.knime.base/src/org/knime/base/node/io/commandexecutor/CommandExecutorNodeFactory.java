@@ -86,6 +86,7 @@ import org.knime.node.impl.description.PortDescription;
  * @see NodeDialogFactory
  * @see KaiNodeInterfaceFactory
  */
+@SuppressWarnings("restriction")
 public class CommandExecutorNodeFactory extends NodeFactory<CommandExecutorNodeModel>
     implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
@@ -111,7 +112,7 @@ public class CommandExecutorNodeFactory extends NodeFactory<CommandExecutorNodeM
 
     private static final String NODE_NAME = "Command Executor";
     private static final String NODE_ICON = "./commandexecutor.png";
-    private static final String SHORT_DESCRIPTION = "Executes terminal command saving return";
+    private static final String SHORT_DESCRIPTION = "Executes a system command and captures its output.";
     private static final String FULL_DESCRIPTION = """
             The Command Executor node allows for the execution of external system commands, scripts, or binaries directly from the workflow.
 

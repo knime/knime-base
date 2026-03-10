@@ -63,7 +63,6 @@ import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeLogger;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
@@ -74,18 +73,13 @@ import org.knime.core.webui.node.impl.WebUINodeModel;
 /**
  *
  * @author janniksemperowitsch
- */
-/**
+ *
  * Data model for the Command Executor node, managing execution logic and state.
  * * <p>Extends {@link WebUINodeModel} to handle command-specific settings defined in
  * {@link CommandExecutorNodeSettings} and provide integration with the Web UI.</p>
  */
-@SuppressWarnings("deprecation")
+@SuppressWarnings({"deprecation","restriction"})
 final class CommandExecutorNodeModel extends WebUINodeModel<CommandExecutorNodeSettings>{
-
-    /** The node logger for this class. */
-    private static final NodeLogger LOGGER = NodeLogger
-            .getLogger(CommandExecutorNodeModel.class);
 
     /**
      *
@@ -95,19 +89,14 @@ final class CommandExecutorNodeModel extends WebUINodeModel<CommandExecutorNodeS
             new PortType[]{BufferedDataTable.TYPE, BufferedDataTable.TYPE},
             CommandExecutorNodeSettings.class);
     }
+    DataTableSpec outSpec;
+    DataTableSpec errSpec;
 
     @SuppressWarnings("unused")
     @Override
     protected PortObject[] execute (final PortObject[] inPortObjects,
     final ExecutionContext exec,
     final CommandExecutorNodeSettings modelSettings) throws Exception { //TODO Add cancellation
-
-        DataTableSpec outSpec = new DataTableSpecCreator()
-                .addColumns(new DataColumnSpecCreator("Output", StringCell.TYPE).createSpec())
-                .createSpec();
-        DataTableSpec errSpec = new DataTableSpecCreator()
-                .addColumns(new DataColumnSpecCreator("Error", StringCell.TYPE).createSpec())
-                .createSpec();
 
         BufferedDataContainer outContainer = exec.createDataContainer(outSpec);
         BufferedDataContainer errContainer = exec.createDataContainer(errSpec);
@@ -120,10 +109,8 @@ final class CommandExecutorNodeModel extends WebUINodeModel<CommandExecutorNodeS
 
         boolean merge = modelSettings.m_mergeErrorStream;
         boolean cut = modelSettings.m_singleOutputCell;
-        StringBuilder outputBuffer = new StringBuilder();
-        StringBuilder errorBuffer = new StringBuilder();
 
-        CommandExecutorBashHandler.commandHandler(command, merge, cut, outContainer, errContainer);
+        CommandExecutorProcessHandler.commandHandler(command, merge, cut, outContainer, errContainer);
 
         outContainer.close();
         errContainer.close();
@@ -136,10 +123,10 @@ final class CommandExecutorNodeModel extends WebUINodeModel<CommandExecutorNodeS
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] outSpecs,
         final CommandExecutorNodeSettings modelSettings) throws InvalidSettingsException { //TODO add input validation InvalidSettingsException on blank
-        DataTableSpec outSpec = new DataTableSpecCreator()
+        outSpec = new DataTableSpecCreator()
                 .addColumns(new DataColumnSpecCreator("Output", StringCell.TYPE).createSpec())
                 .createSpec();
-        DataTableSpec errSpec = new DataTableSpecCreator()
+        errSpec = new DataTableSpecCreator()
                 .addColumns(new DataColumnSpecCreator("Error", StringCell.TYPE).createSpec())
                 .createSpec();
         if(modelSettings.m_mergeErrorStream) {

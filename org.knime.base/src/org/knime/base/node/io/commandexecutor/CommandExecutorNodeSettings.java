@@ -51,7 +51,6 @@ package org.knime.base.node.io.commandexecutor;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.array.ArrayWidget;
-import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.widget.text.TextInputWidget;
 
 /**
@@ -64,11 +63,14 @@ final class CommandExecutorNodeSettings implements NodeParameters {
     /**
      * Widget that is always present, taking a bash command to execute
      */
-    @Widget(title = "Command",
-        description = "ability to run shell commands and invoke external processes."
-    )
+    @Widget(title = "Command Executor",
+            description = """
+            Enables direct execution of shell commands and external process invocation.
+            Caution: Requires elevated permissions and poses security risks if used with unsanitized input.
+            """
+)
     @TextInputWidget(placeholder = "Write Command")
-    String m_command = "ls";
+    String m_command = "";
 
 
     /**
@@ -115,6 +117,5 @@ final class CommandExecutorNodeSettings implements NodeParameters {
         String m_argumentToAppend = "";
 
     }
-    static final class NewArgumentSettingsArrayRef implements ParameterReference<NewArgumentSettings[]> {}
 }
 

@@ -63,13 +63,13 @@ import org.knime.core.node.NodeLogger;
 *
 * @author janniksemperowitsch
 */
-final class CommandExecutorBashHandler {
+final class CommandExecutorProcessHandler {
 
-    private CommandExecutorBashHandler() {}
+    private CommandExecutorProcessHandler() {}
 
     private static final int MAX_CHARS = 2621440;
     private static final NodeLogger LOGGER = NodeLogger
-            .getLogger(CommandExecutorBashHandler.class);
+            .getLogger(CommandExecutorProcessHandler.class);
 
     /**
      * @param command
@@ -79,21 +79,25 @@ final class CommandExecutorBashHandler {
      * @param errContainer
      * @throws Exception
      */
-    public static void commandHandler(final String[] command, final boolean merge, final boolean cut, final BufferedDataContainer outContainer,
+    static void commandHandler(final String[] command, final boolean merge, final boolean cut, final BufferedDataContainer outContainer,
         final BufferedDataContainer errContainer) throws Exception {
         LOGGER.infoWithFormat("%s was executed with %d argument%s", command[0], command.length-1, (command.length-1==1)? "":"s");
 
-
+        //TODO Add Sandboxing to not allow any command
+        //TODO Add Pipe support
         try {
             ProcessBuilder pb = new ProcessBuilder(command);
             pb.redirectErrorStream(merge);
             Process process = pb.start();
 
-            var FutOut = KNIMEConstants.GLOBAL_THREAD_POOL.submit(() -> readOut(process, cut, outContainer));
-            var FutErr = KNIMEConstants.GLOBAL_THREAD_POOL.submit(() -> readErr(process, cut, errContainer));
-            FutOut.get();
-            FutErr.get();
+            var futOut = KNIMEConstants.GLOBAL_THREAD_POOL.submit(() -> readOut(process, cut, outContainer));
+            if (!merge) {
+                var futErr = KNIMEConstants.GLOBAL_THREAD_POOL.submit(() -> readErr(process, cut, errContainer));
+                futErr.get();
+            }
+            futOut.get();
 
+            process.waitFor();
 
         } catch (Exception e) {
             LOGGER.error(e.getMessage());
@@ -139,9 +143,11 @@ final class CommandExecutorBashHandler {
                 return;
             }
             final StringBuilder sb = new StringBuilder();
-            reader.lines().forEach(line -> {
-                truncate(sb.append(line).append(System.lineSeparator()));
-            });
+            reader.lines()
+                .takeWhile(line -> sb.length() < MAX_CHARS-1)
+                .forEach(line -> {
+                    truncate(sb.append(line).append(System.lineSeparator()));
+                });
             errContainer.addRowToTable(new DefaultRow("Row_0", new StringCell(sb.toString())));
         } catch (IOException e) {
             LOGGER.error(e.getMessage());
@@ -149,16 +155,14 @@ final class CommandExecutorBashHandler {
     }
 
     private static StringBuilder truncate(final StringBuilder sb) { //TODO Possibly migrate to counting bytes instead of chars with break for calling method
-        synchronized (sb) {
-            if (sb.length() > MAX_CHARS) {
-                int end = Character.isHighSurrogate(sb.charAt(MAX_CHARS - 1))
-                          ? MAX_CHARS - 1
-                          : MAX_CHARS;
-                sb.setLength(end);
-                LOGGER.warn("Truncated");
-            }
-            return sb;
+        if (sb.length() > MAX_CHARS) {
+            int end = Character.isHighSurrogate(sb.charAt(MAX_CHARS - 1))
+                      ? MAX_CHARS - 1
+                      : MAX_CHARS;
+            sb.setLength(end);
+            LOGGER.warn("Truncated");
         }
+        return sb;
     }
     private static String truncate(final String line) {
         if (line == null || line.length() <= MAX_CHARS) {
