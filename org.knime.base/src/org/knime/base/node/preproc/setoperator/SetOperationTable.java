@@ -312,10 +312,8 @@ public class SetOperationTable {
         final ExecutionContext subExec2 = exec.createSubExecutionContext(0.4);
         final SortedTable[] sortedTables = new SortedTable[2];
         //initialize the thread pool
-        final ThreadPool pool =
-            KNIMEConstants.GLOBAL_THREAD_POOL.createSubPool();
-          final Queue<Future<SortedTable>> futures =
-              new LinkedList<Future<SortedTable>>();
+        final ThreadPool pool = KNIMEConstants.GLOBAL_THREAD_POOL;
+        final Queue<Future<SortedTable>> futures = new LinkedList<>();
         futures.add(pool.enqueue(createSortTableCallable(subExec1, table1,
                 rowComparator1, sortInMemory)));
         exec.checkCanceled();
