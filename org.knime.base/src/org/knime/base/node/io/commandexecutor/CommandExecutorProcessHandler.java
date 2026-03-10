@@ -50,6 +50,7 @@ package org.knime.base.node.io.commandexecutor;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -91,9 +92,9 @@ final class CommandExecutorProcessHandler {
             pb.redirectErrorStream(merge);
             Process process = pb.start();
 
-            var futOut = KNIMEConstants.GLOBAL_THREAD_POOL.submit(() -> readOut(process, cut, outContainer));
+            var futOut = KNIMEConstants.GLOBAL_THREAD_POOL.submit(() -> read(process.getInputStream(), cut, outContainer));
             if (!merge) {
-                var futErr = KNIMEConstants.GLOBAL_THREAD_POOL.submit(() -> readErr(process, cut, errContainer));
+                var futErr = KNIMEConstants.GLOBAL_THREAD_POOL.submit(() -> read(process.getErrorStream(), cut, errContainer));
                 futErr.get();
             }
             futOut.get();
@@ -110,12 +111,12 @@ final class CommandExecutorProcessHandler {
      * @param cut
      * @param outContainer
      */
-    private static void readOut(final Process process, final boolean cut, final BufferedDataContainer outContainer) {
+    private static void read(final InputStream stream, final boolean cut, final BufferedDataContainer Container) {
         AtomicInteger i = new AtomicInteger(0);
-        try (var reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+        try (var reader = new BufferedReader(new InputStreamReader(stream))) {
             if (!cut) {
                 reader.lines().forEach(line -> {
-                    outContainer.addRowToTable(new DefaultRow("Row_" + i.getAndIncrement(), new StringCell(truncate(line))));
+                    Container.addRowToTable(new DefaultRow("Row_" + i.getAndIncrement(), new StringCell(truncate(line))));
                 });
                 return;
             }
@@ -125,33 +126,7 @@ final class CommandExecutorProcessHandler {
             .forEach(line -> {
                 truncate(sb.append(line).append(System.lineSeparator()));
             });
-            outContainer.addRowToTable(new DefaultRow("Row_0", new StringCell(sb.toString())));
-        } catch (IOException e) {
-            LOGGER.error(e.getMessage());
-        }
-    }
-
-    /**
-     * @param process
-     * @param cut
-     * @param errContainer
-     */
-    private static void readErr(final Process process, final boolean cut, final BufferedDataContainer errContainer) {
-        AtomicInteger j = new AtomicInteger(0);
-        try (var reader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
-            if (!cut) {
-                reader.lines().forEach(line -> {
-                    errContainer.addRowToTable(new DefaultRow("Row_" + j.getAndIncrement(), new StringCell(truncate(line))));
-                });
-                return;
-            }
-            final StringBuilder sb = new StringBuilder();
-            reader.lines()
-                .takeWhile(line -> sb.length() < MAX_CHARS-2)
-                .forEach(line -> {
-                    truncate(sb.append(line).append(System.lineSeparator()));
-                });
-            errContainer.addRowToTable(new DefaultRow("Row_0", new StringCell(sb.toString())));
+            Container.addRowToTable(new DefaultRow("Row_0", new StringCell(sb.toString())));
         } catch (IOException e) {
             LOGGER.error(e.getMessage());
         }
