@@ -54,7 +54,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -77,16 +76,13 @@ import org.knime.core.data.DataType;
 import org.knime.core.data.RowKey;
 import org.knime.core.data.container.ColumnRearranger;
 import org.knime.core.data.container.SingleCellFactory;
-import org.knime.core.data.def.BooleanCell;
-import org.knime.core.data.def.DoubleCell;
-import org.knime.core.data.def.IntCell;
-import org.knime.core.data.def.LongCell;
-import org.knime.core.data.def.StringCell;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.KNIMEException;
+import org.knime.core.node.message.MessageBuilder;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.inactive.InactiveBranchPortObject;
@@ -99,6 +95,8 @@ import org.knime.core.webui.node.impl.WebUINodeModel;
  */
 @SuppressWarnings({"deprecation", "restriction"})
 class TableStructureValidatorNodeModel extends WebUINodeModel<TableStructureValidatorNodeParameters> {
+
+    private MessageBuilder m_messageBuilder;
 
     /**
      * Constructor of the Table Structure Validator node model.
@@ -113,7 +111,7 @@ class TableStructureValidatorNodeModel extends WebUINodeModel<TableStructureVali
     protected DataTableSpec[] configure(final DataTableSpec[] inSpecs,
         final TableStructureValidatorNodeParameters modelSettings) throws InvalidSettingsException {
         final var columnRearranger =
-                createRearranger(inSpecs[0], new TableStructureValidatorColConflicts(), modelSettings);
+                createRearranger(inSpecs[0], new TableStructureValidatorColConflicts(), modelSettings, null);
         return new DataTableSpec[]{columnRearranger.createSpec(), TableStructureValidatorColConflicts.CONFLICTS_SPEC};
     }
 
@@ -123,10 +121,13 @@ class TableStructureValidatorNodeModel extends WebUINodeModel<TableStructureVali
         final TableStructureValidatorNodeParameters modelSettings) throws Exception {
         final var in = ((BufferedDataTable)inData[0]).getDataTableSpec();
         var conflicts = new TableStructureValidatorColConflicts();
-        var columnRearranger = createRearranger(in, conflicts, modelSettings);
+        var columnRearranger = createRearranger(in, conflicts, modelSettings, exec);
 
         if (!conflicts.isEmpty() && modelSettings.m_validationFailureBehavior == RejectBehavior.FAIL_NODE) {
-            throw new InvalidSettingsException("Validation failed:\n" + conflicts);
+            conflicts.updateMessageBuilder(m_messageBuilder);
+            addSummaryAndResolutionMessage(m_messageBuilder);
+            throw KNIMEException.of(m_messageBuilder.build().orElseThrow(),
+                new InvalidSettingsException("Table structure validation failed.")).toUnchecked();
         }
 
         var returnTable = exec.createColumnRearrangeTable(
@@ -137,11 +138,21 @@ class TableStructureValidatorNodeModel extends WebUINodeModel<TableStructureVali
                 return new PortObject[]{InactiveBranchPortObject.INSTANCE,
                     createConflictsTable(conflicts, exec.createSubExecutionContext(0.1))};
             } else {
-                throw new InvalidSettingsException("Validation failed:\n" + conflicts);
+                conflicts.updateMessageBuilder(m_messageBuilder);
+                addSummaryAndResolutionMessage(m_messageBuilder);
+                throw KNIMEException.of(m_messageBuilder.build().orElseThrow(),
+                    new InvalidSettingsException("Table structure validation failed.")).toUnchecked();
             }
         }
 
         return new PortObject[]{returnTable, InactiveBranchPortObject.INSTANCE};
+    }
+
+    static void addSummaryAndResolutionMessage(final MessageBuilder messageBuilder) {
+        final var issueCount = messageBuilder.getIssueCount();
+        messageBuilder.withSummary("Table structure validation failed. Found %s conflict%s."
+            .formatted(issueCount, issueCount > 1 ? "s" : ""));
+        messageBuilder.addResolutions("Provide an input table with valid table structure.");
     }
 
     /**
@@ -164,9 +175,11 @@ class TableStructureValidatorNodeModel extends WebUINodeModel<TableStructureVali
         return createDataContainer.getTable();
     }
 
-    private static ColumnRearranger createRearranger(final DataTableSpec in,
-        final TableStructureValidatorColConflicts conflicts, final TableStructureValidatorNodeParameters modelSettings)
+    private ColumnRearranger createRearranger(final DataTableSpec in,
+        final TableStructureValidatorColConflicts conflicts, final TableStructureValidatorNodeParameters modelSettings,
+        final ExecutionContext exec)
         throws InvalidSettingsException {
+        m_messageBuilder = createMessageBuilder();
         // create the reference spec from the model settings
         final var referenceTableSpec =
             new DataTableSpec(Arrays.stream(modelSettings.m_referenceStructureColumns).map(col -> {
@@ -182,8 +195,8 @@ class TableStructureValidatorNodeModel extends WebUINodeModel<TableStructureVali
         Arrays.sort(array, sortAccordingToSpecComparator(referenceTableSpec));
 
         final var validatedColumnNamesAndDecorators = extractValidatedColumnNamesAndCreateValidatorDecorators(
-            modelSettings, array, referenceTableSpec, conflicts, in);
-        final var validatedColumnNamesOfInputSpec = validatedColumnNamesAndDecorators.columnNames();
+            modelSettings, exec, array, referenceTableSpec, conflicts, in);
+        var validatedColumnNamesOfInputSpec = validatedColumnNamesAndDecorators.columnNames();
         final var decorators = validatedColumnNamesAndDecorators.decorators();
 
         final var columnRearranger = new ColumnRearranger(in);
@@ -191,6 +204,7 @@ class TableStructureValidatorNodeModel extends WebUINodeModel<TableStructureVali
         switch (modelSettings.m_additionalColumnsHandling) {
             case REJECT:
                 addUnknownColumnConflicts(validatedColumnNamesOfInputSpec, in, conflicts);
+                validatedColumnNamesOfInputSpec = in.getColumnNames();
                 break;
             case REMOVE:
                 columnRearranger.keepOnly(validatedColumnNamesOfInputSpec);
@@ -215,7 +229,7 @@ class TableStructureValidatorNodeModel extends WebUINodeModel<TableStructureVali
     }
 
     private static ColumnNamesAndDecorators extractValidatedColumnNamesAndCreateValidatorDecorators(
-        final TableStructureValidatorNodeParameters modelSettings,
+        final TableStructureValidatorNodeParameters modelSettings, final ExecutionContext exec,
         final Entry<String, ColumnValidationContainer>[] array,
         final DataTableSpec referenceTableSpec,
         final TableStructureValidatorColConflicts conflicts,
@@ -237,7 +251,7 @@ class TableStructureValidatorNodeModel extends WebUINodeModel<TableStructureVali
                 referenceTableSpec.getColumnSpec(colIndex), in.getColumnSpec(arr.getKey()), modelSettings, conflicts);
 
             if (shouldBeTraversed) {
-                decorators.put(arr.getKey(), createCellValidator(modelSettings,
+                decorators.put(arr.getKey(), createCellValidator(modelSettings, exec,
                     referenceTableSpec.getColumnSpec(colIndex), in.getColumnSpec(arr.getKey()), conflicts));
             }
             index++;
@@ -297,9 +311,10 @@ class TableStructureValidatorNodeModel extends WebUINodeModel<TableStructureVali
         return new SingleCellFactory(false, decorator.getDataColumnSpec()) {
 
             @Override
-            public DataCell getCell(final DataRow row) {
-                return decorator.handleCell(row.getKey(), row.getCell(index));
+            public DataCell getCell(final DataRow row, final long rowIndex) {
+                return decorator.handleCell(rowIndex, row.getKey(), row.getCell(index));
             }
+
         };
     }
 
@@ -312,6 +327,7 @@ class TableStructureValidatorNodeModel extends WebUINodeModel<TableStructureVali
                 return DataType.getMissingCell();
             }
         };
+
     }
 
     private static Comparator<Entry<String, ColumnValidationContainer>> sortAccordingToSpecComparator(
@@ -358,7 +374,8 @@ class TableStructureValidatorNodeModel extends WebUINodeModel<TableStructureVali
         for (Entry<String, ColumnValidationContainer> colToValidation : directMatches.entrySet()) {
             if (!colToValidation.getValue().isSatisfied()
                     && ColumnExistenceHandling.FAIL == modelSettings.m_missingColumnHandling) {
-                conflicts.addConflict(TableStructureValidatorColConflicts.missingColumn(colToValidation.getKey()));
+                conflicts.addConflict(
+                    TableStructureValidatorColConflicts.missingColumn(colToValidation.getKey()));
             }
         }
 
@@ -438,7 +455,8 @@ class TableStructureValidatorNodeModel extends WebUINodeModel<TableStructureVali
                 return nameShouldBeChanged;
             case FAIL:
                 if (!referenceColSpec.getType().isASuperTypeOf(inputColSpec.getType())) {
-                    conflicts.addConflict(TableStructureValidatorColConflicts.invalidType(inputColSpec.getName(),
+                    conflicts.addConflict(
+                        TableStructureValidatorColConflicts.invalidType(inputColSpec.getName(),
                         referenceColSpec.getType(),
                         inputColSpec.getType()));
                 }
@@ -455,114 +473,21 @@ class TableStructureValidatorNodeModel extends WebUINodeModel<TableStructureVali
     }
 
     private static TableStructureValidatorCellDecorator createCellValidator(
-        final TableStructureValidatorNodeParameters modelSettings, final DataColumnSpec refColumnSpec,
-        final DataColumnSpec originalColumnSpec, final TableStructureValidatorColConflicts conflicts) {
+        final TableStructureValidatorNodeParameters modelSettings, final ExecutionContext exec,
+        final DataColumnSpec refColumnSpec, final DataColumnSpec originalColumnSpec,
+        final TableStructureValidatorColConflicts conflicts) {
         var renamedColumnSpec = new DataColumnSpecCreator(originalColumnSpec);
         renamedColumnSpec.setName(refColumnSpec.getName());
         var decorator = TableStructureValidatorCellDecorator.forColumn(
             originalColumnSpec.getName(), renamedColumnSpec.createSpec());
-        final var reject  = isNotCompatible(refColumnSpec, originalColumnSpec)
-            && DataTypeHandling.FAIL == modelSettings.m_dataTypeHandling;
-
-        if (!reject
-                && !EnumSet.of(DataTypeHandling.NONE, DataTypeHandling.FAIL).contains(modelSettings.m_dataTypeHandling)
+        if (DataTypeHandling.CONVERT_FAIL == modelSettings.m_dataTypeHandling
                 && isNotEqualType(refColumnSpec, originalColumnSpec)) {
-            decorator =
-                TableStructureValidatorCellDecorator.conversionCellDecorator(decorator,
-                    modelSettings.m_dataTypeHandling, getConversionType(refColumnSpec), refColumnSpec, conflicts);
+            final var targetDataCellType = refColumnSpec.getType().getCellFactory(exec).orElse(null);
+            decorator = TableStructureValidatorCellDecorator.conversionCellDecorator(
+                decorator, modelSettings.m_dataTypeHandling, targetDataCellType,
+                refColumnSpec, conflicts);
         }
         return decorator;
-    }
-
-    private static boolean isNotCompatible(final DataColumnSpec refColumnSpec,
-        final DataColumnSpec originalColumnSpec) {
-        return !refColumnSpec.getType().isASuperTypeOf(originalColumnSpec.getType());
-    }
-
-    private static ConversionType getConversionType(final DataColumnSpec refColumnSpec) {
-        final var type = refColumnSpec.getType();
-
-        // NOTE: The sequence here is important as we go from the most specific general type to the most general one
-        if (BooleanCell.TYPE.isASuperTypeOf(type)) {
-            return ConversionType.BOOLEAN;
-        }
-        if (IntCell.TYPE.isASuperTypeOf(type)) {
-            return ConversionType.INT;
-        }
-        if (LongCell.TYPE.isASuperTypeOf(type)) {
-            return ConversionType.LONG;
-        }
-        if (DoubleCell.TYPE.isASuperTypeOf(type)) {
-            return ConversionType.DOUBLE;
-        }
-        if (StringCell.TYPE.isASuperTypeOf(type)) {
-            return ConversionType.STRING;
-        }
-        throw new IllegalArgumentException("Type cannot be converted, " + type + " only "
-            + Arrays.toString(ConversionType.values()) + " are supported types.");
-    }
-
-    enum ConversionType {
-
-        BOOLEAN(BooleanCell.TYPE) {
-            @Override
-            public DataCell convertCell(final DataCell decoratedCell) {
-                return Boolean.parseBoolean(decoratedCell.toString()) ? BooleanCell.TRUE : BooleanCell.FALSE;
-            }
-        }, //
-        DOUBLE(DoubleCell.TYPE) {
-            @Override
-            public DataCell convertCell(final DataCell decoratedCell) {
-                return new DoubleCell(Double.valueOf(decoratedCell.toString().replace(",", ".")));
-            }
-        }, //
-        INT(IntCell.TYPE) {
-            @Override
-            public DataCell convertCell(final DataCell decoratedCell) {
-                return new IntCell(Integer.valueOf(decoratedCell.toString()));
-            }
-        }, //
-        LONG(LongCell.TYPE) {
-            @Override
-            public DataCell convertCell(final DataCell decoratedCell) {
-                return new LongCell(Long.valueOf(decoratedCell.toString()));
-            }
-        }, //
-        STRING(StringCell.TYPE) {
-            @Override
-            public DataCell convertCell(final DataCell decoratedCell) {
-                return new StringCell(decoratedCell.toString());
-            }
-        };
-
-        private final DataType m_dataType;
-
-        ConversionType(final DataType dataType) {
-            m_dataType = dataType;
-        }
-
-        @Override
-        public String toString() {
-            return name().substring(0, 1).toUpperCase(Locale.ROOT) + name().substring(1).toLowerCase(Locale.ROOT);
-        }
-
-        /**
-         * Converts the given {@link DataCell}.
-         *
-         * @param decoratedCell the {@link DataCell} to convert
-         * @return the converted {@link DataCell}
-         */
-        public abstract DataCell convertCell(final DataCell decoratedCell);
-
-        /**
-         * Retrieves the target {@link DataType}.
-         *
-         * @return the target {@link DataType}
-         */
-        public DataType getTargetType() {
-            return m_dataType;
-        }
-
     }
 
     @Override

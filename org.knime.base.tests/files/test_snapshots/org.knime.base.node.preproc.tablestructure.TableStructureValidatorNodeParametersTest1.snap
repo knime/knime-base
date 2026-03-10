@@ -49,13 +49,13 @@
           "columnNameMatchingBehavior" : {
             "oneOf" : [ {
               "const" : "CASE_SENSITIVE",
-              "title" : "Case sensitive"
+              "title" : "Treat as distinct"
             }, {
               "const" : "CASE_INSENSITIVE",
-              "title" : "Case insensitive"
+              "title" : "Rename"
             } ],
-            "title" : "Column name matching",
-            "description" : "Controls what counts as a column name match between the input table and the reference table. If\n'case insensitive' is chosen, it still tries to find an exactly (case sensitively) matching column name\nfirst, and then falls back to case insensitive matching.\n\n<ul>\n<li><b>Case sensitive</b>: Column names must match exactly</li>\n<li><b>Case insensitive</b>: Also columns with a similar name will be considered to be validated according to this configuration.\n</li>\n</ul>",
+            "title" : "If column name casing differs",
+            "description" : "Controls what counts as a column name match between the input table and the reference table. If\n'Rename' is chosen, it still tries to treat the column name as a distinct value (find an exactly\ncase-sensitive matching column name) first, and then falls back to renaming the column\n(case-insensitive matching).\n\n<ul>\n<li><b>Treat as distinct</b>: Column names must match exactly</li>\n<li><b>Rename</b>: Also columns whose name matches case insensitively will be considered to be validated.\n</li>\n</ul>",
             "default" : "CASE_SENSITIVE"
           },
           "dataTypeHandling" : {
@@ -168,7 +168,7 @@
             } ]
           } ],
           "addButtonText" : "Add column",
-          "arrayElementTitle" : "Reference Structure Column"
+          "arrayElementTitle" : "Expected Column"
         }
       }, {
         "type" : "Control",
