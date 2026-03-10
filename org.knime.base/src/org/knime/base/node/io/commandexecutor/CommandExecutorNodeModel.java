@@ -89,10 +89,13 @@ final class CommandExecutorNodeModel extends WebUINodeModel<CommandExecutorNodeS
             new PortType[]{BufferedDataTable.TYPE, BufferedDataTable.TYPE},
             CommandExecutorNodeSettings.class);
     }
-    DataTableSpec outSpec;
-    DataTableSpec errSpec;
+    DataTableSpec outSpec = new DataTableSpecCreator()
+            .addColumns(new DataColumnSpecCreator("Output", StringCell.TYPE).createSpec())
+            .createSpec();
+    DataTableSpec errSpec = new DataTableSpecCreator()
+            .addColumns(new DataColumnSpecCreator("Error", StringCell.TYPE).createSpec())
+            .createSpec();
 
-    @SuppressWarnings("unused")
     @Override
     protected PortObject[] execute (final PortObject[] inPortObjects,
     final ExecutionContext exec,
@@ -123,12 +126,6 @@ final class CommandExecutorNodeModel extends WebUINodeModel<CommandExecutorNodeS
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] outSpecs,
         final CommandExecutorNodeSettings modelSettings) throws InvalidSettingsException { //TODO add input validation InvalidSettingsException on blank
-        outSpec = new DataTableSpecCreator()
-                .addColumns(new DataColumnSpecCreator("Output", StringCell.TYPE).createSpec())
-                .createSpec();
-        errSpec = new DataTableSpecCreator()
-                .addColumns(new DataColumnSpecCreator("Error", StringCell.TYPE).createSpec())
-                .createSpec();
         if(modelSettings.m_mergeErrorStream) {
             return new PortObjectSpec[] {outSpec, InactiveBranchPortObjectSpec.INSTANCE};
         }

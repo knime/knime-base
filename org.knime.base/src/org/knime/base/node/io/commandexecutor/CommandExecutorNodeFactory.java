@@ -71,8 +71,7 @@ import org.knime.node.impl.description.PortDescription;
 /**
  *
  * @author janniksemperowitsch
- */
-/**
+ *
  * Factory class responsible for the instantiation and configuration of {@link CommandExecutorNodeModel} instances.
  * * <p>This class acts as the primary integration point for the Command Executor node,
  * bridging the gap between the underlying execution logic, the user configuration interface,

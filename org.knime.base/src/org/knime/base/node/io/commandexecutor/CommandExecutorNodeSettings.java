@@ -63,7 +63,7 @@ final class CommandExecutorNodeSettings implements NodeParameters {
     /**
      * Widget that is always present, taking a bash command to execute
      */
-    @Widget(title = "Command Executor",
+    @Widget(title = "Base Command",
             description = """
             Enables direct execution of shell commands and external process invocation.
             Caution: Requires elevated permissions and poses security risks if used with unsanitized input.
@@ -94,13 +94,13 @@ final class CommandExecutorNodeSettings implements NodeParameters {
      * Widget that holds subwidgets of Arguments
      */
     @Widget(title = "Arguments",
-            description = "ability to pass arguments to previous command."
+            description = "Ability to pass arguments to previous command."
     )
     @ArrayWidget(
         addButtonText = "Add Argument",
         elementTitle = "Argument"
     )
-    NewArgumentSettings[] m_newArgumentSettings = new NewArgumentSettings[]{new NewArgumentSettings()};
+    NewArgumentSettings[] m_newArgumentSettings = new NewArgumentSettings[0];
 
 
     static final class NewArgumentSettings implements NodeParameters {

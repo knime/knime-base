@@ -67,6 +67,7 @@ final class CommandExecutorProcessHandler {
 
     private CommandExecutorProcessHandler() {}
 
+    // claculation for 5MB in Chars = 5 * 1024 * 1024 / 2
     private static final int MAX_CHARS = 2621440;
     private static final NodeLogger LOGGER = NodeLogger
             .getLogger(CommandExecutorProcessHandler.class);
@@ -101,7 +102,7 @@ final class CommandExecutorProcessHandler {
 
         } catch (Exception e) {
             LOGGER.error(e.getMessage());
-            throw new Exception("Nonworking Parameters");
+            throw new Exception("Failed to execute command: " + e.getMessage(), e);
         }
     }
     /**
@@ -119,7 +120,9 @@ final class CommandExecutorProcessHandler {
                 return;
             }
             final StringBuilder sb = new StringBuilder();
-            reader.lines().forEach(line -> {
+            reader.lines()
+            .takeWhile(line -> sb.length() < MAX_CHARS-2)
+            .forEach(line -> {
                 truncate(sb.append(line).append(System.lineSeparator()));
             });
             outContainer.addRowToTable(new DefaultRow("Row_0", new StringCell(sb.toString())));
@@ -144,7 +147,7 @@ final class CommandExecutorProcessHandler {
             }
             final StringBuilder sb = new StringBuilder();
             reader.lines()
-                .takeWhile(line -> sb.length() < MAX_CHARS-1)
+                .takeWhile(line -> sb.length() < MAX_CHARS-2)
                 .forEach(line -> {
                     truncate(sb.append(line).append(System.lineSeparator()));
                 });
