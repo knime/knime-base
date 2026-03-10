@@ -71,7 +71,11 @@ import org.knime.core.util.ThreadPool;
 /**
  *
  * @author Thorsten Meinl, University of Konstanz
+ * @deprecated Use regular KNIME node API; especially {@link ColumnRearranger} and {@link CellFactory} to add columns in
+ *             a multi-threaded way. While deprecation has only been added officially in 5.12, this class has no usage
+ *             inside the KNIME core code base.
  */
+@Deprecated(since = "5.12", forRemoval = true)
 public abstract class ThreadedColAppenderNodeModel extends NodeModel {
     private class Submitter implements Callable<Void> {
         private final BufferedDataTable[] m_data;
