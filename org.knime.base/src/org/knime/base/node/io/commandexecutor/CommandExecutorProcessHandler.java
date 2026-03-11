@@ -97,9 +97,13 @@ final class CommandExecutorProcessHandler {
                     futErr.get();
                 }
                 futOut.get();
-            } catch (InterruptedException | ExecutionException e) {
+            } catch (InterruptedException e) {
                 process.destroyForcibly();
-                LOGGER.error("Process output reading interrupted or failed", e);
+                LOGGER.error("Process output reading interrupted", e);
+                throw e;
+            } catch (ExecutionException e) {
+                process.destroyForcibly();
+                LOGGER.error("Process output reading failed", e);
                 throw new RuntimeException(e);
             } finally {
                 process.waitFor();
@@ -117,7 +121,7 @@ final class CommandExecutorProcessHandler {
      * @param outContainer
      * @throws IOException
      */
-    private static void read(final InputStream stream, final boolean cut, final BufferedDataContainer container) {//throws IOException {
+    private static void read(final InputStream stream, final boolean cut, final BufferedDataContainer container) {
         AtomicInteger i = new AtomicInteger(0);
         try (var reader = new BufferedReader(new InputStreamReader(stream))) {
             if (!cut) {
@@ -139,7 +143,7 @@ final class CommandExecutorProcessHandler {
         }
     }
 
-    private static StringBuilder truncate(final StringBuilder sb) { //TODO Possibly migrate to counting bytes instead of chars with break for calling method
+    private static StringBuilder truncate(final StringBuilder sb) {
         if (sb.length() > MAX_CHARS) {
             int end = Character.isHighSurrogate(sb.charAt(MAX_CHARS - 1))
                       ? MAX_CHARS - 1
