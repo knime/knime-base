@@ -112,15 +112,16 @@ final class CommandExecutorNodeModel extends WebUINodeModel<CommandExecutorNodeS
 
         boolean merge = modelSettings.m_mergeErrorStream;
         boolean cut = modelSettings.m_singleOutputCell;
-
-        CommandExecutorProcessHandler.commandHandler(command, merge, cut, outContainer, errContainer);
-
-        outContainer.close();
-        errContainer.close();
-        if (merge) {
-            return new PortObject[]{outContainer.getTable(), InactiveBranchPortObject.INSTANCE};
+        try {
+            CommandExecutorProcessHandler.commandHandler(command, merge, cut, outContainer, errContainer);
+            if (merge) {
+                return new PortObject[]{outContainer.getTable(), InactiveBranchPortObject.INSTANCE};
+            }
+            return new PortObject[]{outContainer.getTable(), errContainer.getTable()};
+        } finally {
+            outContainer.close();
+            errContainer.close();
         }
-        return new PortObject[]{outContainer.getTable(), errContainer.getTable()};
     }
 
     @Override

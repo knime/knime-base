@@ -52,6 +52,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.knime.core.data.def.DefaultRow;
@@ -85,20 +86,24 @@ final class CommandExecutorProcessHandler {
         final BufferedDataContainer errContainer) throws Exception {
         LOGGER.infoWithFormat("%s was executed with %d argument%s", command[0], command.length-1, (command.length-1==1)? "":"s");
 
-        //TODO Kill Zombie Process
         try {
             ProcessBuilder pb = new ProcessBuilder(command);
             pb.redirectErrorStream(merge);
             Process process = pb.start();
-
-            var futOut = KNIMEConstants.GLOBAL_THREAD_POOL.submit(() -> read(process.getInputStream(), cut, outContainer));
-            if (!merge) {
-                var futErr = KNIMEConstants.GLOBAL_THREAD_POOL.submit(() -> read(process.getErrorStream(), cut, errContainer));
-                futErr.get();
+            try {
+                var futOut = KNIMEConstants.GLOBAL_THREAD_POOL.submit(() -> read(process.getInputStream(), cut, outContainer));
+                if (!merge) {
+                    var futErr = KNIMEConstants.GLOBAL_THREAD_POOL.submit(() -> read(process.getErrorStream(), cut, errContainer));
+                    futErr.get();
+                }
+                futOut.get();
+            } catch (InterruptedException | ExecutionException e) {
+                process.destroyForcibly();
+                LOGGER.error("Process output reading interrupted or failed", e);
+                throw new RuntimeException(e);
+            } finally {
+                process.waitFor();
             }
-            futOut.get();
-
-            process.waitFor();
 
         } catch (Exception e) {
             LOGGER.error("Failed to execute command: ", e);
@@ -129,7 +134,7 @@ final class CommandExecutorProcessHandler {
             });
             container.addRowToTable(new DefaultRow("Row_0", new StringCell(sb.toString())));
         } catch (IOException e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error("Failed to read process return", e);
         }
     }
 
