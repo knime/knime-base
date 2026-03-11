@@ -128,13 +128,14 @@ final class CommandExecutorProcessHandler {
             }
             final StringBuilder sb = new StringBuilder();
             reader.lines()
-            .takeWhile(line -> sb.length() < MAX_CHARS-2)
-            .forEach(line -> {
-                truncate(sb.append(line).append(System.lineSeparator()));
-            });
+                    .takeWhile(line -> sb.length() < MAX_CHARS - 2)
+                    .forEach(line -> {
+                        truncate(sb.append(line).append(System.lineSeparator()));
+                    });
             container.addRowToTable(new DefaultRow("Row_0", new StringCell(sb.toString())));
         } catch (IOException e) {
             LOGGER.error("Failed to read process return", e);
+            throw new RuntimeException("Failed to read process return", e);
         }
     }
 
