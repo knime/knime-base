@@ -61,7 +61,7 @@ import org.knime.node.parameters.widget.text.TextInputWidget;
 final class CommandExecutorNodeSettings implements NodeParameters {
 
     /**
-     * Widget that is always present, taking a bash command to execute
+     * Widget that is always present, taking a terminal command to execute
      */
     @Widget(title = "Base Command",
             description = """
@@ -110,7 +110,7 @@ final class CommandExecutorNodeSettings implements NodeParameters {
         /**
          * Subwidget of Argument Widget
          * It's only present, when needed,
-         * taking a bash argument to enhance the command from first Widget command to execute
+         * taking a terminal argument to enhance the command from first Widget command to execute
          */
         @Widget(title = "New Argument", description = "An Argument to enhance the base command's functionality.")
         @TextInputWidget(placeholder = "New Argument")

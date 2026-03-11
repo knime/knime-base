@@ -68,7 +68,7 @@ final class CommandExecutorProcessHandler {
 
     private CommandExecutorProcessHandler() {}
 
-    // claculation for 5MB in Chars = 5 * 1024 * 1024 / 2
+    // calculation for 5MiB in UTF16 Chars = 5 * 1024 * 1024 bytes / 2 bytes per char
     private static final int MAX_CHARS = 2621440;
     private static final NodeLogger LOGGER = NodeLogger
             .getLogger(CommandExecutorProcessHandler.class);
@@ -85,8 +85,7 @@ final class CommandExecutorProcessHandler {
         final BufferedDataContainer errContainer) throws Exception {
         LOGGER.infoWithFormat("%s was executed with %d argument%s", command[0], command.length-1, (command.length-1==1)? "":"s");
 
-        //TODO Add Sandboxing to not allow any command
-        //TODO Add Pipe support
+        //TODO Kill Zombie Process
         try {
             ProcessBuilder pb = new ProcessBuilder(command);
             pb.redirectErrorStream(merge);
@@ -102,21 +101,23 @@ final class CommandExecutorProcessHandler {
             process.waitFor();
 
         } catch (Exception e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error("Failed to execute command: ", e);
             throw new Exception("Failed to execute command: " + e.getMessage(), e);
         }
     }
+
     /**
      * @param process
      * @param cut
      * @param outContainer
+     * @throws IOException
      */
-    private static void read(final InputStream stream, final boolean cut, final BufferedDataContainer Container) {
+    private static void read(final InputStream stream, final boolean cut, final BufferedDataContainer container) {//throws IOException {
         AtomicInteger i = new AtomicInteger(0);
         try (var reader = new BufferedReader(new InputStreamReader(stream))) {
             if (!cut) {
                 reader.lines().forEach(line -> {
-                    Container.addRowToTable(new DefaultRow("Row_" + i.getAndIncrement(), new StringCell(truncate(line))));
+                    container.addRowToTable(new DefaultRow("Row_" + i.getAndIncrement(), new StringCell(truncate(line))));
                 });
                 return;
             }
@@ -126,7 +127,7 @@ final class CommandExecutorProcessHandler {
             .forEach(line -> {
                 truncate(sb.append(line).append(System.lineSeparator()));
             });
-            Container.addRowToTable(new DefaultRow("Row_0", new StringCell(sb.toString())));
+            container.addRowToTable(new DefaultRow("Row_0", new StringCell(sb.toString())));
         } catch (IOException e) {
             LOGGER.error(e.getMessage());
         }

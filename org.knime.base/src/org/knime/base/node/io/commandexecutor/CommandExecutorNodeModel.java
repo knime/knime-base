@@ -124,11 +124,16 @@ final class CommandExecutorNodeModel extends WebUINodeModel<CommandExecutorNodeS
     }
 
     @Override
-    protected PortObjectSpec[] configure(final PortObjectSpec[] outSpecs,
-        final CommandExecutorNodeSettings modelSettings) throws InvalidSettingsException { //TODO add input validation InvalidSettingsException on blank
+    protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs,
+        final CommandExecutorNodeSettings modelSettings) throws InvalidSettingsException {
+
+        if (modelSettings.m_command.trim().isEmpty()) {
+            throw new InvalidSettingsException("Command cannot be empty. Please enter a valid command to execute.");
+        }
         if(modelSettings.m_mergeErrorStream) {
             return new PortObjectSpec[] {outSpec, InactiveBranchPortObjectSpec.INSTANCE};
         }
+
         return new PortObjectSpec[] {outSpec, errSpec};
     }
 
