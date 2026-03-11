@@ -66,7 +66,7 @@ final class CommandExecutorNodeSettings implements NodeParameters {
     @Widget(title = "Base Command",
             description = """
             Enables direct execution of commands and external process invocation.
-            Arguents are to be supplied in teh Arguments below.
+            Arguments are to be supplied in the Arguments below.
             Caution: Requires elevated permissions and poses security risks if used with unsanitized input.
             """
 )

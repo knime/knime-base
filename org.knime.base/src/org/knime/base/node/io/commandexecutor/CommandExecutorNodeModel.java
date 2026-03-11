@@ -101,8 +101,14 @@ final class CommandExecutorNodeModel extends WebUINodeModel<CommandExecutorNodeS
     final ExecutionContext exec,
     final CommandExecutorNodeSettings modelSettings) throws Exception {
 
+        final boolean merge = modelSettings.m_mergeErrorStream;
+        final boolean cut = modelSettings.m_singleOutputCell;
+
         BufferedDataContainer outContainer = exec.createDataContainer(outSpec);
-        BufferedDataContainer errContainer = exec.createDataContainer(errSpec);
+        BufferedDataContainer errContainer = null;
+        if (!merge) {
+            errContainer = exec.createDataContainer(errSpec);
+        }
 
 
         String[] command = Stream.concat(
@@ -110,13 +116,13 @@ final class CommandExecutorNodeModel extends WebUINodeModel<CommandExecutorNodeS
             Arrays.stream(modelSettings.m_newArgumentSettings).map(arg -> arg.m_argumentToAppend)
         ).toArray(String[]::new);
 
-        boolean merge = modelSettings.m_mergeErrorStream;
-        boolean cut = modelSettings.m_singleOutputCell;
         try {
             CommandExecutorProcessHandler.commandHandler(command, merge, cut, outContainer, errContainer);
         } finally {
             outContainer.close();
-            errContainer.close();
+            if (errContainer != null) {
+                errContainer.close();
+            }
         }
         if (merge) {
             return new PortObject[]{outContainer.getTable(), InactiveBranchPortObject.INSTANCE};
