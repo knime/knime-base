@@ -53,6 +53,9 @@
             "description" : "Define the color assigned to values below the defined gradient range.",
             "default" : "#FF9632"
           },
+          "colorPreview" : {
+            "type" : "object"
+          },
           "columnFilter" : {
             "type" : "object",
             "properties" : {
@@ -312,6 +315,13 @@
       "type" : "Section",
       "elements" : [ {
         "type" : "Control",
+        "id" : "#/properties/model/properties/colorPreview",
+        "options" : {
+          "format" : "colorPreview"
+        },
+        "providedOptions" : [ "color" ]
+      }, {
+        "type" : "Control",
         "scope" : "#/properties/model/properties/gradient"
       }, {
         "type" : "Control",
@@ -443,6 +453,7 @@
               }
             }
           },
+          "colorPreview" : { },
           "gradient" : { },
           "valueScale" : { },
           "customGradient" : {
@@ -519,16 +530,31 @@
         "errorMessage" : "The value must be at least 0."
       }
     } ]
+  }, {
+    "id" : "#/properties/model/properties/colorPreview",
+    "providedOptionName" : "color",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : {
+        "colors" : [ "#FF0000", "#0000FF" ],
+        "stops" : [ 0.0, 100.0 ]
+      }
+    } ]
   } ],
   "globalUpdates" : [ {
     "trigger" : {
+      "scope" : "#/properties/model/properties/customGradient"
+    },
+    "dependencies" : [ "#/properties/model/properties/customGradient", "#/properties/model/properties/gradient", "#/properties/model/properties/valueScale" ]
+  }, {
+    "trigger" : {
       "scope" : "#/properties/model/properties/gradient"
     },
-    "dependencies" : [ "#/properties/model/properties/customGradient", "#/properties/model/properties/gradient" ]
+    "dependencies" : [ "#/properties/model/properties/customGradient", "#/properties/model/properties/gradient", "#/properties/model/properties/valueScale" ]
   }, {
     "trigger" : {
       "scope" : "#/properties/model/properties/valueScale"
     },
-    "dependencies" : [ "#/properties/model/properties/valueScale" ]
+    "dependencies" : [ "#/properties/model/properties/customGradient", "#/properties/model/properties/gradient", "#/properties/model/properties/valueScale" ]
   } ]
 }

@@ -104,7 +104,10 @@ enum ColorPaletteOption {
 
     private final ColorAttr[] m_paletteAsColorAttr;
 
+    private final Color[] m_paletteAsColor;
+
     ColorPaletteOption(final String[] palette) {
+        m_paletteAsColor = palette == null ? null : Arrays.stream(palette).map(Color::decode).toArray(Color[]::new);
         m_paletteAsColorAttr = palette == null ? null
             : Arrays.stream(palette).map(ColorPaletteOption::hexToColorAttr).toArray(ColorAttr[]::new);
     }
@@ -118,5 +121,13 @@ enum ColorPaletteOption {
 
     private static ColorAttr hexToColorAttr(final String hex) {
         return ColorAttr.getInstance(Color.decode(hex));
+    }
+
+    /**
+     * @return the palette as {@link java.awt.Color} strings (or <code>null</code> for
+     *         {@link ColorPaletteOption#CUSTOM}).
+     */
+    Color[] getPaletteAsColor() {
+        return m_paletteAsColor;
     }
 }

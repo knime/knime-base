@@ -59,6 +59,7 @@ import org.knime.core.data.property.ColorGradient;
 import org.knime.core.data.property.ColorGradientDefinitionUtil;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ColorPreview;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
@@ -136,6 +137,10 @@ final class ColorGradientDesignerNodeParameters implements NodeParameters {
     @Layout(ValuesSection.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
 
+    @ColorPreview(ColorGradientPreviewProvider.class)
+    @Layout(ColorGradientSection.class)
+    Void m_colorPreview;
+
     @Widget(title = "Gradient",
         description = "Choose a predefined gradient (e.g., Viridis, Cividis) or define a custom gradient"
             + " by specifying individual color stops.")
@@ -202,13 +207,13 @@ final class ColorGradientDesignerNodeParameters implements NodeParameters {
             ABSOLUTE
     }
 
-    private static final class BaseGradientReference implements ParameterReference<ColorGradientWrapper> {
+    static final class BaseGradientReference implements ParameterReference<ColorGradientWrapper> {
     }
 
-    private static final class CustomGradientReference implements ParameterReference<StopValueColor[]> {
+    static final class CustomGradientReference implements ParameterReference<StopValueColor[]> {
     }
 
-    private static final class ValueScaleReference implements ParameterReference<ValueScale> {
+    static final class ValueScaleReference implements ParameterReference<ValueScale> {
     }
 
     private static final class HasTablePort implements EffectPredicateProvider {
