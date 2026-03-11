@@ -52,6 +52,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UncheckedIOException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -143,7 +144,7 @@ final class CommandExecutorProcessHandler {
                         truncate(sb.append(line).append(System.lineSeparator()));
                     });
             container.addRowToTable(new DefaultRow("Row_0", new StringCell(sb.toString())));
-        } catch (IOException e) {
+        } catch (IOException | UncheckedIOException e) {
             LOGGER.error("Failed to read process return", e);
             throw new RuntimeException("Failed to read process return", e);
         }
