@@ -291,38 +291,42 @@
           }
         }
       }, {
-        "type" : "Control",
-        "scope" : "#/properties/model/properties/charSet/properties/customEncoding",
-        "options" : {
-          "validation" : {
-            "pattern" : {
-              "errorMessage" : "The field cannot be blank (it must contain at least one non-whitespace character).",
-              "parameters" : {
-                "pattern" : ".*\\S.*"
-              }
-            }
-          },
-          "isAdvanced" : true
-        },
+        "type" : "MultiRuleWrapper",
         "rule" : {
-          "effect" : "SHOW",
+          "effect" : "DISABLE",
           "condition" : {
-            "type" : "AND",
-            "conditions" : [ {
+            "scope" : "#/properties/model/properties/guessEncoding",
+            "schema" : {
+              "const" : true
+            }
+          }
+        },
+        "elements" : [ {
+          "type" : "Control",
+          "scope" : "#/properties/model/properties/charSet/properties/customEncoding",
+          "options" : {
+            "validation" : {
+              "pattern" : {
+                "errorMessage" : "The field cannot be blank (it must contain at least one non-whitespace character).",
+                "parameters" : {
+                  "pattern" : ".*\\S.*"
+                }
+              }
+            },
+            "isAdvanced" : true
+          },
+          "rule" : {
+            "effect" : "SHOW",
+            "condition" : {
               "scope" : "#/properties/model/properties/charSet/properties/fileEncoding",
               "schema" : {
                 "oneOf" : [ {
                   "const" : "OTHER"
                 } ]
               }
-            }, {
-              "scope" : "#/properties/model/properties/guessEncoding",
-              "schema" : {
-                "const" : false
-              }
-            } ]
+            }
           }
-        }
+        } ]
       } ]
     } ]
   },

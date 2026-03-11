@@ -85,8 +85,6 @@ import org.knime.node.parameters.persistence.legacy.LegacyFileWriterWithOverwrit
 import org.knime.node.parameters.persistence.legacy.LegacyFileWriterWithOverwritePolicyOptions.OverwritePolicyChoicesProvider;
 import org.knime.node.parameters.updates.Effect;
 import org.knime.node.parameters.updates.Effect.EffectType;
-import org.knime.node.parameters.updates.EffectPredicate;
-import org.knime.node.parameters.updates.EffectPredicateProvider;
 import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.updates.util.BooleanReference;
 
@@ -259,19 +257,7 @@ final class DecompressNodeParameters implements NodeParameters {
 
         @Override
         public void modify(final WidgetGroupModifier group) {
-            FileEncodingParameters.changeEffectPredicateProviderOfCustomEncoding(
-                group, IsGuessEncodingEnabledAndOtherEncodingSelected.class);
             FileEncodingParameters.generalizeFileEncodingDescription(group);
-        }
-
-    }
-
-    static final class IsGuessEncodingEnabledAndOtherEncodingSelected implements EffectPredicateProvider {
-
-        @Override
-        public EffectPredicate init(final PredicateInitializer i) {
-            return i.getPredicate(FileEncodingParameters.IsOtherEncoding.class)
-                    .and(i.getBoolean(IsGuessEncodingEnabled.class).isFalse());
         }
 
     }

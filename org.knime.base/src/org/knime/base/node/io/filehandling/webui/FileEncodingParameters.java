@@ -246,20 +246,6 @@ public class FileEncodingParameters implements NodeParameters {
     @TextInputWidget(patternValidation = IsNotBlankValidation.class)
     protected String m_customEncoding = "";
 
-    /**
-     * Changes the effect predicate provider of the custom encoding field.
-     *
-     * @param group the widget group modifier
-     * @param predicateProviderClass the new predicate provider class
-     * @since 5.11
-     */
-    public static void changeEffectPredicateProviderOfCustomEncoding(final Modification.WidgetGroupModifier group,
-        final Class<? extends EffectPredicateProvider> predicateProviderClass) {
-        if (predicateProviderClass != null) {
-            group.find(CustomEncodingModRef.class).modifyAnnotation(Effect.class)
-                .withProperty("predicate", predicateProviderClass).modify();
-        }
-    }
 
     /**
      * Returns the charset name of the selected encoding.
