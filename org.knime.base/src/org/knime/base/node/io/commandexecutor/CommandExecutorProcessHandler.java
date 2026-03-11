@@ -109,7 +109,13 @@ final class CommandExecutorProcessHandler {
                 process.waitFor();
             }
 
-        } catch (Exception e) {
+        } catch (IOException e) {
+            LOGGER.error("Failed to start process: {}", e);
+            throw new Exception("Process failed to start: " + e.getMessage(), e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw e;
+        } catch(Exception e) {
             LOGGER.error("Failed to execute command: ", e);
             throw new Exception("Failed to execute command: " + e.getMessage(), e);
         }
