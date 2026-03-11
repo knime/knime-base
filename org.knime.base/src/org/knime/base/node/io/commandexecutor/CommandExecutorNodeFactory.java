@@ -116,14 +116,17 @@ public class CommandExecutorNodeFactory extends NodeFactory<CommandExecutorNodeM
             The Command Executor node allows for the execution of external system commands, scripts, or binaries directly from the workflow.
 
             It captures the process's standard output (stdout) and standard error (stderr) streams,
-            making them available as data tables for downstream processing.
+            making them available as data tables for downstream processing. Depending on the configuration,
+            stderr can optionally be merged into stdout, in which case only the standard output port will carry
+            the combined stream and the dedicated standard error port may be inactive or omitted.
             Users should ensure that the execution environment has the necessary permissions and
             that all paths provided are accessible by the runtime service.
             """;
     private static final List<PortDescription> INPUT_PORTS = List.of();
     private static final List<PortDescription> OUTPUT_PORTS = List.of(
         fixedPort("System Output", "The Standard Output accessible via a port."),
-        fixedPort("System Error", "The Standard Error accessible via a port.")
+        fixedPort("System Error",
+            "The Standard Error accessible via a port. This port may be inactive or omitted when stderr is merged into stdout.")
     );
 
     @Override
