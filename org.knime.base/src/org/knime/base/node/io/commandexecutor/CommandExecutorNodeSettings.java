@@ -65,7 +65,8 @@ final class CommandExecutorNodeSettings implements NodeParameters {
      */
     @Widget(title = "Base Command",
             description = """
-            Enables direct execution of shell commands and external process invocation.
+            Enables direct execution of commands and external process invocation.
+            Arguents are to be supplied in teh Arguments below.
             Caution: Requires elevated permissions and poses security risks if used with unsanitized input.
             """
 )
@@ -85,7 +86,7 @@ final class CommandExecutorNodeSettings implements NodeParameters {
      * Widget to define output formatting
      */
     @Widget(title = "Single cell output",
-            description = "Returns the entire stdout content as a single cell."
+            description = "Returns the entire Output content as a single cell. (Applies to Error, when not merged)"
     )
     boolean m_singleOutputCell;
 

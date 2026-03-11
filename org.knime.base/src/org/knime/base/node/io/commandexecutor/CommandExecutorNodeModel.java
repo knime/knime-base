@@ -99,7 +99,7 @@ final class CommandExecutorNodeModel extends WebUINodeModel<CommandExecutorNodeS
     @Override
     protected PortObject[] execute (final PortObject[] inPortObjects,
     final ExecutionContext exec,
-    final CommandExecutorNodeSettings modelSettings) throws Exception { //TODO Add cancellation
+    final CommandExecutorNodeSettings modelSettings) throws Exception {
 
         BufferedDataContainer outContainer = exec.createDataContainer(outSpec);
         BufferedDataContainer errContainer = exec.createDataContainer(errSpec);
