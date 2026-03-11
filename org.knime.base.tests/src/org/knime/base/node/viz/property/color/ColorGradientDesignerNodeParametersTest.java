@@ -48,7 +48,11 @@ package org.knime.base.node.viz.property.color;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.port.PortObjectSpec;
@@ -56,6 +60,8 @@ import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
 import org.knime.testing.node.dialog.SnapshotTestConfiguration;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 
 /**
  * Snapshot test for {@link ColorGradientDesignerNodeParameters}.
@@ -64,6 +70,24 @@ import org.knime.testing.node.dialog.SnapshotTestConfiguration;
  */
 @SuppressWarnings("restriction")
 final class ColorGradientDesignerNodeParametersTest extends DefaultNodeSettingsSnapshotTest {
+
+    private MockedStatic<UUID> m_mockedStaticUuid;
+
+    private int m_mockedUuidCounter;
+
+    @BeforeEach
+    void mockGenerateIdString() {
+        m_mockedUuidCounter = 0;
+        m_mockedStaticUuid = Mockito.mockStatic(UUID.class, Mockito.CALLS_REAL_METHODS);
+        m_mockedStaticUuid.when(UUID::randomUUID).thenAnswer(invocation -> UUID
+            .nameUUIDFromBytes(("ColorGradientDesignerNodeParametersTest-" + m_mockedUuidCounter++)
+                .getBytes(StandardCharsets.UTF_8)));
+    }
+
+    @AfterEach
+    void resetGenerateIdStringMock() {
+        m_mockedStaticUuid.close();
+    }
 
     ColorGradientDesignerNodeParametersTest() {
         super(getConfig());

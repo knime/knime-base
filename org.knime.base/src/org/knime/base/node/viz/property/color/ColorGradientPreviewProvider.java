@@ -95,7 +95,6 @@ final class ColorGradientPreviewProvider implements StateProvider<ColorPreview.G
     @Override
     public Gradient computeState(final NodeParametersInput parametersInput) throws StateComputationFailureException {
         final var baseGradient = m_baseGradient.get().getColorGradient();
-
         if (baseGradient != ColorGradient.CUSTOM) {
             return new Gradient(baseGradient.getGradientColors(), null);
         }
@@ -108,7 +107,6 @@ final class ColorGradientPreviewProvider implements StateProvider<ColorPreview.G
         final var filteredGradient = filterNonAscendingStops(customGradient);
         final var visibleGradient = m_valueScale.get() == ValueScale.PERCENTAGE
             ? filterInvalidPercentageStops(filteredGradient) : filteredGradient;
-
         if (visibleGradient.isEmpty()) {
             return new Gradient(new Color[0], new double[0]);
         }
@@ -116,7 +114,6 @@ final class ColorGradientPreviewProvider implements StateProvider<ColorPreview.G
         final var customStops = visibleGradient.stream().mapToDouble(svc -> svc.m_stopValue).toArray();
         final var colors = visibleGradient.stream().map(svc -> svc.m_color).toArray(Color[]::new);
         final var stops = normalizeStops(customStops);
-
         return new Gradient(colors, stops);
     }
 

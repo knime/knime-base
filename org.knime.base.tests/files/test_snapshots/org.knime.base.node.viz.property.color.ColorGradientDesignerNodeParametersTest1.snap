@@ -22,13 +22,16 @@
       "valueScale" : "PERCENTAGE",
       "customGradient" : [ {
         "stopValue" : 0.0,
-        "color" : "#FF0000"
+        "color" : "#FF0000",
+        "idString" : "76fbe65c-a2b2-3108-9505-5f2e9bbd024d"
       }, {
         "stopValue" : 50.0,
-        "color" : "#00FF00"
+        "color" : "#00FF00",
+        "idString" : "46e45f47-738d-3b1d-95e1-939245a0c0fb"
       }, {
         "stopValue" : 100.0,
-        "color" : "#0000FF"
+        "color" : "#0000FF",
+        "idString" : "ab5a113b-4959-3ceb-9b0e-ed308efc0234"
       } ],
       "missingValueColor" : "#FFCCFF",
       "nanColor" : "#FF66FF",
@@ -180,6 +183,10 @@
                   "description" : "The color to apply at the specified stop.",
                   "default" : "#000000"
                 },
+                "idString" : {
+                  "type" : "string",
+                  "default" : "2a1ec0e2-07a6-32b3-9cc9-f3abee24f32e"
+                },
                 "stopValue" : {
                   "type" : "number",
                   "format" : "double",
@@ -193,10 +200,12 @@
             "description" : "Define your own gradient using one or more color stops. Each stop consists of a value and a color.",
             "default" : [ {
               "stopValue" : 0.0,
-              "color" : "#FF0000"
+              "color" : "#FF0000",
+              "idString" : "3a374be2-5488-3849-b61f-112a9bfc20dc"
             }, {
               "stopValue" : 100.0,
-              "color" : "#0000FF"
+              "color" : "#0000FF",
+              "idString" : "76fbe65c-a2b2-3108-9505-5f2e9bbd024d"
             } ]
           },
           "gradient" : {
@@ -365,6 +374,7 @@
           "elementLayout" : "HORIZONTAL_SINGLE_LINE",
           "showSortButtons" : true
         },
+        "providedOptions" : [ "elementDefaultValue" ],
         "rule" : {
           "effect" : "SHOW",
           "condition" : {
@@ -465,7 +475,10 @@
               "type" : "object",
               "properties" : {
                 "stopValue" : { },
-                "color" : { }
+                "color" : { },
+                "idString" : {
+                  "configPaths" : [ ]
+                }
               }
             }
           },
@@ -524,13 +537,42 @@
     "scope" : "#/properties/model/properties/customGradient/items/properties/stopValue",
     "providedOptionName" : "validation.min",
     "values" : [ {
-      "indices" : [ ],
+      "indices" : [ 0 ],
       "value" : {
         "parameters" : {
           "min" : 0.0,
           "isExclusive" : false
         },
         "errorMessage" : "The value must be at least 0."
+      }
+    }, {
+      "indices" : [ 1 ],
+      "value" : {
+        "parameters" : {
+          "min" : 0.0,
+          "isExclusive" : true
+        },
+        "errorMessage" : "The value must be greater than 0."
+      }
+    }, {
+      "indices" : [ 2 ],
+      "value" : {
+        "parameters" : {
+          "min" : 50.0,
+          "isExclusive" : true
+        },
+        "errorMessage" : "The value must be greater than 50."
+      }
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/customGradient",
+    "providedOptionName" : "elementDefaultValue",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : {
+        "stopValue" : 150.0,
+        "color" : "#000000",
+        "idString" : "38564d87-87cc-3082-a855-45181fcfc167"
       }
     } ]
   }, {
@@ -548,7 +590,7 @@
     "trigger" : {
       "scope" : "#/properties/model/properties/customGradient"
     },
-    "dependencies" : [ "#/properties/model/properties/customGradient", "#/properties/model/properties/gradient", "#/properties/model/properties/valueScale" ]
+    "dependencies" : [ "#/properties/model/properties/customGradient", "#/properties/model/properties/customGradient/items/properties/idString", "#/properties/model/properties/gradient", "#/properties/model/properties/valueScale" ]
   }, {
     "trigger" : {
       "scope" : "#/properties/model/properties/gradient"
@@ -558,6 +600,6 @@
     "trigger" : {
       "scope" : "#/properties/model/properties/valueScale"
     },
-    "dependencies" : [ "#/properties/model/properties/customGradient", "#/properties/model/properties/gradient", "#/properties/model/properties/valueScale" ]
+    "dependencies" : [ "#/properties/model/properties/customGradient", "#/properties/model/properties/customGradient/items/properties/idString", "#/properties/model/properties/gradient", "#/properties/model/properties/valueScale" ]
   } ]
 }

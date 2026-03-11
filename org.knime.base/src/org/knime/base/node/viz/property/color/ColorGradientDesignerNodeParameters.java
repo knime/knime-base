@@ -51,6 +51,7 @@ package org.knime.base.node.viz.property.color;
 import java.awt.Color;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
@@ -58,6 +59,8 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.property.ColorGradient;
 import org.knime.core.data.property.ColorGradientDefinitionUtil;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ColorPreview;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
@@ -70,6 +73,8 @@ import org.knime.node.parameters.layout.After;
 import org.knime.node.parameters.layout.Before;
 import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.layout.Section;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
+import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.updates.Effect;
 import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.updates.EffectPredicate;
@@ -85,7 +90,8 @@ import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
 import org.knime.node.parameters.widget.choices.util.ColumnSelectionUtil;
 import org.knime.node.parameters.widget.number.NumberInputWidget;
-import org.knime.node.parameters.widget.number.NumberInputWidgetValidation;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MaxValidation;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation;
 import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsNonNegativeValidation;
 
 /**
@@ -159,7 +165,7 @@ final class ColorGradientDesignerNodeParameters implements NodeParameters {
         description = "Define your own gradient using one or more color stops."
             + " Each stop consists of a value and a color.")
     @ArrayWidget(addButtonText = "Add color", elementLayout = ElementLayout.HORIZONTAL_SINGLE_LINE,
-        showSortButtons = true)
+        showSortButtons = true, elementDefaultValueProvider = CustomGradientDefaultProvider.class)
     @Effect(predicate = IsCustomGradient.class, type = EffectType.SHOW)
     @Layout(ColorGradientSection.class)
     @ValueReference(CustomGradientReference.class)
@@ -216,6 +222,9 @@ final class ColorGradientDesignerNodeParameters implements NodeParameters {
     static final class ValueScaleReference implements ParameterReference<ValueScale> {
     }
 
+    private static final class IDStringReference implements ParameterReference<String> {
+    }
+
     private static final class HasTablePort implements EffectPredicateProvider {
         @Override
         public EffectPredicate init(final PredicateInitializer i) {
@@ -259,7 +268,15 @@ final class ColorGradientDesignerNodeParameters implements NodeParameters {
         double m_stopValue;
 
         @Widget(title = "Color", description = "The color to apply at the specified stop.")
-        Color m_color = Color.decode("#000000");
+        Color m_color = Color.BLACK;
+
+        @ValueReference(IDStringReference.class)
+        @Persistor(DoNotPersistString.class)
+        String m_idString = generateIdString();
+    }
+
+    private static String generateIdString() {
+        return UUID.randomUUID().toString();
     }
 
     private static final class CustomGradientProvider implements StateProvider<StopValueColor[]> {
@@ -284,14 +301,37 @@ final class ColorGradientDesignerNodeParameters implements NodeParameters {
         }
     }
 
-    private abstract static class StopValueValidation<T extends NumberInputWidgetValidation>
-        implements StateProvider<T> {
+    private static final class CustomGradientDefaultProvider implements StateProvider<StopValueColor> {
 
-        private T m_percentageValidation;
+        private Supplier<StopValueColor[]> m_customGradient;
 
-        StopValueValidation(final T percentageValidation) {
-            m_percentageValidation = percentageValidation;
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            initializer.computeBeforeOpenDialog();
+            m_customGradient = initializer.computeFromValueSupplier(CustomGradientReference.class);
         }
+
+        @Override
+        public StopValueColor computeState(final NodeParametersInput parametersInput) {
+            final var customGradient = m_customGradient.get();
+            if (customGradient.length == 0) {
+                return new StopValueColor(0, Color.BLACK);
+            }
+            if (customGradient.length == 1) {
+                final var stopValue0 = customGradient[0].m_stopValue;
+                final var stopValue0DiffToZero = Math.abs(stopValue0 - 0);
+                final var newStopValue = stopValue0 + (stopValue0DiffToZero == 0 ? 1 : stopValue0DiffToZero);
+                return new StopValueColor(newStopValue, Color.BLACK);
+            }
+            final var stopValueNMinus1 = customGradient[customGradient.length - 1].m_stopValue;
+            final var stopValueNMinus2 = customGradient[customGradient.length - 2].m_stopValue;
+            final var diff = Math.abs(stopValueNMinus1 - stopValueNMinus2);
+            final var newStopValue = stopValueNMinus1 + diff;
+            return new StopValueColor(newStopValue, Color.decode("#000000"));
+        }
+    }
+
+    private final static class StopValueMaxValidation implements StateProvider<MaxValidation> {
 
         private Supplier<ValueScale> m_valueScale;
 
@@ -302,30 +342,100 @@ final class ColorGradientDesignerNodeParameters implements NodeParameters {
         }
 
         @Override
-        public T computeState(final NodeParametersInput parametersInput) {
-            return m_valueScale.get() == ValueScale.PERCENTAGE ? m_percentageValidation : null;
+        public MaxValidation computeState(final NodeParametersInput parametersInput) {
+            return m_valueScale.get() == ValueScale.PERCENTAGE ? new IsAtMax100Validation() : null;
         }
     }
 
-    private static final class StopValueMinValidation
-        extends StopValueValidation<NumberInputWidgetValidation.MinValidation> {
-        StopValueMinValidation() {
-            super(new IsNonNegativeValidation());
-        }
-    }
-
-    private static final class StopValueMaxValidation
-        extends StopValueValidation<NumberInputWidgetValidation.MaxValidation> {
-        StopValueMaxValidation() {
-            super(new IsAtMax100Validation());
-        }
-    }
-
-    private static final class IsAtMax100Validation extends NumberInputWidgetValidation.MaxValidation {
+    private static final class IsAtMax100Validation extends MaxValidation {
         @Override
         protected double getMax() {
             return 100;
         }
+    }
+
+    private static final class StopValueMinValidation
+
+        implements StateProvider<MinValidation> {
+
+        private Supplier<ValueScale> m_valueScale;
+
+        private Supplier<StopValueColor[]> m_customGradient;
+
+        private Supplier<String> m_elementId;
+
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            initializer.computeBeforeOpenDialog();
+            m_valueScale = initializer.computeFromValueSupplier(ValueScaleReference.class);
+            m_customGradient = initializer.computeFromValueSupplier(CustomGradientReference.class);
+            m_elementId = initializer.getValueSupplier(IDStringReference.class);
+        }
+
+        @Override
+        public MinValidation computeState(final NodeParametersInput parametersInput) {
+            final var previousStopValue = getPreviousStopValue();
+            final var percentageMin = m_valueScale.get() == ValueScale.PERCENTAGE ? 0d : null;
+
+            if (previousStopValue != null && percentageMin != null) {
+                return previousStopValue >= percentageMin ? createExclusiveMinValidation(previousStopValue)
+                    : new IsNonNegativeValidation();
+            }
+
+            if (previousStopValue != null) {
+                return createExclusiveMinValidation(previousStopValue);
+            }
+
+            if (percentageMin != null) {
+                return new IsNonNegativeValidation();
+            }
+
+            return null;
+        }
+
+        private Double getPreviousStopValue() {
+            StopValueColor previous = null;
+            for (final var stopValueColor : m_customGradient.get()) {
+                if (stopValueColor.m_idString.equals(m_elementId.get())) {
+                    return previous == null ? null : previous.m_stopValue;
+                }
+                previous = stopValueColor;
+            }
+            return null;
+        }
+
+        private static MinValidation createExclusiveMinValidation(final double min) {
+            return new MinValidation() {
+
+                @Override
+                protected double getMin() {
+                    return min;
+                }
+
+                @Override
+                public boolean isExclusive() {
+                    return true;
+                }
+            };
+        }
+    }
+
+    private static final class DoNotPersistString implements NodeParametersPersistor<String> {
+
+        @Override
+        public String load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            return generateIdString();
+        }
+
+        @Override
+        public void save(final String param, final NodeSettingsWO settings) {
+        }
+
+        @Override
+        public String[][] getConfigPaths() {
+            return new String[0][];
+        }
+
     }
 
     @Override
