@@ -112,7 +112,7 @@ final class CommandExecutorNodeModel extends WebUINodeModel<CommandExecutorNodeS
 
 
         String[] command = Stream.concat(
-            Stream.of(modelSettings.m_command),
+            Stream.of(modelSettings.m_command.trim()),
             Arrays.stream(modelSettings.m_newArgumentSettings).map(arg -> arg.m_argumentToAppend)
         ).toArray(String[]::new);
 

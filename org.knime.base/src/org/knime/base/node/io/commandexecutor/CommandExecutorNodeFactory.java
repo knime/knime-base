@@ -73,14 +73,14 @@ import org.knime.node.impl.description.PortDescription;
  * @author janniksemperowitsch
  *
  * Factory class responsible for the instantiation and configuration of {@link CommandExecutorNodeModel} instances.
- * * <p>This class acts as the primary integration point for the Command Executor node,
+ * <p>This class acts as the primary integration point for the Command Executor node,
  * bridging the gap between the underlying execution logic, the user configuration interface,
  * and the specialized Kai framework protocols.</p>
- * * <p>By implementing {@link NodeDialogFactory}, it facilitates the creation of a graphical
+ * <p>By implementing {@link NodeDialogFactory}, it facilitates the creation of a graphical
  * user interface for command parameterization. The implementation of {@link KaiNodeInterfaceFactory}
  * ensures that the node is compatible with extended system-level messaging and connectivity
  * standards within the Kai ecosystem.</p>
- * * @see NodeFactory
+ * @see NodeFactory
  * @see CommandExecutorNodeModel
  * @see NodeDialogFactory
  * @see KaiNodeInterfaceFactory
