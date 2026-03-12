@@ -357,7 +357,7 @@
           "caseSensitivity" : "CASE_SENSITIVE",
           "value" : "RowXXX"
         },
-        "schema" : "{\"type\":\"object\",\"properties\":{\"caseSensitivity\":{\"oneOf\":[{\"const\":\"CASE_SENSITIVE\",\"title\":\"Case sensitive\"},{\"const\":\"CASE_INSENSITIVE\",\"title\":\"Case insensitive\"}],\"title\":\"Case matching\",\"description\":\"Whether the comparison should be case sensitive or not.\",\"default\":\"CASE_SENSITIVE\"},\"value\":{\"type\":\"string\",\"title\":\"RowID\",\"description\":\"The RowID to compare with.\",\"default\":\"\"}}}",
+        "schema" : "{\"type\":\"object\",\"properties\":{\"caseSensitivity\":{\"oneOf\":[{\"const\":\"CASE_SENSITIVE\",\"title\":\"Case sensitive\"},{\"const\":\"CASE_INSENSITIVE\",\"title\":\"Case insensitive\"}],\"title\":\"Case matching\",\"description\":\"Whether the comparison should be case sensitive or not.\",\"default\":\"CASE_SENSITIVE\"},\"value\":{\"type\":\"string\",\"title\":\"Value\",\"description\":\"The RowID to compare with.\",\"default\":\"\"}}}",
         "uiSchema" : "{\"elements\":[{\"type\":\"Control\",\"scope\":\"#/properties/caseSensitivity\",\"options\":{\"format\":\"valueSwitch\"}},{\"type\":\"Control\",\"scope\":\"#/properties/value\"}]}",
         "persist" : "{\"type\":\"object\",\"properties\":{\"caseSensitivity\":{},\"value\":{}}}",
         "updates" : "{}",
