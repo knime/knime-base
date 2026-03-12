@@ -96,8 +96,10 @@ import org.knime.core.node.util.DataColumnSpecListCellRenderer;
  *
  * @see ColorManager2NodeModel
  *
+ * @deprecated This class is deprecated.
  * @author Thomas Gabriel, University of Konstanz
  */
+@Deprecated
 final class ColorManager2NodeDialogPane extends NodeDialogPane implements ItemListener {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(ColorManager2NodeDialogPane.class);

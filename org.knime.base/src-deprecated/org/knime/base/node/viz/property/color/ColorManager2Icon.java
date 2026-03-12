@@ -1,4 +1,4 @@
-/*
+/* 
  * ------------------------------------------------------------------------
  *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
@@ -41,37 +41,119 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * -------------------------------------------------------------------
- *
+ * 
  * History
  *   09.02.2006 (gabriel): created
  */
 package org.knime.base.node.viz.property.color;
 
+import java.awt.Color;
 import java.awt.Component;
+import java.awt.Graphics;
 
-import javax.swing.DefaultListCellRenderer;
-import javax.swing.JList;
+import javax.swing.Icon;
+
+import org.knime.core.data.DataCell;
+import org.knime.core.data.DataType;
+
 
 /**
- * Constructs a new column values renderer with is specific Color.
+ * Constructs a new icon with its specific Color and size.
+ * 
+ * @deprecated This class is deprecated.
+ * @author Thomas Gabriel, University of Konstanz
  */
-class ColorManager2IconRenderer extends DefaultListCellRenderer {
+@Deprecated
+class ColorManager2Icon implements Icon {
+    
+    private Color m_color;
+
+    private final DataCell m_cell;
+
+    private static final int SIZE = 15;
+
+    private final String m_prefix;
+
+    /**
+     * Creates new squared color icon.
+     * 
+     * @param cell The label.
+     * @param color The initial color.
+     */
+    ColorManager2Icon(final DataCell cell, final Color color) {
+        this(cell, "", color);
+    }
+
+    /**
+     * Creates new squared color icon.
+     * 
+     * @param cell The label.
+     * @param prefix The label's prefix.
+     * @param color The inital color.
+     */
+    ColorManager2Icon(final DataCell cell, final String prefix, 
+            final Color color) {
+        m_color = color;
+        m_cell = cell;
+        m_prefix = prefix;
+    }
+
+    /**
+     * Set's a new color.
+     * 
+     * @param color The new Color.
+     */
+    public void setColor(final Color color) {
+        m_color = color;
+    }
+
+    /**
+     * @return The color.
+     */
+    public Color getColor() {
+        return m_color;
+    }
+
+    /**
+     * @return The label.
+     */
+    public DataCell getCell() {
+        if (m_cell == null) {
+            return DataType.getMissingCell();
+        }
+        return m_cell;
+    }
+
+    /**
+     * @return The display text which is the prefix plus DataCell.
+     */
+    public String getText() {
+        if (m_cell == null) {
+            return m_prefix + "?";
+        }
+        return m_prefix + m_cell.toString();
+    }
+
     /**
      * {@inheritDoc}
      */
-    @Override
-    public Component getListCellRendererComponent(final JList list,
-            final Object value, final int index, final boolean isSelected,
-            final boolean cellHasFocus) {
-        if (value == null) {
-            return super.getListCellRendererComponent(list, value, index,
-                    isSelected, cellHasFocus);
-        }
-        ColorManager2Icon icon = (ColorManager2Icon)value;
-        Component comp = super.getListCellRendererComponent(list, value, index,
-                isSelected, cellHasFocus);
-        super.setIcon(icon);
-        super.setText(icon.getText().toString());
-        return comp;
+    public int getIconHeight() {
+        return SIZE;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public int getIconWidth() {
+        return SIZE;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void paintIcon(final Component c, final Graphics g, final int x,
+            final int y) {
+        g.setColor(m_color);
+        g.fillRect(x, y, SIZE, SIZE);
     }
 }

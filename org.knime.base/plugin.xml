@@ -537,20 +537,18 @@
       </node>
       <node
             category-path="/view/property"
+            deprecated="true"
             factory-class="org.knime.base.node.viz.property.color.ColorManager2NodeFactory">
       </node>
       <node
             category-path="/view/property"
-            factory-class="org.knime.base.node.viz.property.color.ColorPaletteDesignerNodeFactory"
-            hidden="true"/>
+            factory-class="org.knime.base.node.viz.property.color.ColorPaletteDesignerNodeFactory"/>
       <node
             category-path="/view/property"
-            factory-class="org.knime.base.node.viz.property.color.ColorGradientDesignerNodeFactory"
-            hidden="true"/>
+            factory-class="org.knime.base.node.viz.property.color.ColorGradientDesignerNodeFactory"/>
       <node
             category-path="/view/property"
-            factory-class="org.knime.base.node.viz.property.color.ColorDesignerApplyNodeFactory"
-            hidden="true"/>
+            factory-class="org.knime.base.node.viz.property.color.ColorDesignerApplyNodeFactory"/>
       <node
             category-path="/view/property"
             factory-class="org.knime.base.node.viz.format.number.NumberFormatManagerNodeFactory">
@@ -577,6 +575,7 @@
       <node
             after="org.knime.base.node.viz.property.shape.ShapeManagerNodeFactory"
             category-path="/view/property"
+            deprecated="true"
             factory-class="org.knime.base.node.viz.property.color.ColorAppender3NodeFactory">
       </node>
       <node

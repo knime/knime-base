@@ -99,6 +99,7 @@ import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinVa
  *
  * @author Robin Gerling, KNIME GmbH, Konstanz, Germany
  */
+@SuppressWarnings("restriction")
 final class ColorGradientDesignerNodeParameters implements NodeParameters {
 
     private static final StopValueColor[] DEFAULT_STOP_VALUE_COLORS = new StopValueColor[]{
@@ -327,7 +328,7 @@ final class ColorGradientDesignerNodeParameters implements NodeParameters {
             final var stopValueNMinus2 = customGradient[customGradient.length - 2].m_stopValue;
             final var diff = Math.abs(stopValueNMinus1 - stopValueNMinus2);
             final var newStopValue = stopValueNMinus1 + diff;
-            return new StopValueColor(newStopValue, Color.decode("#000000"));
+            return new StopValueColor(newStopValue, Color.BLACK);
         }
     }
 

@@ -40,35 +40,66 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * -------------------------------------------------------------------
- *
- * History
- *   24.05.2006 (gabriel): created
+ * ------------------------------------------------------------------------
  */
 package org.knime.base.node.viz.property.color;
 
-import org.knime.core.data.DataValue;
-import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
-import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
-import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelection;
+import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeView;
+import org.knime.core.node.NodeDialogPane;
 
 /**
- * Dialog to select column to apply colors to.
- *
+ * The color manager factory which creates a
+ * {@link org.knime.base.node.viz.property.color.ColorManager2NodeDialogPane}.
+ * 
+ * @see ColorManager2NodeModel
+ * @see ColorManager2NodeDialogPane
+ * 
+ * @deprecated This class is deprecated.
  * @author Thomas Gabriel, University of Konstanz
  */
-public class ColorAppender2NodeDialogPane extends DefaultNodeSettingsPane {
+@Deprecated
+public class ColorManager2NodeFactory extends 
+    NodeFactory<ColorManager2NodeModel> {
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ColorManager2NodeModel createNodeModel() {
+        return new ColorManager2NodeModel();
+    }
 
     /**
-     * Create new color appender dialog.
+     * {@inheritDoc}
      */
-    @SuppressWarnings("unchecked")
-    public ColorAppender2NodeDialogPane() {
-        final var applyToColumnNamesModel = ColorAppender2NodeModel.createApplyToColumnNamesModel();
-        createNewGroup("Apply colors to...");
-        addDialogComponent(new DialogComponentBoolean(applyToColumnNamesModel, "Column names"));
-        addDialogComponent(
-            new DialogComponentColumnNameSelection(ColorAppender2NodeModel.createColumnModel(applyToColumnNamesModel),
-                "Column", 1, DataValue.class));
+    @Override
+    public boolean hasDialog() {
+        return true;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public NodeDialogPane createNodeDialogPane() {
+        return new ColorManager2NodeDialogPane();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public int getNrNodeViews() {
+        return 0;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public NodeView<ColorManager2NodeModel> createNodeView(
+            final int index, final ColorManager2NodeModel nodeModel) {
+        throw new IllegalStateException();
     }
 }

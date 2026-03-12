@@ -74,8 +74,10 @@ import org.knime.core.node.NodeSettingsWO;
 /**
  * A dialog panel used to set color for nominal values.
  *
+ * @deprecated This class is deprecated.
  * @author Thomas Gabriel, University of Konstanz
  */
+@Deprecated
 final class ColorManager2DialogNominal extends JPanel {
 
     /** Used for 'new' values when dialog opens -- all black. */

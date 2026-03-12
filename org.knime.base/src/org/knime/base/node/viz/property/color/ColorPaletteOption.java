@@ -124,7 +124,7 @@ enum ColorPaletteOption {
     }
 
     /**
-     * @return the palette as {@link java.awt.Color} strings (or <code>null</code> for
+     * @return the palette as {@link java.awt.Color} (or <code>null</code> for
      *         {@link ColorPaletteOption#CUSTOM}).
      */
     Color[] getPaletteAsColor() {

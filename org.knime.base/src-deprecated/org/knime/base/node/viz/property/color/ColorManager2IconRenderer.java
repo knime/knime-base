@@ -40,64 +40,41 @@
  *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
- * ------------------------------------------------------------------------
+ * -------------------------------------------------------------------
+ *
+ * History
+ *   09.02.2006 (gabriel): created
  */
 package org.knime.base.node.viz.property.color;
 
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeView;
-import org.knime.core.node.NodeDialogPane;
+import java.awt.Component;
+
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.JList;
 
 /**
- * The color manager factory which creates a
- * {@link org.knime.base.node.viz.property.color.ColorManager2NodeDialogPane}.
- * 
- * @see ColorManager2NodeModel
- * @see ColorManager2NodeDialogPane
- * 
- * @author Thomas Gabriel, University of Konstanz
+ * Constructs a new column values renderer with is specific Color.
+ *
+ * @deprecated This class is deprecated.
  */
-public class ColorManager2NodeFactory extends 
-    NodeFactory<ColorManager2NodeModel> {
-    
+@Deprecated
+class ColorManager2IconRenderer extends DefaultListCellRenderer {
     /**
      * {@inheritDoc}
      */
     @Override
-    public ColorManager2NodeModel createNodeModel() {
-        return new ColorManager2NodeModel();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean hasDialog() {
-        return true;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeDialogPane createNodeDialogPane() {
-        return new ColorManager2NodeDialogPane();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public int getNrNodeViews() {
-        return 0;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NodeView<ColorManager2NodeModel> createNodeView(
-            final int index, final ColorManager2NodeModel nodeModel) {
-        throw new IllegalStateException();
+    public Component getListCellRendererComponent(final JList list,
+            final Object value, final int index, final boolean isSelected,
+            final boolean cellHasFocus) {
+        if (value == null) {
+            return super.getListCellRendererComponent(list, value, index,
+                    isSelected, cellHasFocus);
+        }
+        ColorManager2Icon icon = (ColorManager2Icon)value;
+        Component comp = super.getListCellRendererComponent(list, value, index,
+                isSelected, cellHasFocus);
+        super.setIcon(icon);
+        super.setText(icon.getText().toString());
+        return comp;
     }
 }

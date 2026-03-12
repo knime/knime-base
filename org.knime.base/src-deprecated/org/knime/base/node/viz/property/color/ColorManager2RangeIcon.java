@@ -48,110 +48,102 @@
 package org.knime.base.node.viz.property.color;
 
 import java.awt.Color;
-import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.GradientPaint;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 
-import javax.swing.Icon;
+import javax.swing.JPanel;
 
-import org.knime.core.data.DataCell;
-import org.knime.core.data.DataType;
+import org.knime.core.data.property.ColorAttr;
 
 
 /**
- * Constructs a new icon with its specific Color and size.
+ * An icon which background is painted in colors which are linear interpolated
+ * between the two borders.
  * 
+ * @deprecated This class is deprecated.
  * @author Thomas Gabriel, University of Konstanz
  */
-class ColorManager2Icon implements Icon {
+@Deprecated
+public class ColorManager2RangeIcon extends JPanel {
     
-    private Color m_color;
+    private Color m_min;
 
-    private final DataCell m_cell;
-
-    private static final int SIZE = 15;
-
-    private final String m_prefix;
+    private Color m_max;
 
     /**
-     * Creates new squared color icon.
+     * Creates a new icon with default colors.
      * 
-     * @param cell The label.
-     * @param color The initial color.
+     * @see ColorAttr#DEFAULT
      */
-    ColorManager2Icon(final DataCell cell, final Color color) {
-        this(cell, "", color);
+    public ColorManager2RangeIcon() {
+        this(ColorAttr.DEFAULT.getColor(), ColorAttr.DEFAULT.getColor());
     }
 
     /**
-     * Creates new squared color icon.
+     * Creates a new icon with the given colors.
      * 
-     * @param cell The label.
-     * @param prefix The label's prefix.
-     * @param color The inital color.
+     * @param min the left color
+     * @param max the right color
+     * @throws NullPointerException if on the colors is <code>null</code>
      */
-    ColorManager2Icon(final DataCell cell, final String prefix, 
-            final Color color) {
-        m_color = color;
-        m_cell = cell;
-        m_prefix = prefix;
-    }
-
-    /**
-     * Set's a new color.
-     * 
-     * @param color The new Color.
-     */
-    public void setColor(final Color color) {
-        m_color = color;
-    }
-
-    /**
-     * @return The color.
-     */
-    public Color getColor() {
-        return m_color;
-    }
-
-    /**
-     * @return The label.
-     */
-    public DataCell getCell() {
-        if (m_cell == null) {
-            return DataType.getMissingCell();
+    public ColorManager2RangeIcon(final Color min, final Color max) {
+        super(null);
+        super.setPreferredSize(new Dimension(super.getWidth(), 15));
+        if (min == null || max == null) {
+            throw new NullPointerException();
         }
-        return m_cell;
+        m_min = min;
+        m_max = max;
     }
 
     /**
-     * @return The display text which is the prefix plus DataCell.
+     * Sets a new minimum color and triggers a repaint.
+     * 
+     * @param min the left color
      */
-    public String getText() {
-        if (m_cell == null) {
-            return m_prefix + "?";
-        }
-        return m_prefix + m_cell.toString();
+    public void setMinColor(final Color min) {
+        m_min = min;
+        super.validate();
+        super.repaint();
+    }
+    
+    /**
+     * @return current minimum color of this range icon
+     */
+    public Color getMinColor() {
+        return m_min;
+    }
+
+    /**
+     * Sets a new maximum color and triggers a repaint.
+     * 
+     * @param max the right color
+     */
+    public void setMaxColor(final Color max) {
+        m_max = max;
+        super.validate();
+        super.repaint();
+    }
+    
+    /**
+     * @return current maximum color of this range icon
+     */
+    public Color getMaxColor() {
+        return m_max;
     }
 
     /**
      * {@inheritDoc}
      */
-    public int getIconHeight() {
-        return SIZE;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public int getIconWidth() {
-        return SIZE;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void paintIcon(final Component c, final Graphics g, final int x,
-            final int y) {
-        g.setColor(m_color);
-        g.fillRect(x, y, SIZE, SIZE);
+    @Override
+    public void paintComponent(final Graphics gx) {
+        super.paintComponent(gx);
+        int width = super.getWidth();
+        int height = super.getHeight();
+        Graphics2D gx2 = (Graphics2D)gx;
+        gx2.setPaint(new GradientPaint(0, 0, m_min, width, 0, m_max));
+        gx2.fillRect(0, 0, width, height);
     }
 }

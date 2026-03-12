@@ -87,7 +87,8 @@ import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
  *
  * @author Robin Gerling, KNIME GmbH, Konstanz, Germany
  */
-class ColorPaletteDesignerNodeParameters implements NodeParameters {
+@SuppressWarnings("restriction")
+final class ColorPaletteDesignerNodeParameters implements NodeParameters {
 
     public ColorPaletteDesignerNodeParameters() {
         // default constructor
