@@ -69,7 +69,7 @@ import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinVa
 @SuppressWarnings("restriction") // webui
 public final class RowNumberParameters implements SingleCellValueParameters<LongCell> {
 
-    @Widget(title = "Row number", description = "The positive row number to compare with.")
+    @Widget(title = FILTER_VALUE_TITLE, description = "The positive row number to compare with.")
     @NumberInputWidget(minValidation = IsPositiveIntegerValidation.class)
     long m_value = 1;
 

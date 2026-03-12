@@ -72,7 +72,7 @@ public final class RowKeyEqualsParameters implements SingleCellValueParameters<S
     @Widget(title = "Case matching", description = "Whether the comparison should be case sensitive or not.")
     CaseSensitivity m_caseSensitivity = CaseSensitivity.CASE_SENSITIVE;
 
-    @Widget(title = "RowID", description = "The RowID to compare with.")
+    @Widget(title = FILTER_VALUE_TITLE, description = "The RowID to compare with.")
     String m_value = "";
 
     RowKeyEqualsParameters() {
