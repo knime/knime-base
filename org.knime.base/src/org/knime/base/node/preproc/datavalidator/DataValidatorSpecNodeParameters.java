@@ -120,10 +120,11 @@ public final class DataValidatorSpecNodeParameters implements NodeParameters {
 
     // ===== STRUCTURE VALIDATION SECTION =====
 
-    @Widget(title = "Column name matching", description = """
-            Controls what counts as a column name match between the input table and the reference table.
-            If 'case insensitive' is choosen, it still tries to find an exactly (case sensitively) matching column
-            name first, and then falls back to case insensitive matching.
+    @Widget(title = "If column name casing differs", description = """
+            Controls what counts as a column name match between the input table and the reference table. If
+            'Rename' is chosen, it still tries to treat the column name as a distinct value (find an exactly
+            case-sensitive matching column name) first, and then falls back to renaming the column
+            (case-insensitive matching).
             """)
     @ValueSwitchWidget
     @Layout(StructureValidationSection.class)
@@ -210,12 +211,12 @@ public final class DataValidatorSpecNodeParameters implements NodeParameters {
      */
     public enum ColumnNameMatchingEnum {
             /** case sensitive column name matching */
-            @Label(value = "Case sensitive", description = "Column names must match exactly")
+            @Label(value = "Treat as distinct", description = "Column names must match exactly")
             CASE_SENSITIVE,
 
             /** case insensitive column name matching */
-            @Label(value = "Case insensitive", description = """
-                    Also columns with a similar name will be considered to be validated according to this configuration.
+            @Label(value = "Rename", description = """
+                    Also columns whose name matches case insensitively will be considered to be validated.
                     """)
             CASE_INSENSITIVE
     }

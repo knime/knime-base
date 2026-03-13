@@ -107,23 +107,18 @@ public final class TableStructureValidatorNodeFactory
             """;
 
     private static final String FULL_DESCRIPTION = """
-            <p>This node ensures a certain table structure given by the reference structure specification defined in
-            the dialog. The base for the configuration can also be given by the structure of the input table during
-            configuration.
-            </p>
-            <p>It is ensured that the result table structure is mostly identical to the defined specification. That is
-            done by resorting of columns, the insertion of missing columns (filled with missing values) and optional
-            removal of additional columns.
-            </p>
-            <p>You can also choose for all columns if they are required to exist and if the column type can be
-            converted.
-            </p>
-            <p>If the validation succeeds, data is output to the first port (potentially renamed, sorted according
-            to the defined specification and with converted types).
-            </p>
-            <p>If the validation fails, the first port is inactive and the second port contains a table that lists all
-            conflicts or the node fails.
-            </p>
+            <p>This node ensures the input table meets the reference structure as defined in the node. \
+            You may use the current input table’s structure as a template during configuration. \
+            As a result, the output table’s structure is identical to the defined reference in all relevant aspects.</p>
+
+            <p>You can choose whether columns and types need to match the reference structure exactly. \
+            Alternatively, columns can be renamed, inserted (filled with missing values), sorted, removed, as well as \
+            their type changed to align with the reference.</p>
+
+            <p>If the validation succeeds, the validated and aligned table is output to the first port.</p>
+
+            <p>If the validation fails, you can choose to output a list of all conflicts at the second port \
+            (the first port is inactive) or make the node fail.</p>
             """;
 
     private static final List<PortDescription> INPUT_PORTS = List.of(
@@ -137,8 +132,8 @@ public final class TableStructureValidatorNodeFactory
                 Table with corrected and validated structure. Depending on the validation result and the <i>If
                 validation fails</i> settings, this port may be inactive.
                 """),
-            fixedPort("Validation fault table", """
-                Table containing the column names that failed validation, an error ID, and an error description.
+            fixedPort("Validation Errors", """
+                Table containing the column names that failed validation, an error, and an error description.
                 Depending on the validation result and the <i>If validation fails</i> settings,
                 this port may be inactive.
                 """)

@@ -52,11 +52,13 @@ import static org.knime.core.node.util.CheckUtils.checkArgument;
 import static org.knime.core.node.util.CheckUtils.checkNotNull;
 
 import org.knime.base.node.preproc.datavalidator.DataValidatorColConfiguration.DataTypeHandling;
-import org.knime.base.node.preproc.tablestructure.TableStructureValidatorNodeModel.ConversionType;
 import org.knime.core.data.DataCell;
+import org.knime.core.data.DataCellFactory;
+import org.knime.core.data.DataCellFactory.FromString;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.RowKey;
+import org.knime.core.data.container.CellFactory;
 import org.knime.core.node.NodeLogger;
 
 /**
@@ -81,30 +83,32 @@ abstract class TableStructureValidatorCellDecorator {
     }
 
     /**
-     * First invokes the {@link #handleCell(RowKey, DataCell)} method on the inner decorator and afterwards performs
-     * {@link #doHandleCell(RowKey, DataCell)} on the result.
+     * First invokes the {@link #handleCell(Long, RowKey, DataCell)} method on the inner decorator and afterwards
+     * performs {@link #doHandleCell(Long, DataCell)} on the result.
      *
+     * @param rowIndex the {@link Long} of the row this cell is contained in
      * @param rowKey the {@link RowKey} of the row this cell is contained in
      * @param cell the {@link DataCell}
      * @return the (decorated) {@link DataCell}
      */
-    final DataCell handleCell(final RowKey rowKey, final DataCell cell) {
+    final DataCell handleCell(final Long rowIndex, final RowKey rowKey, final DataCell cell) {
         var decoratedCell = cell;
         if (m_innerDecorator != null) {
-            decoratedCell = m_innerDecorator.handleCell(rowKey, cell);
+            decoratedCell = m_innerDecorator.handleCell(rowIndex, rowKey, cell);
         }
 
-        return doHandleCell(rowKey, decoratedCell);
+        return doHandleCell(rowIndex, rowKey, decoratedCell);
     }
 
     /**
      * Performs the actual validation, which may add conflicts or return a converted {@link DataCell}.
      *
+     * @param rowIndex the {@link Long} of the row this {@link DataCell} is contained in
      * @param rowKey the {@link RowKey} of the row this {@link DataCell} is contained in
      * @param decoratedCell the {@link DataCell} which might be changed in inner decorators
      * @return the decorated {@link DataCell}
      */
-    abstract DataCell doHandleCell(final RowKey rowKey, final DataCell decoratedCell);
+    abstract DataCell doHandleCell(final Long rowIndex, final RowKey rowKey, final DataCell decoratedCell);
 
     /**
      * Retrieves the associated {@link DataColumnSpec} of this decorator.
@@ -138,7 +142,7 @@ abstract class TableStructureValidatorCellDecorator {
         return new TableStructureValidatorCellDecorator(null) {
 
             @Override
-            protected DataCell doHandleCell(final RowKey rowKey, final DataCell decoratedCell) {
+            protected DataCell doHandleCell(final Long rowIndex, final RowKey rowKey, final DataCell decoratedCell) {
                 return decoratedCell;
             }
 
@@ -156,39 +160,41 @@ abstract class TableStructureValidatorCellDecorator {
 
     /**
      * Tries to convert the given cell represented by {@link TableStructureValidatorCellDecorator} to the given
-     * {@link ConversionType}. Missing values are directly returned.
+     * {@link CellFactory}. Missing values are directly returned.
      *
      * @param inner the inner {@link TableStructureValidatorCellDecorator}
-     * @param handling the {@link DataTypeHandling}
-     * @param type the {@link ConversionType}
-     * @param referenceSpec the reference {@link DataColumnSpec}
-     * @param conflicts the {@link TableStructureValidatorColConflicts}
+     * @param handling the {@link DataTypeHandling} to determine whether to try to convert the cell or not
+     * @param cellFactory the {@link CellFactory} to convert the cell to
+     * @param referenceSpec the reference {@link DataColumnSpec} for the conversion
+     * @param conflicts the {@link TableStructureValidatorColConflicts} to add conflicts to
      * @return {@link TableStructureValidatorCellDecorator}
      */
     @SuppressWarnings("java:S1188") // number of lines in anonymous class
     static TableStructureValidatorCellDecorator conversionCellDecorator(
-        final TableStructureValidatorCellDecorator inner, final DataTypeHandling handling, final ConversionType type,
-        final DataColumnSpec referenceSpec, final TableStructureValidatorColConflicts conflicts) {
+        final TableStructureValidatorCellDecorator inner, final DataTypeHandling handling,
+        final DataCellFactory dataCellFactory, final DataColumnSpec referenceSpec,
+        final TableStructureValidatorColConflicts conflicts) {
         checkNotNull(handling);
-        checkNotNull(type);
+        checkNotNull(dataCellFactory);
         checkNotNull(referenceSpec);
         return new TableStructureValidatorCellDecorator(inner) {
+
             @Override
-            protected DataCell doHandleCell(final RowKey rowKey, final DataCell decoratedCell) {
+            protected DataCell doHandleCell(final Long rowIndex, final RowKey rowkey, final DataCell decoratedCell) {
                 try {
                     if (decoratedCell.isMissing()) {
                         return decoratedCell;
                     }
-                    return type.convertCell(decoratedCell);
+                    if (dataCellFactory instanceof FromString fromStringFactory) {
+                        return fromStringFactory.createCell(decoratedCell.toString());
+                    }
+                    throw new IllegalArgumentException(
+                        "Unsupported target data type: " + dataCellFactory.getDataType());
                 } catch (RuntimeException e) {
                     LOGGER.debug(e);
-                    if (handling == DataTypeHandling.CONVERT_FAIL) {
-                        conflicts.addConflict(
-                            TableStructureValidatorColConflicts.conversionFailed(
-                                getInputColumnName(), rowKey, type.getTargetType()));
-                        return DataType.getMissingCell();
-                    }
-                    throw new IllegalArgumentException("Invalid handling!" + handling);
+                    conflicts.addConflict(TableStructureValidatorColConflicts.conversionFailed(getInputColumnName(),
+                        rowIndex, rowkey, dataCellFactory.getDataType()));
+                    return DataType.getMissingCell();
                 }
             }
 
@@ -196,6 +202,7 @@ abstract class TableStructureValidatorCellDecorator {
             protected DataColumnSpec getDataColumnSpec() {
                 return referenceSpec;
             }
+
         };
     }
 

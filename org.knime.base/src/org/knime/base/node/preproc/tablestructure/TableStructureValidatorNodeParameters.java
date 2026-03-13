@@ -56,13 +56,16 @@ import org.knime.base.node.preproc.datavalidator.DataValidatorColConfiguration.D
 import org.knime.base.node.preproc.datavalidator.DataValidatorConfiguration.RejectBehavior;
 import org.knime.base.node.preproc.datavalidator.DataValidatorConfiguration.UnknownColumnHandling;
 import org.knime.base.node.preproc.datavalidator.DataValidatorSpecNodeParameters.ColumnNameMatchingEnum;
-import org.knime.core.data.DataCellFactory.FromString;
+import org.knime.base.node.preproc.manipulator.mapping.DataValueReadAdapterFactory;
 import org.knime.core.data.DataType;
-import org.knime.core.data.DataTypeRegistry;
+import org.knime.core.data.DataValue;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.SimpleButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.booleanhelpers.DoNotPersistBoolean;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
+import org.knime.filehandling.core.node.table.reader.DefaultProductionPathProvider;
+import org.knime.filehandling.core.node.table.reader.ProductionPathProvider;
+import org.knime.filehandling.core.node.table.reader.ReadAdapterFactory;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
@@ -114,7 +117,8 @@ final class TableStructureValidatorNodeParameters implements NodeParameters {
     @Widget(title = "Reference structure", description = """
             Define the reference structure to validate against by specifying the expected columns and their types.
             """)
-    @ArrayWidget(elementLayout = ElementLayout.VERTICAL_CARD, addButtonText = "Add column")
+    @ArrayWidget(elementLayout = ElementLayout.VERTICAL_CARD, addButtonText = "Add column",
+        elementTitle = "Expected Column")
     @ValueProvider(ReferenceStructureColumnsArrayProvider.class)
     @ValueReference(ReferenceStructureColumnsArrayRef.class)
     ReferenceStructureColumns[] m_referenceStructureColumns = new ReferenceStructureColumns[0];
@@ -159,11 +163,10 @@ final class TableStructureValidatorNodeParameters implements NodeParameters {
 
             @Override
             public List<DataType> choices(final NodeParametersInput context) {
-                return DataTypeRegistry.getInstance().availableDataTypes().stream() //
-                    .filter(d -> {
-                        var factory = d.getCellFactory(null);
-                        return factory.map(FromString.class::isInstance).orElse(false);
-                    }).toList();
+                final ReadAdapterFactory<DataType, DataValue> readAdapterFactory = DataValueReadAdapterFactory.INSTANCE;
+                final ProductionPathProvider<DataType> productionPathProvider = new DefaultProductionPathProvider<>(
+                        readAdapterFactory.getProducerRegistry(), readAdapterFactory::getDefaultType);
+                return productionPathProvider.getAvailableDataTypes().stream().toList();
             }
 
         }
@@ -253,10 +256,11 @@ final class TableStructureValidatorNodeParameters implements NodeParameters {
     }
 
     @Layout(StructureValidationSection.class)
-    @Widget(title = "Column name matching", description = """
+    @Widget(title = "If column name casing differs", description = """
             Controls what counts as a column name match between the input table and the reference table. If
-            'case insensitive' is chosen, it still tries to find an exactly (case sensitively) matching column name
-            first, and then falls back to case insensitive matching.
+            'Rename' is chosen, it still tries to treat the column name as a distinct value (find an exactly
+            case-sensitive matching column name) first, and then falls back to renaming the column
+            (case-insensitive matching).
             """)
     @ValueSwitchWidget
     ColumnNameMatchingEnum m_columnNameMatchingBehavior = ColumnNameMatchingEnum.CASE_SENSITIVE;

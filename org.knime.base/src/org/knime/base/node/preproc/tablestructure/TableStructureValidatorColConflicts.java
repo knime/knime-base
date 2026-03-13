@@ -62,6 +62,7 @@ import org.knime.core.data.DataType;
 import org.knime.core.data.RowKey;
 import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.StringCell;
+import org.knime.core.node.message.MessageBuilder;
 
 /**
  * Buffer for all column conflicts during one execution.
@@ -75,7 +76,7 @@ final class TableStructureValidatorColConflicts implements Iterable<TableStructu
      */
     public static final DataTableSpec CONFLICTS_SPEC = new DataTableSpecCreator().addColumns(
         new DataColumnSpecCreator("Column", StringCell.TYPE).createSpec(), //
-        new DataColumnSpecCreator("Error ID", StringCell.TYPE).createSpec(), //
+        new DataColumnSpecCreator("Error", StringCell.TYPE).createSpec(), //
         new DataColumnSpecCreator("Description", StringCell.TYPE).createSpec()).createSpec();
 
     private List<TableStructureValidatorColConflict> m_conflicts = new ArrayList<>();
@@ -108,7 +109,8 @@ final class TableStructureValidatorColConflicts implements Iterable<TableStructu
      */
     static TableStructureValidatorColConflict missingColumn(final String columnName) {
         return new TableStructureValidatorColConflict(columnName, Conflict.COLUMN_NOT_CONTAINED,
-            Conflict.COLUMN_NOT_CONTAINED.getDescription(columnName));
+            Conflict.COLUMN_NOT_CONTAINED.getMessageBuilderDescription(columnName),
+            Conflict.COLUMN_NOT_CONTAINED.getOutputTableDescription());
     }
 
     /**
@@ -122,7 +124,8 @@ final class TableStructureValidatorColConflicts implements Iterable<TableStructu
     static TableStructureValidatorColConflict invalidType(
         final String columnName, final DataType expected, final DataType got) {
         return new TableStructureValidatorColConflict(columnName, Conflict.INVALID_DATATYPE,
-            Conflict.INVALID_DATATYPE.getDescription(columnName, expected, got));
+            Conflict.INVALID_DATATYPE.getMessageBuilderDescription(columnName, expected, got),
+            Conflict.INVALID_DATATYPE.getOutputTableDescription(expected, got));
     }
 
     /**
@@ -133,10 +136,11 @@ final class TableStructureValidatorColConflicts implements Iterable<TableStructu
      * @param targetType the target {@link DataType}
      * @return {@link TableStructureValidatorColConflict}
      */
-    static TableStructureValidatorColConflict conversionFailed(final String columnName, final RowKey rowKey,
-        final DataType targetType) {
-        return new TableStructureValidatorColConflict(columnName, Conflict.CONVERSION_FAILED,
-            Conflict.CONVERSION_FAILED.getDescription(columnName, rowKey, targetType));
+    static TableStructureValidatorColConflict conversionFailed(
+        final String columnName, final Long rowIndex, final RowKey rowKey, final DataType targetType) {
+        return new TableStructureValidatorColConflict(columnName, rowIndex, Conflict.CONVERSION_FAILED,
+            Conflict.CONVERSION_FAILED.getMessageBuilderDescription(columnName, targetType),
+            Conflict.CONVERSION_FAILED.getOutputTableDescription(rowKey, targetType));
     }
 
     /**
@@ -147,38 +151,49 @@ final class TableStructureValidatorColConflicts implements Iterable<TableStructu
      */
     static TableStructureValidatorColConflict unknownColumn(final String columnName) {
         return new TableStructureValidatorColConflict(columnName, Conflict.UNKNOWN_COLUMN,
-            Conflict.UNKNOWN_COLUMN.getDescription(columnName));
+            Conflict.UNKNOWN_COLUMN.getMessageBuilderDescription(columnName),
+            Conflict.UNKNOWN_COLUMN.getOutputTableDescription());
     }
 
     private enum Conflict {
 
-        COLUMN_NOT_CONTAINED("Column '%s' is missing."), //
-        CONVERSION_FAILED("Conversion of cell in column '%s' in row '%s' to type '%s' failed."), //
-        INVALID_DATATYPE("DataType of column '%s' should be of type '%s' but was '%s'."), //
-        UNKNOWN_COLUMN("Columns '%s' was not defined in input spec.");
+        COLUMN_NOT_CONTAINED("Column '%s' is missing.", "Column is missing."), //
+        CONVERSION_FAILED("Conversion of cell in column '%s' to type '%s' failed.", //
+            "Conversion of cell in row '%s' to type '%s' failed."), //
+        INVALID_DATATYPE("DataType of column '%s' should be of type '%s' but was '%s'.", //
+            "DataType should be of type '%s' but was '%s'."), //
+        UNKNOWN_COLUMN("Column '%s' was not defined in input spec.", //
+            "Column was not defined in input spec.");
 
-        private final String m_descriptionTemplate;
+        private final String m_messageBuilderDescriptionTemplate;
 
-        Conflict(final String descriptionTemplate) {
-            m_descriptionTemplate = descriptionTemplate;
+        private final String m_outputTableDescriptionTemplate;
+
+        Conflict(final String descriptionTemplate, final String outputTableDescriptionTemplate) {
+            m_messageBuilderDescriptionTemplate = descriptionTemplate;
+            m_outputTableDescriptionTemplate = outputTableDescriptionTemplate;
         }
 
-        private String getDescription(final Object... templateObjects) {
-            return String.format(m_descriptionTemplate, templateObjects);
+        private String getMessageBuilderDescription(final Object ... templateObjects) {
+            return String.format(m_messageBuilderDescriptionTemplate, templateObjects);
+        }
+
+        private String getOutputTableDescription(final Object ... templateObjects) {
+            return String.format(m_outputTableDescriptionTemplate, templateObjects);
         }
 
     }
 
-    @Override
-    public String toString() {
-        var builder = new StringBuilder();
-        for (int i = 0; i < m_conflicts.size(); i++) {
-            builder.append(m_conflicts.get(i));
-            if (i < m_conflicts.size() - 1) {
-                builder.append("\n");
-            }
+    /**
+     * Updates the given {@link MessageBuilder} with the messages of all contained
+     * {@link TableStructureValidatorColConflict}'s.
+     *
+     * @param messageBuilder The {@link MessageBuilder} to update
+     */
+    public void updateMessageBuilder(final MessageBuilder messageBuilder) {
+        for (final TableStructureValidatorColConflict conflict : m_conflicts) {
+            conflict.updateMessageBuilder(messageBuilder);
         }
-        return builder.toString();
     }
 
     @Override
@@ -189,14 +204,28 @@ final class TableStructureValidatorColConflicts implements Iterable<TableStructu
     static final class TableStructureValidatorColConflict {
 
         private String m_columnName;
+        private Long m_rowIndex;
         private Conflict m_conflict;
-        private String m_message;
+        private String m_messageBuilderMessage;
+        private String m_outputTableMessage;
 
-        private TableStructureValidatorColConflict(
-            final String columnName, final Conflict conflict, final String message) {
+
+        private TableStructureValidatorColConflict(final String columnName, final Long rowKey, final Conflict conflict,
+            final String messageBuilderMessage, final String outputTableMessage) {
             m_columnName = columnName;
+            m_rowIndex = rowKey;
             m_conflict = conflict;
-            m_message = message;
+            m_messageBuilderMessage = messageBuilderMessage;
+            m_outputTableMessage = outputTableMessage;
+        }
+
+        private TableStructureValidatorColConflict(final String columnName, final Conflict conflict,
+            final String messageBuilderMessage, final String outputTableMessage) {
+            m_columnName = columnName;
+            m_rowIndex = null;
+            m_conflict = conflict;
+            m_messageBuilderMessage = messageBuilderMessage;
+            m_outputTableMessage = outputTableMessage;
         }
 
         /**
@@ -207,13 +236,20 @@ final class TableStructureValidatorColConflicts implements Iterable<TableStructu
          * @return {@link DataRow}
          */
         public DataRow toDataRow(final RowKey rowKey) {
-            return new DefaultRow(rowKey, m_columnName, m_conflict.name(), m_message);
+            return new DefaultRow(rowKey, m_columnName, m_conflict.name(), m_outputTableMessage);
         }
 
-        @Override
-        public String toString() {
-            return String.format("Column: '%s' causes validation issue: '%s'. Detailed information:%n\t%s",
-                m_columnName, m_conflict.name(), m_message);
+        /**
+         * Updates the given {@link MessageBuilder} with the messages of this conflict.
+         *
+         * @param messageBuilder The {@link MessageBuilder} to update
+         */
+        public void updateMessageBuilder(final MessageBuilder messageBuilder) {
+            if (m_rowIndex != null) {
+                messageBuilder.addRowIssue(0, m_rowIndex, m_messageBuilderMessage);
+            } else {
+                messageBuilder.addTextIssue(m_messageBuilderMessage);
+            }
         }
 
     }

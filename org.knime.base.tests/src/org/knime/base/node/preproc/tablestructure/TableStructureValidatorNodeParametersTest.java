@@ -49,11 +49,10 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Set;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
-import org.knime.core.data.DataTypeRegistry;
 import org.knime.core.data.def.BooleanCell;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
@@ -64,9 +63,10 @@ import org.knime.core.node.NodeSettings;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
+import org.knime.filehandling.core.node.table.reader.DefaultProductionPathProvider;
 import org.knime.testing.node.dialog.DefaultNodeSettingsSnapshotTest;
 import org.knime.testing.node.dialog.SnapshotTestConfiguration;
-import org.mockito.MockedStatic;
+import org.mockito.MockedConstruction;
 import org.mockito.Mockito;
 
 /**
@@ -75,44 +75,30 @@ import org.mockito.Mockito;
 @SuppressWarnings("restriction")
 final class TableStructureValidatorNodeParametersTest extends DefaultNodeSettingsSnapshotTest {
 
-    TableStructureValidatorNodeParametersTest() {
-        super(getConfig());
-    }
-
-    MockedStatic<DataTypeRegistry> m_mockedStaticRegistry;
-
     private static final Set<DataType> DATA_TYPES =
         Set.of(StringCell.TYPE, LongCell.TYPE, IntCell.TYPE, DoubleCell.TYPE, BooleanCell.TYPE);
 
-    @BeforeEach
-    void setDataTypes() {
-        // need to mock the data type registry. Use the real one because
-        // it's got some important fields that are hard to mock.
-        var realRegistry = DataTypeRegistry.getInstance();
+    @SuppressWarnings("rawtypes")
+    private static MockedConstruction<DefaultProductionPathProvider> mockedProductionPathProvider;
 
-        // let's intercept the call to realRegistry.availableDataTypes...
-        var registrySpy = Mockito.spy(realRegistry);
+    @BeforeAll
+    static void setUpMocks() {
+        // Mock the DefaultProductionPathProvider to return our predefined DATA_TYPES
+        mockedProductionPathProvider = Mockito.mockConstruction(DefaultProductionPathProvider.class,
+            (mock, context) -> {
+                Mockito.when(mock.getAvailableDataTypes()).thenReturn(DATA_TYPES);
+            });
+    }
 
-        // ... and return our own set of data types. But it has side effects so call real method first
-        Mockito.when(registrySpy.availableDataTypes()).thenAnswer(i -> {
-            i.callRealMethod();
-            return DATA_TYPES;
-        });
-
-        m_mockedStaticRegistry = Mockito.mockStatic(DataTypeRegistry.class, Mockito.CALLS_REAL_METHODS);
-        m_mockedStaticRegistry.when(DataTypeRegistry::getInstance).thenReturn(registrySpy);
-
-        // just quickly check that the mocking has worked
-        var mockCallResult = DataTypeRegistry.getInstance().availableDataTypes();
-        if (mockCallResult.size() != DATA_TYPES.size()) {
-            throw new IllegalStateException("Mocking of DataTypeRegistry failed: expected " + DATA_TYPES + " but got "
-                + mockCallResult + " (lengths: " + DATA_TYPES.size() + " vs " + mockCallResult.size() + ")");
+    @AfterAll
+    static void tearDownMocks() {
+        if (mockedProductionPathProvider != null) {
+            mockedProductionPathProvider.close();
         }
     }
 
-    @AfterEach
-    void resetDataTypes() {
-        m_mockedStaticRegistry.close();
+    TableStructureValidatorNodeParametersTest() {
+        super(getConfig());
     }
 
     private static SnapshotTestConfiguration getConfig() {
