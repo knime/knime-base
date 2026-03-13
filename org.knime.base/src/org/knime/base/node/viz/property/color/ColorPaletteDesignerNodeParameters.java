@@ -49,12 +49,15 @@
 package org.knime.base.node.viz.property.color;
 
 import java.awt.Color;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ColorPreview;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ColorPreview.Palette;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
@@ -84,7 +87,8 @@ import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
  *
  * @author Robin Gerling, KNIME GmbH, Konstanz, Germany
  */
-class ColorPaletteDesignerNodeParameters implements NodeParameters {
+@SuppressWarnings("restriction")
+final class ColorPaletteDesignerNodeParameters implements NodeParameters {
 
     public ColorPaletteDesignerNodeParameters() {
         // default constructor
@@ -136,6 +140,10 @@ class ColorPaletteDesignerNodeParameters implements NodeParameters {
     @Layout(ValuesSection.class)
     ColumnFilter m_columnFilter = new ColumnFilter();
 
+    @ColorPreview(ColorPreviewProvider.class)
+    @Layout(ColorPaletteSection.class)
+    Void m_colorPreview;
+
     @Widget(title = "Base palette",
         description = "Colors are assigned from this palette in the order listed. If the number of values exceeds the"
             + " number of colors, the palette is repeated.")
@@ -180,6 +188,30 @@ class ColorPaletteDesignerNodeParameters implements NodeParameters {
     }
 
     private static final class CustomPaletteReference implements ParameterReference<CustomColor[]> {
+    }
+
+    private static final class ColorPreviewProvider implements StateProvider<ColorPreview.Palette> {
+
+        private Supplier<ColorPaletteOption> m_basePalette;
+
+        private Supplier<CustomColor[]> m_customPalette;
+
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            initializer.computeBeforeOpenDialog();
+            m_basePalette = initializer.computeFromValueSupplier(BasePaletteReference.class);
+            m_customPalette = initializer.computeFromValueSupplier(CustomPaletteReference.class);
+        }
+
+        @Override
+        public Palette computeState(final NodeParametersInput parametersInput) throws StateComputationFailureException {
+            final var basePalette = m_basePalette.get();
+            final var colors = basePalette == ColorPaletteOption.CUSTOM //
+                ? Arrays.stream(m_customPalette.get()).map(customColor -> customColor.m_color).toArray(Color[]::new)
+                : basePalette.getPaletteAsColor();
+            return new Palette(colors);
+        }
+
     }
 
     private static final class HasTablePort implements EffectPredicateProvider {

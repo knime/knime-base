@@ -22,10 +22,12 @@
       "valueScale" : "PERCENTAGE",
       "customGradient" : [ {
         "stopValue" : 0.0,
-        "color" : "#FF0000"
+        "color" : "#FF0000",
+        "idString" : "3a374be2-5488-3849-b61f-112a9bfc20dc"
       }, {
         "stopValue" : 100.0,
-        "color" : "#0000FF"
+        "color" : "#0000FF",
+        "idString" : "76fbe65c-a2b2-3108-9505-5f2e9bbd024d"
       } ],
       "missingValueColor" : "#D30D52",
       "nanColor" : "#77563C",
@@ -52,6 +54,9 @@
             "title" : "Bottom out-of-bounds color",
             "description" : "Define the color assigned to values below the defined gradient range.",
             "default" : "#FF9632"
+          },
+          "colorPreview" : {
+            "type" : "object"
           },
           "columnFilter" : {
             "type" : "object",
@@ -174,6 +179,10 @@
                   "description" : "The color to apply at the specified stop.",
                   "default" : "#000000"
                 },
+                "idString" : {
+                  "type" : "string",
+                  "default" : "372d64db-a7d6-3084-a850-8bbdc21fe0b5"
+                },
                 "stopValue" : {
                   "type" : "number",
                   "format" : "double",
@@ -187,10 +196,12 @@
             "description" : "Define your own gradient using one or more color stops. Each stop consists of a value and a color.",
             "default" : [ {
               "stopValue" : 0.0,
-              "color" : "#FF0000"
+              "color" : "#FF0000",
+              "idString" : "3a374be2-5488-3849-b61f-112a9bfc20dc"
             }, {
               "stopValue" : 100.0,
-              "color" : "#0000FF"
+              "color" : "#0000FF",
+              "idString" : "76fbe65c-a2b2-3108-9505-5f2e9bbd024d"
             } ]
           },
           "gradient" : {
@@ -312,6 +323,13 @@
       "type" : "Section",
       "elements" : [ {
         "type" : "Control",
+        "id" : "#/properties/model/properties/colorPreview",
+        "options" : {
+          "format" : "colorPreview"
+        },
+        "providedOptions" : [ "color" ]
+      }, {
+        "type" : "Control",
         "scope" : "#/properties/model/properties/gradient"
       }, {
         "type" : "Control",
@@ -352,6 +370,7 @@
           "elementLayout" : "HORIZONTAL_SINGLE_LINE",
           "showSortButtons" : true
         },
+        "providedOptions" : [ "elementDefaultValue" ],
         "rule" : {
           "effect" : "SHOW",
           "condition" : {
@@ -443,6 +462,7 @@
               }
             }
           },
+          "colorPreview" : { },
           "gradient" : { },
           "valueScale" : { },
           "customGradient" : {
@@ -451,7 +471,10 @@
               "type" : "object",
               "properties" : {
                 "stopValue" : { },
-                "color" : { }
+                "color" : { },
+                "idString" : {
+                  "configPaths" : [ ]
+                }
               }
             }
           },
@@ -510,7 +533,7 @@
     "scope" : "#/properties/model/properties/customGradient/items/properties/stopValue",
     "providedOptionName" : "validation.min",
     "values" : [ {
-      "indices" : [ ],
+      "indices" : [ 0 ],
       "value" : {
         "parameters" : {
           "min" : 0.0,
@@ -518,17 +541,52 @@
         },
         "errorMessage" : "The value must be at least 0."
       }
+    }, {
+      "indices" : [ 1 ],
+      "value" : {
+        "parameters" : {
+          "min" : 0.0,
+          "isExclusive" : true
+        },
+        "errorMessage" : "The value must be greater than 0."
+      }
+    } ]
+  }, {
+    "scope" : "#/properties/model/properties/customGradient",
+    "providedOptionName" : "elementDefaultValue",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : {
+        "stopValue" : 200.0,
+        "color" : "#000000",
+        "idString" : "ab5a113b-4959-3ceb-9b0e-ed308efc0234"
+      }
+    } ]
+  }, {
+    "id" : "#/properties/model/properties/colorPreview",
+    "providedOptionName" : "color",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : {
+        "colors" : [ "#FF0000", "#0000FF" ],
+        "stops" : [ 0.0, 100.0 ]
+      }
     } ]
   } ],
   "globalUpdates" : [ {
     "trigger" : {
+      "scope" : "#/properties/model/properties/customGradient"
+    },
+    "dependencies" : [ "#/properties/model/properties/customGradient", "#/properties/model/properties/customGradient/items/properties/idString", "#/properties/model/properties/gradient", "#/properties/model/properties/valueScale" ]
+  }, {
+    "trigger" : {
       "scope" : "#/properties/model/properties/gradient"
     },
-    "dependencies" : [ "#/properties/model/properties/customGradient", "#/properties/model/properties/gradient" ]
+    "dependencies" : [ "#/properties/model/properties/customGradient", "#/properties/model/properties/gradient", "#/properties/model/properties/valueScale" ]
   }, {
     "trigger" : {
       "scope" : "#/properties/model/properties/valueScale"
     },
-    "dependencies" : [ "#/properties/model/properties/valueScale" ]
+    "dependencies" : [ "#/properties/model/properties/customGradient", "#/properties/model/properties/customGradient/items/properties/idString", "#/properties/model/properties/gradient", "#/properties/model/properties/valueScale" ]
   } ]
 }

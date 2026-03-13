@@ -68,8 +68,10 @@ import org.knime.core.node.NodeSettingsWO;
 /**
  * Dialog pane used to specify colors by minimum and maximum bounds.
  *
+ * @deprecated This class is deprecated.
  * @author Thomas Gabriel, University of Konstanz
  */
+@Deprecated
 public class ColorManager2DialogRange extends JPanel {
     private static class DataCellColorEntry {
         private final DataCell m_cell;

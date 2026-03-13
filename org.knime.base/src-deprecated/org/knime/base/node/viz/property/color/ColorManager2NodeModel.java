@@ -93,8 +93,10 @@ import org.knime.core.node.util.CheckUtils;
  *
  * @see ColorManager2NodeDialogPane
  *
+ * @deprecated This class is deprecated.
  * @author Thomas Gabriel, University of Konstanz
  */
+@Deprecated
 class ColorManager2NodeModel extends NodeModel {
 
     static final String COLUMNS_CONTAINED_IN_TABLE_IDENTIFIER = "<_COLUMNS-CONTAINED-IN-TABLE_>";

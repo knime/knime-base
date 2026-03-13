@@ -75,8 +75,10 @@ import org.knime.core.node.util.CheckUtils;
 /**
  * Node model to append color settings to a column selected in the dialog.
  *
+ * @deprecated This class is deprecated.
  * @author Thomas Gabriel, University of Konstanz
  */
+@Deprecated
 final class ColorAppender2NodeModel extends NodeModel {
 
     private final SettingsModelBoolean m_applyToColumnNamesModel = createApplyToColumnNamesModel();

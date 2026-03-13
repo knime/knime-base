@@ -102,6 +102,9 @@
             "description" : "Colors are assigned from this palette in the order listed. If the number of values exceeds the number of colors, the palette is repeated.\n<ul>\n<li><b>Custom</b>: Define a personalized color palette.</li>\n<li><b>Brewer Set 1 (9 colors)</b></li>\n<li><b>Brewer Set 2 (8 colors)</b></li>\n<li><b>Brewer Set 3 (12 colors)</b></li>\n<li><b>Brewer Pastel1 (9 colors)</b></li>\n<li><b>Brewer Pastel 2 (8 colors)</b></li>\n<li><b>Brewer Paired (12 colors)</b></li>\n<li><b>Brewer Accent (8 colors)</b></li>\n<li><b>Brewer Dark 2 (8 colors)</b></li>\n<li><b>Color Universal Design (7 colors)</b>: (colorblind safe)</li>\n</ul>",
             "default" : "BREWER_SET1_COLORS9"
           },
+          "colorPreview" : {
+            "type" : "object"
+          },
           "columnFilter" : {
             "type" : "object",
             "properties" : {
@@ -286,6 +289,13 @@
       "type" : "Section",
       "elements" : [ {
         "type" : "Control",
+        "id" : "#/properties/model/properties/colorPreview",
+        "options" : {
+          "format" : "colorPreview"
+        },
+        "providedOptions" : [ "color" ]
+      }, {
+        "type" : "Control",
         "scope" : "#/properties/model/properties/basePalette"
       }, {
         "type" : "Control",
@@ -385,6 +395,7 @@
               }
             }
           },
+          "colorPreview" : { },
           "basePalette" : { },
           "customPalette" : {
             "type" : "array",
@@ -431,10 +442,24 @@
         }
       } ]
     } ]
+  }, {
+    "id" : "#/properties/model/properties/colorPreview",
+    "providedOptionName" : "color",
+    "values" : [ {
+      "indices" : [ ],
+      "value" : {
+        "colors" : [ "#E41A1C", "#377EB8", "#4DAF4A", "#984EA3", "#FF7F00", "#FFFF33", "#A65628", "#F781BF", "#999999" ]
+      }
+    } ]
   } ],
   "globalUpdates" : [ {
     "trigger" : {
       "scope" : "#/properties/model/properties/basePalette"
+    },
+    "dependencies" : [ "#/properties/model/properties/basePalette", "#/properties/model/properties/customPalette" ]
+  }, {
+    "trigger" : {
+      "scope" : "#/properties/model/properties/customPalette"
     },
     "dependencies" : [ "#/properties/model/properties/basePalette", "#/properties/model/properties/customPalette" ]
   } ]

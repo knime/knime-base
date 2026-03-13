@@ -52,11 +52,13 @@ import org.knime.core.node.NodeDialogPane;
 /**
  * Factory to create <i>Color Appender</i> node.
  *
+ * @deprecated This class is deprecated.
  * @author Thomas Gabriel, University of Konstanz
  * @noreference This class is not intended to be referenced by clients.
  * @since 5.1
  */
 @SuppressWarnings("deprecation")
+@Deprecated
 public final class ColorAppender3NodeFactory extends ColorAppender2NodeFactory {
 
     @Override
