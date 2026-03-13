@@ -67,17 +67,17 @@ import org.knime.core.util.Pair;
  * @author Thorsten Meinl, University of Konstanz
  */
 public class FeatureSelectionFilterSettings {
-    private static final String SELECTED_FEATURES_KEY = "selectedFeatures";
+    static final String SELECTED_FEATURES_KEY = "selectedFeatures";
 
-    private static final String NR_OF_FEATURES_KEY = "nrOfFeatures";
+    static final String NR_OF_FEATURES_KEY = "nrOfFeatures";
 
-    private static final String INCLUDE_TARGET_KEY = "includeTargetColumn";
+    static final String INCLUDE_TARGET_KEY = "includeTargetColumn";
 
-    private static final String THRESHOLD_MODE_KEY = "thresholdMode";
+    static final String THRESHOLD_MODE_KEY = "thresholdMode";
 
-    private static final String ERROR_THRESHOLD_KEY = "errorThreshold";
+    static final String ERROR_THRESHOLD_KEY = "errorThreshold";
 
-    private static final String BEST_SCORE_MODE_KEY = "bestScoreMode";
+    static final String BEST_SCORE_MODE_KEY = "bestScoreMode";
 
     private int m_nrOfFeatures;
 
