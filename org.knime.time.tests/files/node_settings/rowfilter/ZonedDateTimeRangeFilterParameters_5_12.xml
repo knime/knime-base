@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="settings">
+    <entry key="startValue" type="xstring" value="2022-01-01T08:00:00+01:00[Europe/Berlin]"/>
+    <entry key="useExecutionTimeStart" type="xboolean" value="false"/>
+    <entry key="startInclusive" type="xboolean" value="true"/>
+    <entry key="endMode" type="xstring" value="DATE_TIME"/>
+    <entry key="endValue" type="xstring" value="2022-12-31T18:00:00+01:00[Europe/Berlin]"/>
+    <entry key="useExecutionTimeEnd" type="xboolean" value="false"/>
+    <entry key="durationValue" type="xstring" value="P0Y0M0W1D"/>
+    <entry key="numericalValue" type="xint" value="1"/>
+    <entry key="granularity" type="xstring" value="YEAR"/>
+    <entry key="endInclusive" type="xboolean" value="true"/>
+</config>

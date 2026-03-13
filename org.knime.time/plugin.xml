@@ -119,7 +119,7 @@
       <node
             after="org.knime.time.node.manipulate.datetimeshift.DateTimeShiftNodeFactory"
             category-path="/applications/timeseries/manipulate"
-            deprecated="false"
+            deprecated="true"
             factory-class="org.knime.time.node.filter.datetimebasedrowfilter.DateTimeBasedRowFilterNodeFactory">
       </node>
       <node

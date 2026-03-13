@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.knime.org/2008/09/XMLConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.knime.org/2008/09/XMLConfig http://www.knime.org/XMLConfig_2008_09.xsd" key="settings">
+    <entry key="startValue" type="xstring" value="08:00:00"/>
+    <entry key="useExecutionTimeStart" type="xboolean" value="false"/>
+    <entry key="startInclusive" type="xboolean" value="true"/>
+    <entry key="endMode" type="xstring" value="DATE_TIME"/>
+    <entry key="endValue" type="xstring" value="18:00:00"/>
+    <entry key="useExecutionTimeEnd" type="xboolean" value="false"/>
+    <entry key="durationValue" type="xstring" value="PT1H"/>
+    <entry key="numericalValue" type="xint" value="1"/>
+    <entry key="granularity" type="xstring" value="HOUR"/>
+    <entry key="endInclusive" type="xboolean" value="true"/>
+</config>
